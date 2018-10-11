@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static "scionlab/style.css" %}">
+    <link rel="stylesheet" href="{% static "scionlab/hover-caption.css" %}">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap@3.3.6/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+    <link rel="stylesheet" href="https://unpkg.com/adminlte@2.4.0/dist/css/AdminLTE.css">
+    <link rel="stylesheet" href="https://unpkg.com/lightbox2@2.10.0/dist/css/lightbox.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/font-awesome@4.5.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <main>
+      {% block content %}base.html{% endblock %}
+  </main>
+
+  <footer class="navbar navbar-fixed-bottom navbar-default">
+    <div class="container">
+      <div class="footer">
+        <p>&copy; SCIONLab 2018</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
