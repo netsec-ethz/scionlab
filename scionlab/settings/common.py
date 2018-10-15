@@ -23,6 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 INSTALLED_APPS = [
     'scionlab',
     'django_registration',  # used for two-step user account activation (Email verification)
+    'snowpenguin.django.recaptcha2'  # used for human verification (no bot)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
