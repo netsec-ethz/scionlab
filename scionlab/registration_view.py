@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .common import *
+from django.urls import reverse_lazy
 
-ALLOWED_HOSTS = [
-    # TODO
-]
+from django_registration.backends.activation.views import RegistrationView
 
-DATABASES = {
-    # TODO
-}
 
-# ##### MAILER CONFIGURATION ##############################
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+class UserRegistrationView(RegistrationView):
+    success_url = reverse_lazy('login_page')
+
+    def register(self, form):
+        print("Doing the user registration...")
+        super().register(form)
+        return

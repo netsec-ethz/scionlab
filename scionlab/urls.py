@@ -13,12 +13,21 @@
 # limitations under the License.
 
 from django.contrib import admin
-from django.urls import path, include
-from .views import PlaceholderView, PlaceholderUserView
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
+from django.urls import include, path, reverse_lazy
+
+from scionlab.ases_view import ASesView
+from scionlab.registration_view import UserRegistrationView
 
 urlpatterns = [
-    path('', PlaceholderView.as_view(), name='home'),
-    path('user/', PlaceholderUserView.as_view(), name='user'),
-    path('user/', include('django.contrib.auth.urls')),
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name="login_page"),
     path('admin/', admin.site.urls),
+    # django.contrib.auth built-in auth views for login, logout and password config
+    path('user/<username>/', include('django.contrib.auth.urls')),
+    # django-registration patterns
+    path('registration/', include('django_registration.backends.activation.urls')),
+    path('registration/', UserRegistrationView.as_view(template_name='django_registration/registration_form.html')),
+    # user pages
+    path('user/ASes/', login_required(ASesView.as_view(), login_url=reverse_lazy('login_page'))),
 ]

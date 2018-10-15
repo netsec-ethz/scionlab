@@ -12,15 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .common import *
+from django.views.generic import TemplateView
 
-ALLOWED_HOSTS = [
-    # TODO
-]
 
-DATABASES = {
-    # TODO
-}
-
-# ##### MAILER CONFIGURATION ##############################
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+class ASesView(TemplateView):
+    template_name = "scionlab/ASes_overview.html"
