@@ -10,8 +10,8 @@ Steps to start up the django webserver for development (very early testing).
 pip3 install virtualenv
 virtualenv /tmp/scionlab
 source /tmp/scionlab/bin/activate
-# install Django
-pip3 install Django django-extensions
+# install Python requirements (Django, libraries, etc.)
+pip3 install --no-binary :all: -r requirements.txt
 # initialise dev db
 python manage.py makemigrations scionlab
 python manage.py migrate
