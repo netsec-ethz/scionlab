@@ -8,13 +8,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # ##### APPLICATION CONFIGURATION #########################
 
 INSTALLED_APPS = [
+    'scionlab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'scionlab'
 ]
 
 MIDDLEWARE = [
@@ -56,6 +56,8 @@ SECRET_FILE = os.path.join(BASE_DIR, 'run', 'SECRET.key')
 # the URL for static files
 STATIC_URL = '/static/'
 
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'user'
 
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []
