@@ -16,17 +16,14 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import User
 
-def _max_choice_len(choices):
-    """
-        Return the max length of the choices in
-        a list of (choice,description)-tuples.
-    """
-    return max(len(choice) for (choice, desc) in choices)
-
+_MAX_LEN_DEFAULT = 255
+""" Max length value for fields without specific requirments to max length """
+_MAX_LEN_CHOICES_DEFAULT = 16
+""" Max length value for choices fields without specific requirments to max length """
 
 class ISD(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
-    label = models.CharField(max_length=100, null=True, blank=True)
+    label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     
     class Meta:
         verbose_name = 'ISD'
@@ -38,8 +35,9 @@ class AS(models.Model):
         related_name='ases',
         on_delete=models.CASCADE
     )
+
     as_id = models.CharField(max_length=15, primary_key=True)
-    label = models.CharField(max_length=100, null=True, blank=True)
+    label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     owner = models.ForeignKey(
         User,
@@ -54,13 +52,13 @@ class AS(models.Model):
     #)
 
     is_core = models.BooleanField(default=False)
-    #commit_hash = models.CharField(max_length=100, default='')
+    #commit_hash = models.CharField(max_length=_MAX_LEN_DEFAULT, default='')
 # TBD: use separate CoreAS table instead (using "multi-table inheritance")
-    sig_pub_key = models.CharField(max_length=100, null=True, blank=True)
-    sig_priv_key = models.CharField(max_length=100, null=True, blank=True)
-    enc_pub_key = models.CharField(max_length=100, null=True, blank=True)
-    enc_priv_key = models.CharField(max_length=100, null=True, blank=True)
-    master_as_key = models.CharField(max_length=100, null=True, blank=True)
+    sig_pub_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+    sig_priv_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+    enc_pub_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+    enc_priv_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+    master_as_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     certificate = models.TextField(null=True, blank=True)
     trc = models.TextField(null=True, blank=True)
     #keys = jsonfield.JSONField(default=empty_dict)
@@ -95,12 +93,12 @@ class ManagedHost(Host):
 
     public_ip = models.GenericIPAddressField()
     ssh_port = models.PositiveSmallIntegerField(default=22)
-    container_name = models.CharField(max_length=100, null=True)
+    container_name = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     type = models.CharField(
         choices=HOST_TYPES,
-        max_length=_max_choice_len(HOST_TYPES)
+        max_length=_MAX_LEN_CHOICES_DEFAULT
     )
-    label = models.CharField(max_length=100, null=True, blank=True)
+    label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     config_version_deployed = models.PositiveIntegerField()
 
@@ -110,11 +108,11 @@ class Interface(models.Model):
         related_name='interfaces',
         on_delete=models.PROTECT # don't delete hosts with services configured
     )
-    port = models.PositiveSmallIntegerField(null=True)
+    port = models.PositiveSmallIntegerField(null=True, blank=True)
     public_ip = models.GenericIPAddressField()
     public_port = models.PositiveSmallIntegerField()
-    bind_ip = models.GenericIPAddressField(null=True)
-    bind_port = models.PositiveSmallIntegerField(null=True)
+    bind_ip = models.GenericIPAddressField(null=True, blank=True)
+    bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
 
 class Link(models.Model):
     LINK_TYPES = (
@@ -134,7 +132,7 @@ class Link(models.Model):
     )
     link_type = models.CharField(
         choices=LINK_TYPES,
-        max_length=_max_choice_len(LINK_TYPES)
+        max_length=_MAX_LEN_CHOICES_DEFAULT
     )
 
 class Service(models.Model):
@@ -156,10 +154,10 @@ class Service(models.Model):
         related_name='services',
         on_delete=models.CASCADE
     )
-    port = models.PositiveSmallIntegerField(null=True)
+    port = models.PositiveSmallIntegerField(null=True, blank=True)
     type = models.CharField(
         choices=SERVICE_TYPES,
-        max_length=_max_choice_len(SERVICE_TYPES)
+        max_length=_MAX_LEN_CHOICES_DEFAULT
     )
 
 class VPN(models.Model):
