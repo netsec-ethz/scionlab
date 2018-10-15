@@ -75,6 +75,38 @@ LOGIN_REDIRECT_URL = 'user'
 ACCOUNT_ACTIVATION_DAYS = 14  # Allow a two-week time window for account activation after signup
 REGISTRATION_OPEN = True  # Accept new registrations
 
+# ##### DEFAULT SETTINGS CONFIGURATION ####################
+MAX_ASES_ADMIN = 10
+MAX_ASES_USER = 5
+GRAFANA_URL = "https://prometheus.scionlab.org"
+IOT_IMAGES = [
+    {
+        "name": "ubuntu-odroid-xu4",
+        "display_name": "Odroid XU4 Ubuntu minimal image",
+        "description": "Short description",
+        "version": "1.0"
+    },
+    {"name": "rpi-2-ubuntu",
+     "display_name": "Raspberry PI 2 Ubuntu",
+     "description": "Short description.",
+     "version": "1.0"
+     },
+    {"name": "rpi-3-ubuntu",
+     "display_name": "Raspberry PI 3 Ubuntu",
+     "description": "Short description...",
+     "version": "1.0"
+     },
+    {"name": "rpi-mate",
+     "display_name": "Raspberry PI Ubuntu MATE",
+     "description": "Short description.",
+     "version": "1.0"
+     },
+    {"name": "odroid-xu4-mate",
+     "display_name": "Odroid XU4 Ubuntu MATE",
+     "description": "Short description",
+     "version": "1.0"}
+]
+
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []
 DEBUG = False
