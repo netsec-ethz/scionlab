@@ -1,0 +1,20 @@
+{% extends 'scionlab/base.html' %}
+{% load static %}
+
+{% block title %}SCIONLab Coordination Service{% endblock %}
+
+{% block content %}
+  <h3 class="text-muted">SCIONLab Coordination Service</h3>
+  <div class="row">
+    <div class="col-lg-3 col-lg-offset-4 text-center">
+      <h2>Login</h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+      </form>
+
+      <img class="img-responsive center-block" src="{% static "scionlab/images/topology_no_labels.gv.png" %}"/>
+    </div>
+  </div>
+{% endblock %}
