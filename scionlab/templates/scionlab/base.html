@@ -1,4 +1,5 @@
 {% load static %}
+{% load recaptcha2 %}
 <!DOCTYPE html>
 <html lang="en" class="no-js">
 
@@ -12,6 +13,7 @@
     <link rel="stylesheet" href="https://unpkg.com/adminlte@2.4.0/dist/css/AdminLTE.css">
     <link rel="stylesheet" href="https://unpkg.com/lightbox2@2.10.0/dist/css/lightbox.min.css">
     <link rel="stylesheet" href="https://unpkg.com/font-awesome@4.5.0/css/font-awesome.min.css">
+    {% recaptcha_explicit_support %}
 </head>
 
 <body>

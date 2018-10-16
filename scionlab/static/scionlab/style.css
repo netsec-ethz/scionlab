@@ -15,3 +15,7 @@ input.ng-dirty.ng-invalid{
 td {
   vertical-align:top;
 }
+
+#recaptcha-id {
+  padding-left: 100px;
+}

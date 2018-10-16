@@ -20,9 +20,10 @@ from django.urls import include, path, reverse_lazy
 
 from scionlab.ases_view import ASesView
 from scionlab.registration_view import UserRegistrationView
+from scionlab.login_form import FormWithCaptcha
 
 urlpatterns = [
-    path('', auth_views.LoginView.as_view(template_name='scionlab/login.html'), name="login_page"),
+    path('', auth_views.LoginView.as_view(form_class=FormWithCaptcha, template_name='scionlab/login.html'), name="login_page"),
     path('admin/', admin.site.urls),
     # django.contrib.auth built-in auth views for login, logout and password config
     path('user/<username>/', include('django.contrib.auth.urls')),
