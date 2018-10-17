@@ -1,7 +1,7 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Login{% endblock title%}
 
 {% block content %}
 <form method="post"> {% csrf_token %}
@@ -10,4 +10,4 @@
 </form>
 
 <img class="img-responsive" src="{% static "scionlab/images/topology_no_labels.gv.png" %}"/>
-{% endblock %}
+{% endblock content %}
