@@ -24,7 +24,7 @@ _MAX_LEN_CHOICES_DEFAULT = 16
 class ISD(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    
+
     class Meta:
         verbose_name = 'ISD'
         verbose_name_plural = 'ISDs'
@@ -63,7 +63,7 @@ class AS(models.Model):
     trc = models.TextField(null=True, blank=True)
     #keys = jsonfield.JSONField(default=empty_dict)
     #core_keys = jsonfield.JSONField(default=empty_dict)
-   
+
     allow_user_as_links = models.BooleanField(default=True)
     """ This is true for attachment point ASes """
 
@@ -72,7 +72,7 @@ class AS(models.Model):
         verbose_name_plural = 'ASes'
 
 class Host(models.Model):
-    """ 
+    """
     A host is a machine/vm/container running services for one AS.
     """
     config_version = models.PositiveIntegerField()
@@ -148,7 +148,7 @@ class Service(models.Model):
         ('BW','Bandwidth tester server'),
         ('PP','Pingpong server'),
     )
-       
+
     host = models.ForeignKey(
         Host,
         related_name='services',
