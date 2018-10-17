@@ -12,19 +12,22 @@
     <link rel="stylesheet" href="https://unpkg.com/adminlte@2.4.0/dist/css/AdminLTE.css">
     <link rel="stylesheet" href="https://unpkg.com/lightbox2@2.10.0/dist/css/lightbox.min.css">
     <link rel="stylesheet" href="https://unpkg.com/font-awesome@4.5.0/css/font-awesome.min.css">
-    <title>SCIONLab Coordination Service</title>
+    <title>{% block title %}SCIONLab{% endblock title %}</title>
 </head>
 
 <body>
-  <header>
-    <div class="container">
-      <h1 class="text-muted">SCIONLab Coordination Service</h1>
-      <h2 class="text-muted">{% block title %}{% endblock title %}</h2>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/">SCIONLab Coordination Service</a>
+      </div>
     </div>
-  </header>
+  </nav>
 
   <main>
     <div class="container">
+      <h1>{% block content_title %}{% endblock content_title %}</h1>
+      </br>
       {% block content %}base.html{% endblock content %}
     </div>
   </main>

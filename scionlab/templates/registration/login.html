@@ -1,7 +1,8 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
 
-{% block title %}Login{% endblock title%}
+{% block title %}{{ block.super }} - Login{% endblock title%}
+{% block content_title %}Login{% endblock content_title%}
 
 {% block content %}
 <form method="post"> {% csrf_token %}
