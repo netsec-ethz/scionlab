@@ -44,7 +44,11 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            python manage.py test
+            mkdir -p test-reports/django/
+            python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
+
+      - store_test_results:
+          path: test-reports
 
       - store_artifacts:
           path: test-reports
