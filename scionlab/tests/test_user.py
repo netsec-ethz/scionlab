@@ -17,6 +17,7 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 from scionlab.models import User
+from django_webtest import WebTest
 
 _TESTUSER_EMAIL = 'scion@example.com'
 _TESTUSER_PWD = 'scionR0CK5'
@@ -81,7 +82,7 @@ class LoginRequiredRedirectTests(TestCase):
         )
 
 
-class PasswordTests(TestCase):
+class PasswordWebTests(WebTest):
     def setUp(self):
         _create_test_user()
 
@@ -89,7 +90,9 @@ class PasswordTests(TestCase):
         """
         Reset the password
         """
-        self.client.post(reverse('password_reset'), {'email': _TESTUSER_EMAIL})
+        reset_init_form = self.app.get(reverse('password_reset')).form
+        reset_init_form['email'] = _TESTUSER_EMAIL
+        reset_init_form.submit()
 
         self.assertEqual(len(mail.outbox), 1)
         reset_mail = mail.outbox[0]
@@ -99,16 +102,15 @@ class PasswordTests(TestCase):
         self.assertEqual(len(links), 1)
         reset_link = links[0]
 
-        reset_link_response = self.client.get(reset_link, follow=True)
-        set_pwd_url = reset_link_response.redirect_chain[-1][0]
+        new_password = 'scionscion'
+        pwd_form = self.app.get(reset_link).follow().form
+        pwd_form['new_password1'] = pwd_form['new_password2'] = new_password
+        pwd_changed = pwd_form.submit().follow()
 
-        new_password = 'scion1337'
-        post_response = self.client.post(
-            set_pwd_url,
-            {'new_password1': new_password, 'new_password2': new_password}
-        )
-        self.assertEqual(post_response.status_code, 302)
+        login_form = pwd_changed.click(linkid='id_login').form
+        login_form['username'] = _TESTUSER_EMAIL
+        login_form['password'] = new_password
+        response = login_form.submit()
+        self.assertEqual(response.status_int, 302)
 
-        # now we should be able to log in:
-        login_success = self.client.login(username=_TESTUSER_EMAIL, password=new_password)
-        self.assertTrue(login_success)
+
