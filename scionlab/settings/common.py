@@ -65,7 +65,7 @@ TEMPLATES = [
 STATIC_URL = '/static/'
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = '/user/ASes/'
+LOGIN_REDIRECT_URL = 'user'
 
 # ##### EXTENSIONS CONFIGURATION ##########################
 
