@@ -1,0 +1,14 @@
+{% extends 'scionlab/base.html' %}
+{% load static %}
+
+{% block title %}{{ block.super }} - Login{% endblock title%}
+{% block content_title %}Login{% endblock content_title%}
+
+{% block content %}
+<form method="post"> {% csrf_token %}
+  <table> {{ form.as_table }} </table>
+  <button type="submit" class="btn btn-primary">Login</button>
+</form>
+
+<img class="img-responsive" src="{% static "scionlab/images/topology_no_labels.gv.png" %}"/>
+{% endblock content %}

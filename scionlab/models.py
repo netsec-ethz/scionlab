@@ -21,13 +21,15 @@ _MAX_LEN_DEFAULT = 255
 _MAX_LEN_CHOICES_DEFAULT = 16
 """ Max length value for choices fields without specific requirments to max length """
 
+
 class ISD(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    
+
     class Meta:
         verbose_name = 'ISD'
         verbose_name_plural = 'ISDs'
+
 
 class AS(models.Model):
     isd = models.ForeignKey(
@@ -63,7 +65,7 @@ class AS(models.Model):
     trc = models.TextField(null=True, blank=True)
     #keys = jsonfield.JSONField(default=empty_dict)
     #core_keys = jsonfield.JSONField(default=empty_dict)
-   
+
     allow_user_as_links = models.BooleanField(default=True)
     """ This is true for attachment point ASes """
 
@@ -71,8 +73,9 @@ class AS(models.Model):
         verbose_name = 'AS'
         verbose_name_plural = 'ASes'
 
+
 class Host(models.Model):
-    """ 
+    """
     A host is a machine/vm/container running services for one AS.
     """
     config_version = models.PositiveIntegerField()
@@ -83,6 +86,7 @@ class Host(models.Model):
     )
     ip = models.GenericIPAddressField()
     """ IP of the host IN the AS """
+
 
 class ManagedHost(Host):
     HOST_TYPES = (
@@ -102,6 +106,7 @@ class ManagedHost(Host):
 
     config_version_deployed = models.PositiveIntegerField()
 
+
 class Interface(models.Model):
     host = models.ForeignKey(
         Host,
@@ -113,6 +118,7 @@ class Interface(models.Model):
     public_port = models.PositiveSmallIntegerField()
     bind_ip = models.GenericIPAddressField(null=True, blank=True)
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
+
 
 class Link(models.Model):
     LINK_TYPES = (
@@ -135,6 +141,7 @@ class Link(models.Model):
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
 
+
 class Service(models.Model):
     """
         A SCION service, both for the control plane services (beacon, path, ...)
@@ -148,7 +155,7 @@ class Service(models.Model):
         ('BW','Bandwidth tester server'),
         ('PP','Pingpong server'),
     )
-       
+
     host = models.ForeignKey(
         Host,
         related_name='services',
@@ -160,6 +167,7 @@ class Service(models.Model):
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
 
+
 class VPN(models.Model):
     server = models.ForeignKey(
         ManagedHost,
@@ -169,6 +177,7 @@ class VPN(models.Model):
     server_port = models.PositiveSmallIntegerField()
     subnet = models.CharField(max_length=15)
     keys = models.TextField(null=True, blank=True)
+
 
 class VPNClient(models.Model):
     vpn = models.ForeignKey(

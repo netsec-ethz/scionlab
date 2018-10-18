@@ -1,6 +1,19 @@
+# Copyright 2018 ETH Zurich
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Python imports
 import os
-
 
 # ##### PATH CONFIGURATION ################################
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -8,13 +21,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # ##### APPLICATION CONFIGURATION #########################
 
 INSTALLED_APPS = [
+    'scionlab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'scionlab'
 ]
 
 MIDDLEWARE = [
@@ -56,6 +69,8 @@ SECRET_FILE = os.path.join(BASE_DIR, 'run', 'SECRET.key')
 # the URL for static files
 STATIC_URL = '/static/'
 
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'user'
 
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []
