@@ -30,7 +30,12 @@ DATABASES = {
 }
 
 # ##### APPLICATION CONFIGURATION #########################
-INSTALLED_APPS += ['django_extensions'] # used for graph_models command during develop
+INSTALLED_APPS += [
+    'django_extensions',  # used for graph_models command during develop
+    'django_nose',
+]
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # ##### MAILER CONFIGURATION ##############################
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
