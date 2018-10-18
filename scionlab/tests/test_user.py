@@ -1,0 +1,114 @@
+# Copyright 2018 ETH Zurich
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import re
+from django.core import mail
+from django.test import TestCase
+from django.urls import reverse
+from scionlab.models import User
+
+_TESTUSER_EMAIL = 'scion@example.com'
+_TESTUSER_PWD = 'scionR0CK5'
+
+
+def _create_test_user():
+    return User.objects.create_user(
+        username=_TESTUSER_EMAIL,
+        email=_TESTUSER_EMAIL,
+        password=_TESTUSER_PWD
+    )
+
+
+class LoginRequiredRedirectTests(TestCase):
+    def setUp(self):
+        _create_test_user()
+
+    def test_not_logged_in(self):
+        """
+        A view with required login redirects to the login page if the user is
+        not logged in.
+        """
+        requested_url = reverse('user')
+
+        response = self.client.get(requested_url, follow=True)
+        self.assertEqual(len(response.redirect_chain), 1)
+        redirected_url = response.redirect_chain[0][0]
+
+        expected_url = '%s?next=%s' % (reverse('login'), requested_url)
+        self.assertEqual(redirected_url, expected_url)
+
+        self.assertTemplateUsed(
+            response,
+            'registration/login.html',
+            "Expected login template."
+        )
+
+        # Attempt log in:
+        response = self.client.post(
+            redirected_url,
+            {'username': _TESTUSER_EMAIL, 'password': _TESTUSER_PWD},
+            follow=True
+        )
+        # Now we should land on the originally requested page
+        self.assertEqual(len(response.redirect_chain), 1)
+        self.assertEqual(response.redirect_chain[0][0], requested_url)
+
+    def test_logged_in(self):
+        """
+        A view with required login is accessible if the user is logged in.
+        """
+        login_success = self.client.login(username=_TESTUSER_EMAIL, password=_TESTUSER_PWD)
+        self.assertTrue(login_success)
+
+        response = self.client.get(reverse('user'))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateNotUsed(
+            response,
+            'registration/login.html',
+            "Expected no login template."
+        )
+
+
+class PasswordTests(TestCase):
+    def setUp(self):
+        _create_test_user()
+
+    def test_reset_pwd(self):
+        """
+        Reset the password
+        """
+        self.client.post(reverse('password_reset'), {'email': _TESTUSER_EMAIL})
+
+        self.assertEqual(len(mail.outbox), 1)
+        reset_mail = mail.outbox[0]
+        self.assertEqual(reset_mail.recipients(), [_TESTUSER_EMAIL])
+        reset_mail_message = reset_mail.message().as_string()
+        links = re.findall('http://testserver(/\S*)', reset_mail_message, re.MULTILINE)
+        self.assertEqual(len(links), 1)
+        reset_link = links[0]
+
+        reset_link_response = self.client.get(reset_link, follow=True)
+        set_pwd_url = reset_link_response.redirect_chain[-1][0]
+
+        new_password = 'scion1337'
+        post_response = self.client.post(
+            set_pwd_url,
+            {'new_password1': new_password, 'new_password2': new_password}
+        )
+        self.assertEqual(post_response.status_code, 302)
+
+        # now we should be able to log in:
+        login_success = self.client.login(username=_TESTUSER_EMAIL, password=new_password)
+        self.assertTrue(login_success)
