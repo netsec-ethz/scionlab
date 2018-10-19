@@ -17,7 +17,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path, reverse_lazy
 
-from scionlab.forms.login_form import FormWithCaptcha
+from scionlab.forms.login_form import AuthenticationFormWithCaptcha
 from scionlab.views.registration_view import UserRegistrationView
 from scionlab.views.ases_view import ASesView
 from scionlab.views.placehoder_view import PlaceholderView, PlaceholderUserView
@@ -30,7 +30,7 @@ urlpatterns = [
 
     # Authentication
     path('user/login/',
-         auth_views.LoginView.as_view(form_class=FormWithCaptcha, template_name='registration/login.html'),
+         auth_views.LoginView.as_view(form_class=AuthenticationFormWithCaptcha, template_name='registration/login.html'),
          name='login'),
     # django.contrib.auth: auth views for logout, password reset/change
     path('user/', include('django.contrib.auth.urls')),

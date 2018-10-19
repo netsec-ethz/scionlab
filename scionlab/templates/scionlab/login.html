@@ -2,6 +2,7 @@
 {% load static %}
 {% load recaptcha2 %}
 
+{% block meta %}{% recaptcha_explicit_support %}{% endblock %}
 {% block title %}SCIONLab Coordination Service{% endblock %}
 
 {% block content %}
@@ -22,4 +23,4 @@
     </div>
   </div>
   {% recaptcha_explicit_init 'en' %}
-{% endblock %}
+{% endblock content %}
