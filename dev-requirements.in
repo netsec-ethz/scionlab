@@ -3,3 +3,4 @@ django-webtest
 django-nose
 flake8
 flake8-junit-report
+pyyaml  # for test fixtures

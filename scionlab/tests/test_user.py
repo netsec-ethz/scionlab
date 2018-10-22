@@ -16,24 +16,14 @@ import re
 from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
-from scionlab.models import User
 from django_webtest import WebTest
 
 _TESTUSER_EMAIL = 'scion@example.com'
-_TESTUSER_PWD = 'scionR0CK5'
-
-
-def _create_test_user():
-    return User.objects.create_user(
-        username=_TESTUSER_EMAIL,
-        email=_TESTUSER_EMAIL,
-        password=_TESTUSER_PWD
-    )
+_TESTUSER_PWD = 'scion'
 
 
 class LoginRequiredRedirectTests(TestCase):
-    def setUp(self):
-        _create_test_user()
+    fixtures = ['testuser']
 
     def test_not_logged_in(self):
         """
@@ -83,8 +73,7 @@ class LoginRequiredRedirectTests(TestCase):
 
 
 class PasswordWebTests(WebTest):
-    def setUp(self):
-        _create_test_user()
+    fixtures = ['testuser']
 
     def test_reset_pwd(self):
         """
