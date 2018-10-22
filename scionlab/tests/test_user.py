@@ -112,5 +112,3 @@ class PasswordWebTests(WebTest):
         login_form['password'] = new_password
         response = login_form.submit()
         self.assertEqual(response.status_int, 302)
-
-

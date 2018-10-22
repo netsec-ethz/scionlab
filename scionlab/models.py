@@ -14,7 +14,6 @@
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.auth.models import User
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirments to max length """
@@ -45,17 +44,17 @@ class AS(models.Model):
         User,
         on_delete=models.CASCADE
     )
-    #subnet = models.CharField(max_length=15) # AS internal subnet
-    #vpn = models.ForeignKey(                 # AS internal VPN
-    #    'VPN',
-    #    null=True,
-    #    related_name='ases',
-    #    on_delete=models.SET_NULL
-    #)
+    # subnet = models.CharField(max_length=15) # AS internal subnet
+    # vpn = models.ForeignKey(                 # AS internal VPN
+    #     'VPN',
+    #     null=True,
+    #     related_name='ases',
+    #     on_delete=models.SET_NULL
+    # )
 
     is_core = models.BooleanField(default=False)
-    #commit_hash = models.CharField(max_length=_MAX_LEN_DEFAULT, default='')
-# TBD: use separate CoreAS table instead (using "multi-table inheritance")
+    # commit_hash = models.CharField(max_length=_MAX_LEN_DEFAULT, default='')
+    # TBD: use separate CoreAS table instead (using "multi-table inheritance")
     sig_pub_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     sig_priv_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     enc_pub_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
@@ -63,8 +62,8 @@ class AS(models.Model):
     master_as_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     certificate = models.TextField(null=True, blank=True)
     trc = models.TextField(null=True, blank=True)
-    #keys = jsonfield.JSONField(default=empty_dict)
-    #core_keys = jsonfield.JSONField(default=empty_dict)
+    # keys = jsonfield.JSONField(default=empty_dict)
+    # core_keys = jsonfield.JSONField(default=empty_dict)
 
     allow_user_as_links = models.BooleanField(default=True)
     """ This is true for attachment point ASes """
@@ -111,7 +110,7 @@ class Interface(models.Model):
     host = models.ForeignKey(
         Host,
         related_name='interfaces',
-        on_delete=models.PROTECT # don't delete hosts with services configured
+        on_delete=models.PROTECT    # don't delete hosts with services configured
     )
     port = models.PositiveSmallIntegerField(null=True, blank=True)
     public_ip = models.GenericIPAddressField()
@@ -148,12 +147,12 @@ class Service(models.Model):
         and for any other service that communicates using SCION.
     """
     SERVICE_TYPES = (
-        ('BS','Beacon Server'),
-        ('PS','Path Server'),
-        ('CS','Certificate Server'),
-        ('ZK','Zookeeper (service discovery)'),
-        ('BW','Bandwidth tester server'),
-        ('PP','Pingpong server'),
+        ('BS', 'Beacon Server'),
+        ('PS', 'Path Server'),
+        ('CS', 'Certificate Server'),
+        ('ZK', 'Zookeeper (service discovery)'),
+        ('BW', 'Bandwidth tester server'),
+        ('PP', 'Pingpong server'),
     )
 
     host = models.ForeignKey(
@@ -191,4 +190,3 @@ class VPNClient(models.Model):
         on_delete=models.CASCADE
     )
     keys = models.TextField(null=True, blank=True)
-

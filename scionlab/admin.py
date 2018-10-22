@@ -13,7 +13,17 @@
 # limitations under the License.
 
 from django.contrib import admin
-from .models import *
+from .models import (
+    ISD,
+    AS,
+    Host,
+    ManagedHost,
+    Interface,
+    Link,
+    Service,
+    VPN,
+    VPNClient,
+)
 
 admin.site.register([
     ISD,
