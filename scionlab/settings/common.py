@@ -65,6 +65,7 @@ TEMPLATES = [
 # the URL for static files
 STATIC_URL = '/static/'
 
+# ##### AUTH CONFIGURATION ################################
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'user'
 
