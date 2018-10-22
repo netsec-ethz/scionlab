@@ -2,5 +2,5 @@
 django-webtest
 django-nose
 flake8
-flake8-junit-report
+flake8-formatter-junit-xml
 pyyaml  # for test fixtures

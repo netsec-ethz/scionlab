@@ -39,15 +39,6 @@ jobs:
             - /tmp/venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
-      # run flake8
-      - run:
-          name: run flake8 style checker
-          command: |
-            . /tmp/venv/bin/activate
-            mkdir -p test-reports/flake8/
-            flake8 --exit-zero --config=flake8.ini --output-file=test-reports/flake8/results.txt .
-            flake8_junit test-reports/flake8/results.txt test-reports/flake8/results.xml
-
       # run Django's tests (using nose as the test runner)
       - run:
           name: run tests
@@ -56,6 +47,14 @@ jobs:
             mkdir -p test-reports/django/
             python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
 
+      # run flake8
+      - run:
+          name: run flake8 style checker
+          command: |
+            . /tmp/venv/bin/activate
+            mkdir -p test-reports/flake8/
+            flake8 --config=flake8.ini --format junit-xml --output-file=test-reports/flake8/results.xml
+          when: always
 
       - store_test_results:
           path: test-reports
