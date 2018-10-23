@@ -18,9 +18,12 @@ from django.urls import reverse_lazy
 
 from django_registration.backends.activation.views import RegistrationView
 
+from scionlab.forms.registration_form import RegistrationFormWithCaptcha
+
 
 class UserRegistrationView(RegistrationView):
     success_url = reverse_lazy('login')
+    form_class = RegistrationFormWithCaptcha
 
     def register(self, form):
         logging.debug('Doing the user registration...')
