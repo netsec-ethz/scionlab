@@ -1,0 +1,13 @@
+{% extends 'scionlab/base.html' %}
+{% load static %}
+
+{% block title %}Create User AS{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+  <form method="post">{% csrf_token %}
+    {% include "scionlab/partials/user_as_form.html" %}
+    <button type="submit" class="btn btn-primary">Create AS</button>
+  </form>
+</div>
+{% endblock content %}

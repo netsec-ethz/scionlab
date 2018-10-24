@@ -1,0 +1,68 @@
+{% extends 'scionlab/base.html' %}
+{% load static %}
+
+{% block title %}User AS{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+  <strong>
+    This AS {{ object.isd_as_str }} is currently {{ object.is_active|yesno:"active,inactive" }}.
+  </strong>
+  <form method="post">{% csrf_token %}
+    {% include "scionlab/partials/user_as_form.html" %}
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+  </form>
+
+
+  <div>
+    <div>
+      <h3>Create SCION image for IoT device</h3>
+      <p>
+        This option allows you to generate prebuilt images for some of the most popular IoT devices that contain a preinstalled SCION AS.
+        For this option to be enabled you must select the option <strong>"Install on a dedicated SCION system"</strong>.
+        Choose the device you have and click on <strong>"Build image"</strong>.
+      </p>
+    </div>
+
+    <div class="d-flex">
+      <div class="col-xs-4">
+        <select class="form-control btn btn-primary dropdown-toggle">
+              <option value="">Select image</option>
+              {% for img in iot_images %}
+                <option>{{ img.display_name }}</option>
+              {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-xd-4">
+          <button onclick="alert('Here be: buildImage(selectedImage, asInfo)');"
+              class="btn btn-primary" data-toggle="tooltip"
+              title="Build image" disabled="disabled">
+            Build image
+          </button>
+      </div>
+    </div>
+    <br/>
+    <div>
+
+        <div class="col-xs-12">
+            <h3>Available images will appear underneath</h3>
+
+            <div id="buttongroup">
+
+              <div class="btn-group" role="group">
+                <button onclick="alert('Here be: downloadImage(userImg)');" class="btn btn-default" data-toggle="tooltip"
+                disabled="disabled">
+                  Download: Image name
+                </button>
+              </div>
+
+            </div>
+          </div>
+    </div>
+  </div>
+
+  <br/>
+  <div class="spacer"></div>
+</div>
+{% endblock content %}

@@ -17,6 +17,7 @@ from .common import *
 
 # ##### DEBUG CONFIGURATION ###############################
 DEBUG = True
+TEMPLATES[0]['OPTIONS']['debug'] = True
 
 # allow all hosts during development
 ALLOWED_HOSTS = ['*']
