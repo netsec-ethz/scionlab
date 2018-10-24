@@ -17,10 +17,10 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 from django_webtest import WebTest
-
-_TESTUSER_EMAIL = 'scion@example.com'
-_TESTUSER_PWD = 'scion'
-
+from scionlab.fixtures.testuser import (
+    TESTUSER_EMAIL,
+    TESTUSER_PWD
+)
 
 class LoginRequiredRedirectTests(TestCase):
     fixtures = ['testuser']
@@ -48,7 +48,7 @@ class LoginRequiredRedirectTests(TestCase):
         # Attempt log in:
         response = self.client.post(
             redirected_url,
-            {'username': _TESTUSER_EMAIL, 'password': _TESTUSER_PWD},
+            {'username': TESTUSER_EMAIL, 'password': TESTUSER_PWD},
             follow=True
         )
         # Now we should land on the originally requested page
@@ -59,7 +59,7 @@ class LoginRequiredRedirectTests(TestCase):
         """
         A view with required login is accessible if the user is logged in.
         """
-        login_success = self.client.login(username=_TESTUSER_EMAIL, password=_TESTUSER_PWD)
+        login_success = self.client.login(username=TESTUSER_EMAIL, password=TESTUSER_PWD)
         self.assertTrue(login_success)
 
         response = self.client.get(reverse('user'))
@@ -80,12 +80,12 @@ class PasswordWebTests(WebTest):
         Reset the password
         """
         reset_init_form = self.app.get(reverse('password_reset')).form
-        reset_init_form['email'] = _TESTUSER_EMAIL
+        reset_init_form['email'] = TESTUSER_EMAIL
         reset_init_form.submit()
 
         self.assertEqual(len(mail.outbox), 1)
         reset_mail = mail.outbox[0]
-        self.assertEqual(reset_mail.recipients(), [_TESTUSER_EMAIL])
+        self.assertEqual(reset_mail.recipients(), [TESTUSER_EMAIL])
         reset_mail_message = reset_mail.message().as_string()
         links = re.findall('http://testserver(/\S*)', reset_mail_message, re.MULTILINE)
         self.assertEqual(len(links), 1)
@@ -97,7 +97,7 @@ class PasswordWebTests(WebTest):
         pwd_changed = pwd_form.submit().follow()
 
         login_form = pwd_changed.click(linkid='id_login').form
-        login_form['username'] = _TESTUSER_EMAIL
+        login_form['username'] = TESTUSER_EMAIL
         login_form['password'] = new_password
         response = login_form.submit()
         self.assertEqual(response.status_int, 302)
