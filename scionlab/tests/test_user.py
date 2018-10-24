@@ -22,6 +22,7 @@ from scionlab.fixtures.testuser import (
     TESTUSER_PWD
 )
 
+
 class LoginRequiredRedirectTests(TestCase):
     fixtures = ['testuser']
 
