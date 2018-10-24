@@ -7,12 +7,12 @@
 {% block content %}
   <div class="row">
     <div class="col-lg-3 col-lg-offset-4 text-center">
-      <form method="post">
+      <form id="login_form" method="post">
         {% csrf_token %}
         <table> {{ form.as_table }} </table>
         <button type="submit" class="btn btn-primary btn-block">Login</button>
       </form>
-      <form action="{% url 'registration_form' %}">
+      <form id="registration" action="{% url 'registration_form' %}">
         <button type="submit" class="btn btn-secondary btn-block">Register</button>
       </form>
 

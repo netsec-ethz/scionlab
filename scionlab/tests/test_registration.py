@@ -18,13 +18,12 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 
-from django_registration.backends.activation import urls
-
-from scionlab.models import User
 from scionlab.settings.common import BASE_DIR
 
-_TESTUSER_EMAIL = 'scion4@example.com'
-_TESTUSER_PWD = 'scionR0CK5'
+from scionlab.fixtures.testuser import (
+    TESTUSER_EMAIL,
+    TESTUSER_PWD
+)
 
 
 class ActivationRequiredTest(TestCase):
@@ -46,22 +45,25 @@ class ActivationRequiredTest(TestCase):
         # Post registration:
         response = self.client.post(
             registration_url,
-            {'email': _TESTUSER_EMAIL, 'password1': _TESTUSER_PWD, 'password2': _TESTUSER_PWD, 'username': _TESTUSER_EMAIL},
+            {'email': TESTUSER_EMAIL, 'password1': TESTUSER_PWD, 'password2': TESTUSER_PWD,
+             'username': TESTUSER_EMAIL},
             follow=True
         )
 
         # Check the correct activation email is created
         self.assertEqual(len(mail.outbox), 1)
         activation_mail = mail.outbox[0]
-        self.assertEqual(activation_mail.recipients(), [_TESTUSER_EMAIL])
-        with open(os.path.join(BASE_DIR, 'scionlab', 'templates', 'django_registration', 'activation_email_subject.txt')) as f:
+        self.assertEqual(activation_mail.recipients(), [TESTUSER_EMAIL])
+        subject_template = os.path.join(BASE_DIR, 'scionlab', 'templates', 'django_registration',
+                                        'activation_email_subject.txt')
+        with open(subject_template) as f:
             activation_subject = f.read()
         self.assertEqual(activation_mail.subject, activation_subject)
 
         # Attempt log in:
         response = self.client.post(
             login_url,
-            {'username': _TESTUSER_EMAIL, 'password': _TESTUSER_PWD},
+            {'username': TESTUSER_EMAIL, 'password': TESTUSER_PWD},
             follow=True
         )
 
@@ -72,10 +74,14 @@ class ActivationRequiredTest(TestCase):
         activation_mail_message = str(activation_mail.message().get_payload())
         links = re.findall('http://testserver(/\S*)', activation_mail_message, re.MULTILINE)
 
-        activation_link = ''
         dummy_activation_key = 'XXX'
+        activation_url = reverse('django_registration_activate',
+                                 kwargs={'activation_key': dummy_activation_key}).split(
+            dummy_activation_key)[0]
+
+        activation_link = ''
         for link in links:
-            if reverse('django_registration_activate', kwargs={'activation_key': dummy_activation_key}).split(dummy_activation_key)[0] in link:
+            if activation_url in link:
                 activation_link = link
                 break
 
@@ -96,7 +102,7 @@ class ActivationRequiredTest(TestCase):
         # Attempt log in:
         response = self.client.post(
             login_url,
-            {'username': _TESTUSER_EMAIL, 'password': _TESTUSER_PWD},
+            {'username': TESTUSER_EMAIL, 'password': TESTUSER_PWD},
             follow=True
         )
 
