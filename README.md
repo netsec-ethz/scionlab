@@ -12,9 +12,9 @@ python3 -m venv /tmp/scionlab
 source /tmp/scionlab/bin/activate
 
 # install Python requirements (Django, libraries, etc.)
-pip3 install -r requirements.txt
+pip3 install --require-hashes -r requirements.txt
 # for development, additionally use the dev-requirements file:
-# pip3 install -r requirements.txt -r dev-requirements.txt
+# pip3 install --require-hashes -r requirements.txt -r dev-requirements.txt
 
 # initialise dev db
 python manage.py makemigrations scionlab
