@@ -15,15 +15,20 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+import lib.crypto.asymcrypto
+import base64
+
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirments to max length """
 _MAX_LEN_CHOICES_DEFAULT = 16
 """ Max length value for choices fields without specific requirments to max length """
-
+_MAX_LEN_KEYS = 255
+""" Max length value for base64 encoded AS keys """
 
 class ISD(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+    trc = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'ISD'
@@ -34,6 +39,16 @@ class ISD(models.Model):
             return 'ISD %d (%s)' % (self.id, self.label)
         else:
             return 'ISD %d' % self.id
+
+
+class ASManager(models.Manager):
+    def create_with_keys(self, **kwargs):
+        # if 'sig_pub_key' in kwargs, etc:
+        #   raise ValueError()
+        a = AS(**kwargs)
+        a.init_keys()
+        a.save(force_insert=True)
+        return a
 
 
 class AS(models.Model):
@@ -52,21 +67,19 @@ class AS(models.Model):
         blank=True
     )
 
+    sig_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
+    sig_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
+    enc_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
+    enc_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
+
     is_core = models.BooleanField(default=False)
-    # commit_hash = models.CharField(max_length=_MAX_LEN_DEFAULT, default='')
-    sig_pub_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    sig_priv_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    enc_pub_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    enc_priv_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    master_as_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    certificate = models.TextField(null=True, blank=True)
-    trc = models.TextField(null=True, blank=True)
-    # keys = jsonfield.JSONField(default=empty_dict)
-    # core_keys = jsonfield.JSONField(default=empty_dict)
+
+    objects = ASManager()
 
     class Meta:
         verbose_name = 'AS'
         verbose_name_plural = 'ASes'
+        unique_together = ('as_id',) # could be primary key
 
     def __str__(self):
         if self.label:
@@ -78,7 +91,18 @@ class AS(models.Model):
         """
         :return: the ISD-AS string representation
         """
-        return '%d-%s' % (self.isd.id, self.id)
+        return '%d-%s' % (self.isd.id, self.as_id)
+
+    def init_keys(self):
+        """
+        Initialise signing and encryption key pairs
+        """
+        sig_pub_key, sig_priv_key = lib.crypto.asymcrypto.generate_sign_keypair()
+        enc_pub_key, enc_priv_key = lib.crypto.asymcrypto.generate_enc_keypair()
+        self.sig_pub_key = base64.b64encode(sig_pub_key).decode()
+        self.sig_priv_key = base64.b64encode(sig_priv_key).decode()
+        self.enc_pub_key = base64.b64encode(enc_pub_key).decode()
+        self.enc_priv_key = base64.b64encode(enc_priv_key).decode()
 
 
 class UserAS(AS):
@@ -88,6 +112,9 @@ class UserAS(AS):
     public_ip = models.GenericIPAddressField(null=True, blank=True)
     bind_ip = models.GenericIPAddressField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'User AS'
+        verbose_name_plural = 'User ASes'
 
 class AttachmentPoint(models.Model):
     AS = models.ForeignKey(
@@ -107,14 +134,20 @@ class Host(models.Model):
     """
     A host is a machine/vm/container running services for one AS.
     """
-    config_version = models.PositiveIntegerField()
     AS = models.ForeignKey(
         AS,
         null=True,
         on_delete=models.SET_NULL,
     )
-    ip = models.GenericIPAddressField()
+    config_version = models.PositiveIntegerField(default=0)
+    ip = models.GenericIPAddressField(default="127.0.0.1")
     """ IP of the host IN the AS """
+
+    class Meta:
+        unique_together = ('AS', 'ip')
+
+    def __str__(self):
+        return '%s,[%s]'%(self.AS.isd_as_str(), self.ip)
 
 
 class ManagedHost(Host):
