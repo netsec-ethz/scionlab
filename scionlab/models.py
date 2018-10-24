@@ -29,6 +29,12 @@ class ISD(models.Model):
         verbose_name = 'ISD'
         verbose_name_plural = 'ISDs'
 
+    def __str__(self):
+        if self.label:
+            return 'ISD %d (%s)' % (self.id, self.label)
+        else:
+            return 'ISD %d' % self.id
+
 
 class AS(models.Model):
     isd = models.ForeignKey(
@@ -61,6 +67,18 @@ class AS(models.Model):
     class Meta:
         verbose_name = 'AS'
         verbose_name_plural = 'ASes'
+
+    def __str__(self):
+        if self.label:
+            return '%s (%s)' % (self.isd_as_str(), self.label)
+        else:
+            return self.isd_as_str()
+
+    def isd_as_str(self):
+        """
+        :return: the ISD-AS string representation
+        """
+        return '%d-%s' % (self.isd.id, self.id)
 
 
 class UserAS(AS):
