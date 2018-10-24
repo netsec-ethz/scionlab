@@ -12,7 +12,7 @@
         <table> {{ form.as_table }} </table>
         <button type="submit" class="btn btn-primary btn-block">Login</button>
       </form>
-      <form action="/registration/">
+      <form action="{% url 'registration_form' %}">
         <button type="submit" class="btn btn-secondary btn-block">Register</button>
       </form>
 

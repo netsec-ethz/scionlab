@@ -16,4 +16,4 @@ from django.views.generic import TemplateView
 
 
 class ASesView(TemplateView):
-    template_name = "scionlab/ASes_overview.html"
+    template_name = 'scionlab/ASes_overview.html'

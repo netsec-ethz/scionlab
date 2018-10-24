@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from django.urls import reverse_lazy
 
 from django_registration.backends.activation.views import RegistrationView
 
 
 class UserRegistrationView(RegistrationView):
-    success_url = reverse_lazy('login_page')
+    success_url = reverse_lazy('login')
 
     def register(self, form):
-        print("Doing the user registration...")
+        logging.debug('Doing the user registration...')
         super().register(form)
         return

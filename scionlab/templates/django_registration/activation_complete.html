@@ -1,7 +1,7 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
 
-{% block meta %}<meta http-equiv="refresh" content="3; url=/login" />{% endblock meta %}
+{% block meta %}<meta http-equiv="refresh" content="3; url={% url 'login' %}" />{% endblock meta %}
 
 {% block content %}
       Registration complete.
