@@ -40,10 +40,6 @@ class AS(models.Model):
     as_id = models.CharField(max_length=15, primary_key=True)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
     # subnet = models.CharField(max_length=15) # AS internal subnet
     # vpn = models.ForeignKey(                 # AS internal VPN
     #     'VPN',
@@ -54,7 +50,6 @@ class AS(models.Model):
 
     is_core = models.BooleanField(default=False)
     # commit_hash = models.CharField(max_length=_MAX_LEN_DEFAULT, default='')
-    # TBD: use separate CoreAS table instead (using "multi-table inheritance")
     sig_pub_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     sig_priv_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     enc_pub_key = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
@@ -65,12 +60,36 @@ class AS(models.Model):
     # keys = jsonfield.JSONField(default=empty_dict)
     # core_keys = jsonfield.JSONField(default=empty_dict)
 
-    allow_user_as_links = models.BooleanField(default=True)
-    """ This is true for attachment point ASes """
-
     class Meta:
         verbose_name = 'AS'
         verbose_name_plural = 'ASes'
+
+
+class UserAS(AS):
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    # These fields are redundant for the network model
+    # They are here to retain the values entered by the user
+    # if she switches to VPN and back.
+    public_ip = models.GenericIPAddressField(null=True, blank=True)
+    bind_ip = models.GenericIPAddressField(null=True, blank=True)
+
+
+class AttachmentPoint(models.Model):
+    AS = models.ForeignKey(
+        AS,
+        on_delete=models.CASCADE,
+    )
+    vpn = models.OneToOneField(
+        'VPN',
+        null=True,
+        blank=True,
+        related_name='+',
+        on_delete=models.SET_NULL
+    )
 
 
 class Host(models.Model):
@@ -139,6 +158,7 @@ class Link(models.Model):
         choices=LINK_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
+    active = models.BooleanField(default=True)
 
 
 class Service(models.Model):

@@ -16,6 +16,8 @@ from django.contrib import admin
 from .models import (
     ISD,
     AS,
+    UserAS,
+    AttachmentPoint,
     Host,
     ManagedHost,
     Interface,
@@ -28,6 +30,8 @@ from .models import (
 admin.site.register([
     ISD,
     AS,
+    UserAS,
+    AttachmentPoint,
     Host,
     ManagedHost,
     Interface,
