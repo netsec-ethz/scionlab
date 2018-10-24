@@ -12,27 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.contrib import admin
-from .models import (
-    ISD,
-    AS,
-    Host,
-    ManagedHost,
-    Interface,
-    Link,
-    Service,
-    VPN,
-    VPNClient,
-)
+""" Metadata and object creation procedure for the fixture `testuser.yaml` """
 
-admin.site.register([
-    ISD,
-    AS,
-    Host,
-    ManagedHost,
-    Interface,
-    Link,
-    Service,
-    VPN,
-    VPNClient,
-])
+from scionlab.models import User
+
+TESTUSER_EMAIL = 'scion@example.com'
+TESTUSER_PWD = 'scion'
+
+
+def create_testuser():
+    """
+    Create a user `TESTUSER_EMAIL` with the password `TESTUSER_PWD`.
+    :return: User
+    """
+
+    return User.objects.create_user(
+        username=TESTUSER_EMAIL,
+        email=TESTUSER_EMAIL,
+        password=TESTUSER_PWD
+    )
