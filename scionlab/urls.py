@@ -13,12 +13,34 @@
 # limitations under the License.
 
 from django.contrib import admin
-from django.urls import path, include
-from .views import PlaceholderView, PlaceholderUserView
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
+from django.urls import include, path, reverse_lazy
+
+from scionlab.views.registration_view import UserRegistrationView
+from scionlab.views.ases_view import ASesView
+from scionlab.views.placehoder_view import PlaceholderView, PlaceholderUserView
 
 urlpatterns = [
     path('', PlaceholderView.as_view(), name='home'),
-    path('user/', PlaceholderUserView.as_view(), name='user'),
-    path('user/', include('django.contrib.auth.urls')),
+
+    # Admin space
     path('admin/', admin.site.urls),
+
+    # Authentication
+    path('user/login/',
+         auth_views.LoginView.as_view(template_name='registration/login.html'),
+         name='login'),
+    # django.contrib.auth: auth views for logout, password reset/change
+    path('user/', include('django.contrib.auth.urls')),
+
+    # user pages
+    path('user/', login_required(ASesView.as_view(), login_url=reverse_lazy('login')), name='user'),
+    path('user/test/', PlaceholderUserView.as_view(), name='userpage'),
+
+    # django-registration patterns
+    path('registration/register/',
+         UserRegistrationView.as_view(template_name='django_registration/registration_form.html'),
+         name='registration_form'),
+    path('registration/', include('django_registration.backends.activation.urls')),
 ]

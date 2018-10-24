@@ -1,0 +1,14 @@
+Dear SCIONLab user,
+
+This is the account activation Email.
+Use the following activation link to activate your account: http://{{ site }}/registration/activate/{{ activation_key }}
+
+If you did not request a SCIONLab account, you can ignore this email.
+
+Kind regards,
+
+Your SCIONLab Team
+
+--
+
+Learn more about SCIONLab at http://{{ site }}

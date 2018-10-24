@@ -1,0 +1,13 @@
+{% extends 'scionlab/base.html' %}
+
+{% block title %}SCIONLab Registration{% endblock %}
+
+{% block content %}
+
+<form action="{% url 'registration_form' %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock content %}

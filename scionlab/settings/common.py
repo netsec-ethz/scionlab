@@ -22,6 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 
 INSTALLED_APPS = [
     'scionlab',
+    'django_registration',  # used for two-step user account activation (Email verification)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,12 +59,6 @@ TEMPLATES = [
     },
 ]
 
-# ##### SECURITY CONFIGURATION ############################
-
-# We store the secret key here
-# The required SECRET_KEY is fetched at the end of this file
-SECRET_FILE = os.path.join(BASE_DIR, 'run', 'SECRET.key')
-
 # ##### DJANGO RUNNING CONFIGURATION ######################
 
 # the URL for static files
@@ -72,10 +67,21 @@ STATIC_URL = '/static/'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'user'
 
+# ##### EXTENSIONS CONFIGURATION ##########################
+
+# django_registration
+ACCOUNT_ACTIVATION_DAYS = 14  # Allow a two-week time window for account activation after signup
+REGISTRATION_OPEN = True  # Accept new registrations
+
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []
 DEBUG = False
 
+# ##### SECURITY CONFIGURATION ############################
+
+# We store the secret key here
+# The required SECRET_KEY is fetched at the end of this file
+SECRET_FILE = os.path.join(BASE_DIR, 'run', 'SECRET.key')
 
 # finally grab the SECRET KEY
 try:
