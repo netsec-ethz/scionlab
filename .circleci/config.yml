@@ -1,3 +1,17 @@
+# Copyright 2018 ETH Zurich
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Python CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
@@ -39,14 +53,6 @@ jobs:
             - /tmp/venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
-      # run Django's tests (using nose as the test runner)
-      - run:
-          name: run tests
-          command: |
-            . /tmp/venv/bin/activate
-            mkdir -p test-reports/django/
-            python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
-
       # run flake8
       - run:
           name: run flake8 style checker
@@ -54,6 +60,14 @@ jobs:
             . /tmp/venv/bin/activate
             mkdir -p test-reports/flake8/
             flake8 --config=flake8.ini --format junit-xml --output-file=test-reports/flake8/results.xml
+
+      # run Django's tests (using nose as the test runner)
+      - run:
+          name: run tests
+          command: |
+            . /tmp/venv/bin/activate
+            mkdir -p test-reports/django/
+            python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
       - store_test_results:
