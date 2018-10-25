@@ -36,17 +36,15 @@ class AS(models.Model):
         related_name='ases',
         on_delete=models.CASCADE
     )
-
-    as_id = models.CharField(max_length=15, primary_key=True)
+    as_id = models.CharField(max_length=15)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
-    # subnet = models.CharField(max_length=15) # AS internal subnet
-    # vpn = models.ForeignKey(                 # AS internal VPN
-    #     'VPN',
-    #     null=True,
-    #     related_name='ases',
-    #     on_delete=models.SET_NULL
-    # )
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
     is_core = models.BooleanField(default=False)
     # commit_hash = models.CharField(max_length=_MAX_LEN_DEFAULT, default='')
@@ -66,11 +64,6 @@ class AS(models.Model):
 
 
 class UserAS(AS):
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
-
     # These fields are redundant for the network model
     # They are here to retain the values entered by the user
     # if she switches to VPN and back.
