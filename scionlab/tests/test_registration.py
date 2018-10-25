@@ -27,6 +27,12 @@ from scionlab.fixtures.testuser import (
 
 
 class ActivationRequiredTest(TestCase):
+    def setUp(self):
+        os.environ['RECAPTCHA_DISABLE'] = 'True'  # Disable captcha
+
+    def tearDown(selfself):
+        del os.environ['RECAPTCHA_DISABLE']  # Reenable captcha
+
     def test_account_not_activated(self):
         """
         Check that an account which has not been activated cannot login

@@ -12,20 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-
-from django.urls import reverse_lazy
-
-from django_registration.backends.activation.views import RegistrationView
-
-from scionlab.forms.registration_form import RegistrationFormWithCaptcha
+from django.contrib.auth.forms import AuthenticationForm
+from snowpenguin.django.recaptcha2.fields import ReCaptchaField
+from snowpenguin.django.recaptcha2.widgets import ReCaptchaWidget
 
 
-class UserRegistrationView(RegistrationView):
-    success_url = reverse_lazy('login')
-    form_class = RegistrationFormWithCaptcha
-
-    def register(self, form):
-        logging.debug('Doing the user registration...')
-        super().register(form)
-        return
+class AuthenticationFormWithCaptcha(AuthenticationForm):
+    captcha = ReCaptchaField(widget=ReCaptchaWidget(explicit=True, container_id='recaptcha-id'))

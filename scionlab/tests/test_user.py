@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 import re
 from django.core import mail
 from django.test import TestCase
@@ -24,6 +24,12 @@ from scionlab.fixtures.testuser import (
 
 
 class LoginRequiredRedirectTests(TestCase):
+    def setUp(self):
+        os.environ['RECAPTCHA_DISABLE'] = 'True'  # Disable captcha
+
+    def tearDown(selfself):
+        del os.environ['RECAPTCHA_DISABLE']  # Reenable captcha
+
     fixtures = ['testuser']
 
     def test_not_logged_in(self):
@@ -74,6 +80,12 @@ class LoginRequiredRedirectTests(TestCase):
 
 
 class PasswordWebTests(WebTest):
+    def setUp(self):
+        os.environ['RECAPTCHA_DISABLE'] = 'True'  # Disable captcha
+
+    def tearDown(selfself):
+        del os.environ['RECAPTCHA_DISABLE']  # Reenable captcha
+
     fixtures = ['testuser']
 
     def test_reset_pwd(self):

@@ -1,6 +1,8 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
+{% load recaptcha2 %}
 
+{% block meta %}{% recaptcha_explicit_support %}{% endblock %}
 {% block title %}{{ block.super }} - Login{% endblock title%}
 {% block content_title %}Login{% endblock content_title%}
 
@@ -12,11 +14,12 @@
         <table> {{ form.as_table }} </table>
         <button type="submit" class="btn btn-primary btn-block">Login</button>
       </form>
+      {% recaptcha_explicit_init 'en' %}
       <form id="registration" action="{% url 'registration_form' %}">
         <button type="submit" class="btn btn-secondary btn-block">Register</button>
       </form>
 
     </div>
   </div>
-  <img class="img-responsive center-block" src="{% static "scionlab/images/topology_no_labels.gv.png" %}"/>
+  <img class="img-fluid center-block" src="{% static "scionlab/images/topology_no_labels.gv.png" %}"/>
 {% endblock content %}
