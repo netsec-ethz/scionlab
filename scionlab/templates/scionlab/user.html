@@ -72,145 +72,15 @@
   </div>
 
   <div class="spacer"></div>
-
-  {% regroup user_ases|dictsort:"is_core" by is_core as core_list %}
-  <select class="form-control btn btn-primary dropdown-toggle">
-      {% for is_core_entry, entries in core_list reversed %}
-          <optgroup label="{{ is_core_entry|yesno:"Core,Regular" }}">
-            {% for user_as in entries %}
-            <option>{{ user_as.as_id }} ({{ user_as.label }})</option>
-            {% endfor %}
-          </optgroup>
-      {% endfor %}
-  </select>
-
-  <strong>
-    This AS is currently STATUS
-  </strong>
-  <p></p>
-  <form name="scionLabASForm">
-    <div class="form-group has-feedback">
-      <label>Attachment point to connect to</label>
-        {% regroup attachment_points|dictsort:"isd_id" by isd_id as isd_list %}
-        <select name="AP" class="form-control dropdown-toggle">
-            {% for isd_id, aps in isd_list %}
-              <optgroup label="ISD {{ isd_id }}">
-                {% for ap in aps %}
-                <option>{{ ap.as_id }} ({{ ap.label }})</option>
-                {% endfor %}
-              </optgroup>
-            {% endfor %}
-        </select>
-      <span class="glyphicon glyphicon-cloud form-control-feedback"></span>
-    </div>
-    <div class="form-group has-feedback">
-      <label>Label for this AS (optional)</label>
-      <input type="text" class="form-control" name="Label"
-             placeholder="Label for this AS">
-      <span class="glyphicon glyphicon-pencil form-control-feedback"></span>
-    </div>
-    <div class="form-group">
-      <div class="radio">
-        <label><input type="radio" value="1">
-          Install inside a virtual machine
-        </label>
-      </div>
-      <div class="radio">
-        <label><input type="radio" value="2">
-          Install on a dedicated SCION system (for experts)
-        </label>
-      </div>
-    </div>
-    {% if vpn_support_enabled %}
-    <div class="form-group checkbox">
-        <label>
-          <input type="checkbox" name="IsVPN">
-          Use an OpenVPN connection for this AS
-        </label>
-    </div>
-    {% endif %}
-    {% if not vpn_support_enabled %}
-    <div class="form-group has-feedback">
-      <label>My host's public IP address</label>
-      <input type="text" class="form-control" name="IP"
-             placeholder="My host's public IP address">
-      <span class="glyphicon glyphicon-home form-control-feedback"></span>
-    </div>
-    <div class="form-group has-feedback">
-      <label>Port where this AS accepts traffic</label>
-      <input type="number" class="form-control" min="1024" max="65535" required
-             name="Port" placeholder="Port (default: 50000)">
-      <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
-    </div>
-    {% endif %}
-
-    <div class="form-group">
-      <div class="col-xs-12">
-        <div id="buttongroup">
-          <div class="btn-group" role="group">
-            <button onclick="alert('Here be: submitForm(button.Action, user, asInfo)');"
-                    class="btn btn-primary {{button.Class}}" data-toggle="tooltip"
-                    title="tooltip">
-              Create and Download SCIONLab AS Configuration
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </form>
-
-
-  {%  if as_count > 0 %}
   <div>
-    <div>
-      <h3>Create SCION image for IoT device</h3>
-      <p>
-        This option allows you to generate prebuilt images for some of the most popular IoT devices that contain a preinstalled SCION AS.
-        For this option to be enabled you must select the option <strong>"Install on a dedicated SCION system"</strong>.
-        Choose the device you have and click on <strong>"Build image"</strong>.
-      </p>
-    </div>
-
-    <div class="d-flex">
-      <div class="col-xs-4">
-        <select class="form-control btn btn-primary dropdown-toggle">
-              <option value="">Select image</option>
-              {% for img in iot_images %}
-                <option>{{ img.display_name }}</option>
-              {% endfor %}
-        </select>
-      </div>
-
-      <div class="col-xd-4">
-          <button onclick="alert('Here be: buildImage(selectedImage, asInfo)');"
-              class="btn btn-primary" data-toggle="tooltip"
-              title="Build image" disabled="disabled">
-            Build image
-          </button>
-      </div>
-    </div>
-    <br/>
-    <div>
-
-        <div class="col-xs-12">
-            <h3>Available images will appear underneath</h3>
-
-            <div id="buttongroup">
-
-              <div class="btn-group" role="group">
-                <button onclick="alert('Here be: downloadImage(userImg)');" class="btn btn-default" data-toggle="tooltip"
-                disabled="disabled">
-                  Download: Image name
-                </button>
-              </div>
-
-            </div>
-          </div>
-    </div>
+    <h3>Your ASes</h3>
+    <ul>
+    {% for user_as in ases %}
+        <li><a href="{% url 'as_detail' as_id=user_as.as_id %}">{{ user_as.as_id }}</a></li>
+    {% empty %}
+        <li>You have no AS yet.</li>
+    {% endfor %}
+    </ul>
   </div>
-  {%  endif %}
-
-  <br/>
-  <div class="spacer"></div>
 </div>
 {% endblock content %}

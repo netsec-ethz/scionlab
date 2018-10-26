@@ -18,6 +18,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import include, path, reverse_lazy
 
 from scionlab.forms.login_form import AuthenticationFormWithCaptcha
+from scionlab.views.as_detail_view import ASDetailView
 from scionlab.views.ases_view import ASesView
 from scionlab.views.placehoder_view import PlaceholderView, PlaceholderUserView
 from scionlab.views.registration_view import UserRegistrationView
@@ -38,6 +39,7 @@ urlpatterns = [
 
     # user pages
     path('user/', login_required(ASesView.as_view(), login_url=reverse_lazy('login')), name='user'),
+    path('user/as_detail/(?P<as_id>\w+)', login_required(ASDetailView.as_view(), login_url=reverse_lazy('login')), name='as_detail'),
     path('user/test/', PlaceholderUserView.as_view(), name='userpage'),
 
     # django-registration patterns
