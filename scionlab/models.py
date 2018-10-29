@@ -25,6 +25,7 @@ _MAX_LEN_CHOICES_DEFAULT = 16
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """
 
+
 class ISD(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
@@ -45,10 +46,10 @@ class ASManager(models.Manager):
     def create_with_keys(self, **kwargs):
         # if 'sig_pub_key' in kwargs, etc:
         #   raise ValueError()
-        a = AS(**kwargs)
-        a.init_keys()
-        a.save(force_insert=True)
-        return a
+        as_ = AS(**kwargs)
+        as_.init_keys()
+        as_.save(force_insert=True)
+        return as_
 
 
 class AS(models.Model):
@@ -79,7 +80,7 @@ class AS(models.Model):
     class Meta:
         verbose_name = 'AS'
         verbose_name_plural = 'ASes'
-        unique_together = ('as_id',) # could be primary key
+        unique_together = ('as_id',)    # could be primary key
 
     def __str__(self):
         if self.label:
@@ -116,6 +117,7 @@ class UserAS(AS):
         verbose_name = 'User AS'
         verbose_name_plural = 'User ASes'
 
+
 class AttachmentPoint(models.Model):
     AS = models.ForeignKey(
         AS,
@@ -147,7 +149,7 @@ class Host(models.Model):
         unique_together = ('AS', 'ip')
 
     def __str__(self):
-        return '%s,[%s]'%(self.AS.isd_as_str(), self.ip)
+        return '%s,[%s]' % (self.AS.isd_as_str(), self.ip)
 
 
 class ManagedHost(Host):

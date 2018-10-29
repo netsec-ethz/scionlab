@@ -14,9 +14,8 @@
 
 from django.test import TestCase
 from scionlab.models import ISD, AS, UserAS
+from scionlab.tests import utils
 
-import lib.crypto.asymcrypto
-import base64
 
 class StringRepresentationTests(TestCase):
 
@@ -52,32 +51,13 @@ class StringRepresentationTests(TestCase):
         self.assertEqual(as_strs, expected_as_strs)
 
 
-class TestInitKeys(TestCase):
+class InitKeysTests(TestCase):
     def test_create_as_with_keys(self):
         isd = ISD.objects.create(id=17, label='Switzerland')
-        a = AS.objects.create_with_keys(isd=isd, as_id='ff00:1:1')
-        self._check_keys(a)
+        as_ = AS.objects.create_with_keys(isd=isd, as_id='ff00:1:1')
+        utils.check_as_keys(self, as_)
 
     def test_create_useras_with_keys(self):
         isd = ISD.objects.create(id=17, label='Switzerland')
         userAS = UserAS.objects.create_with_keys(isd=isd, as_id='ff00:1:1')
-        self._check_keys(userAS)
-
-    def _check_keys(self, a):
-        """
-        Check that keys of AS `a` have been properly initialised
-        """
-        m = "message".encode()
-
-        # Sign a message and verify
-        sig_pub_key = base64.b64decode(a.sig_pub_key.encode())
-        sig_priv_key = base64.b64decode(a.sig_priv_key.encode())
-        s = lib.crypto.asymcrypto.sign(m, sig_priv_key)
-        self.assertTrue(lib.crypto.asymcrypto.verify(m, s, sig_pub_key))
-
-        # Encode and decode a message for myself
-        enc_pub_key = base64.b64decode(a.enc_pub_key.encode())
-        enc_priv_key = base64.b64decode(a.enc_priv_key.encode())
-        c = lib.crypto.asymcrypto.encrypt(m, enc_priv_key, enc_pub_key)
-        d = lib.crypto.asymcrypto.decrypt(c, enc_priv_key, enc_pub_key)
-        self.assertEqual(m, d)
+        utils.check_as_keys(self, userAS)

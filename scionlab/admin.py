@@ -30,7 +30,6 @@ from .models import (
 
 admin.site.register([
     ISD,
-    UserAS,
     AttachmentPoint,
     Host,
     ManagedHost,
@@ -40,13 +39,6 @@ admin.site.register([
     VPN,
     VPNClient,
 ])
-
-class HostInline(admin.TabularInline):
-    model = Host
-    min_num = 1
-    validate_min = True
-    extra = 0
-    #fieldsets = ( (None, { 'fields': ('ip',) }),)
 
 
 class ASCreationForm(forms.ModelForm):
@@ -66,9 +58,8 @@ class ASCreationForm(forms.ModelForm):
         return _as
 
 
-@admin.register(AS)
+@admin.register(AS, UserAS)
 class ASAdmin(admin.ModelAdmin):
-
     def get_fieldsets(self, request, obj=None):
         """
         Don't show key field during AS creation;
@@ -97,8 +88,6 @@ class ASAdmin(admin.ModelAdmin):
         """
         Use custom form during AS creation
         """
-        defaults = {}
         if obj is None:
-            defaults['form'] = ASCreationForm
-        defaults.update(kwargs)
-        return super().get_form(request, obj, **defaults)
+            kwargs['form'] = ASCreationForm
+        return super().get_form(request, obj, **kwargs)
