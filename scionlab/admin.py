@@ -60,6 +60,11 @@ class ASCreationForm(forms.ModelForm):
 
 @admin.register(AS, UserAS)
 class ASAdmin(admin.ModelAdmin):
+
+    readonly_fields = ('as_id',)
+    list_display = ('isd_as_str', 'label', 'is_core', 'is_ap', 'is_userAS')
+    list_filter = ('isd', 'is_core',)
+
     def get_fieldsets(self, request, obj=None):
         """
         Don't show key field during AS creation;
@@ -68,7 +73,7 @@ class ASAdmin(admin.ModelAdmin):
         """
         base_fields = (
             None, {
-                'fields': (('isd', 'as_id'), 'label', 'owner',)
+                'fields': ('isd', 'as_id', 'label', 'owner',)
             }
         )
         key_fields = (
@@ -91,3 +96,15 @@ class ASAdmin(admin.ModelAdmin):
         if obj is None:
             kwargs['form'] = ASCreationForm
         return super().get_form(request, obj, **kwargs)
+
+    def is_ap(self, obj):
+        """ Is the AS `obj` an attachment point? """
+        return hasattr(obj, 'attachment_point')
+
+    is_ap.boolean = True
+
+    def is_userAS(self, obj):
+        """ Is the AS `obj` a user AS? """
+        return isinstance(obj, UserAS)
+
+    is_userAS.boolean = True

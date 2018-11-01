@@ -94,6 +94,8 @@ class AS(models.Model):
         """
         return '%d-%s' % (self.isd.id, self.as_id)
 
+    isd_as_str.short_description = 'ISD-AS'
+
     def init_keys(self):
         """
         Initialise signing and encryption key pairs
@@ -119,8 +121,9 @@ class UserAS(AS):
 
 
 class AttachmentPoint(models.Model):
-    AS = models.ForeignKey(
+    AS = models.OneToOneField(
         AS,
+        related_name='attachment_point',
         on_delete=models.CASCADE,
     )
     vpn = models.OneToOneField(
