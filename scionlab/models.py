@@ -16,6 +16,7 @@ import os
 import base64
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import F
 import jsonfield
 import lib.crypto.asymcrypto
 
@@ -29,6 +30,7 @@ _MAX_LEN_CHOICES_DEFAULT = 16
 """ Max length value for choices fields without specific requirments to max length """
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """
+
 
 class ISD(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
@@ -47,7 +49,7 @@ class ISD(models.Model):
             of the TRC."""
     )
     trc_needs_update = models.BooleanField(
-        default = True,
+        default=True,
         help_text="""The TRC will be updated before the next deployment of
             the configuration of the core ASes.
             This flag is set by operations affecting the set of Core-ASes or
@@ -72,8 +74,6 @@ class ASManager(models.Manager):
         #   raise ValueError()
         as_ = AS(**kwargs)
         as_.init_keys()
-        if as_.is_core:
-            as_.init_core_keys()
         as_.save(force_insert=True)
         return as_
 
@@ -138,22 +138,42 @@ class AS(models.Model):
 
     def init_keys(self):
         """
-        Initialise signing and encryption key pairs as well as the
-        MasterASKey used for hop field Message Authentication Codes (MAC) and
-        the Dynamically Recreatable Keys (DRKeys)
+        Initialise signing and encryption key pairs, the MasterASKey (used for
+        hop field Message Authentication Codes (MAC) and the Dynamically
+        Recreatable Keys (DRKeys)), as well as the core AS signing key pairs.
+        Note: the core AS keys will not used unless the AS is a core AS.
         """
-        self.sig_pub_key, self.sig_priv_key = _gen_sig_keypair()
-        self.enc_pub_key, self.enc_priv_key = _gen_enc_keypair()
+        # FIXME(matzf): generate core keys only "on demand" or needlessly complicated?
+        self._gen_keys()
+        self._gen_master_as_key()
+        self._gen_core_keys()
 
-        self.master_as_key = _base64encode(os.urandom(16))
+    def update_keys(self):
+        """
+        Generate new signing and encryption key pairs.
+        Bump the corresponding indicators, so that certificates will be renewed
+        and the configuration will be to all affected hosts.
+        """
+        # TODO(matzf): in coming scion versions, the master key can be updated.
+        self._gen_keys()
+        self.certificates_needs_update = True
+        self.hosts.update(config_version=F('config_version') + 1)
 
-    def init_core_keys(self):
+    def update_core_keys(self):
         """
-        Initialise the core AS signing key pairs
+        Generate new core AS signing key pairs.
+        Bump the corresponding indicators, so that certificates will be renewed
+        and the configuration will be to all affected hosts.
         """
-        self.core_sig_pub_key, self.core_sig_priv_key = _gen_sig_keypair()
-        self.core_online_pub_key, self.core_online_priv_key = _gen_sig_keypair()
-        self.core_offline_pub_key, self.core_offline_priv_key = _gen_sig_keypair()
+        self._gen_core_keys()
+        if self.is_core:
+            self.isd.trc_needs_update = True
+            self.certificates_needs_update = True
+            self.isd \
+                .ases \
+                .filter(is_core=True) \
+                .hosts \
+                .update(config_version=F('config_version') + 1)
 
     def init_default_services(self):
         """
@@ -164,6 +184,28 @@ class AS(models.Model):
         default_services = (Service.BS, Service.PS, Service.CS, Service.ZK)
         for service_type in default_services:
             Service.objects.create(host=host, type=service_type)
+
+    def _gen_keys(self):
+        """
+        Generate signing and encryption key pairs.
+        """
+        self.sig_pub_key, self.sig_priv_key = _gen_sig_keypair()
+        self.enc_pub_key, self.enc_priv_key = _gen_enc_keypair()
+
+    def _gen_master_as_key(self):
+        """
+        Generate the MasterASKey.
+        """
+        self.master_as_key = _base64encode(os.urandom(16))
+
+    def _gen_core_keys(self):
+        """
+        Generate core AS signing key pairs.
+        """
+        self.core_sig_pub_key, self.core_sig_priv_key = _gen_sig_keypair()
+        self.core_online_pub_key, self.core_online_priv_key = _gen_sig_keypair()
+        self.core_offline_pub_key, self.core_offline_priv_key = _gen_sig_keypair()
+
 
 class UserAS(AS):
     # These fields are redundant for the network model

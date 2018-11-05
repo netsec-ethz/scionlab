@@ -39,6 +39,7 @@ admin.site.register([
     VPNClient,
 ])
 
+
 @admin.register(ISD)
 class ISDAdmin(admin.ModelAdmin):
     readonly_fields = ('id',)
@@ -76,7 +77,7 @@ class ASCreationForm(forms.ModelForm):
 @admin.register(AS, UserAS)
 class ASAdmin(admin.ModelAdmin):
 
-    readonly_fields = ('as_id',)
+    actions = ['update_keys']
     list_display = ('isd_as_str', 'label', 'is_core', 'is_ap', 'is_userAS')
     list_filter = ('isd', 'is_core',)
 
@@ -88,15 +89,21 @@ class ASAdmin(admin.ModelAdmin):
         """
         base_fields = (
             None, {
-                'fields': ('isd', 'as_id', 'label', 'owner',)
+                'fields': ('isd', 'as_id', 'label', 'is_core', 'owner',)
             }
         )
         key_fields = (
-            'Keys', {
+            'Keys & Certificates', {
                 'classes': ('collapse',),
                 'fields': (
                     ('sig_pub_key', 'sig_priv_key'),
                     ('enc_pub_key', 'enc_priv_key'),
+                    'master_as_key',
+                    ('core_sig_pub_key', 'core_sig_priv_key'),
+                    ('core_online_pub_key', 'core_online_priv_key'),
+                    ('core_offline_pub_key', 'core_offline_priv_key'),
+                    'certificates',
+                    'certificates_needs_update'
                 )
             }
         )
@@ -104,11 +111,23 @@ class ASAdmin(admin.ModelAdmin):
             return (base_fields,)
         return (base_fields, key_fields)
 
+    def get_readonly_fields(self, request, obj):
+        """
+        Don't allow editing isd or as_id after the object has
+        been created.
+        """
+        # FIXME(matzf) conceptually, an AS can change the ISD. Not allowed for now
+        # as I anticipate this may unnecessarily complicate the TRC/certificate
+        # update logic. Should be revisited.
+        if obj:
+            return ('isd', 'as_id',)
+        return ()
+
     def get_form(self, request, obj=None, **kwargs):
         """
         Use custom form during AS creation
         """
-        if obj is None:
+        if not obj:
             kwargs['form'] = ASCreationForm
         return super().get_form(request, obj, **kwargs)
 
@@ -123,3 +142,10 @@ class ASAdmin(admin.ModelAdmin):
         return isinstance(obj, UserAS)
 
     is_userAS.boolean = True
+
+    def update_keys(self, request, queryset):
+        """
+        Admin action: generate new keys for the selected ASes.
+        """
+        for as_ in queryset.iterator():
+            as_.update_keys()

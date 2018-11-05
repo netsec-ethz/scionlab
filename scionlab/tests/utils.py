@@ -29,6 +29,7 @@ def check_as_keys(testcase, as_):
     testcase.assertIsNotNone(as_.master_as_key)
     _sanity_check_base64(testcase, as_.master_as_key)
 
+
 def check_as_core_keys(testcase, as_):
     """
     Check that core AS keys of AS `as_` have been properly initialised
@@ -39,6 +40,7 @@ def check_as_core_keys(testcase, as_):
     _check_sig_keypair(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
     _check_sig_keypair(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
     _check_sig_keypair(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
+
 
 def _check_sig_keypair(testcase, sig_pub_key_b64, sig_priv_key_b64):
     """
@@ -57,6 +59,7 @@ def _check_sig_keypair(testcase, sig_pub_key_b64, sig_priv_key_b64):
     s = lib.crypto.asymcrypto.sign(m, sig_priv_key)
     testcase.assertTrue(lib.crypto.asymcrypto.verify(m, s, sig_pub_key))
 
+
 def _check_enc_keypair(testcase, enc_pub_key_b64, enc_priv_key_b64):
     """
     Check that this encryption keypair was correctly created
@@ -74,6 +77,7 @@ def _check_enc_keypair(testcase, enc_pub_key_b64, enc_priv_key_b64):
     c = lib.crypto.asymcrypto.encrypt(m, enc_priv_key, enc_pub_key)
     d = lib.crypto.asymcrypto.decrypt(c, enc_priv_key, enc_pub_key)
     testcase.assertEqual(m, d)
+
 
 def _sanity_check_base64(testcase, s):
     """
