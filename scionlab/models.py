@@ -154,7 +154,7 @@ class AS(models.Model):
         Bump the corresponding indicators, so that certificates will be renewed
         and the configuration will be to all affected hosts.
         """
-        # TODO(matzf): in coming scion versions, the master key can be updated.
+        # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
         self.certificates_needs_update = True
         self.hosts.update(config_version=F('config_version') + 1)
@@ -183,7 +183,7 @@ class AS(models.Model):
 
         default_services = (Service.BS, Service.PS, Service.CS, Service.ZK)
         for service_type in default_services:
-            Service.objects.create(host=host, type=service_type)
+            Service.objects.create(AS=self, host=host, type=service_type)
 
     def _gen_keys(self):
         """
@@ -275,16 +275,36 @@ class ManagedHost(Host):
 
 
 class Interface(models.Model):
+    AS = models.ForeignKey(
+        AS,
+        related_name='interfaces',
+        on_delete=models.CASCADE,
+    )
     host = models.ForeignKey(
         Host,
         related_name='interfaces',
-        on_delete=models.PROTECT    # don't delete hosts with services configured
+        on_delete=models.CASCADE,
     )
     port = models.PositiveSmallIntegerField(null=True, blank=True)
     public_ip = models.GenericIPAddressField()
     public_port = models.PositiveSmallIntegerField()
     bind_ip = models.GenericIPAddressField(null=True, blank=True)
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    def link(self):
+        return (
+            Link.objects.filter(interfaceA=self) |
+            Link.objects.filter(interfaceB=self)
+        ).first()
+
+    def remote_interface(self):
+        return (
+            Link.objects.filter(interfaceA=self).interfaceB or
+            Link.objects.filter(interfaceB=self).interfaceA
+        )
+
+    def remote_as(self):
+        return self.remote_interface().AS
 
 
 class Link(models.Model):
@@ -330,6 +350,11 @@ class Service(models.Model):
         (PP, 'Pingpong server'),
     )
 
+    AS = models.ForeignKey(
+        AS,
+        related_name='services',
+        on_delete=models.CASCADE,
+    )
     host = models.ForeignKey(
         Host,
         related_name='services',
