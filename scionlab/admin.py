@@ -29,7 +29,6 @@ from .models import (
 )
 
 admin.site.register([
-    ISD,
     AttachmentPoint,
     Host,
     ManagedHost,
@@ -39,6 +38,22 @@ admin.site.register([
     VPN,
     VPNClient,
 ])
+
+@admin.register(ISD)
+class ISDAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
+    fieldsets = (
+        (None, {
+            'fields': ('id', 'label',)
+        }),
+        ('TRC', {
+            'classes': ('collapse',),
+            'fields': ('trc', 'trc_priv_keys',)
+        }),
+    )
+    list_display = ('id', 'label',)
+    list_editable = ('label',)
+    ordering = ['id']
 
 
 class ASCreationForm(forms.ModelForm):

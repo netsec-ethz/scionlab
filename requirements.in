@@ -2,3 +2,4 @@ Django
 django-extensions
 django-recaptcha2
 django-registration
+jsonfield2

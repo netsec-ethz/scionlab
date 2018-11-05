@@ -51,13 +51,34 @@ class StringRepresentationTests(TestCase):
         self.assertEqual(as_strs, expected_as_strs)
 
 
-class InitKeysTests(TestCase):
+class InitASTests(TestCase):
     def test_create_as_with_keys(self):
         isd = ISD.objects.create(id=17, label='Switzerland')
-        as_ = AS.objects.create_with_keys(isd=isd, as_id='ff00:1:1')
+        as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
         utils.check_as_keys(self, as_)
+
+    def test_create_coreas_with_keys(self):
+        isd = ISD.objects.create(id=17, label='Switzerland')
+        as_ = AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
+        utils.check_as_keys(self, as_)
+        utils.check_as_core_keys(self, as_)
 
     def test_create_useras_with_keys(self):
         isd = ISD.objects.create(id=17, label='Switzerland')
-        userAS = UserAS.objects.create_with_keys(isd=isd, as_id='ff00:1:1')
+        userAS = UserAS.objects.create(isd=isd, as_id='ff00:1:1')
         utils.check_as_keys(self, userAS)
+
+    def test_create_as_with_default_services(self):
+        isd = ISD.objects.create(id=17, label='Switzerland')
+        as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
+        as_.init_default_services()
+
+        self.assertTrue(hasattr(as_, 'hosts'))
+        self.assertEqual(as_.hosts.count(), 1)
+        host = as_.hosts.first()
+        self.assertEqual(host.config_version, 0)
+        self.assertEqual(host.ip, "127.0.0.1")
+
+        self.assertTrue(hasattr(host, 'services'))
+        self.assertEqual(sorted(s.type for s in host.services.iterator()),
+                         ['BS','CS','PS','ZK'])
