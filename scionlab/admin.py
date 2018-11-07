@@ -220,26 +220,27 @@ class LinkAdminForm(forms.ModelForm):
         initial[prefix+'bind_port'] = interface.bind_port
 
     def _save_interface_form_data(self, interface, prefix):
-        interface.port = self.cleaned_data[prefix+'port']
-        interface.public_ip = self.cleaned_data[prefix+'public_ip']
-        interface.public_port = self.cleaned_data[prefix+'public_port']
-        interface.bind_ip = self.cleaned_data[prefix+'bind_ip']
-        interface.bind_port = self.cleaned_data[prefix+'bind_port']
+        kwargs=dict(
+            host=self.cleaned_data[prefix+'host'],
+            port=self.cleaned_data[prefix+'port'],
+            public_ip=self.cleaned_data[prefix+'public_ip'],
+            public_port=self.cleaned_data[prefix+'public_port'],
+            bind_ip=self.cleaned_data[prefix+'bind_ip'],
+            bind_port=self.cleaned_data[prefix+'bind_port'],
+        )
+        if interface:
+            interface.update(**kwargs)
+        else:
+            interface = Interface.create(**kwargs)
         interface.save()
         return interface
 
     def save(self, commit=True):
+
         link = super().save(commit=False)
 
-        hostA = self.cleaned_data['from_host']
-        if not hasattr(link, 'interfaceA') or link.interfaceA.AS != hostA.AS:
-            link.interfaceA = Interface.create(hostA)
-        link.interfaceA = self._save_interface_form_data(link.interfaceA, 'from_')
-
-        hostB = self.cleaned_data['to_host']
-        if not hasattr(link, 'interfaceB') or link.interfaceB.AS != hostB.AS:
-            link.interfaceB = Interface.create(hostB)
-        link.interfaceB = self._save_interface_form_data(link.interfaceB, 'to_')
+        link.interfaceA = self._save_interface_form_data(link.get_interface_a(), 'from_')
+        link.interfaceB = self._save_interface_form_data(link.get_interface_b(), 'to_')
 
         link.save()
         return link
@@ -252,5 +253,25 @@ class LinkAdmin(admin.ModelAdmin):
     form = LinkAdminForm
     #inlines = [LinkFromInterfaceInline, LinkToInterfaceInline]
 
-    #list_display = ('type', 'is_active', )
-    #list_filter = ('isd', 'is_core',)
+    list_display = ('__str__', 'type', 'active', 'as_a', 'public_ip_a', 'public_port_a', 'bind_ip_a',
+    'bind_port_a', 'interfaceB')
+    list_filter = ('type', 'active',)
+
+    def as_a(self, obj):
+        return obj.interfaceA.AS
+
+
+    def public_ip_a(self, obj):
+        return obj.interfaceA.public_ip
+
+    def public_port_a(self, obj):
+        return obj.interfaceA.public_port
+
+    def bind_ip_a(self, obj):
+        return obj.interfaceA.public_ip
+
+    def bind_port_a(self, obj):
+        return obj.interfaceA.public_port
+
+    def as_b(self, obj):
+        return obj.interfaceA.AS

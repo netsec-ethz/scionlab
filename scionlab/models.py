@@ -157,7 +157,7 @@ class AS(models.Model):
         # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
         self.certificates_needs_update = True
-        self.hosts.update(config_version=F('config_version') + 1)
+        self.bump_hosts_config()
 
     def update_core_keys(self):
         """
@@ -185,15 +185,18 @@ class AS(models.Model):
         for service_type in default_services:
             Service.objects.create(AS=self, host=host, type=service_type)
 
-    def find_interface_id(self):
-        """
-        Find an unused interface id
-        """
-        # TODO(matzf): use holes
-        return max(
-            (interface.interface_id for interface in self.interfaces.iterator()),
-            default=0
-        ) + 1
+#    def find_interface_id(self):
+#        """
+#        Find an unused interface id
+#        """
+#        # TODO(matzf): use holes
+#        return max(
+#            (interface.interface_id for interface in self.interfaces.iterator()),
+#            default=0
+#        ) + 1
+
+    def bump_hosts_config(self):
+        self.hosts.update(config_version=F('config_version') + 1)
 
     def _gen_keys(self):
         """
@@ -290,7 +293,7 @@ class Interface(models.Model):
         related_name='interfaces',
         on_delete=models.CASCADE,
     )
-    interface_id = models.PositiveSmallIntegerField()
+    #interface_id = models.PositiveSmallIntegerField()
     host = models.ForeignKey(
         Host,
         related_name='interfaces',
@@ -303,10 +306,25 @@ class Interface(models.Model):
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
 
     @classmethod
-    def create(cls, host):
-        ifid = host.AS.find_interface_id()
-        host.update(config_version=F('config_version') + 1)
-        return Interface(AS=host.AS, host=host, interface_id=ifid)
+    def create(cls, host, **kwargs):
+        host.AS.bump_hosts_config()
+        return Interface(AS=host.AS, host=host, **kwargs)
+
+    def update(self, host, port, public_ip, public_port, bind_ip, bind_port):
+        self.AS.bump_hosts_config()
+        if host.AS != self.AS:
+            host.AS.bump_hosts_config()
+            self.AS = host.AS
+        self.port = port
+        self.public_ip = public_ip
+        self.public_port = public_port
+        self.bind_ip = bind_ip
+        self.bind_port = bind_port
+
+    def delete(self, *args, **kwargs):
+        self.host.config_version += 1
+        super().delete()
+
 
     def link(self):
         return (
@@ -340,25 +358,40 @@ class Link(models.Model):
         related_name='+',
         on_delete=models.CASCADE
     )
-    link_type = models.CharField(
+    type = models.CharField(
         choices=LINK_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
     active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return '%s -- %s' % (self.interfaceA, self.interfaceB)
+
+    def delete(self, *args, **kwargs):
+        super().delete()
+        self.interfaceA.delete()
+        self.interfaceB.delete()
+
     @classmethod
-    def create(cls, hostA, hostB, link_type, active=True):
+    def create(cls, hostA, hostB, type, active=True):
         interfaceA = Interface.create(host=hostA)
         interfaceB = Interface.create(host=hostB)
         return Link(
             interfaceA=interfaceA,
             interfaceB=interfaceB,
-            link_type=link_type,
+            type=type,
             active=active
         )
 
+    def get_interface_a(self):
+        if hasattr(self, 'interfaceA'):
+            return self.interfaceA
+        return None
 
-
+    def get_interface_b(self):
+        if hasattr(self, 'interfaceB'):
+            return self.interfaceB
+        return None
 
 class Service(models.Model):
     """
