@@ -186,7 +186,6 @@ class LinkAdminForm(forms.ModelForm):
         model = Link
         exclude = ['interfaceA', 'interfaceB']
 
-    from_as = forms.ModelChoiceField(queryset=AS.objects.all())
     from_host = forms.ModelChoiceField(queryset=Host.objects.all())
     from_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
     from_public_ip = forms.GenericIPAddressField(required=False)
@@ -194,7 +193,6 @@ class LinkAdminForm(forms.ModelForm):
     from_bind_ip = forms.GenericIPAddressField(required=False)
     from_bind_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
 
-    to_as = forms.ModelChoiceField(queryset=AS.objects.all())
     to_host = forms.ModelChoiceField(queryset=Host.objects.all())
     to_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
     to_public_ip = forms.GenericIPAddressField(required=False)
@@ -206,28 +204,22 @@ class LinkAdminForm(forms.ModelForm):
         if instance:
             initial = initial or {}
             if instance.interfaceA:
-                initial['from_as'] = instance.interfaceA.AS_id
-                initial['from_host'] = instance.interfaceA.host_id
-                initial['from_port'] = instance.interfaceA.port
-                initial['from_public_ip'] = instance.interfaceA.public_ip
-                initial['from_public_port'] = instance.interfaceA.public_port
-                initial['from_bind_ip'] = instance.interfaceA.bind_ip
-                initial['from_bind_port'] = instance.interfaceA.bind_port
+                self._init_interface_form_data(initial, instance.interfaceA, 'from_')
             if instance.interfaceB:
-                initial['to_as'] = instance.interfaceB.AS_id
-                initial['to_host'] = instance.interfaceB.host_id
-                initial['to_port'] = instance.interfaceB.port
-                initial['to_public_ip'] = instance.interfaceB.public_ip
-                initial['to_public_port'] = instance.interfaceB.public_port
-                initial['to_bind_ip'] = instance.interfaceB.bind_ip
-                initial['to_bind_port'] = instance.interfaceB.bind_port
+                self._init_interface_form_data(initial, instance.interfaceB, 'to_')
 
         super().__init__(data=data, files=files, initial=initial,
                 instance=instance, **kwargs)
 
+    def _init_interface_form_data(self, initial, interface, prefix):
+        initial[prefix+'host'] = interface.host_id
+        initial[prefix+'port'] = interface.port
+        initial[prefix+'public_ip'] = interface.public_ip
+        initial[prefix+'public_port'] = interface.public_port
+        initial[prefix+'bind_ip'] = interface.bind_ip
+        initial[prefix+'bind_port'] = interface.bind_port
+
     def _save_interface_form_data(self, interface, prefix):
-        interface.AS = self.cleaned_data[prefix+'as']
-        interface.host = self.cleaned_data[prefix+'host']
         interface.port = self.cleaned_data[prefix+'port']
         interface.public_ip = self.cleaned_data[prefix+'public_ip']
         interface.public_port = self.cleaned_data[prefix+'public_port']
@@ -239,8 +231,15 @@ class LinkAdminForm(forms.ModelForm):
     def save(self, commit=True):
         link = super().save(commit=False)
 
-        link.interfaceA = self._save_interface_form_data(link.interfaceA or Interface(), 'from_')
-        link.interfaceB = self._save_interface_form_data(link.interfaceB or Interface(), 'to_')
+        hostA = self.cleaned_data['from_host']
+        if not hasattr(link, 'interfaceA') or link.interfaceA.AS != hostA.AS:
+            link.interfaceA = Interface.create(hostA)
+        link.interfaceA = self._save_interface_form_data(link.interfaceA, 'from_')
+
+        hostB = self.cleaned_data['to_host']
+        if not hasattr(link, 'interfaceB') or link.interfaceB.AS != hostB.AS:
+            link.interfaceB = Interface.create(hostB)
+        link.interfaceB = self._save_interface_form_data(link.interfaceB, 'to_')
 
         link.save()
         return link

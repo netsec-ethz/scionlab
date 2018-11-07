@@ -185,6 +185,16 @@ class AS(models.Model):
         for service_type in default_services:
             Service.objects.create(AS=self, host=host, type=service_type)
 
+    def find_interface_id(self):
+        """
+        Find an unused interface id
+        """
+        # TODO(matzf): use holes
+        return max(
+            (interface.interface_id for interface in self.interfaces.iterator()),
+            default=0
+        ) + 1
+
     def _gen_keys(self):
         """
         Generate signing and encryption key pairs.
@@ -280,16 +290,23 @@ class Interface(models.Model):
         related_name='interfaces',
         on_delete=models.CASCADE,
     )
+    interface_id = models.PositiveSmallIntegerField()
     host = models.ForeignKey(
         Host,
         related_name='interfaces',
         on_delete=models.CASCADE,
     )
     port = models.PositiveSmallIntegerField(null=True, blank=True)
-    public_ip = models.GenericIPAddressField()
-    public_port = models.PositiveSmallIntegerField()
+    public_ip = models.GenericIPAddressField(null=True, blank=True)
+    public_port = models.PositiveSmallIntegerField(null=True, blank=True)
     bind_ip = models.GenericIPAddressField(null=True, blank=True)
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    @classmethod
+    def create(cls, host):
+        ifid = host.AS.find_interface_id()
+        host.update(config_version=F('config_version') + 1)
+        return Interface(AS=host.AS, host=host, interface_id=ifid)
 
     def link(self):
         return (
@@ -328,6 +345,19 @@ class Link(models.Model):
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
     active = models.BooleanField(default=True)
+
+    @classmethod
+    def create(cls, hostA, hostB, link_type, active=True):
+        interfaceA = Interface.create(host=hostA)
+        interfaceB = Interface.create(host=hostB)
+        return Link(
+            interfaceA=interfaceA,
+            interfaceB=interfaceB,
+            link_type=link_type,
+            active=active
+        )
+
+
 
 
 class Service(models.Model):
