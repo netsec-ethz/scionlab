@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from django.test import TestCase
-from scionlab.models import ISD, AS, UserAS
+from scionlab.models import ISD, AS, UserAS, Link, Host, Interface
 from scionlab.tests import utils
 
 
@@ -76,9 +76,105 @@ class InitASTests(TestCase):
         self.assertTrue(hasattr(as_, 'hosts'))
         self.assertEqual(as_.hosts.count(), 1)
         host = as_.hosts.first()
-        self.assertEqual(host.config_version, 0)
         self.assertEqual(host.ip, "127.0.0.1")
+        self.assertTrue(host.needs_config_deployment())
 
         self.assertTrue(hasattr(host, 'services'))
         self.assertEqual(sorted(s.type for s in host.services.iterator()),
                          ['BS', 'CS', 'PS', 'ZK'])
+
+
+class LinkModificationTests(TestCase):
+    fixtures = ['scionlab-isds', 'scionlab-ases-ch']
+
+    AS_SCMN = 'ffaa:0:1101'
+    AS_ETHZ = 'ffaa:0:1102'
+    AS_SWTH = 'ffaa:0:1103'
+
+    def _as_a(self):
+        return AS.objects.get(as_id=self.AS_SCMN)
+
+    def _as_b(self):
+        return AS.objects.get(as_id=self.AS_ETHZ)
+
+    def _as_c(self):
+        return AS.objects.get(as_id=self.AS_SWTH)
+
+    def test_create_delete_link(self):
+        as_a = self._as_a()
+        as_b = self._as_b()
+
+        Host.objects.reset_needs_config_deployment()
+
+        link = Link.objects.create(as_a.hosts.first(), as_b.hosts.first(), Link.PROVIDER)
+        self._sanity_check_link(link)
+        self.assertEqual(link.type, Link.PROVIDER)
+        self.assertEqual(Interface.objects.count(), 2)
+        self.assertEqual(as_a.interfaces.get().remote_as(), as_b)
+        self.assertEqual(as_b.interfaces.get().remote_as(), as_a)
+
+        self.assertEqual(Host.objects.needs_config_deployment().count(), 2)
+        Host.objects.reset_needs_config_deployment()
+
+        link.delete()
+        self.assertEqual(Link.objects.count(), 0)
+        self.assertEqual(Interface.objects.count(), 0)
+
+        self.assertEqual(Host.objects.needs_config_deployment().count(), 2)
+
+    def test_update_link(self):
+        as_a = self._as_a()
+        as_b = self._as_b()
+        link = Link.objects.create(as_a.hosts.first(), as_b.hosts.first(), Link.PROVIDER)
+        self._sanity_check_link(link)
+
+        Host.objects.reset_needs_config_deployment()
+
+        # Update bind address: this is a local change
+        link.interfaceA.update(bind_ip='192.0.2.1', bind_port=50000)
+        self.assertEqual(
+            list(Host.objects.needs_config_deployment()),
+            list(as_a.hosts.all())
+        )
+        Host.objects.reset_needs_config_deployment()
+
+        # Update public address: this affects local and remote interfaces
+        link.interfaceA.update(public_ip='192.0.2.1', public_port=50000)
+        self._sanity_check_link(link)
+        self.assertEqual(
+            list(Host.objects.needs_config_deployment()),
+            list(as_a.hosts.all() | as_b.hosts.all())
+        )
+        Host.objects.reset_needs_config_deployment()
+
+        # change the link from A-B to A-C
+        as_c = self._as_c()
+        link.interfaceB.update(host=as_c.hosts.first())
+        self._sanity_check_link(link)
+        self.assertEqual(
+            list(Host.objects.needs_config_deployment()),
+            list(as_a.hosts.all() | as_b.hosts.all() | as_c.hosts.all())
+        )
+
+
+    # TODO(matzf): tests that check validation
+
+    def _sanity_check_link(self, link):
+        self.assertIsNotNone(link)
+        self.assertNotEqual(link.interfaceA, link.interfaceB)
+        self._sanity_check_interface(link.interfaceA)
+        self._sanity_check_interface(link.interfaceB)
+        self.assertTrue(link.active)
+        self.assertEquals(link.interfaceA.link(), link)
+        self.assertEquals(link.interfaceB.link(), link)
+        self.assertEquals(link.interfaceA.remote_interface(), link.interfaceB)
+        self.assertEquals(link.interfaceB.remote_interface(), link.interfaceA)
+        self.assertEquals(link.interfaceA.remote_as(), link.interfaceB.AS)
+        self.assertEquals(link.interfaceB.remote_as(), link.interfaceA.AS)
+
+    def _sanity_check_interface(self, interface):
+        self.assertIsNotNone(interface)
+        self.assertIsNotNone(interface.AS)
+        self.assertIsNotNone(interface.host)
+        self.assertEqual(interface.host.AS, interface.AS)
+        self.assertTrue(1 <= interface.interface_id < 128)

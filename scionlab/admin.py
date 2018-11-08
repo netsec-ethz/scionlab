@@ -20,18 +20,17 @@ from .models import (
     UserAS,
     AttachmentPoint,
     Host,
-    ManagedHost,
     Interface,
     Link,
     Service,
     VPN,
     VPNClient,
+    MAX_PORT,
 )
 
 admin.site.register([
     AttachmentPoint,
     Host,
-    ManagedHost,
     VPN,
     VPNClient,
 ])
@@ -186,19 +185,20 @@ class LinkAdminForm(forms.ModelForm):
         model = Link
         exclude = ['interfaceA', 'interfaceB']
 
+    # TODO(matzf): avoid duplication, make naming consistent (to/from vs. a/b)?
     from_host = forms.ModelChoiceField(queryset=Host.objects.all())
-    from_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
+    from_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     from_public_ip = forms.GenericIPAddressField(required=False)
-    from_public_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
+    from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     from_bind_ip = forms.GenericIPAddressField(required=False)
-    from_bind_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
+    from_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     to_host = forms.ModelChoiceField(queryset=Host.objects.all())
-    to_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
+    to_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     to_public_ip = forms.GenericIPAddressField(required=False)
-    to_public_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
+    to_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     to_bind_ip = forms.GenericIPAddressField(required=False)
-    to_bind_port = forms.IntegerField(min_value=1, max_value=2**16-1, required=False)
+    to_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     def __init__(self, data=None, files=None, initial=None, instance=None, **kwargs):
         if instance:
@@ -231,21 +231,15 @@ class LinkAdminForm(forms.ModelForm):
         if interface:
             interface.update(**kwargs)
         else:
-            interface = Interface.create(**kwargs)
-        interface.save()
+            interface = Interface.objects.create(**kwargs)
         return interface
 
     def save(self, commit=True):
-
         link = super().save(commit=False)
-
         link.interfaceA = self._save_interface_form_data(link.get_interface_a(), 'from_')
         link.interfaceB = self._save_interface_form_data(link.get_interface_b(), 'to_')
-
         link.save()
         return link
-
-
 
 
 @admin.register(Link)
@@ -253,13 +247,9 @@ class LinkAdmin(admin.ModelAdmin):
     form = LinkAdminForm
     #inlines = [LinkFromInterfaceInline, LinkToInterfaceInline]
 
-    list_display = ('__str__', 'type', 'active', 'as_a', 'public_ip_a', 'public_port_a', 'bind_ip_a',
-    'bind_port_a', 'interfaceB')
-    list_filter = ('type', 'active',)
-
-    def as_a(self, obj):
-        return obj.interfaceA.AS
-
+    list_display = ('__str__', 'type', 'active', 'public_ip_a', 'public_port_a', 'bind_ip_a',
+    'bind_port_a', 'public_ip_b', 'public_port_b', 'bind_ip_b', 'bind_port_b')
+    list_filter = ('type', 'active', 'interfaceA__AS', 'interfaceB__AS',)
 
     def public_ip_a(self, obj):
         return obj.interfaceA.public_ip
@@ -273,5 +263,14 @@ class LinkAdmin(admin.ModelAdmin):
     def bind_port_a(self, obj):
         return obj.interfaceA.public_port
 
-    def as_b(self, obj):
-        return obj.interfaceA.AS
+    def public_ip_b(self, obj):
+        return obj.interfaceB.public_ip
+
+    def public_port_b(self, obj):
+        return obj.interfaceB.public_port
+
+    def bind_ip_b(self, obj):
+        return obj.interfaceB.public_ip
+
+    def bind_port_b(self, obj):
+        return obj.interfaceB.public_port

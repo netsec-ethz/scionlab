@@ -14,13 +14,12 @@
 
 from django.test import TestCase
 from django.forms.models import modelform_factory
-from scionlab.models import AS
+from scionlab.models import AS, Link
 from scionlab.tests import utils
-from scionlab.admin import ASCreationForm
+from scionlab.admin import ASCreationForm, LinkAdminForm
 
 
 class ASAdminTests(TestCase):
-
     fixtures = ['scionlab-isds']
 
     def test_create_as_form(self):
@@ -41,3 +40,63 @@ class ASAdminTests(TestCase):
         self.assertEqual(as_.isd.id, 17)
         self.assertEqual(as_.label, 'Test')
         utils.check_as_keys(self, as_)
+
+
+class LinkAdminFormTests(TestCase):
+    fixtures = ['scionlab-isds', 'scionlab-ases-ch']
+
+    AS_SCMN = 'ffaa:0:1101'
+    AS_ETHZ = 'ffaa:0:1102'
+    AS_SWTH = 'ffaa:0:1103'
+
+    def _as_a(self):
+        return AS.objects.get(as_id=self.AS_SCMN)
+
+    def _as_b(self):
+        return AS.objects.get(as_id=self.AS_ETHZ)
+
+    def test_render_create(self):
+        form = LinkAdminForm()
+        self.assertIsNotNone(form.as_table())
+
+    def test_create_link(self):
+        as_a = self._as_a()
+        as_b = self._as_b()
+        form_data = dict(
+            type=Link.PROVIDER,
+            from_host=as_a.hosts.first().id,
+            to_host=as_b.hosts.first().id,
+        )
+        form = LinkAdminForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        link = form.save()
+        self.assertIsNotNone(link)
+
+    def test_render_edit(self):
+        as_a = self._as_a()
+        as_b = self._as_b()
+        link = Link.objects.create(as_a.hosts.first(), as_b.hosts.first(), Link.PROVIDER)
+        form = LinkAdminForm(instance=link)
+        self.assertIsNotNone(form.as_table())
+
+    def test_edit_link(self):
+        as_a = self._as_a()
+        as_b = self._as_b()
+        link = Link.objects.create(as_a.hosts.first(), as_b.hosts.first(), Link.PROVIDER)
+
+        form_data = dict(
+            type=Link.PROVIDER,
+            from_host=as_a.hosts.first().id,
+            to_host=as_b.hosts.first().id,
+            from_public_ip='192.0.2.1',
+            from_public_port=50000,
+            to_public_ip='192.0.2.2',
+            to_public_port=50001,
+        )
+        form = LinkAdminForm(instance=link, data=form_data)
+        link = form.save()
+        self.assertIsNotNone(link)
+        self.assertEqual(link.interfaceA.public_ip, '192.0.2.1')
+        self.assertEqual(link.interfaceA.public_port, 50000)
+        self.assertEqual(link.interfaceB.public_ip, '192.0.2.2')
+        self.assertEqual(link.interfaceB.public_port, 50001)

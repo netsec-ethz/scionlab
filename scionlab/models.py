@@ -20,9 +20,12 @@ from django.db.models import F
 import jsonfield
 import lib.crypto.asymcrypto
 
+
+MAX_PORT = 2**16-1
+""" Max value for ports """
+
 # TODO(matzf) move to common definitions module?
 _DEFAULT_HOST_IP = "127.0.0.1"
-
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirments to max length """
@@ -77,6 +80,14 @@ class ASManager(models.Manager):
         as_.save(force_insert=True)
         return as_
 
+    def create_with_default_services(self, **kwargs):
+        """
+        Create the AS, initialise the required keys and create a default host object
+        with default services
+        """
+        as_ = self.create(**kwargs)
+        as_.init_default_services()
+        return as_
 
 class AS(models.Model):
     isd = models.ForeignKey(
@@ -185,15 +196,15 @@ class AS(models.Model):
         for service_type in default_services:
             Service.objects.create(AS=self, host=host, type=service_type)
 
-#    def find_interface_id(self):
-#        """
-#        Find an unused interface id
-#        """
-#        # TODO(matzf): use holes
-#        return max(
-#            (interface.interface_id for interface in self.interfaces.iterator()),
-#            default=0
-#        ) + 1
+    def find_interface_id(self):
+        """
+        Find an unused interface id
+        """
+        # TODO(matzf): use holes
+        return max(
+            (interface.interface_id for interface in self.interfaces.iterator()),
+            default=0
+        ) + 1
 
     def bump_hosts_config(self):
         self.hosts.update(config_version=F('config_version') + 1)
@@ -246,6 +257,19 @@ class AttachmentPoint(models.Model):
         on_delete=models.SET_NULL
     )
 
+class HostManager(models.Manager):
+    def reset_needs_config_deployment(self):
+        """
+        Reset `needs_config_deployement` to False for all hosts.
+        """
+        self.update(config_version=F('config_version_deployed'))
+
+    def needs_config_deployment(self):
+        """
+        Find all hosts with `needs_config_deployment`.
+        """
+        return self.filter(config_version__gt=F('config_version_deployed'))
+
 
 class Host(models.Model):
     """
@@ -257,34 +281,50 @@ class Host(models.Model):
         related_name='hosts',
         on_delete=models.SET_NULL,
     )
-    config_version = models.PositiveIntegerField(default=0)
-    ip = models.GenericIPAddressField(default=_DEFAULT_HOST_IP)
-    """ IP of the host IN the AS """
+    ip = models.GenericIPAddressField(
+        default=_DEFAULT_HOST_IP,
+        help_text="IP of the host in the AS"
+    )
+    label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+
+    managed = models.BooleanField(default=False)
+    public_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="""Public IP of the host for management, should be reachable by the coordinator"""
+    )
+    ssh_port = models.PositiveSmallIntegerField(default=22)
+
+    # TODO(matzf): we may need additional information for container or VM
+    # initialisation (to access the host's host)
+
+    config_version = models.PositiveIntegerField(default=1)
+    config_version_deployed = models.PositiveIntegerField(default=0)
+
+    objects = HostManager()
 
     class Meta:
         unique_together = ('AS', 'ip')
 
     def __str__(self):
+        if self.label:
+            return self.label
         return '%s,[%s]' % (self.AS.isd_as_str(), self.ip)
 
+    def needs_config_deployment(self):
+        """
+        Has the configuration for the services/interfaces running on this Host changed since the
+        last deployment?
+        """
+        return self.config_version_deployed < self.config_version
 
-class ManagedHost(Host):
-    HOST_TYPES = (
-        ('DEDICATED', 'Dedicated'),
-        ('VM', 'VM'),
-        ('DOCKER', 'Docker')
-    )
 
-    public_ip = models.GenericIPAddressField()
-    ssh_port = models.PositiveSmallIntegerField(default=22)
-    container_name = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    type = models.CharField(
-        choices=HOST_TYPES,
-        max_length=_MAX_LEN_CHOICES_DEFAULT
-    )
-    label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-
-    config_version_deployed = models.PositiveIntegerField()
+class InterfaceManager(models.Manager):
+    def create(self, host, **kwargs):
+        as_ = host.AS
+        ifid = as_.find_interface_id()
+        as_.bump_hosts_config()
+        return super().create(AS=as_, interface_id=ifid, host=host, **kwargs)
 
 
 class Interface(models.Model):
@@ -293,7 +333,7 @@ class Interface(models.Model):
         related_name='interfaces',
         on_delete=models.CASCADE,
     )
-    #interface_id = models.PositiveSmallIntegerField()
+    interface_id = models.PositiveSmallIntegerField()
     host = models.ForeignKey(
         Host,
         related_name='interfaces',
@@ -305,26 +345,59 @@ class Interface(models.Model):
     bind_ip = models.GenericIPAddressField(null=True, blank=True)
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
 
-    @classmethod
-    def create(cls, host, **kwargs):
-        host.AS.bump_hosts_config()
-        return Interface(AS=host.AS, host=host, **kwargs)
+    objects = InterfaceManager()
 
-    def update(self, host, port, public_ip, public_port, bind_ip, bind_port):
-        self.AS.bump_hosts_config()
-        if host.AS != self.AS:
-            host.AS.bump_hosts_config()
-            self.AS = host.AS
-        self.port = port
-        self.public_ip = public_ip
-        self.public_port = public_port
-        self.bind_ip = bind_ip
-        self.bind_port = bind_port
+    def __str__(self):
+        return '%s (%i)' % (self.AS.isd_as_str(), self.interface_id)
+
+    def update(self, host=None, port=None, public_ip=None, public_port=None, bind_ip=None, bind_port=None):
+        """
+        Update the fields for this interface and immediately `save`.
+        This will trigger a configuration bump for all Hosts in all affected ASes.
+        """
+
+        bump_local = False
+        bump_local_remote = False
+        if host != None and host != self.host:
+            old_as = self.AS
+            new_as = host.AS
+            if new_as != old_as:
+                ifid = new_as.find_interface_id() # before setting AS-relation
+                self.AS = new_as
+                self.interface_id = ifid
+                old_as.bump_hosts_config()
+            self.host = host
+            bump_local_remote = True
+
+
+        # TODO(matzf): this is overly verbose
+        if port != None and port != self.port:
+            bump_local = True
+            self.port = port
+        if public_ip != None and public_ip != self.public_ip:
+            bump_local_remote = True
+            self.public_ip = public_ip
+        if public_port != None and public_port != self.public_port:
+            bump_local_remote = True
+            self.public_port = public_port
+        if bind_ip != None and bind_ip != self.bind_ip:
+            bump_local = True
+            self.bind_ip = bind_ip
+        if bind_port != None and bind_port != self.bind_port:
+            bump_local = True
+            self.bind_port = bind_port
+
+        if bump_local or bump_local_remote:
+            self.AS.bump_hosts_config()
+        if bump_local_remote:
+            self.remote_as().bump_hosts_config() # bump remote AS
+                                                 # if both ASes of both interfaces are changed, can be either old
+                                                 # or new AS, depending on order. Redundant but correct.
+        self.save()
 
     def delete(self, *args, **kwargs):
-        self.host.config_version += 1
+        self.AS.bump_hosts_config()
         super().delete()
-
 
     def link(self):
         return (
@@ -333,21 +406,49 @@ class Interface(models.Model):
         ).first()
 
     def remote_interface(self):
-        return (
-            Link.objects.filter(interfaceA=self).interfaceB or
-            Link.objects.filter(interfaceB=self).interfaceA
-        )
+        # FIXME(matzf): naive queries
+        link = self.link()
+        if self == link.interfaceA:
+            return link.interfaceB
+        else:
+            return link.interfaceA
 
     def remote_as(self):
+        # FIXME(matzf): naive queries
         return self.remote_interface().AS
 
 
+class LinkManager(models.Manager):
+    def create(cls, hostA, hostB, type, active=True, **kwargs):
+        """ Create an AS-Link from the AS of host A to to the AS of host B """
+        if hostA.AS == hostB.AS:
+            raise ValueError("Loop AS-link (from AS to itself) not allowed")
+
+        # TODO(matzf): validation (should be reusable for forms and for global system checks)
+        # - no provider loops
+        # - core links only for core ases
+        # - no non-core providers for core ases (or no providers at all?)
+        # - no cross ISD provider links
+
+        interfaceA = Interface.objects.create(host=hostA)
+        interfaceB = Interface.objects.create(host=hostB)
+        return super().create(
+            interfaceA=interfaceA,
+            interfaceB=interfaceB,
+            type=type,
+            active=active
+        )
+
 class Link(models.Model):
+    PROVIDER = 'PROVIDER'
+    CORE = 'CORE'
+    PEER = 'PEER'
     LINK_TYPES = (
-        ('PROVIDER', 'Provider link from A to B'),
-        ('CORE', 'Core link (symmetric)'),
-        ('PEER', 'Peering link (symmetric)'),
+        (PROVIDER, 'Provider link from A to B'),
+        (CORE, 'Core link (symmetric)'),
+        (PEER, 'Peering link (symmetric)'),
     )
+    # TODO(matzf): reduce number of types? CORE can be deduced?
     interfaceA = models.OneToOneField(
         Interface,
         related_name='+',
@@ -364,6 +465,8 @@ class Link(models.Model):
     )
     active = models.BooleanField(default=True)
 
+    objects = LinkManager()
+
     def __str__(self):
         return '%s -- %s' % (self.interfaceA, self.interfaceB)
 
@@ -371,17 +474,6 @@ class Link(models.Model):
         super().delete()
         self.interfaceA.delete()
         self.interfaceB.delete()
-
-    @classmethod
-    def create(cls, hostA, hostB, type, active=True):
-        interfaceA = Interface.create(host=hostA)
-        interfaceB = Interface.create(host=hostB)
-        return Link(
-            interfaceA=interfaceA,
-            interfaceB=interfaceB,
-            type=type,
-            active=active
-        )
 
     def get_interface_a(self):
         if hasattr(self, 'interfaceA'):
@@ -432,7 +524,7 @@ class Service(models.Model):
 
 class VPN(models.Model):
     server = models.ForeignKey(
-        ManagedHost,
+        Host,
         related_name='vpn_servers',
         on_delete=models.CASCADE
     )
