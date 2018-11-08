@@ -28,9 +28,9 @@ MAX_PORT = 2**16-1
 _DEFAULT_HOST_IP = "127.0.0.1"
 
 _MAX_LEN_DEFAULT = 255
-""" Max length value for fields without specific requirments to max length """
+""" Max length value for fields without specific requirements to max length """
 _MAX_LEN_CHOICES_DEFAULT = 16
-""" Max length value for choices fields without specific requirments to max length """
+""" Max length value for choices fields without specific requirements to max length """
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """
 
@@ -89,6 +89,7 @@ class ASManager(models.Manager):
         as_.init_default_services()
         return as_
 
+
 class AS(models.Model):
     isd = models.ForeignKey(
         ISD,
@@ -139,6 +140,12 @@ class AS(models.Model):
         else:
             return self.isd_as_str()
 
+    def delete(self):
+        if self.is_core:
+            self._bump_hosts_config_core_change()
+        else:
+            self.bump_hosts_config()
+
     def isd_as_str(self):
         """
         :return: the ISD-AS string representation
@@ -178,13 +185,7 @@ class AS(models.Model):
         """
         self._gen_core_keys()
         if self.is_core:
-            self.isd.trc_needs_update = True
-            self.certificates_needs_update = True
-            self.isd \
-                .ases \
-                .filter(is_core=True) \
-                .hosts \
-                .update(config_version=F('config_version') + 1)
+            self._bump_hosts_config_core_change()
 
     def init_default_services(self):
         """
@@ -208,6 +209,18 @@ class AS(models.Model):
 
     def bump_hosts_config(self):
         self.hosts.update(config_version=F('config_version') + 1)
+
+    def _bump_hosts_config_core_change(self):
+        # TODO(matzf): untested
+        self.isd.trc_needs_update = True
+        self.certificates_needs_update = True
+        self.isd \
+            .ases \
+            .filter(is_core=True) \
+            .hosts \
+            .update(config_version=F('config_version') + 1)
+
+        # TODO(matzf): add issuer/subject relation, reset certificates for all signed_by
 
     def _gen_keys(self):
         """
@@ -355,6 +368,7 @@ class Interface(models.Model):
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
         """
+        # TODO(matzf): should we rather overwrite the `save` method? Urgh, so many options.
 
         bump_local = False
         bump_local_remote = False
@@ -500,7 +514,7 @@ class Service(models.Model):
         (BS, 'Beacon Server'),
         (PS, 'Path Server'),
         (CS, 'Certificate Server'),
-        (ZK, 'Zookeeper (service discovery)'),
+        (ZK, 'Zookeeper'),
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
     )

@@ -140,8 +140,10 @@ class ASAdmin(admin.ModelAdmin):
         # FIXME(matzf) conceptually, an AS can change the ISD. Not allowed for now
         # as I anticipate this may unnecessarily complicate the TRC/certificate
         # update logic. Should be revisited.
+        # TODO(matzf): Changing is_core should also be possible, not yet implemented
+        #              Requires removing core links etc, bump signed certificates
         if obj:
-            return ('isd', 'as_id',)
+            return ('isd', 'is_core', 'as_id',)
         return ()
 
     def get_inline_instances(self, request, obj):
