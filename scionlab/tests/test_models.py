@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest.mock import patch, MagicMock
 from django.test import TestCase
-from scionlab.models import ISD, AS, UserAS, Link, Host, Interface
+from scionlab.models import ISD, AS, UserAS, Link, Host, Interface, Service
 from scionlab.tests import utils
 
 
@@ -82,6 +83,8 @@ class InitASTests(TestCase):
         self.assertTrue(hasattr(host, 'services'))
         self.assertEqual(sorted(s.type for s in host.services.iterator()),
                          ['BS', 'CS', 'PS', 'ZK'])
+
+
 
 
 class LinkModificationTests(TestCase):
@@ -178,3 +181,58 @@ class LinkModificationTests(TestCase):
         self.assertIsNotNone(interface.host)
         self.assertEqual(interface.host.AS, interface.AS)
         self.assertTrue(1 <= interface.interface_id < 128)
+
+
+class DeleteASTests(TestCase):
+    # TODO add link fixture
+
+    fixtures = ['scionlab-isds', 'scionlab-ases-ch']
+
+
+    def setUp(self):
+        patcher = patch('scionlab.models.AS._pre_delete', side_effect=AS._pre_delete, autospec=True)
+        self.mock_as_pre_delete = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_delete_single_as(self):
+        as_ = AS.objects.last()
+
+        # Add a link just so there is one
+        # TODO(matzf) move to fixture
+        Link.objects.create(as_.hosts.first(), AS.objects.first().hosts.first(), Link.PROVIDER)
+
+
+        host_ids = [h.id for h in as_.hosts.all().iterator()]
+        interface_ids = [h.id for h in as_.interfaces.all().iterator()]
+        service_ids = [h.id for h in as_.services.all().iterator()]
+        # Check that we are testing something useful:
+        self.assertGreater(len(host_ids), 0, msg="Uninteresting test data")
+        self.assertGreater(len(interface_ids), 0, msg="Uninteresting test data")
+        self.assertGreater(len(service_ids), 0, msg="Uninteresting test data")
+
+        Host.objects.reset_needs_config_deployment()
+
+        as_.delete()
+
+        self.assertEqual(self.mock_as_pre_delete.call_count, 1)
+
+        # Check hosts have not been deleted and `needs_config_deployment`:
+        for host_id in host_ids:
+            self.assertTrue(Host.objects.filter(id=host_id).exists())
+            self.assertTrue(Host.objects.get(id=host_id).needs_config_deployment())
+
+        # Check interfaces and service objects have been deleted
+        for interface_id in interface_ids:
+            self.assertFalse(Interface.objects.filter(id=interface_id).exists())
+        for service_id in service_ids:
+            self.assertFalse(Service.objects.filter(id=service_id).exists())
+
+
+    def test_delete_bulk(self):
+        ases = AS.objects.filter(is_core=False)
+        ases_count = ases.count()
+        self.assertGreater(ases_count, 0, msg="Uninteresting test data")
+
+        ases.delete()
+
+        self.assertEqual(self.mock_as_pre_delete.call_count, ases_count)

@@ -247,7 +247,6 @@ class LinkAdminForm(forms.ModelForm):
 @admin.register(Link)
 class LinkAdmin(admin.ModelAdmin):
     form = LinkAdminForm
-    #inlines = [LinkFromInterfaceInline, LinkToInterfaceInline]
 
     list_display = ('__str__', 'type', 'active', 'public_ip_a', 'public_port_a', 'bind_ip_a',
     'bind_port_a', 'public_ip_b', 'public_port_b', 'bind_ip_b', 'bind_port_b')

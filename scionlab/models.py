@@ -15,8 +15,10 @@
 import os
 import base64
 from django.contrib.auth.models import User
+from django.dispatch import receiver
 from django.db import models
 from django.db.models import F
+from django.db.models.signals import pre_delete, post_delete
 import jsonfield
 import lib.crypto.asymcrypto
 
@@ -140,7 +142,12 @@ class AS(models.Model):
         else:
             return self.isd_as_str()
 
-    def delete(self):
+    def _pre_delete(self):
+        """
+        Called by the pre_delete signal handler `_as_pre_delete`.
+        Note: the pre_delete signal has the advantage that it is called
+        also for bulk deletion, while this `delete()` method is not.
+        """
         if self.is_core:
             self._bump_hosts_config_core_change()
         else:
@@ -363,6 +370,14 @@ class Interface(models.Model):
     def __str__(self):
         return '%s (%i)' % (self.AS.isd_as_str(), self.interface_id)
 
+    def _pre_delete(self):
+        """
+        Called by the pre_delete signal handler `_interface_pre_delete`.
+        Note: the deletion-signals have the advantage that they are triggerd
+        also for bulk deletion, while the `delete()` method is not.
+        """
+        self.AS.bump_hosts_config()
+
     def update(self, host=None, port=None, public_ip=None, public_port=None, bind_ip=None, bind_port=None):
         """
         Update the fields for this interface and immediately `save`.
@@ -409,10 +424,6 @@ class Interface(models.Model):
                                                  # or new AS, depending on order. Redundant but correct.
         self.save()
 
-    def delete(self, *args, **kwargs):
-        self.AS.bump_hosts_config()
-        super().delete()
-
     def link(self):
         return (
             Link.objects.filter(interfaceA=self) |
@@ -453,6 +464,7 @@ class LinkManager(models.Manager):
             active=active
         )
 
+
 class Link(models.Model):
     PROVIDER = 'PROVIDER'
     CORE = 'CORE'
@@ -484,10 +496,16 @@ class Link(models.Model):
     def __str__(self):
         return '%s -- %s' % (self.interfaceA, self.interfaceB)
 
-    def delete(self, *args, **kwargs):
-        super().delete()
-        self.interfaceA.delete()
-        self.interfaceB.delete()
+    def _post_delete(self):
+        """
+        Called by the post_delete signal handler `_link_post_delete`.
+        Note: this is triggered by _post_delete to allow checking whether the
+        related interfaces have already been deleted, and avoid recursion.
+        Note: the deletion-signals have the advantage that they are triggerd
+        also for bulk deletion, while the `delete()` method is not.
+        """
+        for interface in filter(None, [self.get_interface_a(), self.get_interface_b()]):
+            interface.delete()
 
     def get_interface_a(self):
         if hasattr(self, 'interfaceA'):
@@ -498,6 +516,9 @@ class Link(models.Model):
         if hasattr(self, 'interfaceB'):
             return self.interfaceB
         return None
+
+
+
 
 class Service(models.Model):
     """
@@ -559,6 +580,21 @@ class VPNClient(models.Model):
         on_delete=models.CASCADE
     )
     keys = models.TextField(null=True, blank=True)
+
+
+@receiver(pre_delete, sender=AS, dispatch_uid='as_delete_callback')
+def _as_pre_delete(sender, instance, using, **kwargs):
+    instance._pre_delete()
+
+
+@receiver(pre_delete, sender=Interface, dispatch_uid='interface_delete_callback')
+def _interface_pre_delete(sender, instance, using, **kwargs):
+    instance._pre_delete()
+
+
+@receiver(post_delete, sender=Link, dispatch_uid='link_delete_callback')
+def _link_post_delete(sender, instance, using, **kwargs):
+    instance._post_delete()
 
 
 def _base64encode(key):
