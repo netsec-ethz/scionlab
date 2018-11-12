@@ -210,8 +210,7 @@ class LinkAdminForm(forms.ModelForm):
             if instance.interfaceB:
                 self._init_interface_form_data(initial, instance.interfaceB, 'to_')
 
-        super().__init__(data=data, files=files, initial=initial,
-                instance=instance, **kwargs)
+        super().__init__(data=data, files=files, initial=initial, instance=instance, **kwargs)
 
     def _init_interface_form_data(self, initial, interface, prefix):
         initial[prefix+'host'] = interface.host_id
@@ -222,7 +221,7 @@ class LinkAdminForm(forms.ModelForm):
         initial[prefix+'bind_port'] = interface.bind_port
 
     def _save_interface_form_data(self, interface, prefix):
-        kwargs=dict(
+        kwargs = dict(
             host=self.cleaned_data[prefix+'host'],
             port=self.cleaned_data[prefix+'port'],
             public_ip=self.cleaned_data[prefix+'public_ip'],
@@ -249,7 +248,7 @@ class LinkAdmin(admin.ModelAdmin):
     form = LinkAdminForm
 
     list_display = ('__str__', 'type', 'active', 'public_ip_a', 'public_port_a', 'bind_ip_a',
-    'bind_port_a', 'public_ip_b', 'public_port_b', 'bind_ip_b', 'bind_port_b')
+                    'bind_port_a', 'public_ip_b', 'public_port_b', 'bind_ip_b', 'bind_port_b')
     list_filter = ('type', 'active', 'interfaceA__AS', 'interfaceB__AS',)
 
     def public_ip_a(self, obj):

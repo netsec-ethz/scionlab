@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from django.test import TestCase
 from scionlab.models import ISD, AS, UserAS, Link, Host, Interface, Service
 from scionlab.tests import utils
@@ -83,8 +83,6 @@ class InitASTests(TestCase):
         self.assertTrue(hasattr(host, 'services'))
         self.assertEqual(sorted(s.type for s in host.services.iterator()),
                          ['BS', 'CS', 'PS', 'ZK'])
-
-
 
 
 class LinkModificationTests(TestCase):
@@ -159,9 +157,6 @@ class LinkModificationTests(TestCase):
             list(as_a.hosts.all() | as_b.hosts.all() | as_c.hosts.all())
         )
 
-
-    # TODO(matzf): tests that check validation
-
     def _sanity_check_link(self, link):
         self.assertIsNotNone(link)
         self.assertNotEqual(link.interfaceA, link.interfaceB)
@@ -184,10 +179,8 @@ class LinkModificationTests(TestCase):
 
 
 class DeleteASTests(TestCase):
-    # TODO add link fixture
-
+    # TODO(matzf) add link fixture
     fixtures = ['scionlab-isds', 'scionlab-ases-ch']
-
 
     def setUp(self):
         patcher = patch('scionlab.models.AS._pre_delete', side_effect=AS._pre_delete, autospec=True)
@@ -200,7 +193,6 @@ class DeleteASTests(TestCase):
         # Add a link just so there is one
         # TODO(matzf) move to fixture
         Link.objects.create(as_.hosts.first(), AS.objects.first().hosts.first(), Link.PROVIDER)
-
 
         host_ids = [h.id for h in as_.hosts.all().iterator()]
         interface_ids = [h.id for h in as_.interfaces.all().iterator()]
@@ -226,7 +218,6 @@ class DeleteASTests(TestCase):
             self.assertFalse(Interface.objects.filter(id=interface_id).exists())
         for service_id in service_ids:
             self.assertFalse(Service.objects.filter(id=service_id).exists())
-
 
     def test_delete_bulk(self):
         ases = AS.objects.filter(is_core=False)

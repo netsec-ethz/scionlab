@@ -30,7 +30,7 @@ def create_scionlab_isds():
 
 def create_scionlab_ases_ch():
     isd17 = ISD.objects.get(id=17)
-    AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1101', label='SCMN', is_core=True)
+    AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1101', label='SCMN',
+                                            is_core=True)
     AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1102', label='ETHZ')
     AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1103', label='SWTH')
-

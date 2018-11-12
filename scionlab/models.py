@@ -277,6 +277,7 @@ class AttachmentPoint(models.Model):
         on_delete=models.SET_NULL
     )
 
+
 class HostManager(models.Manager):
     def reset_needs_config_deployment(self):
         """
@@ -378,7 +379,8 @@ class Interface(models.Model):
         """
         self.AS.bump_hosts_config()
 
-    def update(self, host=None, port=None, public_ip=None, public_port=None, bind_ip=None, bind_port=None):
+    def update(self, host=None, port=None, public_ip=None, public_port=None, bind_ip=None,
+               bind_port=None):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
@@ -387,41 +389,41 @@ class Interface(models.Model):
 
         bump_local = False
         bump_local_remote = False
-        if host != None and host != self.host:
+        if host is not None and host != self.host:
             old_as = self.AS
             new_as = host.AS
             if new_as != old_as:
-                ifid = new_as.find_interface_id() # before setting AS-relation
+                ifid = new_as.find_interface_id()   # before setting AS-relation
                 self.AS = new_as
                 self.interface_id = ifid
                 old_as.bump_hosts_config()
             self.host = host
             bump_local_remote = True
 
-
         # TODO(matzf): this is overly verbose
-        if port != None and port != self.port:
+        if port is not None and port != self.port:
             bump_local = True
             self.port = port
-        if public_ip != None and public_ip != self.public_ip:
+        if public_ip is not None and public_ip != self.public_ip:
             bump_local_remote = True
             self.public_ip = public_ip
-        if public_port != None and public_port != self.public_port:
+        if public_port is not None and public_port != self.public_port:
             bump_local_remote = True
             self.public_port = public_port
-        if bind_ip != None and bind_ip != self.bind_ip:
+        if bind_ip is not None and bind_ip != self.bind_ip:
             bump_local = True
             self.bind_ip = bind_ip
-        if bind_port != None and bind_port != self.bind_port:
+        if bind_port is not None and bind_port != self.bind_port:
             bump_local = True
             self.bind_port = bind_port
 
         if bump_local or bump_local_remote:
             self.AS.bump_hosts_config()
         if bump_local_remote:
-            self.remote_as().bump_hosts_config() # bump remote AS
-                                                 # if both ASes of both interfaces are changed, can be either old
-                                                 # or new AS, depending on order. Redundant but correct.
+            # bump remote AS
+            # if both ASes of both interfaces are changed, this can be either old
+            # or new AS, depending on order. Redundant but correct.
+            self.remote_as().bump_hosts_config()
         self.save()
 
     def link(self):
@@ -516,8 +518,6 @@ class Link(models.Model):
         if hasattr(self, 'interfaceB'):
             return self.interfaceB
         return None
-
-
 
 
 class Service(models.Model):
