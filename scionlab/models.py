@@ -14,6 +14,7 @@
 
 import os
 import base64
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db import models
@@ -25,6 +26,8 @@ import lib.crypto.asymcrypto
 
 MAX_PORT = 2**16-1
 """ Max value for ports """
+DEFAULT_INTERFACE_PUBLIC_PORT = 50000
+DEFAULT_INTERFACE_INTERNAL_PORT = 30000
 
 # TODO(matzf) move to common definitions module?
 _DEFAULT_HOST_IP = "127.0.0.1"
@@ -306,13 +309,23 @@ class Host(models.Model):
         default=_DEFAULT_HOST_IP,
         help_text="IP of the host in the AS"
     )
+    default_public_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="Default public IP for for border router interfaces running on this host."
+    )
+    default_bind_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="Default bind IP for for border router interfaces running on this host."
+    )
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     managed = models.BooleanField(default=False)
-    public_ip = models.GenericIPAddressField(
+    management_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
-        help_text="""Public IP of the host for management, should be reachable by the coordinator"""
+        help_text="Public IP of the host for management (should be reachable by the coordinator)."
     )
     ssh_port = models.PositiveSmallIntegerField(default=22)
 
@@ -360,11 +373,11 @@ class Interface(models.Model):
         related_name='interfaces',
         on_delete=models.CASCADE,
     )
-    port = models.PositiveSmallIntegerField(null=True, blank=True)
     public_ip = models.GenericIPAddressField(null=True, blank=True)
-    public_port = models.PositiveSmallIntegerField(null=True, blank=True)
+    public_port = models.PositiveSmallIntegerField(default=DEFAULT_INTERFACE_PUBLIC_PORT)
     bind_ip = models.GenericIPAddressField(null=True, blank=True)
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
+    internal_port = models.PositiveSmallIntegerField(default=DEFAULT_INTERFACE_INTERNAL_PORT)
 
     objects = InterfaceManager()
 
@@ -379,14 +392,23 @@ class Interface(models.Model):
         """
         self.AS.bump_hosts_config()
 
-    def update(self, host=None, port=None, public_ip=None, public_port=None, bind_ip=None,
-               bind_port=None):
+    def clean(self):
+        if not self.public_ip and not self.host.default_public_ip:
+            raise ValidationError(
+                "If the host doesn't specify a default public ip, the public ip must be specified",
+                code='interface_no_public_ip'
+            )
+
+    def save(self, **kwargs):
+        self.clean()
+        super().save(**kwargs)
+
+    def update(self, host=None, public_ip=None, public_port=None, bind_ip=None, bind_port=None,
+               internal_port=None):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
         """
-        # TODO(matzf): should we rather overwrite the `save` method? Urgh, so many options.
-
         bump_local = False
         bump_local_remote = False
         if host is not None and host != self.host:
@@ -401,9 +423,6 @@ class Interface(models.Model):
             bump_local_remote = True
 
         # TODO(matzf): this is overly verbose
-        if port is not None and port != self.port:
-            bump_local = True
-            self.port = port
         if public_ip is not None and public_ip != self.public_ip:
             bump_local_remote = True
             self.public_ip = public_ip
@@ -416,6 +435,9 @@ class Interface(models.Model):
         if bind_port is not None and bind_port != self.bind_port:
             bump_local = True
             self.bind_port = bind_port
+        if internal_port is not None and internal_port != self.internal_port:
+            bump_local = True
+            self.internal_port = internal_port
 
         if bump_local or bump_local_remote:
             self.AS.bump_hosts_config()
@@ -425,6 +447,17 @@ class Interface(models.Model):
             # or new AS, depending on order. Redundant but correct.
             self.remote_as().bump_hosts_config()
         self.save()
+
+    def get_public_ip(self):
+        if self.public_ip:
+            return self.public_ip
+        return self.host.default_public_ip
+
+    def get_bind_ip(self):
+        """ May be None """
+        if self.bind_ip:
+            return self.bind_ip
+        return self.host.default_bind_ip
 
     def link(self):
         return (
@@ -522,8 +555,8 @@ class Link(models.Model):
 
 class Service(models.Model):
     """
-        A SCION service, both for the control plane services (beacon, path, ...)
-        and for any other service that communicates using SCION.
+    A SCION service, both for the control plane services (beacon, path, ...)
+    and for any other service that communicates using SCION.
     """
     BS = 'BS'
     PS = 'PS'

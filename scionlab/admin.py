@@ -14,6 +14,7 @@
 
 from django.contrib import admin
 from django import forms
+from django.urls import resolve
 from .models import (
     ISD,
     AS,
@@ -26,6 +27,8 @@ from .models import (
     VPN,
     VPNClient,
     MAX_PORT,
+    DEFAULT_INTERFACE_PUBLIC_PORT,
+    DEFAULT_INTERFACE_INTERNAL_PORT,
 )
 
 admin.site.register([
@@ -75,6 +78,21 @@ class ServiceInline(admin.TabularInline):
     form = _AlwaysChangedModelForm
     # TODO(matzf): restrict hosts or revisit data model
     fields = ('type', 'host', 'port')
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "host":
+            as_ = self.get_parent_object_from_request(request)
+            kwargs["queryset"] = as_.hosts.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_parent_object_from_request(self, request):
+        """
+        Returns the parent object from the request or None.
+        """
+        resolved = resolve(request.path_info)
+        if 'object_id' in resolved.kwargs:
+            return self.parent_model.objects.get(pk=resolved.kwargs['object_id'])
+        return None
 
 
 class ASCreationForm(forms.ModelForm):
@@ -188,46 +206,55 @@ class LinkAdminForm(forms.ModelForm):
         exclude = ['interfaceA', 'interfaceB']
 
     # TODO(matzf): avoid duplication, make naming consistent (to/from vs. a/b)?
+    # TODO(matzf): add clean_..._port to set discover and set available ports
     from_host = forms.ModelChoiceField(queryset=Host.objects.all())
-    from_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     from_public_ip = forms.GenericIPAddressField(required=False)
-    from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
+    from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
     from_bind_ip = forms.GenericIPAddressField(required=False)
     from_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
+    from_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
 
     to_host = forms.ModelChoiceField(queryset=Host.objects.all())
-    to_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     to_public_ip = forms.GenericIPAddressField(required=False)
-    to_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
+    to_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
     to_bind_ip = forms.GenericIPAddressField(required=False)
     to_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
+    to_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
 
     def __init__(self, data=None, files=None, initial=None, instance=None, **kwargs):
-        if instance:
-            initial = initial or {}
-            if instance.interfaceA:
-                self._init_interface_form_data(initial, instance.interfaceA, 'from_')
-            if instance.interfaceB:
-                self._init_interface_form_data(initial, instance.interfaceB, 'to_')
+        initial = initial or {}
+        if instance and instance.interfaceA:
+            self._init_interface_form_data(initial, instance.interfaceA, 'from_')
+        else:
+            self._init_default_form_data(initial, 'from_')
+
+        if instance and instance.interfaceB:
+            self._init_interface_form_data(initial, instance.interfaceB, 'to_')
+        else:
+            self._init_default_form_data(initial, 'to_')
 
         super().__init__(data=data, files=files, initial=initial, instance=instance, **kwargs)
 
     def _init_interface_form_data(self, initial, interface, prefix):
         initial[prefix+'host'] = interface.host_id
-        initial[prefix+'port'] = interface.port
         initial[prefix+'public_ip'] = interface.public_ip
         initial[prefix+'public_port'] = interface.public_port
         initial[prefix+'bind_ip'] = interface.bind_ip
         initial[prefix+'bind_port'] = interface.bind_port
+        initial[prefix+'internal_port'] = interface.internal_port
+
+    def _init_default_form_data(self, initial, prefix):
+        initial[prefix+'public_port'] = DEFAULT_INTERFACE_PUBLIC_PORT
+        initial[prefix+'internal_port'] = DEFAULT_INTERFACE_INTERNAL_PORT
 
     def _save_interface_form_data(self, interface, prefix):
         kwargs = dict(
             host=self.cleaned_data[prefix+'host'],
-            port=self.cleaned_data[prefix+'port'],
             public_ip=self.cleaned_data[prefix+'public_ip'],
             public_port=self.cleaned_data[prefix+'public_port'],
             bind_ip=self.cleaned_data[prefix+'bind_ip'],
             bind_port=self.cleaned_data[prefix+'bind_port'],
+            internal_port=self.cleaned_data[prefix+'internal_port'],
         )
         if interface:
             interface.update(**kwargs)

@@ -30,16 +30,13 @@
     certificates_needs_update: true}
 - model: scionlab.host
   pk: 1
-  fields: {AS: 1, ip: 127.0.0.1, label: null, managed: false, public_ip: null, ssh_port: 22,
-    config_version: 1, config_version_deployed: 0}
+  fields: {AS: 1, ip: 127.0.0.1, default_public_ip: 192.0.2.1 }
 - model: scionlab.host
   pk: 2
-  fields: {AS: 2, ip: 127.0.0.1, label: null, managed: false, public_ip: null, ssh_port: 22,
-    config_version: 1, config_version_deployed: 0}
+  fields: {AS: 2, ip: 127.0.0.1, default_public_ip: 192.0.2.2 }
 - model: scionlab.host
   pk: 3
-  fields: {AS: 3, ip: 127.0.0.1, label: null, managed: false, public_ip: null, ssh_port: 22,
-    config_version: 1, config_version_deployed: 0}
+  fields: {AS: 3, ip: 127.0.0.1, default_public_ip: 192.0.2.3 }
 - model: scionlab.service
   pk: 1
   fields: {AS: 1, host: 1, port: null, type: BS}

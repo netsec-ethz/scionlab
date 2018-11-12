@@ -30,7 +30,15 @@ def create_scionlab_isds():
 
 def create_scionlab_ases_ch():
     isd17 = ISD.objects.get(id=17)
-    AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1101', label='SCMN',
-                                            is_core=True)
-    AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1102', label='ETHZ')
-    AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1103', label='SWTH')
+    as_ = AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1101', label='SCMN',
+                                                  is_core=True)
+    _set_default_public_ip(as_.hosts.first(), '192.0.2.1')
+    as_ = AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1102', label='ETHZ')
+    _set_default_public_ip(as_.hosts.first(), '192.0.2.2')
+    as_ = AS.objects.create_with_default_services(isd=isd17, as_id='ffaa:0:1103', label='SWTH')
+    _set_default_public_ip(as_.hosts.first(), '192.0.2.3')
+
+
+def _set_default_public_ip(host, ip):
+    host.default_public_ip = ip
+    host.save()

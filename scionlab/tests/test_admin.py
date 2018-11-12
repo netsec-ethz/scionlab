@@ -65,7 +65,11 @@ class LinkAdminFormTests(TestCase):
         form_data = dict(
             type=Link.PROVIDER,
             from_host=as_a.hosts.first().id,
+            from_public_port=50000,
+            from_internal_port=30000,
             to_host=as_b.hosts.first().id,
+            to_public_port=50000,
+            to_internal_port=30000,
         )
         form = LinkAdminForm(data=form_data)
         self.assertTrue(form.is_valid())
@@ -90,13 +94,17 @@ class LinkAdminFormTests(TestCase):
             to_host=as_b.hosts.first().id,
             from_public_ip='192.0.2.1',
             from_public_port=50000,
+            from_internal_port=30001,
             to_public_ip='192.0.2.2',
             to_public_port=50001,
+            to_internal_port=30000,
         )
         form = LinkAdminForm(instance=link, data=form_data)
         link = form.save()
         self.assertIsNotNone(link)
         self.assertEqual(link.interfaceA.public_ip, '192.0.2.1')
         self.assertEqual(link.interfaceA.public_port, 50000)
+        self.assertEqual(link.interfaceA.internal_port, 30001)
         self.assertEqual(link.interfaceB.public_ip, '192.0.2.2')
         self.assertEqual(link.interfaceB.public_port, 50001)
+        self.assertEqual(link.interfaceB.internal_port, 30000)

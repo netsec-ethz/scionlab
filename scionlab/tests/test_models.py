@@ -85,6 +85,23 @@ class InitASTests(TestCase):
                          ['BS', 'CS', 'PS', 'ZK'])
 
 
+class UpdateASKeysTests(TestCase):
+    fixtures = ['scionlab-isds', 'scionlab-ases-ch']
+
+    def test_update_keys(self):
+        Host.objects.reset_needs_config_deployment()
+
+        as_ = AS.objects.first()
+
+        as_.update_keys()
+
+        self.assertTrue(as_.certificates_needs_update)
+        self.assertEqual(
+            list(Host.objects.needs_config_deployment()),
+            list(as_.hosts.all())
+        )
+
+
 class LinkModificationTests(TestCase):
     fixtures = ['scionlab-isds', 'scionlab-ases-ch']
 
