@@ -39,7 +39,8 @@ urlpatterns = [
 
     # user pages
     path('user/', login_required(ASesView.as_view(), login_url=reverse_lazy('login')), name='user'),
-    path('user/as_detail/(?P<as_id>\w+)', login_required(ASDetailView.as_view(), login_url=reverse_lazy('login')), name='as_detail'),
+    path('user/as_detail/(?P<as_id>\w+)', login_required(ASDetailView.as_view(),
+         login_url=reverse_lazy('login')), name='as_detail'),
     path('user/test/', PlaceholderUserView.as_view(), name='userpage'),
 
     # django-registration patterns
