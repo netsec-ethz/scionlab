@@ -15,22 +15,21 @@
 import os
 import base64
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User as auth_User
 from django.dispatch import receiver
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
 import jsonfield
 import lib.crypto.asymcrypto
 
 
+# TODO(matzf) move to common definitions module?
 MAX_PORT = 2**16-1
 """ Max value for ports """
 DEFAULT_INTERFACE_PUBLIC_PORT = 50000
 DEFAULT_INTERFACE_INTERNAL_PORT = 30000
-
-# TODO(matzf) move to common definitions module?
-_DEFAULT_HOST_IP = "127.0.0.1"
+DEFAULT_HOST_IP = "127.0.0.1"
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
@@ -38,6 +37,16 @@ _MAX_LEN_CHOICES_DEFAULT = 16
 """ Max length value for choices fields without specific requirements to max length """
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """
+
+class User(auth_User):
+    class Meta:
+        proxy=True
+
+    def max_ases(self):
+        return 5 # TODO
+
+    def num_ases(self):
+        return UserAS.objects.filter(owner=self).count()
 
 
 class ISD(models.Model):
@@ -82,7 +91,7 @@ class ASManager(models.Manager):
         #   raise ValueError()
         as_ = AS(**kwargs)
         as_.init_keys()
-        as_.save(force_insert=True)
+        as_.save()
         return as_
 
     def create_with_default_services(self, **kwargs):
@@ -201,7 +210,7 @@ class AS(models.Model):
         """
         Initialise a default Host object and the default AS services
         """
-        host = Host.objects.create(AS=self, ip=_DEFAULT_HOST_IP)
+        host = Host.objects.create(AS=self, ip=DEFAULT_HOST_IP)
 
         default_services = (Service.BS, Service.PS, Service.CS, Service.ZK)
         for service_type in default_services:
@@ -254,22 +263,110 @@ class AS(models.Model):
         self.core_offline_pub_key, self.core_offline_priv_key = _gen_sig_keypair()
 
 
+class UserASManager(models.Manager):
+    def create(self, user, attachment_point, public_port, label=None, use_vpn=False, public_ip=None, bind_ip=None,
+            bind_port=None):
+        if user.num_ases() >= user.max_ases():
+            raise ValidationError("UserAS quota exceeded", code='user_as_quota_exceeded')
+
+        isd = attachment_point.AS.isd
+        as_id = self.get_next_id()
+        user_as = UserAS(owner=user, isd=isd, as_id=as_id, attachment_point=attachment_point, label=label, public_ip=public_ip, bind_ip=bind_ip, bind_port=bind_port)
+        user_as.init_keys()
+        user_as.save()
+        user_as.init_default_services()
+        host = user_as.hosts.first()
+        if use_vpn:
+            # TODO create VPNClient and configure host.public_ip = VPN_ip
+            pass
+        else:
+            host.default_public_ip = user_as.public_ip
+            host.default_bind_ip = user_as.bind_ip
+            host.save()
+
+        # TODO(matzf) Link.create() should take all interface params
+        # TODO(matzf) if multiple, which host of the AP runs the BR?
+        link = Link.objects.create(attachment_point.AS.hosts.first(),
+                            user_as.hosts.first(),
+                            Link.PROVIDER)
+
+        link.interfaceB.public_port = public_port
+        if user_as.bind_port:
+            link.interfaceB.bind_port = user_as.bind_port
+
+        # TODO(matzf): somewhere we need to trigger the config deployment
+
+        return user_as
+
+    def get_next_id(self):
+        """
+        Get the next available UserAS id.
+        Assumes that UserASes have the "reserved" namespace `ff00:1:X`.
+        """
+        max_id = next(iter(self.aggregate(Max('id')).values())) or 1
+        return 'ff00:1:%i' % max_id
+
+
 class UserAS(AS):
+    VM = 'VM'
+    DEDICATED = 'DEDICATED'
+    INSTALLATION_TYPES = (
+        (VM, 'Install inside a virtual machine'),
+        (DEDICATED, 'Install on a dedicated system (for experts)')
+    )
+
+    attachment_point = models.ForeignKey(
+        'AttachmentPoint',
+        related_name='user_ases',
+        on_delete=models.SET_NULL,
+        null=True, # Null on deletion of AP
+        blank=False,
+        default='' # Invalid default avoids rendering a '----' selection choice
+    )
     # These fields are redundant for the network model
     # They are here to retain the values entered by the user
     # if she switches to VPN and back.
     public_ip = models.GenericIPAddressField(null=True, blank=True)
     bind_ip = models.GenericIPAddressField(null=True, blank=True)
+    bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    installation_type = models.CharField(
+        choices=INSTALLATION_TYPES,
+        max_length=_MAX_LEN_CHOICES_DEFAULT,
+        default=VM
+    )
+
+    objects = UserASManager()
 
     class Meta:
         verbose_name = 'User AS'
         verbose_name_plural = 'User ASes'
 
+    def is_use_vpn(self):
+        """
+        Is this UserAS currently configured with VPN?
+        """
+        # TODO(matzf) find host, find VPNClient
+        return False
+
+    def is_active(self):
+        """
+        Is this UserAS currently active?
+        """
+        return self.interfaces.first().link().active
+
+    def get_public_port(self):
+        return self.interfaces.first().public_port
+
+    def set_active(self, active):
+        self.interfaces.first().link().set_active(active)
+        # TODO(matzf) trigger config deployment (delayed?)
+
 
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
         AS,
-        related_name='attachment_point',
+        related_name='attachment_point_info',
         on_delete=models.CASCADE,
     )
     vpn = models.OneToOneField(
@@ -280,6 +377,8 @@ class AttachmentPoint(models.Model):
         on_delete=models.SET_NULL
     )
 
+    def __str__(self):
+        return str(self.AS)
 
 class HostManager(models.Manager):
     def reset_needs_config_deployment(self):
@@ -306,7 +405,7 @@ class Host(models.Model):
         on_delete=models.SET_NULL,
     )
     ip = models.GenericIPAddressField(
-        default=_DEFAULT_HOST_IP,
+        default=DEFAULT_HOST_IP,
         help_text="IP of the host in the AS"
     )
     default_public_ip = models.GenericIPAddressField(
@@ -551,6 +650,13 @@ class Link(models.Model):
         if hasattr(self, 'interfaceB'):
             return self.interfaceB
         return None
+
+    def set_active(self, active):
+        if self.active != active:
+            self.active = active
+            self.save()
+            self.interfaceA.AS.bump_hosts_config()
+            self.interfaceB.AS.bump_hosts_config()
 
 
 class Service(models.Model):

@@ -5,82 +5,42 @@
 
 {% block content %}
 <div class="wrapper">
-
   <div class="spacer"></div>
   <h3>Welcome to SCIONLab!</h3>
 
-  {%  if grafana_url|length > 0 %}
-  <span>
-    <a target="_blank" rel="noopener noreferrer" href="{{ grafana_url }}">Grafana Monitor</a>
-  </span>
-  {% endif %}
-
-
   <div class="alert alert-info">
     <p>
-      {%  if as_count == 0 %}
-      <span>
-        You currently have no registered SCIONLab ASes.
-      </span>
+      {% if object_list.count == 0 %}
+      You currently have no registered SCIONLab ASes.
+      {% else %}
+      You currently have <strong>{{ object_list.count }}</strong> SCIONLab AS{{ object_list.count|pluralize:"es" }}.
       {% endif %}
-      {%  if as_count > 0 %}
-      <span>
-        You currently have <strong>{{ as_count }}</strong> SCIONLab AS{{ as_count|pluralize:"es" }}.
-      </span>
-      {% endif %}
-      {%  if as_count < quota %}
-      <span>
-        You can create up to {{ quota }} ASes with your account.
-        Please use the button below.
-      </span>
-      {% endif %}
-      {%  if as_count >= quota %}
-      <span>
-        You have reached the maximum number of ASes and cannot create further ones.
-      </span>
-      {% endif %}
-    </p>
-  </div>
-
-  {%  if as_count <= quota %}
-  <button onclick="alert('Here be: generateSCIONLabAS()');"
-          class="btn btn-success btn-block">
-    Generate a new SCIONLab AS
-  </button>
-  <br/>
-  {% endif %}
-
-  {%  if as_count > 0 %}
-  <div>
-    <p>
-      You can configure and download you SCIONLab AS configurations using the form below.
-      Please extract the downloaded tarball in a desired location and refer to the
-      README.md file inside or the <a href="https://netsec-ethz.github.io/scion-tutorials/">
-      SCION tutorials</a> for instructions.
     </p>
     <p>
-      If you have a static public IP address, please select that option below and specify your IP
-      address and the port you want to use for the connection (default: 50000).
-      Otherwise, a VPN-based setup is set up for you, such that you do not need to apply any
-      further configuration.
+      {% if object_list.count < request.user.max_ases %}
+      You can create up to {{ request.user.max_ases }} ASes with your account.
+      Please use the button below to create a new AS.
+      {% else %}
+      You have reached the maximum number of ASes and cannot create further ones.
+      {% endif %}
     </p>
-  </div>
-  {% endif %}
-
-  <div>
-    <span>You can change your password <a href="{% url 'password_reset' %}">here</a>.</span>
   </div>
 
   <div class="spacer"></div>
   <div>
     <h3>Your ASes</h3>
     <ul>
-    {% for user_as in ases %}
-        <li><a href="{% url 'as_detail' as_id=user_as.as_id %}">{{ user_as.as_id }}</a></li>
+    {% for user_as in object_list %}
+        <li><a href="{% url 'user_as_detail' pk=user_as.pk %}">{{ user_as.as_id }}</a></li>
     {% empty %}
         <li>You have no AS yet.</li>
     {% endfor %}
     </ul>
   </div>
+  {%  if object_list.count <= request.user.max_ases %}
+  <a href="{% url 'user_as_add' %}">
+    <button class="btn btn-primary" >Create a new SCIONLab AS</button>
+  </a>
+  {% endif %}
 </div>
 {% endblock content %}
