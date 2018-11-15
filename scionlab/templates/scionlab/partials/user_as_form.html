@@ -4,7 +4,13 @@
 {# TODO(matzf): JS: hide use_vpn if *selected* AP does not support VPN #}
 {# TODO(matzf): JS: hide public-ip field if use_vpn is selected #}
 {# TODO(matzf): add bind-address/port (hidden/collapsed by default?), #}
+{# TODO(matzf): should we just use django-crispy-forms? #}
 
+{% if form.non_field_errors %}
+<div class="alert alert-warning">
+  {{ form.non_field_errors }}
+</div>
+{% endif %}
 <div class="form-group has-feedback">
   {{ form.label.errors }}
   {{ form.attachment_point.label_tag }}

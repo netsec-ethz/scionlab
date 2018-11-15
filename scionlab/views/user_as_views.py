@@ -65,7 +65,7 @@ class UserASForm(forms.ModelForm):
         cleaned_data = super().clean()
         if not cleaned_data.get('use_vpn') and not self.cleaned_data.get('public_ip'):
             raise ValidationError(
-                "Please provide a value for public IP, or enable 'Use VPN'.",
+                "Please provide a value for public IP, or enable 'Use OpenVPN'.",
                 code='missing_public_ip_no_vpn'
             )
         return self.cleaned_data
@@ -104,7 +104,7 @@ class UserASCreateView(CreateView):
         user = self.request.user
         if user.num_ases() >= user.max_ases():
             return HttpResponseForbidden()
-        super().post(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('user_as_detail', kwargs={'pk': self.object.pk})

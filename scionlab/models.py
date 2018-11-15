@@ -14,6 +14,7 @@
 
 import os
 import base64
+from django import urls
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User as auth_User
 from django.dispatch import receiver
@@ -361,10 +362,11 @@ class UserAS(AS):
         verbose_name = 'User AS'
         verbose_name_plural = 'User ASes'
 
-    def get_absolute_url():
-        return url.reverse('user_as_detail', kwargs={'pk', self.pk})
+    def get_absolute_url(self):
+        return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def update(label,
+    def update(self,
+               label,
                attachment_point,
                use_vpn,
                public_ip,
@@ -411,7 +413,7 @@ class UserAS(AS):
         """
         Is this UserAS currently configured with VPN?
         """
-        return VPNClient.objects.filter(host__as=self, active=True).exists()
+        return VPNClient.objects.filter(host__AS=self, active=True).exists()
 
     def is_active(self):
         """
