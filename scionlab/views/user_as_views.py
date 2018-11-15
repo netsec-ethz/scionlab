@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pdb
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect, HttpResponseForbidden

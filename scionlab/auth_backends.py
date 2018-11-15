@@ -16,6 +16,16 @@ from django.contrib.auth.backends import ModelBackend
 from scionlab.models import User
 
 class ProxyModelBackend(ModelBackend):
+    """
+    This specialisation of contrib.auth.backends.ModelBackend returns
+    the Proxy-Model `scionlab.models.User` instead of the proxied `contrib.auth.User`.
+    This allows using the additional features of `scionlab.models.User`
+    e.g. on `request.user` in templates.
+
+    Note: it would be nicer to simply override AUTH_USER_MODEL in the settings
+    but for some reason, a proxy model cannot be used in this context.
+    """
+
     def get_user(self, user_id):
         try:
             user = User.objects.get(pk=user_id)
