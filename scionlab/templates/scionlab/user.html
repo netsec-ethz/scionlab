@@ -1,46 +1,42 @@
 {% extends 'scionlab/base.html' %}
-{% load static %}
 
 {% block title %}User ASes{% endblock %}
 
 {% block content %}
-<div class="wrapper">
-  <div class="spacer"></div>
-  <h3>Welcome to SCIONLab!</h3>
+<h3>Welcome to SCIONLab!</h3>
 
-  <div class="alert alert-info">
-    <p>
-      {% if object_list.count == 0 %}
-      You currently have no registered SCIONLab ASes.
-      {% else %}
-      You currently have <strong>{{ object_list.count }}</strong> SCIONLab AS{{ object_list.count|pluralize:"es" }}.
-      {% endif %}
-    </p>
-    <p>
-      {% if object_list.count < request.user.max_ases %}
-      You can create up to {{ request.user.max_ases }} ASes with your account.
-      Please use the button below to create a new AS.
-      {% else %}
-      You have reached the maximum number of ASes and cannot create further ones.
-      {% endif %}
-    </p>
-  </div>
-
-  <div class="spacer"></div>
-  <div>
-    <h3>Your ASes</h3>
-    <ul>
-    {% for user_as in object_list %}
-        <li><a href="{% url 'user_as_detail' pk=user_as.pk %}">{{ user_as.as_id }}</a></li>
-    {% empty %}
-        <li>You have no AS yet.</li>
-    {% endfor %}
-    </ul>
-  </div>
-  {%  if object_list.count <= request.user.max_ases %}
-  <a href="{% url 'user_as_add' %}">
-    <button class="btn btn-primary" >Create a new SCIONLab AS</button>
-  </a>
-  {% endif %}
+<div class="alert alert-info">
+  <p>
+    {% if object_list.count == 0 %}
+    You currently have no registered SCIONLab ASes.
+    {% else %}
+    You currently have <strong>{{ object_list.count }}</strong> SCIONLab AS{{ object_list.count|pluralize:"es" }}.
+    {% endif %}
+  </p>
+  <p>
+    {% if object_list.count < request.user.max_ases %}
+    You can create up to {{ request.user.max_ases }} ASes with your account.
+    Please use the button below to create a new AS.
+    {% else %}
+    You have reached the maximum number of ASes and cannot create further ones.
+    {% endif %}
+  </p>
 </div>
+
+<div class="spacer"></div>
+<div>
+  <h3>Your ASes</h3>
+  <ul>
+  {% for user_as in object_list %}
+      <li><a href="{% url 'user_as_detail' pk=user_as.pk %}">{{ user_as.as_id }}</a></li>
+  {% empty %}
+      <li>You have no AS yet.</li>
+  {% endfor %}
+  </ul>
+</div>
+{%  if object_list.count <= request.user.max_ases %}
+<a href="{% url 'user_as_add' %}">
+  <button class="btn btn-primary" >Create a new SCIONLab AS</button>
+</a>
+{% endif %}
 {% endblock content %}

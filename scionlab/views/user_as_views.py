@@ -15,13 +15,19 @@
 import pdb
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse, reverse_lazy
+from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
+from django.views.generic.detail import SingleObjectMixin
 from django import forms
 
 from scionlab.models import UserAS, AttachmentPoint, MAX_PORT
 
 class UserASForm(forms.ModelForm):
+    """
+    Form for UserAS creation and update.
+    """
     class Meta:
         model = UserAS
         fields = ('label', 'attachment_point', 'installation_type', 'public_ip', 'bind_ip', 'bind_port')
@@ -35,7 +41,7 @@ class UserASForm(forms.ModelForm):
         }
 
     use_vpn = forms.BooleanField(
-        initial=False, 
+        initial=False,
         required=False,
         label="Use OpenVPN connection for this AS"
     )
@@ -65,22 +71,40 @@ class UserASForm(forms.ModelForm):
         return self.cleaned_data
 
     def save(self, commit=True):
-        return UserAS.objects.create(
-            user = self.user,
-            label = self.cleaned_data['label'],
-            attachment_point = self.cleaned_data['attachment_point'],
-            use_vpn = self.cleaned_data['use_vpn'],
-            public_ip = self.cleaned_data['public_ip'],
-            public_port = self.cleaned_data['public_port'],
-            bind_ip = self.cleaned_data['bind_ip'],
-            bind_port = self.cleaned_data['bind_port'],
-        )
+        if self.instance.pk is None:
+            return UserAS.objects.create(
+                user=self.user,
+                label=self.cleaned_data['label'],
+                attachment_point=self.cleaned_data['attachment_point'],
+                use_vpn=self.cleaned_data['use_vpn'],
+                public_ip=self.cleaned_data['public_ip'],
+                public_port=self.cleaned_data['public_port'],
+                bind_ip=self.cleaned_data['bind_ip'],
+                bind_port=self.cleaned_data['bind_port'],
+            )
+        else:
+            self.instance.update(
+                label=self.cleaned_data['label'],
+                attachment_point=self.cleaned_data['attachment_point'],
+                use_vpn=self.cleaned_data['use_vpn'],
+                public_ip=self.cleaned_data['public_ip'],
+                public_port=self.cleaned_data['public_port'],
+                bind_ip=self.cleaned_data['bind_ip'],
+                bind_port=self.cleaned_data['bind_port']
+            )
+            return self.instance
 
 
 class UserASCreateView(CreateView):
     template_name = "scionlab/user_as_add.html"
     model = UserAS
     form_class = UserASForm
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        if user.num_ases() >= user.max_ases():
+            return HttpResponseForbidden()
+        super().post(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('user_as_detail', kwargs={'pk': self.object.pk})
@@ -90,31 +114,55 @@ class UserASCreateView(CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
-class UserASDetailView(UpdateView):
+
+class OwnedUserASQuerysetMixin:
+    """
+    Defines get_queryset to get only the UserASes owned by
+    the current user.
+    To be used in a View that uses `django.views.generic.detail.SingleObjectMixin`
+    """
+    def get_queryset(self):
+        return UserAS.objects.filter(owner=self.request.user)
+
+
+class UserASDetailView(OwnedUserASQuerysetMixin, UpdateView):
     template_name = "scionlab/user_as_details.html"
     model = UserAS
     form_class = UserASForm
 
-    def get_queryset(self):
-        return UserAS.objects.filter(owner=self.request.user)
-    
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
 
 
-class UserASDeleteView(DeleteView):
+class UserASDeleteView(OwnedUserASQuerysetMixin, DeleteView):
+    template_name = "scionlab/user_as_confirm_delete.html"
     model = UserAS
     sucess_url = reverse_lazy('user')
 
-    def get_queryset(self):
-        return UserAS.objects.filter(owner=self.request.user)
+
+class UserASActivateView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
+    """
+    Activate or deactivate the UserAS
+    """
+    model = UserAS
+    active = None
+
+    def __init__(self, active, *args, **kwargs):
+        self.active = active
+        super().__init__(*args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('user_as_detail', kwargs={'pk': self.object.pk})
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.set_active(self.active)
+        return HttpResponseRedirect(success_url)
 
 
-class UserASesView(ListView):
+class UserASesView(OwnedUserASQuerysetMixin, ListView):
     template_name = "scionlab/user.html"
     model = UserAS
-
-    def get_queryset(self):
-        return UserAS.objects.filter(owner=self.request.user)

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import pdb
 from django.contrib import admin
 from django import forms
 from django.urls import resolve
@@ -247,8 +247,8 @@ class LinkAdminForm(forms.ModelForm):
         initial[prefix+'public_port'] = DEFAULT_INTERFACE_PUBLIC_PORT
         initial[prefix+'internal_port'] = DEFAULT_INTERFACE_INTERNAL_PORT
 
-    def _save_interface_form_data(self, interface, prefix):
-        kwargs = dict(
+    def _get_interface_form_data(self, prefix):
+        return dict(
             host=self.cleaned_data[prefix+'host'],
             public_ip=self.cleaned_data[prefix+'public_ip'],
             public_port=self.cleaned_data[prefix+'public_port'],
@@ -256,18 +256,23 @@ class LinkAdminForm(forms.ModelForm):
             bind_port=self.cleaned_data[prefix+'bind_port'],
             internal_port=self.cleaned_data[prefix+'internal_port'],
         )
-        if interface:
-            interface.update(**kwargs)
-        else:
-            interface = Interface.objects.create(**kwargs)
-        return interface
 
     def save(self, commit=True):
-        link = super().save(commit=False)
-        link.interfaceA = self._save_interface_form_data(link.get_interface_a(), 'from_')
-        link.interfaceB = self._save_interface_form_data(link.get_interface_b(), 'to_')
-        link.save()
-        return link
+        if self.instance.pk is None: # No pk means creating a new object
+            return Link.objects.create(
+                type=self.cleaned_data['type'],
+                active=self.cleaned_data['active'],
+                kwargsA=self._get_interface_form_data('from_'),
+                kwargsB=self._get_interface_form_data('to_')
+            )
+        else:
+            self.instance.update(
+                type=self.cleaned_data['type'],
+                active=self.cleaned_data['active'],
+                kwargsA=self._get_interface_form_data('from_'),
+                kwargsB=self._get_interface_form_data('to_')
+            )
+            return self.instance
 
 
 @admin.register(Link)

@@ -64,11 +64,6 @@ class InitASTests(TestCase):
         utils.check_as_keys(self, as_)
         utils.check_as_core_keys(self, as_)
 
-    def test_create_useras_with_keys(self):
-        isd = ISD.objects.create(id=17, label='Switzerland')
-        userAS = UserAS.objects.create(isd=isd, as_id='ff00:1:1')
-        utils.check_as_keys(self, userAS)
-
     def test_create_as_with_default_services(self):
         isd = ISD.objects.create(id=17, label='Switzerland')
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
@@ -124,7 +119,9 @@ class LinkModificationTests(TestCase):
 
         Host.objects.reset_needs_config_deployment()
 
-        link = Link.objects.create(as_a.hosts.first(), as_b.hosts.first(), Link.PROVIDER)
+        link = Link.objects.create(type=Link.PROVIDER,
+                                   kwargsA=dict(host=as_a.hosts.first()),
+                                   kwargsB=dict(host=as_b.hosts.first()))
         self._sanity_check_link(link)
         self.assertEqual(link.type, Link.PROVIDER)
         self.assertEqual(Interface.objects.count(), 2)
@@ -143,7 +140,7 @@ class LinkModificationTests(TestCase):
     def test_update_link(self):
         as_a = self._as_a()
         as_b = self._as_b()
-        link = Link.objects.create(as_a.hosts.first(), as_b.hosts.first(), Link.PROVIDER)
+        link = Link.objects.create_default(Link.PROVIDER, as_a, as_b)
         self._sanity_check_link(link)
 
         Host.objects.reset_needs_config_deployment()
@@ -209,7 +206,7 @@ class DeleteASTests(TestCase):
 
         # Add a link just so there is one
         # TODO(matzf) move to fixture
-        Link.objects.create(as_.hosts.first(), AS.objects.first().hosts.first(), Link.PROVIDER)
+        Link.objects.create_default(Link.PROVIDER, as_, AS.objects.first())
 
         host_ids = [h.id for h in as_.hosts.all().iterator()]
         interface_ids = [h.id for h in as_.interfaces.all().iterator()]

@@ -79,14 +79,14 @@ class LinkAdminFormTests(TestCase):
     def test_render_edit(self):
         as_a = self._as_a()
         as_b = self._as_b()
-        link = Link.objects.create(as_a.hosts.first(), as_b.hosts.first(), Link.PROVIDER)
+        link = Link.objects.create_default(Link.PROVIDER, as_a, as_b)
         form = LinkAdminForm(instance=link)
         self.assertIsNotNone(form.as_table())
 
     def test_edit_link(self):
         as_a = self._as_a()
         as_b = self._as_b()
-        link = Link.objects.create(as_a.hosts.first(), as_b.hosts.first(), Link.PROVIDER)
+        link = Link.objects.create_default(Link.PROVIDER, as_a, as_b)
 
         form_data = dict(
             type=Link.PROVIDER,
@@ -100,6 +100,7 @@ class LinkAdminFormTests(TestCase):
             to_internal_port=30000,
         )
         form = LinkAdminForm(instance=link, data=form_data)
+        self.assertTrue(form.is_valid())
         link = form.save()
         self.assertIsNotNone(link)
         self.assertEqual(link.interfaceA.public_ip, '192.0.2.1')

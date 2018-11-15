@@ -264,35 +264,54 @@ class AS(models.Model):
 
 
 class UserASManager(models.Manager):
-    def create(self, user, attachment_point, public_port, label=None, use_vpn=False, public_ip=None, bind_ip=None,
-            bind_port=None):
+    def create(self,
+               user,
+               attachment_point,
+               public_port,
+               label=None,
+               use_vpn=False,
+               public_ip=None,
+               bind_ip=None,
+               bind_port=None):
+        """
+        Create a UserAS attached to the given attachment point.
+        The public_ip must be specified if use_vpn is not enabled.
+        """
         if user.num_ases() >= user.max_ases():
             raise ValidationError("UserAS quota exceeded", code='user_as_quota_exceeded')
 
         isd = attachment_point.AS.isd
         as_id = self.get_next_id()
-        user_as = UserAS(owner=user, isd=isd, as_id=as_id, attachment_point=attachment_point, label=label, public_ip=public_ip, bind_ip=bind_ip, bind_port=bind_port)
+        user_as = UserAS(
+            owner=user,
+            label=label,
+            isd=isd,
+            as_id=as_id,
+            attachment_point=attachment_point,
+            public_ip=public_ip,
+            bind_ip=bind_ip,
+            bind_port=bind_port)
+
         user_as.init_keys()
         user_as.save()
         user_as.init_default_services()
         host = user_as.hosts.first()
+
+        vpn_client = None
         if use_vpn:
-            # TODO create VPNClient and configure host.public_ip = VPN_ip
-            pass
-        else:
-            host.default_public_ip = user_as.public_ip
-            host.default_bind_ip = user_as.bind_ip
-            host.save()
+            vpn_client = self.attachment_point.vpn.create_client(host)
 
-        # TODO(matzf) Link.create() should take all interface params
-        # TODO(matzf) if multiple, which host of the AP runs the BR?
-        link = Link.objects.create(attachment_point.AS.hosts.first(),
-                            user_as.hosts.first(),
-                            Link.PROVIDER)
+        host.default_public_ip = public_ip if not use_vpn else vpn_client.ip
+        host.default_bind_ip = bind_ip if not use_vpn else None
+        host.save()
 
-        link.interfaceB.public_port = public_port
-        if user_as.bind_port:
-            link.interfaceB.bind_port = user_as.bind_port
+        link = Link.objects.create(type=Link.PROVIDER,
+                                   kwargsA=dict(host=attachment_point.AS.hosts.first()),
+                                   kwargsB=dict(
+                                       host=user_as.hosts.first(),
+                                       public_port=public_port,
+                                       bind_port=bind_port if not use_vpn else None
+                                   ))
 
         # TODO(matzf): somewhere we need to trigger the config deployment
 
@@ -342,12 +361,57 @@ class UserAS(AS):
         verbose_name = 'User AS'
         verbose_name_plural = 'User ASes'
 
+    def get_absolute_url():
+        return url.reverse('user_as_detail', kwargs={'pk', self.pk})
+
+    def update(label,
+               attachment_point,
+               use_vpn,
+               public_ip,
+               public_port,
+               bind_ip,
+               bind_port):
+        """
+        Update this UserAS instance and immediately `save`.
+        Updates the related host, interface and link instances and will trigger
+        a configuration bump for the hosts of the affected attachment point(s).
+        """
+        host = self.hosts.first()
+        link = self._get_link()
+        interface_ap = link.interfaceA
+        interface_user = link.interfaceB
+        assert interface_user.host == host
+
+        if attachment_point != self.attachment_point:
+            self.attachment_point = attachment_point
+            interface_ap.update(host=attachment_point.hosts.first())
+
+        if use_vpn:
+            vpn_client = self._create_or_activate_vpn_client()
+        else:
+            host.vpn_clients.update(active=False) # deactivate all vpn clients
+
+        host.update_default_interface_ips(
+            default_public_ip=public_ip if not use_vpn else vpn_client.ip,
+            default_bind_ip=bind_ip if not use_vpn else None
+        )
+        interface_user.update(
+            public_port=public_port,
+            bind_port=bind_port if not use_vpn else None
+        )
+
+        self.public_ip = public_ip
+        self.bind_ip = bind_ip
+        self.bind_port = bind_port
+        self.save()
+
+        # TODO(matzf) trigger AP config deployment
+
     def is_use_vpn(self):
         """
         Is this UserAS currently configured with VPN?
         """
-        # TODO(matzf) find host, find VPNClient
-        return False
+        return VPNClient.objects.filter(host__as=self, active=True).exists()
 
     def is_active(self):
         """
@@ -360,7 +424,28 @@ class UserAS(AS):
 
     def set_active(self, active):
         self.interfaces.first().link().set_active(active)
-        # TODO(matzf) trigger config deployment (delayed?)
+        # TODO(matzf) trigger AP config deployment (delayed?)
+
+    def _get_link(self):
+        # TODO
+        #ap_link = Link.objects.find(
+        return self.interfaces.first().link()
+
+    def _create_or_activate_vpn_client(self):
+        """
+        Get or create the VPN client config for the VPN of the current attachment point,
+        and activate it.
+        Deactivate all other vpn clients configured on this host.
+        """
+        host = self.hosts.first()
+        host.vpn_clients.update(active=False)
+        vpn_client = host.vpn_clients.filter(vpn=self.attachment_point.vpn).first()
+        if vpn_client:
+            vpn_client.active = True
+            vpn_client.save() # TODO wrap this?
+            return vpn_client
+        else:
+            return self.attachment_point.vpn.create_client(host)
 
 
 class AttachmentPoint(models.Model):
@@ -404,6 +489,7 @@ class Host(models.Model):
         related_name='hosts',
         on_delete=models.SET_NULL,
     )
+    # TODO(matzf): handle changes in the ip fields
     ip = models.GenericIPAddressField(
         default=DEFAULT_HOST_IP,
         help_text="IP of the host in the AS"
@@ -450,6 +536,24 @@ class Host(models.Model):
         last deployment?
         """
         return self.config_version_deployed < self.config_version
+
+    def update_default_interface_ips(self, default_public_ip, default_bind_ip):
+        """
+        Update the default_public_ip/default_bind_ip of this host instance, and immediately `save`.
+        This will trigger a configuration bump for all Hosts in all affected ASes.
+        """
+        if default_bind_ip != self.default_bind_ip:
+            self.default_bind_ip = default_bind_ip
+
+        if default_public_ip != self.default_public_ip:
+            self.default_public_ip = default_public_ip
+            # bump affected remote ASes
+            for interface in self.interfaces.filter(public_ip = None).iterator():
+                interface.remote_as().bump_hosts_config()
+
+        self.save()
+        self.AS.bump_hosts_config()
+
 
 
 class InterfaceManager(models.Manager):
@@ -502,7 +606,12 @@ class Interface(models.Model):
         self.clean()
         super().save(**kwargs)
 
-    def update(self, host=None, public_ip=None, public_port=None, bind_ip=None, bind_port=None,
+    def update(self,
+               host=None,
+               public_ip=None,
+               public_port=None,
+               bind_ip=None,
+               bind_port=None,
                internal_port=None):
         """
         Update the fields for this interface and immediately `save`.
@@ -578,25 +687,38 @@ class Interface(models.Model):
 
 
 class LinkManager(models.Manager):
-    def create(cls, hostA, hostB, type, active=True, **kwargs):
-        """ Create an AS-Link from the AS of host A to to the AS of host B """
-        if hostA.AS == hostB.AS:
-            raise ValueError("Loop AS-link (from AS to itself) not allowed")
+    def create(self, type, kwargsA, kwargsB, active=True):
+        """
+        Create an AS-Link from the AS of host A to to the AS of host B.
+        """
+        self._check_link(kwargsA.get('host'), kwargsB.get('host'))
+        interfaceA = Interface.objects.create(**kwargsA)
+        interfaceB = Interface.objects.create(**kwargsB)
+        return super().create(
+            type=type,
+            active=active,
+            interfaceA=interfaceA,
+            interfaceB=interfaceB,
+        )
 
+    def create_default(self, type, as_a, as_b):
+        """
+        Utility function, for tests etc.
+        Create a link between these ASes. The interfaces are created on
+        the first host of each AS.
+        """
+        hostA = as_a.hosts.first()
+        hostB = as_b.hosts.first()
+        return self.create(type, dict(host=hostA), dict(host=hostB))
+
+    def _check_link(self, hostA, hostB):
         # TODO(matzf): validation (should be reusable for forms and for global system checks)
         # - no provider loops
         # - core links only for core ases
         # - no non-core providers for core ases (or no providers at all?)
         # - no cross ISD provider links
-
-        interfaceA = Interface.objects.create(host=hostA)
-        interfaceB = Interface.objects.create(host=hostB)
-        return super().create(
-            interfaceA=interfaceA,
-            interfaceB=interfaceB,
-            type=type,
-            active=active
-        )
+        if hostA.AS == hostB.AS:
+            raise ValueError("Loop AS-link (from AS to itself) not allowed")
 
 
 class Link(models.Model):
@@ -641,6 +763,46 @@ class Link(models.Model):
         for interface in filter(None, [self.get_interface_a(), self.get_interface_b()]):
             interface.delete()
 
+    def update(self,
+               type=None,
+               active=None,
+               kwargsA=None,
+               kwargsB=None):
+        """
+        Update the fields for this Link instance and the two related interfaces and immediately `save`.
+        This will trigger a configuration bump for all Hosts in all affected ASes.
+        """
+        bump = False
+        if type is not None and type != self.type:
+            self.type = type
+            bump = True
+
+        if active is not None and active != self.active:
+            self.active = active
+            bump = True
+
+        if kwargsA != None:
+            self.interfaceA.update(**kwargsA)
+
+        if kwargsB != None:
+            self.interfaceB.update(**kwargsB)
+
+        if bump:
+            self.save()
+            self.interfaceA.AS.bump_hosts_config()
+            self.interfaceB.AS.bump_hosts_config()
+
+    def set_active(self, active):
+        """
+        Set the link to be active/inactive.
+        This will trigger a configuration bump for all Hosts in all affected ASes.
+        """
+        if self.active != active:
+            self.active = active
+            self.save()
+            self.interfaceA.AS.bump_hosts_config()
+            self.interfaceB.AS.bump_hosts_config()
+
     def get_interface_a(self):
         if hasattr(self, 'interfaceA'):
             return self.interfaceA
@@ -650,13 +812,6 @@ class Link(models.Model):
         if hasattr(self, 'interfaceB'):
             return self.interfaceB
         return None
-
-    def set_active(self, active):
-        if self.active != active:
-            self.active = active
-            self.save()
-            self.interfaceA.AS.bump_hosts_config()
-            self.interfaceB.AS.bump_hosts_config()
 
 
 class Service(models.Model):
@@ -706,6 +861,13 @@ class VPN(models.Model):
     subnet = models.CharField(max_length=15)
     keys = models.TextField(null=True, blank=True)
 
+    def create_client(self, host):
+        return VPNClient.objects.create(vpn=self, host=host, ip=self.find_ip())
+
+    def find_ip(self):
+        # TODO(matzf)
+        return '10.0.0.1'
+
 
 class VPNClient(models.Model):
     vpn = models.ForeignKey(
@@ -718,6 +880,8 @@ class VPNClient(models.Model):
         related_name='vpn_clients',
         on_delete=models.CASCADE
     )
+    ip = models.GenericIPAddressField()
+    active = models.BooleanField(default=True)
     keys = models.TextField(null=True, blank=True)
 
 

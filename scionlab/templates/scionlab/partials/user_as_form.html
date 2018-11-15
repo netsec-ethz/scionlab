@@ -1,4 +1,10 @@
 {% load widget_tweaks %}
+
+{# Partial with the fields for a User-AS form. To be included inside a <form>-tag. #}
+{# TODO(matzf): JS: hide use_vpn if *selected* AP does not support VPN #}
+{# TODO(matzf): JS: hide public-ip field if use_vpn is selected #}
+{# TODO(matzf): add bind-address/port (hidden/collapsed by default?), #}
+
 <div class="form-group has-feedback">
   {{ form.label.errors }}
   {{ form.attachment_point.label_tag }}
