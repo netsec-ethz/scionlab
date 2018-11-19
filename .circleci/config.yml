@@ -22,7 +22,8 @@ jobs:
     docker:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.6.1
+      #- image: circleci/python:3.6.1
+      - image: scionproto/scion_base@sha256:975646f75df9db5a0dd882a4bc6bac36dd63201e0aff920f7ee711053b1ca48e
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -44,9 +45,20 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            python3 -m venv /tmp/venv
+            sudo DEBIAN_FRONTEND=noninteractive apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq apt-utils
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq git
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq python3-venv
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq python3-nacl  # python3-lz4 python3-openssl python3-pygments python3-sphinx python3-yaml python3-wheel
+            rm -rf /tmp/venv
+            mkdir -p /tmp/venv/bin/
+            /usr/bin/python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
+            mkdir -p /home/scion/go/src/github.com/scionproto/
+            cd /home/scion/go/src/github.com/scionproto/
+            git clone https://github.com/netsec-ethz/netsec-scion.git scion
+            #pip install --require-hashes -r /home/scion/go/src/github.com/scionproto/scion/env/pip3/requirements.txt
 
       - save_cache:
           paths:
@@ -67,7 +79,7 @@ jobs:
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/django/
-            python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
+            PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages:/home/scion/go/src/github.com/scionproto/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
       - store_test_results:
