@@ -38,9 +38,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
+          - v2-dependencies-{{ checksum "requirements.txt" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+          - v2-dependencies-
 
       - run:
           name: install dependencies
@@ -50,8 +50,6 @@ jobs:
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq git
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq python3-venv
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq python3-nacl  # python3-lz4 python3-openssl python3-pygments python3-sphinx python3-yaml python3-wheel
-            rm -rf /tmp/venv
-            mkdir -p /tmp/venv/bin/
             /usr/bin/python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
@@ -63,7 +61,7 @@ jobs:
       - save_cache:
           paths:
             - /tmp/venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+          key: v2-dependencies-{{ checksum "requirements.txt" }}
 
       # run flake8
       - run:
@@ -79,6 +77,9 @@ jobs:
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/django/
+            # Create migrations, otherwise test DB will not be initialised properly
+            # TODO: remove once migrations are checked in!
+            PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages:/home/scion/go/src/github.com/scionproto/scion/python python manage.py makemigrations scionlab
             PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages:/home/scion/go/src/github.com/scionproto/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
