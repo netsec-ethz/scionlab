@@ -280,7 +280,10 @@ class UserASManager(models.Manager):
         The public_ip must be specified if use_vpn is not enabled.
         """
         if user.num_ases() >= user.max_ases():
-            raise ValidationError("UserAS quota exceeded", code='user_as_quota_exceeded')
+            raise ValidationError("UserAS quota exceeded",
+                                  code='user_as_quota_exceeded')
+
+        UserAS.validate_vpn_available(use_vpn, attachment_point)
 
         isd = attachment_point.AS.isd
         as_id = self.get_next_id()
@@ -301,7 +304,7 @@ class UserASManager(models.Manager):
 
         vpn_client = None
         if use_vpn:
-            vpn_client = self.attachment_point.vpn.create_client(host)
+            vpn_client = attachment_point.vpn.create_client(host)
 
         host.default_public_ip = public_ip if not use_vpn else vpn_client.ip
         host.default_bind_ip = bind_ip if not use_vpn else None
@@ -379,6 +382,8 @@ class UserAS(AS):
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
+        self.validate_vpn_available(use_vpn, attachment_point)
+
         host = self.hosts.first()   # UserAS always has only one host
         link = self._get_ap_link()
         interface_ap = link.interfaceA
@@ -448,6 +453,17 @@ class UserAS(AS):
             return vpn_client
         else:
             return self.attachment_point.vpn.create_client(host)
+
+    @staticmethod
+    def validate_vpn_available(use_vpn, attachment_point):
+        """
+        Raise ValidationError if `use_vpn` is `True` but the attachment point
+        does not support VPN.
+        """
+        if attachment_point.vpn is None and use_vpn:
+            raise ValidationError("Selected attachment point does not support VPN",
+                                  code='attachment_point_no_vpn')
+
 
 
 class AttachmentPoint(models.Model):

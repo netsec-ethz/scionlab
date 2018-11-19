@@ -47,7 +47,6 @@ class UserASForm(forms.ModelForm):
         }
 
     use_vpn = forms.BooleanField(
-        initial=False,
         required=False,
         label="Use OpenVPN connection for this AS"
     )
@@ -65,7 +64,7 @@ class UserASForm(forms.ModelForm):
         if instance:
             initial['use_vpn'] = instance.is_use_vpn()
             initial['public_port'] = instance.get_public_port()
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, initial=initial, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -74,6 +73,8 @@ class UserASForm(forms.ModelForm):
                 "Please provide a value for public IP, or enable 'Use OpenVPN'.",
                 code='missing_public_ip_no_vpn'
             )
+        UserAS.validate_vpn_available(cleaned_data.get('use_vpn'),
+                                      cleaned_data.get('attachment_point'))
         return self.cleaned_data
 
     def save(self, commit=True):
