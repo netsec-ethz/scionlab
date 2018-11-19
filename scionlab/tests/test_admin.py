@@ -20,7 +20,7 @@ from scionlab.admin import ASCreationForm, LinkAdminForm
 
 
 class ASAdminTests(TestCase):
-    fixtures = ['scionlab-isds']
+    fixtures = ['testtopo-isds']
 
     def test_create_as_form(self):
         as_id = 'ff00:bad:f00d'
@@ -43,25 +43,15 @@ class ASAdminTests(TestCase):
 
 
 class LinkAdminFormTests(TestCase):
-    fixtures = ['scionlab-isds', 'scionlab-ases-ch']
-
-    AS_SCMN = 'ffaa:0:1101'
-    AS_ETHZ = 'ffaa:0:1102'
-    AS_SWTH = 'ffaa:0:1103'
-
-    def _as_a(self):
-        return AS.objects.get(as_id=self.AS_SCMN)
-
-    def _as_b(self):
-        return AS.objects.get(as_id=self.AS_ETHZ)
+    fixtures = ['testtopo-ases']
 
     def test_render_create(self):
         form = LinkAdminForm()
         self.assertIsNotNone(form.as_table())
 
     def test_create_link(self):
-        as_a = self._as_a()
-        as_b = self._as_b()
+        as_a = AS.objects.first()
+        as_b = AS.objects.last()
         form_data = dict(
             type=Link.PROVIDER,
             from_host=as_a.hosts.first().id,
@@ -77,15 +67,15 @@ class LinkAdminFormTests(TestCase):
         self.assertIsNotNone(link)
 
     def test_render_edit(self):
-        as_a = self._as_a()
-        as_b = self._as_b()
+        as_a = AS.objects.first()
+        as_b = AS.objects.last()
         link = Link.objects.create_default(Link.PROVIDER, as_a, as_b)
         form = LinkAdminForm(instance=link)
         self.assertIsNotNone(form.as_table())
 
     def test_edit_link(self):
-        as_a = self._as_a()
-        as_b = self._as_b()
+        as_a = AS.objects.first()
+        as_b = AS.objects.last()
         link = Link.objects.create_default(Link.PROVIDER, as_a, as_b)
 
         form_data = dict(

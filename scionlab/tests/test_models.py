@@ -81,7 +81,7 @@ class InitASTests(TestCase):
 
 
 class UpdateASKeysTests(TestCase):
-    fixtures = ['scionlab-isds', 'scionlab-ases-ch']
+    fixtures = ['testtopo-ases']
 
     def test_update_keys(self):
         Host.objects.reset_needs_config_deployment()
@@ -98,7 +98,7 @@ class UpdateASKeysTests(TestCase):
 
 
 class LinkModificationTests(TestCase):
-    fixtures = ['scionlab-isds', 'scionlab-ases-ch']
+    fixtures = ['testtopo-ases']
 
     AS_SCMN = 'ffaa:0:1101'
     AS_ETHZ = 'ffaa:0:1102'
@@ -193,8 +193,7 @@ class LinkModificationTests(TestCase):
 
 
 class DeleteASTests(TestCase):
-    # TODO(matzf) add link fixture
-    fixtures = ['scionlab-isds', 'scionlab-ases-ch']
+    fixtures = ['testtopo-ases-links']
 
     def setUp(self):
         patcher = patch('scionlab.models.AS._pre_delete', side_effect=AS._pre_delete, autospec=True)
@@ -203,10 +202,6 @@ class DeleteASTests(TestCase):
 
     def test_delete_single_as(self):
         as_ = AS.objects.last()
-
-        # Add a link just so there is one
-        # TODO(matzf) move to fixture
-        Link.objects.create_default(Link.PROVIDER, as_, AS.objects.first())
 
         host_ids = [h.id for h in as_.hosts.all().iterator()]
         interface_ids = [h.id for h in as_.interfaces.all().iterator()]
@@ -232,6 +227,14 @@ class DeleteASTests(TestCase):
             self.assertFalse(Interface.objects.filter(id=interface_id).exists())
         for service_id in service_ids:
             self.assertFalse(Service.objects.filter(id=service_id).exists())
+
+        # Check no dangling interfaces:
+        self.assertFalse(
+            Interface.objects.filter(
+                link_as_interfaceA=None,
+                link_as_interfaceB=None
+            ).exists())
+
 
     def test_delete_bulk(self):
         ases = AS.objects.filter(is_core=False)

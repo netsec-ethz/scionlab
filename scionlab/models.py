@@ -560,6 +560,7 @@ class Host(models.Model):
 
 class InterfaceManager(models.Manager):
     def create(self, host, **kwargs):
+        # TODO(matzf): free port assignment
         as_ = host.AS
         ifid = as_.find_interface_id()
         as_.bump_hosts_config()
@@ -615,6 +616,7 @@ class Interface(models.Model):
                bind_ip=None,
                bind_port=None,
                internal_port=None):
+        # TODO(matzf): free port assignment
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
@@ -735,12 +737,12 @@ class Link(models.Model):
     # TODO(matzf): reduce number of types? CORE can be deduced?
     interfaceA = models.OneToOneField(
         Interface,
-        related_name='+',
+        related_name='link_as_interfaceA',
         on_delete=models.CASCADE
     )
     interfaceB = models.OneToOneField(
         Interface,
-        related_name='+',
+        related_name='link_as_interfaceB',
         on_delete=models.CASCADE
     )
     type = models.CharField(

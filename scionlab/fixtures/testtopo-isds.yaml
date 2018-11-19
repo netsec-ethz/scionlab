@@ -1,0 +1,30 @@
+- model: scionlab.isd
+  pk: 16
+  fields: {label: AWS, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 17
+  fields: {label: Switzerland, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 18
+  fields: {label: North America, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 19
+  fields: {label: EU, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 20
+  fields: {label: Korea, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 21
+  fields: {label: Japan, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 22
+  fields: {label: Taiwan, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 23
+  fields: {label: Singapore, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 24
+  fields: {label: Australia, trc: null, trc_priv_keys: null, trc_needs_update: true}
+- model: scionlab.isd
+  pk: 25
+  fields: {label: China, trc: null, trc_priv_keys: null, trc_needs_update: true}
