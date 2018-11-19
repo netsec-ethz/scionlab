@@ -112,6 +112,7 @@ class AS(models.Model):
     )
     as_id = models.CharField(max_length=15)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+    mtu = models.PositiveIntegerField(default=1500 - 20 - 8)
 
     owner = models.ForeignKey(
         User,
@@ -560,8 +561,8 @@ class Interface(models.Model):
 
     def link(self):
         return (
-            Link.objects.filter(interfaceA=self) |
-            Link.objects.filter(interfaceB=self)
+            Link.objects.filter(interfaceA=self.id) |
+            Link.objects.filter(interfaceB=self.id)
         ).first()
 
     def remote_interface(self):
@@ -623,6 +624,8 @@ class Link(models.Model):
         choices=LINK_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
+    bandwidth = models.PositiveIntegerField(default=1000)
+    mtu = models.PositiveIntegerField(default=1500 - 20 - 8)
     active = models.BooleanField(default=True)
 
     objects = LinkManager()

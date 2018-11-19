@@ -81,6 +81,7 @@ REGISTRATION_OPEN = True  # Accept new registrations
 # ##### DEFAULT SETTINGS CONFIGURATION ####################
 MAX_ASES_ADMIN = 10
 MAX_ASES_USER = 5
+GEN_ROOT = "/tmp/gen_root"
 GRAFANA_URL = "https://prometheus.scionlab.org"
 IOT_IMAGES = [
     {
