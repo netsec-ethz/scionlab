@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import operator
 import os
 import base64
+
 from django import urls
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -23,7 +24,10 @@ from django.dispatch import receiver
 from django.db import models
 from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
+
+import ipaddress
 import jsonfield
+
 import lib.crypto.asymcrypto
 from scionlab.util import as_ids
 
@@ -32,6 +36,7 @@ from scionlab.util import as_ids
 # we can make better use of e.g. changed_data information of the forms.
 
 # TODO(matzf) move to common definitions module?
+
 MAX_PORT = 2**16-1
 """ Max value for ports """
 
@@ -44,6 +49,8 @@ DEFAULT_PUBLIC_PORT = 50000
 DEFAULT_INTERNAL_PORT = 30000
 DEFAULT_ZOOKEEPER_PORT = 2181
 DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
+
+DEFAULT_MAX_ROUTER_INTERFACES = 12
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
@@ -186,6 +193,10 @@ class AS(models.Model):
     )
     as_id_int = models.BigIntegerField(editable=False)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+    mtu = models.PositiveIntegerField(default=1500 - 20 - 8)
+
+    # Max number of interfaces per router
+    interfaces_per_br = models.PositiveIntegerField(default=DEFAULT_MAX_ROUTER_INTERFACES)
 
     owner = models.ForeignKey(
         User,
@@ -246,6 +257,22 @@ class AS(models.Model):
         return '%d-%s' % (self.isd.isd_id, self.as_id)
 
     isd_as_str.short_description = 'ISD-AS'
+
+    def isd_as_path_str(self):
+        """
+        :return: the ISD-AS string representation in the file format
+        """
+        return ('%d-%s' % (self.isd.id, self.as_id)).replace(":", "_")
+
+    def AS_internal_overlay(self):
+        hosts = Host.objects.filter(AS=self)
+        AS_internal_overlay = "UDP/IPv6"  # FIXME(FR4NK-W): should the AS overlay be explicit?
+        for host in hosts:
+            ip = ipaddress.ip_address(host.ip)
+            if isinstance(ip, ipaddress.IPv4Address):
+                AS_internal_overlay = "UDP/IPv4"
+                break
+        return AS_internal_overlay
 
     def init_keys(self):
         """
@@ -688,6 +715,9 @@ class Host(models.Model):
     class Meta:
         unique_together = ('AS', 'internal_ip')
 
+    def path_str(self):
+        return'%s__%s' % (self.AS.isd_as_path_str(), str(self.ip).replace(":", "_"))
+
     def __str__(self):
         if self.label:
             return self.label
@@ -825,6 +855,12 @@ class InterfaceManager(models.Manager):
             bind_port=bind_port,
             internal_port=internal_port
         )
+
+    def active(self):
+        """
+        return list of Interfaces from active links
+        """
+        return [e for e in self.all() if e.link().active]
 
 
 class Interface(models.Model):
@@ -984,6 +1020,27 @@ class Interface(models.Model):
         return public_port or host.find_free_port(public_ip or host.public_ip,
                                                   min=DEFAULT_PUBLIC_PORT)
 
+    def get_router_instance_id(self):
+        """
+        Get the service instance identifier for the router of the interface
+        :return: str _: the router instance id
+        """
+        # Get instance id from DB id order:
+        AS_interfaces = Interface.objects.filter(AS=self.AS).order_by("id")
+        interface_no = operator.indexOf(AS_interfaces, self)
+        return (interface_no // self.AS.interfaces_per_br) + 1
+
+    def link_relation(self):
+        if self.link().type == Link.PROVIDER:
+            # By definition, interfaceA is on the parent side
+            if self.link().interfaceA == self:
+                return "PARENT"
+            else:
+                return"CHILD"
+        else:
+            return self.link().type
+
+
     @staticmethod
     def _assign_bind_port(host, public_ip, bind_ip, bind_port):
         """
@@ -1097,7 +1154,7 @@ class Link(models.Model):
     CORE = 'CORE'
     PEER = 'PEER'
     LINK_TYPES = (
-        (PROVIDER, 'Provider link from A to B'),
+        (PROVIDER, 'Provider link from parent A to child B'),
         (CORE, 'Core link (symmetric)'),
         (PEER, 'Peering link (symmetric)'),
     )
@@ -1115,6 +1172,8 @@ class Link(models.Model):
         choices=LINK_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
+    bandwidth = models.PositiveIntegerField(default=1000)
+    mtu = models.PositiveIntegerField(default=1500 - 20 - 8)
     active = models.BooleanField(default=True)
 
     objects = LinkManager()
@@ -1165,6 +1224,16 @@ class Link(models.Model):
             self.save()
             self.interfaceA.AS.hosts.bump_config()
             self.interfaceB.AS.hosts.bump_config()
+
+    def overlay(self):
+        link_overlay = "UDP/IPv6"
+        if self.interfaceA.public_ip and self.interfaceB.public_ip and \
+                isinstance(ipaddress.ip_address(self.interfaceA.public_ip),
+                           ipaddress.IPv4Address) and \
+                isinstance(ipaddress.ip_address(self.interfaceB.public_ip),
+                           ipaddress.IPv4Address):
+            link_overlay = "UDP/IPv4"
+        return link_overlay
 
     def get_interface_a(self):
         if hasattr(self, 'interfaceA'):
@@ -1292,6 +1361,16 @@ class Service(models.Model):
             host.AS.hosts.bump_config()
         else:
             host.bump_config()
+
+    def get_service_instance_id(self):
+        """
+        Get the service instance identifier for a service
+        :return: str instance_id: the service instance id
+        """
+        # Get instance id from DB id order:
+        AS_service_instances = Service.objects.filter(type=self.type, AS=self.AS).order_by("id")
+        instance_id = operator.indexOf(AS_service_instances, self) + 1
+        return instance_id
 
 
 class VPN(models.Model):

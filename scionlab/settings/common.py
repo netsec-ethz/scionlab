@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'scionlab',
     'django_registration',  # used for two-step user account activation (Email verification)
     'snowpenguin.django.recaptcha2',  # used for human verification (no bot)
-    'widget_tweaks',    # used to control form widget in the template
+    'widget_tweaks',  # used to control form widget in the template
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -81,6 +81,7 @@ REGISTRATION_OPEN = True  # Accept new registrations
 # ##### DEFAULT SETTINGS CONFIGURATION ####################
 MAX_ASES_ADMIN = 10
 MAX_ASES_USER = 5
+GEN_ROOT = "/tmp/gen_root"
 GRAFANA_URL = "https://prometheus.scionlab.org"
 IOT_IMAGES = [
     {
