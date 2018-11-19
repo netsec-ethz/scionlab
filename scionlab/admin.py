@@ -75,7 +75,6 @@ class ServiceInline(admin.TabularInline):
     model = Service
     extra = 0
     form = _AlwaysChangedModelForm
-    # TODO(matzf): restrict hosts or revisit data model
     fields = ('type', 'host', 'port')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -183,12 +182,13 @@ class ASAdmin(admin.ModelAdmin):
         """ Is the AS `obj` an attachment point? """
         return hasattr(obj, 'attachment_point')
 
-    is_ap.boolean = True
-
     def is_userAS(self, obj):
         """ Is the AS `obj` a user AS? """
-        return isinstance(obj, UserAS)
+        return UserAS.objects.filter(as_ptr=obj).exists()
 
+    # Mark the is_ap and is_userAS functions as boolean, so they show
+    # as tick/cross in the list view
+    is_ap.boolean = True
     is_userAS.boolean = True
 
     def update_keys(self, request, queryset):
@@ -205,7 +205,6 @@ class LinkAdminForm(forms.ModelForm):
         exclude = ['interfaceA', 'interfaceB']
 
     # TODO(matzf): avoid duplication, make naming consistent (to/from vs. a/b)?
-    # TODO(matzf): add clean_..._port to set discover and set available ports
     from_host = forms.ModelChoiceField(queryset=Host.objects.all())
     from_public_ip = forms.GenericIPAddressField(required=False)
     from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
