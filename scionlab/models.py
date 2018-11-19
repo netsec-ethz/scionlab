@@ -465,7 +465,6 @@ class UserAS(AS):
                                   code='attachment_point_no_vpn')
 
 
-
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
         AS,
