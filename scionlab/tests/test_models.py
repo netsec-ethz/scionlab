@@ -14,7 +14,7 @@
 
 from unittest.mock import patch
 from django.test import TestCase
-from scionlab.models import ISD, AS, UserAS, Link, Host, Interface, Service
+from scionlab.models import ISD, AS, Link, Host, Interface, Service
 from scionlab.tests import utils
 
 
@@ -234,7 +234,6 @@ class DeleteASTests(TestCase):
                 link_as_interfaceA=None,
                 link_as_interfaceB=None
             ).exists())
-
 
     def test_delete_bulk(self):
         ases = AS.objects.filter(is_core=False)

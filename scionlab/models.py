@@ -39,12 +39,13 @@ _MAX_LEN_CHOICES_DEFAULT = 16
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """
 
+
 class User(auth_User):
     class Meta:
-        proxy=True
+        proxy = True
 
     def max_ases(self):
-        return 5 # TODO
+        return 5    # TODO
 
     def num_ases(self):
         return UserAS.objects.filter(owner=self).count()
@@ -306,13 +307,13 @@ class UserASManager(models.Manager):
         host.default_bind_ip = bind_ip if not use_vpn else None
         host.save()
 
-        link = Link.objects.create(type=Link.PROVIDER,
-                                   kwargsA=dict(host=attachment_point.AS.hosts.first()),
-                                   kwargsB=dict(
-                                       host=user_as.hosts.first(),
-                                       public_port=public_port,
-                                       bind_port=bind_port if not use_vpn else None
-                                   ))
+        Link.objects.create(type=Link.PROVIDER,
+                            kwargsA=dict(host=attachment_point.AS.hosts.first()),
+                            kwargsB=dict(
+                                host=user_as.hosts.first(),
+                                public_port=public_port,
+                                bind_port=bind_port if not use_vpn else None
+                            ))
 
         # TODO(matzf): somewhere we need to trigger the config deployment
 
@@ -339,9 +340,9 @@ class UserAS(AS):
         'AttachmentPoint',
         related_name='user_ases',
         on_delete=models.SET_NULL,
-        null=True, # Null on deletion of AP
+        null=True,  # Null on deletion of AP
         blank=False,
-        default='' # Invalid default avoids rendering a '----' selection choice
+        default=''  # Invalid default avoids rendering a '----' selection choice
     )
     # These fields are redundant for the network model
     # They are here to retain the values entered by the user
@@ -378,8 +379,8 @@ class UserAS(AS):
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
-        host = self.hosts.first()
-        link = self._get_link()
+        host = self.hosts.first()   # UserAS always has only one host
+        link = self._get_ap_link()
         interface_ap = link.interfaceA
         interface_user = link.interfaceB
         assert interface_user.host == host
@@ -391,7 +392,7 @@ class UserAS(AS):
         if use_vpn:
             vpn_client = self._create_or_activate_vpn_client()
         else:
-            host.vpn_clients.update(active=False) # deactivate all vpn clients
+            host.vpn_clients.update(active=False)   # deactivate all vpn clients
 
         host.update_default_interface_ips(
             default_public_ip=public_ip if not use_vpn else vpn_client.ip,
@@ -428,9 +429,8 @@ class UserAS(AS):
         self.interfaces.first().link().set_active(active)
         # TODO(matzf) trigger AP config deployment (delayed?)
 
-    def _get_link(self):
-        # TODO
-        #ap_link = Link.objects.find(
+    def _get_ap_link(self):
+        # FIXME(matzf): find the correct link to the AP if multiple links present!
         return self.interfaces.first().link()
 
     def _create_or_activate_vpn_client(self):
@@ -444,7 +444,7 @@ class UserAS(AS):
         vpn_client = host.vpn_clients.filter(vpn=self.attachment_point.vpn).first()
         if vpn_client:
             vpn_client.active = True
-            vpn_client.save() # TODO wrap this?
+            vpn_client.save()
             return vpn_client
         else:
             return self.attachment_point.vpn.create_client(host)
@@ -466,6 +466,7 @@ class AttachmentPoint(models.Model):
 
     def __str__(self):
         return str(self.AS)
+
 
 class HostManager(models.Manager):
     def reset_needs_config_deployment(self):
@@ -550,12 +551,11 @@ class Host(models.Model):
         if default_public_ip != self.default_public_ip:
             self.default_public_ip = default_public_ip
             # bump affected remote ASes
-            for interface in self.interfaces.filter(public_ip = None).iterator():
+            for interface in self.interfaces.filter(public_ip=None).iterator():
                 interface.remote_as().bump_hosts_config()
 
         self.save()
         self.AS.bump_hosts_config()
-
 
 
 class InterfaceManager(models.Manager):
@@ -773,8 +773,9 @@ class Link(models.Model):
                kwargsA=None,
                kwargsB=None):
         """
-        Update the fields for this Link instance and the two related interfaces and immediately `save`.
-        This will trigger a configuration bump for all Hosts in all affected ASes.
+        Update the fields for this Link instance and the two related interfaces
+        and immediately `save`. This will trigger a configuration bump for all
+        Hosts in all affected ASes.
         """
         bump = False
         if type is not None and type != self.type:
@@ -785,10 +786,10 @@ class Link(models.Model):
             self.active = active
             bump = True
 
-        if kwargsA != None:
+        if kwargsA is not None:
             self.interfaceA.update(**kwargsA)
 
-        if kwargsB != None:
+        if kwargsB is not None:
             self.interfaceB.update(**kwargsB)
 
         if bump:

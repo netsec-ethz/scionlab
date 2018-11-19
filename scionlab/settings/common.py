@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'scionlab',
     'django_registration',  # used for two-step user account activation (Email verification)
     'snowpenguin.django.recaptcha2',  # used for human verification (no bot)
-    'widget_tweaks', # used to control form widget in the template
+    'widget_tweaks',    # used to control form widget in the template
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -68,7 +68,7 @@ TEMPLATES = [
 STATIC_URL = '/static/'
 
 # ##### AUTH CONFIGURATION ################################
-AUTHENTICATION_BACKENDS = ['scionlab.auth_backends.ProxyModelBackend',]
+AUTHENTICATION_BACKENDS = ['scionlab.auth_backends.ProxyModelBackend', ]
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'user'
 

@@ -30,6 +30,7 @@ def extract_request(request):
     ProxyUserBackendTests.request = request
     return HttpResponse()
 
+
 class ProxyUserBackendTests(TestCase):
     fixtures = ['testuser']
     request = None

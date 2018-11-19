@@ -36,7 +36,7 @@ def makeLinkDef(type, as_id_tail_a, as_id_tail_b):
     return LinkDef(type, _expand_as_id(as_id_tail_a), _expand_as_id(as_id_tail_b))
 
 
-## ISDs
+# ISDs
 isds = [
     ISDdef(16, 'AWS'),
     ISDdef(17, 'Switzerland'),
@@ -50,7 +50,7 @@ isds = [
     ISDdef(25, 'China'),
 ]
 
-## ASes
+# ASes
 ases = [
     # ch
     makeASdef(17, 0x1101, 'SCMN', '192.0.2.11', is_core=True),
@@ -65,7 +65,7 @@ ases = [
     makeASdef(19, 0x1305, 'Darmstadt', '192.0.2.35'),
 ]
 
-## Links
+# Links
 links = [
     # ch
     makeLinkDef(Link.PROVIDER, 0x1101, 0x1103),
@@ -81,6 +81,7 @@ links = [
     makeLinkDef(Link.CORE, 0x1101, 0x1301),
     makeLinkDef(Link.CORE, 0x1101, 0x1302),
 ]
+
 
 def create_testtopo_isds():
     for isddef in isds:
@@ -119,5 +120,3 @@ def _create_as_link(type, as_id_a, as_id_b):
 def _set_default_public_ip(host, ip):
     host.default_public_ip = ip
     host.save()
-
-

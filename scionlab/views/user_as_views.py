@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse, reverse_lazy
@@ -21,7 +20,8 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django import forms
 
-from scionlab.models import UserAS, AttachmentPoint, MAX_PORT
+from scionlab.models import UserAS, MAX_PORT
+
 
 class UserASForm(forms.ModelForm):
     """
@@ -29,7 +29,14 @@ class UserASForm(forms.ModelForm):
     """
     class Meta:
         model = UserAS
-        fields = ('label', 'attachment_point', 'installation_type', 'public_ip', 'bind_ip', 'bind_port')
+        fields = (
+            'label',
+            'attachment_point',
+            'installation_type',
+            'public_ip',
+            'bind_ip',
+            'bind_port'
+        )
         labels = {
             'label': "Label for this AS (optional)",
             'attachment_point': "Attachment point to connect to",

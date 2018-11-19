@@ -21,7 +21,6 @@ from .models import (
     UserAS,
     AttachmentPoint,
     Host,
-    Interface,
     Link,
     Service,
     VPN,
@@ -258,7 +257,7 @@ class LinkAdminForm(forms.ModelForm):
         )
 
     def save(self, commit=True):
-        if self.instance.pk is None: # No pk means creating a new object
+        if self.instance.pk is None:    # No pk means creating a new object
             return Link.objects.create(
                 type=self.cleaned_data['type'],
                 active=self.cleaned_data['active'],

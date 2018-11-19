@@ -15,6 +15,7 @@
 from django.contrib.auth.backends import ModelBackend
 from scionlab.models import User
 
+
 class ProxyModelBackend(ModelBackend):
     """
     This specialisation of contrib.auth.backends.ModelBackend returns
