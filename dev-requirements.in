@@ -1,6 +1,7 @@
 # Testing:
 django-webtest
 django-nose
+parameterized
 flake8
 flake8-formatter-junit-xml
 pyyaml  # for test fixtures

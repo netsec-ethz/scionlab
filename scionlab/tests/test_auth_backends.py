@@ -55,4 +55,4 @@ class ProxyUserBackendTests(TestCase):
         self.assertEqual(user.__class__, User)
         # Call some functions to see it actually works as it should:
         self.assertEqual(user.num_ases(), 0)
-        self.assertGreater(user.max_ases(), 0)
+        self.assertGreater(user.max_num_ases(), 0)

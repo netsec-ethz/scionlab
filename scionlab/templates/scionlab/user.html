@@ -14,8 +14,8 @@
     {% endif %}
   </p>
   <p>
-    {% if object_list.count < request.user.max_ases %}
-    You can create up to {{ request.user.max_ases }} ASes with your account.
+    {% if object_list.count < request.user.max_num_ases %}
+    You can create up to {{ request.user.max_num_ases }} ASes with your account.
     Please use the button below to create a new AS.
     {% else %}
     You have reached the maximum number of ASes and cannot create further ones.
@@ -34,7 +34,7 @@
   {% endfor %}
   </ul>
 </div>
-{%  if object_list.count <= request.user.max_ases %}
+{%  if object_list.count < request.user.max_num_ases %}
 <a class="btn btn-primary" href="{% url 'user_as_add' %}">Create a new SCIONLab AS</a>
 {% endif %}
 {% endblock content %}

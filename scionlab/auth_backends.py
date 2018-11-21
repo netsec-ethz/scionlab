@@ -24,7 +24,12 @@ class ProxyModelBackend(ModelBackend):
     e.g. on `request.user` in templates.
 
     Note: it would be nicer to simply override AUTH_USER_MODEL in the settings
-    but for some reason, a proxy model cannot be used in this context.
+    but for some reason (bug!?), a proxy model cannot be used in this context.
+
+    Note: this is a hack, the auth-backend is the wrong place to put this; a
+    django app can have multiple backends configured that are queried in sequence.
+    Instead, the type returned by django.contrib.auth.get_user_model should be
+    patched...
     """
 
     def get_user(self, user_id):

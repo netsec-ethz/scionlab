@@ -66,6 +66,11 @@ class LinkAdminFormTests(TestCase):
         link = form.save()
         self.assertIsNotNone(link)
 
+        # Re-creating form with same data should result in no changes:
+        edit_form = LinkAdminForm(instance=link, data=form_data)
+        self.assertTrue(edit_form.is_valid(), edit_form.errors)
+        self.assertFalse(edit_form.has_changed(), edit_form.changed_data)
+
     def test_render_edit(self):
         as_a = AS.objects.first()
         as_b = AS.objects.last()
@@ -99,3 +104,8 @@ class LinkAdminFormTests(TestCase):
         self.assertEqual(link.interfaceB.public_ip, '192.0.2.2')
         self.assertEqual(link.interfaceB.public_port, 50001)
         self.assertEqual(link.interfaceB.internal_port, 30000)
+
+        # Re-creating form with same data should result in no changes:
+        edit_form = LinkAdminForm(instance=link, data=form_data)
+        self.assertTrue(edit_form.is_valid(), edit_form.errors)
+        self.assertFalse(edit_form.has_changed(), edit_form.changed_data)

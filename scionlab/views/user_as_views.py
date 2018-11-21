@@ -60,7 +60,7 @@ class UserASForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         instance = kwargs.get('instance')
-        initial = kwargs.pop('initial')
+        initial = kwargs.pop('initial', {})
         if instance:
             initial['use_vpn'] = instance.is_use_vpn()
             initial['public_port'] = instance.get_public_port()
@@ -68,13 +68,14 @@ class UserASForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        self.user.check_as_quota()
+        UserAS.check_vpn_available(cleaned_data.get('use_vpn'),
+                                   cleaned_data.get('attachment_point'))
         if not cleaned_data.get('use_vpn') and not self.cleaned_data.get('public_ip'):
             raise ValidationError(
                 "Please provide a value for public IP, or enable 'Use OpenVPN'.",
                 code='missing_public_ip_no_vpn'
             )
-        UserAS.validate_vpn_available(cleaned_data.get('use_vpn'),
-                                      cleaned_data.get('attachment_point'))
         return self.cleaned_data
 
     def save(self, commit=True):
@@ -83,6 +84,7 @@ class UserASForm(forms.ModelForm):
                 user=self.user,
                 label=self.cleaned_data['label'],
                 attachment_point=self.cleaned_data['attachment_point'],
+                installation_type=self.cleaned_data['installation_type'],
                 use_vpn=self.cleaned_data['use_vpn'],
                 public_ip=self.cleaned_data['public_ip'],
                 public_port=self.cleaned_data['public_port'],
@@ -93,11 +95,12 @@ class UserASForm(forms.ModelForm):
             self.instance.update(
                 label=self.cleaned_data['label'],
                 attachment_point=self.cleaned_data['attachment_point'],
+                installation_type=self.cleaned_data['installation_type'],
                 use_vpn=self.cleaned_data['use_vpn'],
                 public_ip=self.cleaned_data['public_ip'],
                 public_port=self.cleaned_data['public_port'],
                 bind_ip=self.cleaned_data['bind_ip'],
-                bind_port=self.cleaned_data['bind_port']
+                bind_port=self.cleaned_data['bind_port'],
             )
             return self.instance
 
@@ -107,9 +110,15 @@ class UserASCreateView(CreateView):
     model = UserAS
     form_class = UserASForm
 
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        if user.num_ases() >= user.max_num_ases():
+            return HttpResponseForbidden()
+        return super().get(request, *args, **kwargs)
+
     def post(self, request, *args, **kwargs):
         user = self.request.user
-        if user.num_ases() >= user.max_ases():
+        if user.num_ases() >= user.max_num_ases():
             return HttpResponseForbidden()
         return super().post(request, *args, **kwargs)
 
