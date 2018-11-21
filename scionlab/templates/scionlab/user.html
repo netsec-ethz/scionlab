@@ -35,8 +35,6 @@
   </ul>
 </div>
 {%  if object_list.count <= request.user.max_ases %}
-<a href="{% url 'user_as_add' %}">
-  <button class="btn btn-primary" >Create a new SCIONLab AS</button>
-</a>
+<a class="btn btn-primary" href="{% url 'user_as_add' %}">Create a new SCIONLab AS</a>
 {% endif %}
 {% endblock content %}
