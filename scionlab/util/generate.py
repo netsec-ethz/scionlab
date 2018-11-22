@@ -22,9 +22,9 @@ from lib.packet.scion_addr import ISD_AS
 from nacl.signing import SigningKey
 from topology.generator import TopoID
 from django.core.validators import EmailValidator
+from django.conf import settings
 
 from scionlab.models import AS, Host, Interface, ISD, Service
-from scionlab.settings.common import GEN_ROOT
 import scionlab.util.local_config_util as generator
 
 
@@ -34,21 +34,21 @@ def create_gen_AS(AS_id):
     :param str AS_id: AS identifier string
     :return:
     """
-    if not os.path.exists(GEN_ROOT):
+    if not os.path.exists(settings.GEN_ROOT):
         return
-    as_obj = AS.objects.filter(as_id=AS_id).first()
-    hosts = Host.objects.filter(AS_id=as_obj)
+    as_ = AS.objects.filter(as_id=AS_id).first()
+    hosts = as_.hosts.all()
 
     email_validator = EmailValidator()
     for host in hosts:
         try:
-            user_email = as_obj.owner.email
+            user_email = as_.owner.email
             email_validator(user_email)
             host_ip = ipaddress.ip_address(host.ip)
             host_id = "%s__%s" % (user_email, str(host_ip))
         except:
             raise ValueError("cannot build valid host id from user email and host IP address.")
-        host_gen_dir = path.join(GEN_ROOT, host_id)
+        host_gen_dir = path.join(settings.GEN_ROOT, host_id)
         os.makedirs(host_gen_dir, mode=0o755, exist_ok=True)
         create_gen(host, host_gen_dir)
     return
@@ -178,11 +178,11 @@ def generate_topology_from_DB(as_id=None):
     services = Service.objects.filter(AS=AS.objects.filter(as_id=as_id).first())
     topo_dict = {}
 
-    as_obj = AS.objects.filter(as_id=as_id).first()
+    as_ = AS.objects.filter(as_id=as_id).first()
     # AS wide entries
-    topo_dict["ISD_AS"] = str(ISD_AS("%s-%s" % (as_obj.isd_id, as_obj.as_id)))
-    topo_dict["MTU"] = as_obj.mtu
-    topo_dict["Core"] = as_obj.is_core
+    topo_dict["ISD_AS"] = str(ISD_AS("%s-%s" % (as_.isd_id, as_.as_id)))
+    topo_dict["MTU"] = as_.mtu
+    topo_dict["Core"] = as_.is_core
 
     # get overlay type inside AS from IPs used by hosts
     hosts = Host.objects.filter(AS_id=AS.objects.filter(as_id=as_id).first())
@@ -268,25 +268,25 @@ class AScrypto:
         :return:
         """
         inst = cls()
-        as_obj = AS.objects.filter(isd=isd, as_id=as_id).first()
-        inst.certificate = str(as_obj.certificates)
-        inst.trc = str(ISD.objects.filter(id=as_obj.isd.id).first().trc)
+        as_ = AS.objects.filter(isd=isd, as_id=as_id).first()
+        inst.certificate = str(as_.certificates)
+        inst.trc = str(ISD.objects.filter(id=as_.isd.id).first().trc)
         inst.keys = {
-            'sig_key': as_obj.sig_priv_key,
-            'sig_key_raw': as_obj.enc_priv_key,
+            'sig_key': as_.sig_priv_key,
+            'sig_key_raw': as_.enc_priv_key,
 
-            'enc_key': as_obj.master_as_key,
-            'master_as_key': as_obj.master_as_key,
+            'enc_key': as_.master_as_key,
+            'master_as_key': as_.master_as_key,
         }
-        if as_obj.is_core:
+        if as_.is_core:
             inst.core_keys = {
-                'core_sig_key': as_obj.core_sig_priv_key,
-                'online_key': as_obj.core_online_priv_key,
-                'offline_key': as_obj.core_offline_priv_key,
+                'core_sig_key': as_.core_sig_priv_key,
+                'online_key': as_.core_online_priv_key,
+                'offline_key': as_.core_offline_priv_key,
 
-                'core_sig_key_raw': generate_raw_key(as_obj.core_sig_priv_key),
-                'online_key_raw': generate_raw_key(as_obj.core_online_priv_key),
-                'offline_key_raw': generate_raw_key(as_obj.core_offline_priv_key),
+                'core_sig_key_raw': generate_raw_key(as_.core_sig_priv_key),
+                'online_key_raw': generate_raw_key(as_.core_online_priv_key),
+                'offline_key_raw': generate_raw_key(as_.core_offline_priv_key),
             }
         return inst
 
