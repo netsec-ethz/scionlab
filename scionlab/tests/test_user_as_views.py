@@ -18,7 +18,7 @@ from parameterized import parameterized, param
 from django.urls import reverse
 from django_webtest import WebTest
 from scionlab.models import User, UserAS, AttachmentPoint, VPN, DEFAULT_INTERFACE_PUBLIC_PORT
-from scionlab.fixtures.testuser import TESTUSER_EMAIL
+from scionlab.fixtures.testuser import get_testuser, TESTUSER_EMAIL
 from scionlab.fixtures import testtopo
 from scionlab.views.user_as_views import UserASForm
 
@@ -30,14 +30,9 @@ _test_ip = '192.0.2.111'
 _test_start_port = 50000
 
 
-def _get_testuser():
-    """ Return the User object for testuser """
-    return User.objects.get(username=TESTUSER_EMAIL)
-
-
 def _create_ases_for_testuser(num):
     """ Create a number `num` UserASes for testuser """
-    user = _get_testuser()
+    user = get_testuser()
     num_existing_ases = UserAS.objects.filter(owner=user).count()
     for i in range(num_existing_ases, num_existing_ases+num):
         UserAS.objects.create(
@@ -88,7 +83,7 @@ class UserASFormTests(TestCase):
         _setup_vpn_attachment_point()
 
     def test_render_create(self):
-        form = UserASForm(user=_get_testuser())
+        form = UserASForm(user=get_testuser())
         self.assertIsNotNone(form.as_table())
 
     # Note: not all combinations, most parameters are independent
@@ -101,7 +96,7 @@ class UserASFormTests(TestCase):
         form_data = self._get_initial_dict()
         form_data.update(**kwargs)
 
-        form = UserASForm(user=_get_testuser(), data=form_data)
+        form = UserASForm(user=get_testuser(), data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
 
         user_as = form.save()
@@ -111,7 +106,7 @@ class UserASFormTests(TestCase):
     def test_create_invalid(self, **kwargs):
         form_data = self._get_initial_dict()
         form_data.update(**kwargs)
-        form = UserASForm(user=_get_testuser(), data=form_data)
+        form = UserASForm(user=get_testuser(), data=form_data)
         self.assertFalse(form.is_valid())
 
     def test_create_too_many(self):
@@ -122,13 +117,13 @@ class UserASFormTests(TestCase):
         form_data = self._get_initial_dict()
         form_data.update(**self.valid_form_params[0].kwargs)
 
-        for i in range(_get_testuser().max_num_ases()):
-            form = UserASForm(user=_get_testuser(), data=form_data)
+        for i in range(get_testuser().max_num_ases()):
+            form = UserASForm(user=get_testuser(), data=form_data)
             # Check that form is valid, otherwise this test will not make sense
             self.assertTrue(form.is_valid(), form.errors)
             form.save()
 
-        form = UserASForm(user=_get_testuser(), data=form_data)
+        form = UserASForm(user=get_testuser(), data=form_data)
         self.assertFalse(form.is_valid())
         self.assertTrue(any(e.find("quota exceeded") >= 0 for e in form.non_field_errors()),
                         form.errors)
@@ -144,7 +139,7 @@ class UserASFormTests(TestCase):
         form_data.update(**kwargs)
 
         # Create a UserAS with the given data
-        create_form = UserASForm(user=_get_testuser(), data=form_data)
+        create_form = UserASForm(user=get_testuser(), data=form_data)
         self.assertTrue(create_form.is_valid(), create_form.errors)
         user_as = create_form.save()
         self.assertIsNotNone(create_form)
@@ -152,7 +147,7 @@ class UserASFormTests(TestCase):
         # Check that the form can be instantiated for the object just created
         # and check that the forms initial values are the same as the
         # previously submitted values.
-        edit_form_1 = UserASForm(user=_get_testuser(), instance=user_as, data=form_data)
+        edit_form_1 = UserASForm(user=get_testuser(), instance=user_as, data=form_data)
         self.assertIsNotNone(edit_form_1.as_table())
         self.assertTrue(edit_form_1.is_valid(), edit_form_1.errors)
         self.assertFalse(edit_form_1.has_changed(), edit_form_1.changed_data)
@@ -160,7 +155,7 @@ class UserASFormTests(TestCase):
         self.assertEqual(user_as.pk, user_as_edited_1.pk)
 
         # Do it again!
-        edit_form_2 = UserASForm(user=_get_testuser(), instance=user_as, data=form_data)
+        edit_form_2 = UserASForm(user=get_testuser(), instance=user_as, data=form_data)
         self.assertTrue(edit_form_2.is_valid(), edit_form_2.errors)
         self.assertFalse(edit_form_2.has_changed(), edit_form_2.changed_data)
         user_as_edited_2 = edit_form_2.save()
@@ -171,7 +166,7 @@ class UserASFormTests(TestCase):
         Return a dict containing the initial value for each UserAS form field
         """
         # Create a form instance, only to extract the initial values
-        form = UserASForm(user=_get_testuser())
+        form = UserASForm(user=get_testuser())
         return {key: field.initial for (key, field) in form.fields.items()}
 
 
@@ -219,7 +214,7 @@ class UserASPageTests(_WebTestHack):
         If the AS quota has been exceeded, the Create AS page is not available
         anymore.
         """
-        _create_ases_for_testuser(_get_testuser().max_num_ases())
+        _create_ases_for_testuser(get_testuser().max_num_ases())
 
         self.app.set_user(TESTUSER_EMAIL)
         # The quota should be exceeded: the Create AS button is gone
@@ -240,12 +235,12 @@ class UserASPageTests(_WebTestHack):
         self.app.set_user(TESTUSER_EMAIL)
 
         # Start with no ASes
-        self.assertFalse(UserAS.objects.filter(owner=_get_testuser()).exists())
+        self.assertFalse(UserAS.objects.filter(owner=get_testuser()).exists())
         user_page = self.app.get(reverse('user'))
         check_as_link_count(user_page, 0)
         self.assertTrue(_NO_USER_AS_MESSAGE in user_page, user_page)
 
-        for n in range(_get_testuser().max_num_ases()):
+        for n in range(get_testuser().max_num_ases()):
             _create_ases_for_testuser(1)
             user_page = self.app.get(reverse('user'))
             check_as_link_count(user_page, n+1)
@@ -285,7 +280,7 @@ class UserASCreateTests(_WebTestHack):
         self._fill_form(create_page.form, **kwargs)
         response = create_page.form.submit()
 
-        user_as = UserAS.objects.filter(owner=_get_testuser()).last()
+        user_as = UserAS.objects.filter(owner=get_testuser()).last()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.location,
                          reverse('user_as_detail', kwargs={'pk': user_as.pk}))
@@ -293,7 +288,7 @@ class UserASCreateTests(_WebTestHack):
 
         # submit the form again, forwards to the next AS:
         response_2 = create_page.form.submit()
-        user_as_2 = UserAS.objects.filter(owner=_get_testuser()).last()
+        user_as_2 = UserAS.objects.filter(owner=get_testuser()).last()
         self.assertEqual(response_2.status_code, 302)
         self.assertEqual(response_2.location,
                          reverse('user_as_detail', kwargs={'pk': user_as_2.pk}))
@@ -311,7 +306,7 @@ class UserASCreateTests(_WebTestHack):
 
     def test_get_create_form_no_quota(self):
         """ Getting the create page with quota exceeded is not allowed """
-        _create_ases_for_testuser(_get_testuser().max_num_ases())
+        _create_ases_for_testuser(get_testuser().max_num_ases())
         self.app.set_user(TESTUSER_EMAIL)
         response = self.app.get(reverse('user_as_add'), expect_errors=True)
         self.assertEqual(response.status_code, 403)
@@ -321,7 +316,7 @@ class UserASCreateTests(_WebTestHack):
         self.app.set_user(TESTUSER_EMAIL)
         create_page = self.app.get(reverse('user_as_add'), expect_errors=True)
 
-        _create_ases_for_testuser(_get_testuser().max_num_ases())
+        _create_ases_for_testuser(get_testuser().max_num_ases())
 
         self._fill_form(create_page.form, **UserASFormTests.valid_form_params[-1].kwargs)
         response = create_page.form.submit(expect_errors=True)
@@ -343,7 +338,7 @@ class UserASActivateTests(_WebTestHack):
             self.assertEqual(user_as.is_active(), active)
 
         _create_ases_for_testuser(3)
-        user_as = UserAS.objects.filter(owner=_get_testuser())[1]
+        user_as = UserAS.objects.filter(owner=get_testuser())[1]
 
         self.app.set_user(TESTUSER_EMAIL)
         user_page = self.app.get(reverse('user'))

@@ -20,6 +20,15 @@ TESTUSER_EMAIL = 'scion@example.com'
 TESTUSER_PWD = 'scion'
 
 
+def get_testuser():
+    """ Return the User object for testuser """
+    return User.objects.get(username=TESTUSER_EMAIL)
+
+
+# Explicitly make `get_testuser` not a test; nose thinks this looks like a test...
+get_testuser.__test__ = False
+
+
 def create_testuser():
     """
     Create a user `TESTUSER_EMAIL` with the password `TESTUSER_PWD`.

@@ -25,6 +25,9 @@ from django.db.models.signals import pre_delete, post_delete
 import jsonfield
 import lib.crypto.asymcrypto
 
+# TODO(matzf): some of the models use explicit create & update methods
+# The interface of these methods should be revisited & check whether
+# we can make better use of e.g. changed_data information of the forms.
 
 # TODO(matzf) move to common definitions module?
 MAX_PORT = 2**16-1
