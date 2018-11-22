@@ -81,7 +81,7 @@ class UserASForm(forms.ModelForm):
     def save(self, commit=True):
         if self.instance.pk is None:
             return UserAS.objects.create(
-                user=self.user,
+                owner=self.user,
                 label=self.cleaned_data['label'],
                 attachment_point=self.cleaned_data['attachment_point'],
                 installation_type=self.cleaned_data['installation_type'],

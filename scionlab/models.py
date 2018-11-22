@@ -279,7 +279,7 @@ class AS(models.Model):
 
 class UserASManager(models.Manager):
     def create(self,
-               user,
+               owner,
                attachment_point,
                public_port,
                installation_type,
@@ -292,13 +292,13 @@ class UserASManager(models.Manager):
         Create a UserAS attached to the given attachment point.
         The public_ip must be specified if use_vpn is not enabled.
         """
-        user.check_as_quota()
+        owner.check_as_quota()
         UserAS.check_vpn_available(use_vpn, attachment_point)
 
         isd = attachment_point.AS.isd
         as_id = self.get_next_id()
         user_as = UserAS(
-            owner=user,
+            owner=owner,
             label=label,
             isd=isd,
             as_id=as_id,

@@ -51,6 +51,7 @@ class ProxyUserBackendTests(TestCase):
         # Check that the type of the user in
         # the extracted request is scionlab.models.User
         user = self.request.user
+        self.assertIsNotNone(user)
         # Check the __class__ (note: type is actually SimpleLazyObject...)
         self.assertEqual(user.__class__, User)
         # Call some functions to see it actually works as it should:

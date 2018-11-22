@@ -12,19 +12,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from django.test import TestCase
 from parameterized import parameterized, param
 from django.urls import reverse
 from django_webtest import WebTest
-from scionlab.models import User, AttachmentPoint, VPN, DEFAULT_INTERFACE_PUBLIC_PORT
+from scionlab.models import User, UserAS, AttachmentPoint, VPN, DEFAULT_INTERFACE_PUBLIC_PORT
 from scionlab.fixtures.testuser import TESTUSER_EMAIL
 from scionlab.fixtures import testtopo
 from scionlab.views.user_as_views import UserASForm
 
 
+_QUOTA_EXCEEDED_MESSAGE = ('You have reached the maximum number of ASes '
+                           'and cannot create further ones.')
+_NO_USER_AS_MESSAGE = 'You have no AS yet'
+_test_ip = '192.0.2.111'
+_test_start_port = 50000
+
+
 def _get_testuser():
     """ Return the User object for testuser """
     return User.objects.get(username=TESTUSER_EMAIL)
+
+
+def _create_ases_for_testuser(num):
+    """ Create a number `num` UserASes for testuser """
+    user = _get_testuser()
+    num_existing_ases = UserAS.objects.filter(owner=user).count()
+    for i in range(num_existing_ases, num_existing_ases+num):
+        UserAS.objects.create(
+            owner=user,
+            attachment_point=AttachmentPoint.objects.first(),
+            public_ip=_test_ip,
+            public_port=_test_start_port + i,
+            label="Testuser's AS number %i" % (i + 1),
+            installation_type=UserAS.VM
+        )
 
 
 def _setup_vpn_attachment_point():
@@ -47,15 +70,18 @@ class UserASFormTests(TestCase):
         param(attachment_point="1", use_vpn=True, installation_type='DEDICATED'),
         param(attachment_point="1", use_vpn=True, label="This is a label"),
         param(attachment_point="1", use_vpn=True, public_port=54321),
-        param(attachment_point="1", public_ip='192.0.2.123'),
-        param(attachment_point="1", public_ip='192.0.2.123', public_port=54321),
-        param(attachment_point="1", use_vpn=True, public_ip='192.0.2.123'), # Ok to provide redundant IP
-        param(attachment_point="2", public_ip='192.0.2.123'),
+        param(attachment_point="1", public_ip=_test_ip),
+        param(attachment_point="1", public_ip=_test_ip, public_port=54321),
+        # Ok to provide redundant IP:
+        param(attachment_point="1", use_vpn=True, public_ip=_test_ip),
+        param(attachment_point="2", public_ip=_test_ip),
     ]
     # Invalid form parameters
     invalid_form_params = [
-        param(attachment_point="1", use_vpn=False, public_ip=''), # Needs either VPN or public IP
-        param(attachment_point="2", use_vpn=True), # AP 2 does not have VPN
+        # Needs either VPN or public IP
+        param(attachment_point="1", use_vpn=False, public_ip=''),
+        # AP 2 does not have VPN
+        param(attachment_point="2", use_vpn=True),
     ]
 
     def setUp(self):
@@ -81,7 +107,6 @@ class UserASFormTests(TestCase):
         user_as = form.save()
         self.assertIsNotNone(user_as)
 
-
     @parameterized.expand(invalid_form_params)
     def test_create_invalid(self, **kwargs):
         form_data = self._get_initial_dict()
@@ -90,12 +115,17 @@ class UserASFormTests(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_create_too_many(self):
+        """
+        Submitting the creation form with quota exceeded leads to
+        a form-error.
+        """
         form_data = self._get_initial_dict()
         form_data.update(**self.valid_form_params[0].kwargs)
 
         for i in range(_get_testuser().max_num_ases()):
             form = UserASForm(user=_get_testuser(), data=form_data)
-            self.assertTrue(form.is_valid(), form.errors) # Otherwise this test will not make sense
+            # Check that form is valid, otherwise this test will not make sense
+            self.assertTrue(form.is_valid(), form.errors)
             form.save()
 
         form = UserASForm(user=_get_testuser(), data=form_data)
@@ -106,8 +136,9 @@ class UserASFormTests(TestCase):
     @parameterized.expand(valid_form_params)
     def test_edit_render(self, **kwargs):
         """
-        Check that the form can be instantiated with a UserAS, freshly created.
-        The instantiated form should not show any changes if the same data is submitted.
+        The form can be instantiated with a (freshly created) UserAS.
+        The instantiated form should not show any changes if the same data is
+        submitted.
         """
         form_data = self._get_initial_dict()
         form_data.update(**kwargs)
@@ -133,14 +164,15 @@ class UserASFormTests(TestCase):
         self.assertTrue(edit_form_2.is_valid(), edit_form_2.errors)
         self.assertFalse(edit_form_2.has_changed(), edit_form_2.changed_data)
         user_as_edited_2 = edit_form_2.save()
-        self.assertEqual(user_as.pk, user_as_edited_1.pk)
+        self.assertEqual(user_as.pk, user_as_edited_2.pk)
 
     def _get_initial_dict(self):
         """
         Return a dict containing the initial value for each UserAS form field
         """
-        form = UserASForm(user=_get_testuser()) # only used to extract the initial values
-        return { key: field.initial for (key, field) in form.fields.items() }
+        # Create a form instance, only to extract the initial values
+        form = UserASForm(user=_get_testuser())
+        return {key: field.initial for (key, field) in form.fields.items()}
 
 
 class _WebTestHack(WebTest):
@@ -173,34 +205,52 @@ class UserASPageTests(_WebTestHack):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def test_create_as_button(self):
+        """
+        The main user page has a button/link to create new ASes.
+        """
         self.app.set_user(TESTUSER_EMAIL)
         user_page = self.app.get(reverse('user'))
         create_page = user_page.click(description='Create a new SCIONLab AS',
                                       href=reverse('user_as_add'))
-        self.assertEqual(create_page.status_int, 200)
+        self.assertEqual(create_page.status_code, 200)
 
     def test_create_as_button_no_quota(self):
+        """
+        If the AS quota has been exceeded, the Create AS page is not available
+        anymore.
+        """
+        _create_ases_for_testuser(_get_testuser().max_num_ases())
+
+        self.app.set_user(TESTUSER_EMAIL)
+        # The quota should be exceeded: the Create AS button is gone
+        user_page = self.app.get(reverse('user'))
+        user_page.mustcontain(_QUOTA_EXCEEDED_MESSAGE)
+        add_links = user_page.html.find_all("a", href=reverse('user_as_add'))
+        self.assertEqual([], add_links)
+
+    def test_as_listing(self):
+        """
+        The main user page should contain a listing of the user's ASes with one link
+        to the detail page for each of them.
+        """
+        def check_as_link_count(user_page, expected_count):
+            links = user_page.html.find_all("a", href=lambda x: re.fullmatch(r"/user/as/\d*", x))
+            self.assertEqual(expected_count, len(links), links)
+
         self.app.set_user(TESTUSER_EMAIL)
 
-        # Use the create form to create the max number of ASes
+        # Start with no ASes
+        self.assertFalse(UserAS.objects.filter(owner=_get_testuser()).exists())
         user_page = self.app.get(reverse('user'))
-        create_page = user_page.click(description='Create a new SCIONLab AS',
-                                      href=reverse('user_as_add'))
-        create_page.form['public_ip'] = '192.0.2.123'
-        for i in range(_get_testuser().max_num_ases()):
-            create_page.form.submit().follow()
+        check_as_link_count(user_page, 0)
+        self.assertTrue(_NO_USER_AS_MESSAGE in user_page, user_page)
 
-        # Now the quota should be exceeded
-        user_page = self.app.get(reverse('user'))
-        user_page.mustcontain('You have reached the maximum number of ASes and cannot create further ones.')
-        self.assertEqual([], user_page.html.select('a[href="%s"]' % reverse('user_as_add')))
+        for n in range(_get_testuser().max_num_ases()):
+            _create_ases_for_testuser(1)
+            user_page = self.app.get(reverse('user'))
+            check_as_link_count(user_page, n+1)
 
-        # Just check: "accidentally" getting or submitting the form again to
-        # create more ASes does not work
-        response_failed = self.app.get(reverse('user_as_add'), expect_errors=True)
-        self.assertEqual(response_failed.status_int, 403)
-        response_failed = create_page.form.submit(expect_errors=True)
-        self.assertEqual(response_failed.status_int, 403)
+        self.assertFalse(_NO_USER_AS_MESSAGE in user_page, user_page)
 
 
 class UserASCreateTests(_WebTestHack):
@@ -227,24 +277,82 @@ class UserASCreateTests(_WebTestHack):
         self.assertEqual(form['public_port'].value,
                          str(DEFAULT_INTERFACE_PUBLIC_PORT))
 
-    @parameterized.expand([
-        (None, None),
-        (0, None),
-        (1, None),
-        (0, 'Foo'),
-        (0, 'naughty_'*500),
-    ])
-    def test_create(self, ap_index, label, expect_success=True):
+    @parameterized.expand(UserASFormTests.valid_form_params)
+    def test_submit_create_form_valid(self, **kwargs):
+        """ Submitting valid data creates the AS and forwards to the detail page """
         self.app.set_user(TESTUSER_EMAIL)
         create_page = self.app.get(reverse('user_as_add'))
-        form = create_page.form
-        if ap_index is not None:
-            form['attachment_point'].select(text=self.attachment_points[ap_index])
-        if label is not None:
-            form['label'] = label
-        response = form.submit()
-        if not expect_success:
-            self.assertEqual(response.status_int, 300)
-            return
-        #self.assertEqual(response.status_int, 200)
-        #response.follow()
+        self._fill_form(create_page.form, **kwargs)
+        response = create_page.form.submit()
+
+        user_as = UserAS.objects.filter(owner=_get_testuser()).last()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.location,
+                         reverse('user_as_detail', kwargs={'pk': user_as.pk}))
+        self.assertEqual(response.follow().status_code, 200)
+
+        # submit the form again, forwards to the next AS:
+        response_2 = create_page.form.submit()
+        user_as_2 = UserAS.objects.filter(owner=_get_testuser()).last()
+        self.assertEqual(response_2.status_code, 302)
+        self.assertEqual(response_2.location,
+                         reverse('user_as_detail', kwargs={'pk': user_as_2.pk}))
+        self.assertEqual(response_2.follow().status_code, 200)
+
+    @parameterized.expand(UserASFormTests.invalid_form_params)
+    def test_submit_create_form_invalid(self, **kwargs):
+        """ Submitting invalid data bumps back to the form with error messages """
+        self.app.set_user(TESTUSER_EMAIL)
+        create_page = self.app.get(reverse('user_as_add'))
+        self._fill_form(create_page.form, **kwargs)
+        response = create_page.form.submit()
+        self.assertEqual(response.status_code, 200)
+        response.mustcontain('errorlist')
+
+    def test_get_create_form_no_quota(self):
+        """ Getting the create page with quota exceeded is not allowed """
+        _create_ases_for_testuser(_get_testuser().max_num_ases())
+        self.app.set_user(TESTUSER_EMAIL)
+        response = self.app.get(reverse('user_as_add'), expect_errors=True)
+        self.assertEqual(response.status_code, 403)
+
+    def test_post_create_form_no_quota(self):
+        """ Submitting the create form with quota exceeded is not allowed """
+        self.app.set_user(TESTUSER_EMAIL)
+        create_page = self.app.get(reverse('user_as_add'), expect_errors=True)
+
+        _create_ases_for_testuser(_get_testuser().max_num_ases())
+
+        self._fill_form(create_page.form, **UserASFormTests.valid_form_params[-1].kwargs)
+        response = create_page.form.submit(expect_errors=True)
+        self.assertEqual(response.status_code, 403)
+
+    @staticmethod
+    def _fill_form(form, **kwargs):
+        for key, value in kwargs.items():
+            form[key] = value
+
+
+class UserASActivateTests(_WebTestHack):
+    fixtures = ['testuser', 'testtopo-ases-links']
+
+    def test_cycle_active(self):
+        def check_active(active, user_as, edit_page):
+            self.assertEqual("Activate" in edit_page, not active, edit_page)
+            self.assertEqual("Deactivate" in edit_page, active, edit_page)
+            self.assertEqual(user_as.is_active(), active)
+
+        _create_ases_for_testuser(3)
+        user_as = UserAS.objects.filter(owner=_get_testuser())[1]
+
+        self.app.set_user(TESTUSER_EMAIL)
+        user_page = self.app.get(reverse('user'))
+        edit_page = user_page.click(href=reverse('user_as_detail',
+                                                 kwargs={'pk': user_as.pk}))
+        check_active(True, user_as, edit_page)
+
+        edit_page = edit_page.forms['id_deactivate_form'].submit().maybe_follow()
+        check_active(False, user_as, edit_page)
+
+        edit_page = edit_page.forms['id_activate_form'].submit().maybe_follow()
+        check_active(True, user_as, edit_page)
