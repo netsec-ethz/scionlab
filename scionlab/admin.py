@@ -70,6 +70,7 @@ class ISDAdmin(admin.ModelAdmin):
             return ('id',)
         return ()
 
+
 class _AlwaysChangedModelForm(forms.ModelForm):
     """
     Helper form: allows to save ModelInlines with default values.
@@ -270,7 +271,13 @@ class LinkAdminForm(forms.ModelForm):
             internal_port=self.cleaned_data[prefix+'internal_port'],
         )
 
-    def save(self, commit=True):
+    def save(self, commit):
+        # setup save_m2m, which is usually a side-effect of `super().save(commit=False)`.
+        # Note: `save_m2m` is called by the ModelAdmin, directly after calling `save`
+        # Note: the ModelAdmin calls this function with commit=False, and then later
+        # saves the related objects. We ignore this and just commit anyway.
+        self.save_m2m = lambda: None
+
         if self.instance.pk is None:    # No pk means creating a new object
             return Link.objects.create(
                 type=self.cleaned_data['type'],
