@@ -40,20 +40,35 @@ admin.site.register([
 
 @admin.register(ISD)
 class ISDAdmin(admin.ModelAdmin):
-    readonly_fields = ('id',)
     fieldsets = (
-        (None, {
-            'fields': ('id', 'label',)
-        }),
-        ('TRC', {
-            'classes': ('collapse',),
-            'fields': ('trc', 'trc_priv_keys', 'trc_needs_update')
-        }),
     )
     list_display = ('id', 'label',)
     list_editable = ('label',)
     ordering = ['id']
 
+    def get_fieldsets(self, request, obj=None):
+        """
+        Don't show trc fields during ISD creation
+        """
+        base_fields = (None, {
+            'fields': ('id', 'label',)
+        })
+        trc_fields = ('TRC', {
+            'classes': ('collapse',),
+            'fields': ('trc', 'trc_priv_keys', 'trc_needs_update')
+        })
+        if not obj:
+            return (base_fields,)
+        return (base_fields, trc_fields)
+
+    def get_readonly_fields(self, request, obj):
+        """
+        Don't allow editing the ISD-id after creation.
+        Note: editing the primary key does not work anyway...
+        """
+        if obj:
+            return ('id',)
+        return ()
 
 class _AlwaysChangedModelForm(forms.ModelForm):
     """
