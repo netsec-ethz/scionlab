@@ -440,6 +440,9 @@ class Host(models.Model):
     class Meta:
         unique_together = ('AS', 'ip')
 
+    def path_str(self):
+        return'%s__%s' % (self.AS.isd_as_str(), str(self.ip).replace(":", "_"))
+
     def __str__(self):
         if self.label:
             return self.label

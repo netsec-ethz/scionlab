@@ -21,7 +21,6 @@ import tarfile
 from lib.packet.scion_addr import ISD_AS
 from nacl.signing import SigningKey
 from topology.generator import TopoID
-from django.core.validators import EmailValidator
 from django.conf import settings
 
 from scionlab.models import AS, Host, Interface, ISD, Service
@@ -39,16 +38,8 @@ def create_gen_AS(AS_id):
     as_ = AS.objects.filter(as_id=AS_id).first()
     hosts = as_.hosts.all()
 
-    email_validator = EmailValidator()
     for host in hosts:
-        try:
-            user_email = as_.owner.email
-            email_validator(user_email)
-            host_ip = ipaddress.ip_address(host.ip)
-            host_id = "%s__%s" % (user_email, str(host_ip))
-        except:
-            raise ValueError("cannot build valid host id from user email and host IP address.")
-        host_gen_dir = path.join(settings.GEN_ROOT, host_id)
+        host_gen_dir = path.join(settings.GEN_ROOT, host.path_str())
         os.makedirs(host_gen_dir, mode=0o755, exist_ok=True)
         create_gen(host, host_gen_dir)
     return
