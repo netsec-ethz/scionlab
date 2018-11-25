@@ -757,7 +757,7 @@ class LinkManager(models.Manager):
         # TODO(matzf): validation (should be reusable for forms and for global system checks)
         # - no provider loops
         # - core links only for core ases
-        # - no non-core providers for core ases (or no providers at all?)
+        # - no providers links for core ases
         # - no cross ISD provider links
         if hostA.AS == hostB.AS:
             raise ValueError("Loop AS-link (from AS to itself) not allowed")
@@ -905,9 +905,9 @@ class VPN(models.Model):
     keys = models.TextField(null=True, blank=True)
 
     def create_client(self, host):
-        return VPNClient.objects.create(vpn=self, host=host, ip=self.find_ip())
+        return VPNClient.objects.create(vpn=self, host=host, ip=self._find_client_ip())
 
-    def find_ip(self):
+    def _find_client_ip(self):
         # TODO(matzf)
         return '10.0.0.1'
 
