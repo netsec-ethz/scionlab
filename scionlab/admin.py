@@ -271,7 +271,7 @@ class LinkAdminForm(forms.ModelForm):
             internal_port=self.cleaned_data[prefix+'internal_port'],
         )
 
-    def save(self, commit):
+    def save(self, commit=True):
         # setup save_m2m, which is usually a side-effect of `super().save(commit=False)`.
         # Note: `save_m2m` is called by the ModelAdmin, directly after calling `save`
         # Note: the ModelAdmin calls this function with commit=False, and then later
