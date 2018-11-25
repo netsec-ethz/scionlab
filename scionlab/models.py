@@ -194,12 +194,18 @@ class AS(models.Model):
         """
         Initialise signing and encryption key pairs, the MasterASKey (used for
         hop field Message Authentication Codes (MAC) and the Dynamically
-        Recreatable Keys (DRKeys)), as well as the core AS signing key pairs.
-        Note: the core AS keys will not used unless the AS is a core AS.
+        Recreatable Keys (DRKeys)).
+        If this is a core AS, also initialise the core AS signing key pairs.
         """
-        # FIXME(matzf): generate core keys only "on demand" or needlessly complicated?
         self._gen_keys()
         self._gen_master_as_key()
+        if self.is_core:
+            self.init_core_keys()
+
+    def init_core_keys(self):
+        """
+        Initialise the core AS signing key pairs.
+        """
         self._gen_core_keys()
 
     def update_keys(self):
