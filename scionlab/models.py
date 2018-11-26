@@ -17,6 +17,7 @@ import base64
 from django import urls
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.contrib.auth.models import User as auth_User
 from django.dispatch import receiver
 from django.db import models
@@ -24,6 +25,7 @@ from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
 import jsonfield
 import lib.crypto.asymcrypto
+from scionlab.util import as_ids
 
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether
@@ -32,6 +34,10 @@ import lib.crypto.asymcrypto
 # TODO(matzf) move to common definitions module?
 MAX_PORT = 2**16-1
 """ Max value for ports """
+
+USER_AS_ID_BEGIN = as_ids.parse('ff00:1:1')
+USER_AS_ID_END = as_ids.parse('ff00:1:ffff')
+
 DEFAULT_INTERFACE_PUBLIC_PORT = 50000
 DEFAULT_INTERFACE_INTERNAL_PORT = 30000
 DEFAULT_HOST_IP = "127.0.0.1"
@@ -102,11 +108,18 @@ class ISD(models.Model):
 
 
 class ASManager(models.Manager):
-    def create(self, **kwargs):
+    def create(self, isd, as_id, is_core=False, label=None, owner=None):
         """ Create the AS and initialise the required keys """
-        # if 'sig_pub_key' in kwargs, etc:
-        #   raise ValueError()
-        as_ = AS(**kwargs)
+
+        as_id_int = as_ids.parse(as_id)
+        as_ = AS(
+            isd=isd,
+            as_id=as_id,
+            as_id_int=as_id_int,
+            is_core=is_core,
+            label=label,
+            owner=owner,
+        )
         as_.init_keys()
         as_.save()
         return as_
@@ -127,7 +140,9 @@ class AS(models.Model):
         related_name='ases',
         on_delete=models.CASCADE
     )
-    as_id = models.CharField(max_length=15)
+    as_id = models.CharField(max_length=15,
+                             validators=[RegexValidator(regex=as_ids.REGEX)])
+    as_id_int = models.BigIntegerField(editable=False)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     owner = models.ForeignKey(
@@ -305,12 +320,13 @@ class UserASManager(models.Manager):
         UserAS.check_vpn_available(use_vpn, attachment_point)
 
         isd = attachment_point.AS.isd
-        as_id = self.get_next_id()
+        as_id_int = self.get_next_id()
         user_as = UserAS(
             owner=owner,
             label=label,
             isd=isd,
-            as_id=as_id,
+            as_id=as_ids.format(as_id_int),
+            as_id_int=as_id_int,
             attachment_point=attachment_point,
             public_ip=public_ip,
             bind_ip=bind_ip,
@@ -346,10 +362,20 @@ class UserASManager(models.Manager):
     def get_next_id(self):
         """
         Get the next available UserAS id.
-        Assumes that UserASes have the "reserved" namespace `ff00:1:X`.
         """
-        max_id = next(iter(self.aggregate(Max('id')).values())) or 1
-        return 'ff00:1:%i' % max_id
+        max_id = self._max_id()
+        if max_id is not None:
+            if max_id >= USER_AS_ID_END:
+                raise RuntimeError('UserAS-ID range exhausted')
+            return max(USER_AS_ID_BEGIN, max_id + 1)
+        else:
+            return USER_AS_ID_BEGIN
+
+    def _max_id(self):
+        """
+        :returns: the max `as_id_int` of all UserASes, or None
+        """
+        return next(iter(self.aggregate(Max('as_id_int')).values()), None)
 
 
 class UserAS(AS):

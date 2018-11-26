@@ -119,11 +119,15 @@ class ASCreationForm(forms.ModelForm):
         """
         Initialise keys on form save
         """
-        _as = super().save(commit=False)
-        _as.init_keys()
-        _as.save()
-        _as.init_default_services()
-        return _as
+        self.save_m2m = lambda: None
+
+        return AS.objects.create_with_default_services(
+            isd=self.cleaned_data['isd'],
+            as_id=self.cleaned_data['as_id'],
+            label=self.cleaned_data['label'],
+            is_core=self.cleaned_data['is_core'],
+            owner=self.cleaned_data['owner'],
+        )
 
 
 @admin.register(AS, UserAS)

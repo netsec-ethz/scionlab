@@ -12,9 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest.mock import patch
 from parameterized import parameterized
 from django.test import TestCase
-from scionlab.models import AttachmentPoint, VPN, Host, UserAS, Link
+from scionlab.models import (
+    AttachmentPoint,
+    VPN,
+    Host,
+    UserAS,
+    Link,
+    USER_AS_ID_BEGIN,
+    USER_AS_ID_END,
+)
 from scionlab.fixtures import testtopo
 from scionlab.fixtures.testuser import get_testuser
 
@@ -52,6 +61,32 @@ def _get_public_ip_testtopo(as_id):
     """
     asdef = next(a for a in testtopo.ases if a.as_id == as_id)
     return asdef.default_host_ip
+
+
+class GenerateUserASIDTests(TestCase):
+    def test_first(self):
+        as_id_int = UserAS.objects.get_next_id()
+        self.assertEqual(as_id_int, USER_AS_ID_BEGIN)
+
+    @patch('scionlab.models.UserAS.objects._max_id', return_value=USER_AS_ID_BEGIN)
+    def test_second(self, mock):
+        as_id_int = UserAS.objects.get_next_id()
+        self.assertEqual(as_id_int, USER_AS_ID_BEGIN+1)
+
+    @patch('scionlab.models.UserAS.objects._max_id', return_value=USER_AS_ID_END-1)
+    def test_last(self, mock):
+        as_id_int = UserAS.objects.get_next_id()
+        self.assertEqual(as_id_int, USER_AS_ID_END)
+
+    @patch('scionlab.models.UserAS.objects._max_id', return_value=USER_AS_ID_END)
+    def test_exhausted(self, mock):
+        with self.assertRaises(RuntimeError):
+            UserAS.objects.get_next_id()
+
+    @patch('scionlab.models.UserAS.objects._max_id', return_value=1)
+    def test_corrupted_max_id(self, mock):
+        as_id_int = UserAS.objects.get_next_id()
+        self.assertEqual(as_id_int, USER_AS_ID_BEGIN)
 
 
 class CreateUserASTests(TestCase):
