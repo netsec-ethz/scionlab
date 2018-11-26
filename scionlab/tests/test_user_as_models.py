@@ -109,6 +109,29 @@ class CreateUserASTests(TestCase):
 
 
 class UpdateUserASTests(TestCase):
+    fixtures = ['testuser', 'testtopo-ases-links']
+
+    def setUp(self):
+        Host.objects.reset_needs_config_deployment()
+        _setup_vpn_attachment_point()
+
+    # TODO(matzf): avoid duplication, add some helpers
+    public_port = 54321
+    public_ip = '192.0.2.111'
+    bind_port = 666
+    bind_ip = '192.168.1.2'
+
+    def _create_user_as(self, attachment_point):
+        installation_type = 'DEDICATED'
+        return UserAS.objects.create(
+            owner=get_testuser(),
+            attachment_point=attachment_point,
+            installation_type=installation_type,
+            use_vpn=False,
+            public_ip=self.public_ip,
+            public_port=self.public_port
+        )
+
     def test_enable_vpn(self):
         pass
 
@@ -116,8 +139,32 @@ class UpdateUserASTests(TestCase):
         # TODO(matzf): move to view tests?
         pass
 
-    def test_change_ap(self):
-        pass
+    @parameterized.expand(zip(range(AttachmentPoint.objects.count())))
+    def test_change_ap(self, ap_index):
+        attachment_point_1 = AttachmentPoint.objects.all()[ap_index]
+        user_as = self._create_user_as(attachment_point_1)
+
+        attachment_point_2 = AttachmentPoint.objects.all()[(ap_index + 1) %
+                                                           AttachmentPoint.objects.count()]
+        user_as.update(
+            attachment_point=attachment_point_2,
+            label=user_as.label,
+            installation_type=user_as.installation_type,
+            use_vpn=False,
+            public_ip=self.public_ip,
+            public_port=self.public_port,
+            bind_ip=None,
+            bind_port=None,
+        )
+
+        self.assertEqual(
+            list(Host.objects.needs_config_deployment()),
+            list(user_as.hosts.all() |
+                 attachment_point_1.AS.hosts.all() |
+                 attachment_point_2.AS.hosts.all())
+        )
+
+        # TODO check links
 
     def test_cycle_ap(self):
         pass

@@ -332,7 +332,7 @@ class UserASManager(models.Manager):
         host.save()
 
         Link.objects.create(type=Link.PROVIDER,
-                            kwargsA=dict(host=attachment_point.AS.hosts.first()),
+                            kwargsA=dict(host=attachment_point.get_host_for_useras_interface()),
                             kwargsB=dict(
                                 host=user_as.hosts.first(),
                                 public_port=public_port,
@@ -414,7 +414,7 @@ class UserAS(AS):
 
         if attachment_point != self.attachment_point:
             self.attachment_point = attachment_point
-            interface_ap.update(host=attachment_point.hosts.first())
+            interface_ap.update(host=attachment_point.get_host_for_useras_interface())
 
         if use_vpn:
             vpn_client = self._create_or_activate_vpn_client()
@@ -504,6 +504,17 @@ class AttachmentPoint(models.Model):
 
     def __str__(self):
         return str(self.AS)
+
+    def get_host_for_useras_interface(self):
+        """
+        Selects the preferred host on which the Interfaces to UserASes should be configured.
+        :returns: a `Host` of the related `AS`
+        """
+        if self.vpn is not None:
+            assert(self.vpn.server.AS == self.AS)
+            return self.vpn.server
+        else:
+            return self.AS.hosts.filter(default_public_ip__isnull=False)[0]
 
 
 class HostManager(models.Manager):
