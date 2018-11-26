@@ -317,7 +317,6 @@ class UserASManager(models.Manager):
         The public_ip must be specified if use_vpn is not enabled.
         """
         owner.check_as_quota()
-        UserAS.check_vpn_available(use_vpn, attachment_point)
 
         isd = attachment_point.AS.isd
         as_id_int = self.get_next_id()
@@ -430,8 +429,6 @@ class UserAS(AS):
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
-        self.check_vpn_available(use_vpn, attachment_point)
-
         host = self.hosts.first()   # UserAS always has only one host
         link = self._get_ap_link()
         interface_ap = link.interfaceA
@@ -503,17 +500,6 @@ class UserAS(AS):
         else:
             return self.attachment_point.vpn.create_client(host)
 
-    @staticmethod
-    def check_vpn_available(use_vpn, attachment_point):
-        """
-        Raise ValidationError if `use_vpn` is `True` but the attachment point
-        does not support VPN.
-        """
-        if attachment_point.vpn is None and use_vpn:
-            raise ValidationError("Selected attachment point does not support VPN",
-                                  code='attachment_point_no_vpn')
-
-
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
         AS,
@@ -541,6 +527,14 @@ class AttachmentPoint(models.Model):
             return self.vpn.server
         else:
             return self.AS.hosts.filter(default_public_ip__isnull=False)[0]
+
+    def check_vpn_available(self):
+        """
+        Raise ValidationError if the attachment point does not support VPN.
+        """
+        if self.vpn is None:
+            raise ValidationError("Selected attachment point does not support VPN",
+                                  code='attachment_point_no_vpn')
 
 
 class HostManager(models.Manager):

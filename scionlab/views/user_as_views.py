@@ -69,8 +69,8 @@ class UserASForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         self.user.check_as_quota()
-        UserAS.check_vpn_available(cleaned_data.get('use_vpn'),
-                                   cleaned_data.get('attachment_point'))
+        if cleaned_data.get('use_vpn'):
+            cleaned_data.get('attachment_point').check_vpn_available()
         if not cleaned_data.get('use_vpn') and not self.cleaned_data.get('public_ip'):
             raise ValidationError(
                 "Please provide a value for public IP, or enable 'Use OpenVPN'.",
