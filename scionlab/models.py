@@ -35,6 +35,8 @@ from scionlab.util import as_ids
 MAX_PORT = 2**16-1
 """ Max value for ports """
 
+MAX_INTERFACE_ID = 2**12-1
+
 USER_AS_ID_BEGIN = as_ids.parse('ffaa:1:1')
 USER_AS_ID_END = as_ids.parse('ffaa:1:ffff')
 
@@ -258,11 +260,11 @@ class AS(models.Model):
         """
         Find an unused interface id
         """
-        # TODO(matzf): use holes
-        return max(
-            (interface.interface_id for interface in self.interfaces.iterator()),
-            default=0
-        ) + 1
+        existing_ids = set(self.interfaces.values_list('interface_id', flat=True).iterator())
+        for candidate_id in range(1, MAX_INTERFACE_ID):
+            if candidate_id not in existing_ids:
+                return candidate_id
+        raise RuntimeError('Interface IDs exhausted')
 
     def bump_hosts_config(self):
         self.hosts.update(config_version=F('config_version') + 1)
