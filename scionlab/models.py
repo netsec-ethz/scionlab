@@ -20,11 +20,13 @@ from django.dispatch import receiver
 from django.db import models
 from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
+import ipaddress
 import jsonfield
 import lib.crypto.asymcrypto
 
 
 # TODO(matzf) move to common definitions module?
+
 MAX_PORT = 2**16-1
 """ Max value for ports """
 DEFAULT_INTERFACE_PUBLIC_PORT = 50000
@@ -173,6 +175,22 @@ class AS(models.Model):
         return '%d-%s' % (self.isd.id, self.as_id)
 
     isd_as_str.short_description = 'ISD-AS'
+
+    def isd_as_path_str(self):
+        """
+        :return: the ISD-AS string representation in the file format
+        """
+        return ('%d-%s' % (self.isd.id, self.as_id)).replace(":", "_")
+
+    def AS_internal_overlay(self):
+        hosts = Host.objects.filter(AS=self)
+        AS_internal_overlay = "UDP/IPv6"  # FIXME(FR4NK-W): should the AS overlay be explicit?
+        for host in hosts:
+            ip = ipaddress.ip_address(host.ip)
+            if isinstance(ip, ipaddress.IPv4Address):
+                AS_internal_overlay = "UDP/IPv4"
+                break
+        return AS_internal_overlay
 
     def init_keys(self):
         """
@@ -441,7 +459,7 @@ class Host(models.Model):
         unique_together = ('AS', 'ip')
 
     def path_str(self):
-        return'%s__%s' % (self.AS.isd_as_str(), str(self.ip).replace(":", "_"))
+        return'%s__%s' % (self.AS.isd_as_path_str(), str(self.ip).replace(":", "_"))
 
     def __str__(self):
         if self.label:
@@ -462,6 +480,12 @@ class InterfaceManager(models.Manager):
         ifid = as_.find_interface_id()
         as_.bump_hosts_config()
         return super().create(AS=as_, interface_id=ifid, host=host, **kwargs)
+
+    def active(self):
+        """
+        return list of Interfaces from active links
+        """
+        return [e for e in self.all() if e.link().active]
 
 
 class Interface(models.Model):
@@ -579,6 +603,20 @@ class Interface(models.Model):
     def remote_as(self):
         # FIXME(matzf): naive queries
         return self.remote_interface().AS
+
+    def link_relation(self):
+        if self.link().type == Link.PROVIDER:
+            if self.AS.is_core and not self.remote_as().is_core:
+                return "CHILD"
+            elif not self.AS.is_core and self.remote_as().is_core:
+                return "PARENT"
+            else:
+                raise ValueError("Link type is set to PROVIDER, but no PARENT-CHILD relation "
+                                 "can be established: as.is_core: %s, "
+                                 "remote_as.is_core: %s" % (self.AS.is_core,
+                                                            self.remote_as().is_core))
+        else:
+            return self.link().type()
 
 
 class LinkManager(models.Manager):

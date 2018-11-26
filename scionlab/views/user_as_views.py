@@ -51,7 +51,7 @@ class UserASForm(forms.ModelForm):
         self.user = kwargs.pop('user')
         instance = kwargs.get('instance')
         initial = kwargs.pop('initial')
-        if instance and not instance.interfaces.first():
+        if instance:
             initial['use_vpn'] = instance.is_use_vpn()
             initial['public_port'] = instance.get_public_port()
         super().__init__(*args, **kwargs)

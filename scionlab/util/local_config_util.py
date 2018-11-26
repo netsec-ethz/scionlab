@@ -78,6 +78,13 @@ TYPES_TO_KEYS = {
     'path_server': 'PathService',
 }
 
+NICKS_TO_TYPES = {
+    "BS": 'beacon_server',
+    "CS": 'certificate_server',
+    "BR": 'router',
+    "PS": 'path_server',
+}
+
 PROM_DIR = "prometheus"
 
 TARGET_FILES = {

@@ -35,7 +35,7 @@ def create_gen_AS(AS_id):
     """
     if not os.path.exists(settings.GEN_ROOT):
         return
-    as_ = AS.objects.filter(as_id=AS_id).first()
+    as_ = AS.objects.get(as_id=AS_id)
     hosts = as_.hosts.all()
 
     for host in hosts:
@@ -62,7 +62,7 @@ def create_gen(host, host_gen_dir):
         ia = ISD_AS("%s-%s" % (ISD_id, AS_id))
         stype = 'router'
 
-        instance_id = get_router_instance_id(AS_id, interface.host)
+        instance_id = get_router_instance_id(AS.objects.get(as_id=ia.as_str()), interface.host)
         generate_instance_dir(ia, host_gen_dir, stype, instance_id)
 
     services = Service.objects.filter(host=host)
@@ -70,32 +70,29 @@ def create_gen(host, host_gen_dir):
         ISD_id = service.AS.isd.id
         AS_id = service.AS.as_id
         ia = ISD_AS("%s-%s" % (ISD_id, AS_id))
-        service_type = service.type
-        if service_type not in generator.JOB_NAMES.values():
+        service_nick = service.type
+        if service_nick not in generator.JOB_NAMES.values():
             continue
 
-        instance_id = get_service_instance_id(AS_id, service.host, service_type)
-        service_mapping = {}  # FIXME(FR4NK-W): fix model to following naming pattern
-        # as used in generator and topo file
-        for entry in Service.SERVICE_TYPES:
-            service_mapping[entry[0]] = entry[1].lower().replace(" ", "_")
-        stype = service_mapping[service_type]
-        generate_instance_dir(ia, host_gen_dir, stype, instance_id)
+        instance_id = get_service_instance_id(AS.objects.get(as_id=ia.as_str()),
+                                              service.host, service_nick)
+        service_type = generator.NICKS_TO_TYPES[service_nick]
+        generate_instance_dir(ia, host_gen_dir, service_type, instance_id)
 
     tar_gen(host_gen_dir, path.join(host_gen_dir, "%s.%s" % (host_gen_dir.split("/")[-1], "tgz")))
     return
 
 
-def get_router_instance_id(AS_id, host):
+def get_router_instance_id(as_, host):
     """
     Get the service instance identifier for a router
-    :param str AS_id: AS identifier
+    :param AS as_: AS object
     :param Host host: host on which the router instance runs
     :return:
     """
     # Get instance id from DB order:
     AS_interfaces = [(e.id, e.host.id) for e in
-                     Interface.objects.filter(AS_id=AS.objects.filter(as_id=AS_id).first())]
+                     Interface.objects.filter(AS=as_)]
     AS_interfaces.sort()
     instance_id = 1
     for instance in AS_interfaces:
@@ -105,7 +102,7 @@ def get_router_instance_id(AS_id, host):
     return instance_id
 
 
-def get_service_instance_id(AS_id, host, service_type):
+def get_service_instance_id(as_, host, service_type):
     """
     Get the service instance identifier for a service
     :param str AS_id: AS identifier
@@ -116,7 +113,7 @@ def get_service_instance_id(AS_id, host, service_type):
     # Get instance id from DB order:
     AS_service_instances = [(e.id, e.host.id) for e in
                             Service.objects.filter(type=service_type,
-                                                   AS=AS.objects.filter(as_id=AS_id).first())]
+                                                   AS=as_)]
     AS_service_instances.sort()
     instance_id = 1
     for instance in AS_service_instances:
@@ -145,11 +142,12 @@ def generate_instance_dir(ia, directory, stype, instance_id):
     os.makedirs(instance_path, mode=0o755, exist_ok=True)
 
     # Generate service configuration to directory, with certs and keys
-    as_crypto_obj = AScrypto.from_AS(isd=ia.isd_str(), as_id=ia.as_str())
+    as_ = AS.objects.get(as_id=ia.as_str())
+    as_crypto_obj = AScrypto.from_AS(as_)
     generator.write_certs_trc_keys(ia, as_crypto_obj, instance_path)
     generator.write_as_conf_and_path_policy(ia, as_crypto_obj, instance_path)
     executable_name = generator.TYPES_TO_EXECUTABLES[stype]
-    tp = generate_topology_from_DB(as_id=ia.as_str())  # topology file
+    tp = generate_topology_from_DB(as_)  # topology file
     type_key = generator.TYPES_TO_KEYS[stype]
 
     config = generator.prep_supervisord_conf(tp[type_key][instance_id], executable_name,
@@ -159,35 +157,28 @@ def generate_instance_dir(ia, directory, stype, instance_id):
     generator.write_zlog_file(stype, elem_id, instance_path)
 
 
-def generate_topology_from_DB(as_id=None):
+def generate_topology_from_DB(as_):
     """
     Generate the topology.conf from the database values
-    :param str as_id: AS identifier
+    :param AS as_: AS object
     :return:
     """
-    interfaces = Interface.objects.filter(AS=AS.objects.filter(as_id=as_id).first())
-    services = Service.objects.filter(AS=AS.objects.filter(as_id=as_id).first())
+    interfaces = as_.interfaces.active()
+    services = as_.services.all()
     topo_dict = {}
 
-    as_ = AS.objects.filter(as_id=as_id).first()
     # AS wide entries
     topo_dict["ISD_AS"] = str(ISD_AS("%s-%s" % (as_.isd_id, as_.as_id)))
     topo_dict["MTU"] = as_.mtu
     topo_dict["Core"] = as_.is_core
 
     # get overlay type inside AS from IPs used by hosts
-    hosts = Host.objects.filter(AS_id=AS.objects.filter(as_id=as_id).first())
-    AS_internal_overlay = "UDP/IPv6"  # FIXME(FR4NK-W): add value to the model and get it from there
-    for host in hosts:
-        ip = ipaddress.ip_address(host.ip)
-        if isinstance(ip, ipaddress.IPv4Address):
-            AS_internal_overlay = "UDP/IPv4"
-            break
+    AS_internal_overlay = as_.AS_internal_overlay()
     topo_dict["Overlay"] = AS_internal_overlay
 
     topo_dict[generator.TYPES_TO_KEYS['router']] = {}
     for interface in interfaces:
-        router_instance_id = get_router_instance_id(as_id,
+        router_instance_id = get_router_instance_id(as_,
                                                     interface.host)
         if router_instance_id not in topo_dict[generator.TYPES_TO_KEYS['router']].keys():
             topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_id] = {}
@@ -198,19 +189,17 @@ def generate_topology_from_DB(as_id=None):
         remote_AS_obj = interface.remote_as()
 
         link_overlay = "UDP/IPv6"  # FIXME(FR4NK-W): add value to the model and get it from there
-        if isinstance(ipaddress.ip_address(interface.public_ip), ipaddress.IPv4Address) and \
+        if interface.public_ip and \
+                remote_if_obj.public_ip and \
+                isinstance(ipaddress.ip_address(interface.public_ip), ipaddress.IPv4Address) and \
                 isinstance(ipaddress.ip_address(remote_if_obj.public_ip), ipaddress.IPv4Address):
             link_overlay = "UDP/IPv4"
 
         router_instance_entry["Interfaces"][interface.interface_id] = {
             "InternalAddrIdx": 0,
             "ISD_AS": str(ISD_AS("%s-%s" % (remote_AS_obj.isd_id, remote_AS_obj.as_id))),
-            "LinkTo": str(interface.link().type),
+            "LinkTo": str(interface.link_relation()),
             "Bandwidth": interface.link().bandwidth,
-            "Bind": {
-                "L4Port": interface.bind_port,
-                "Addr": interface.bind_ip
-            },
             "Public": [{
                 "L4Port": interface.public_port,
                 "Addr": interface.public_ip
@@ -222,16 +211,17 @@ def generate_topology_from_DB(as_id=None):
             },
             "Overlay": link_overlay
         }
+        if interface.bind_ip:
+            router_instance_entry["Interfaces"][interface.interface_id]["Bind"] = {
+                "L4Port": interface.bind_port,
+                "Addr": interface.bind_ip
+            }
 
-    service_mapping = {}  # FIXME(FR4NK-W): fix model to following naming pattern
-    # as in generator and topo file
-    for entry in Service.SERVICE_TYPES:
-        service_mapping[entry[0]] = entry[1].lower().replace(" ", "_")
     for service in services:
-        if service.type == "ZK":
+        if service.type not in generator.JOB_NAMES.values():
             continue
-        service_key = generator.TYPES_TO_KEYS[service_mapping[service.type]]
-        service_instance_id = get_service_instance_id(as_id, service.host, service.type)
+        service_key = generator.TYPES_TO_KEYS[generator.NICKS_TO_TYPES[service.type]]
+        service_instance_id = get_service_instance_id(as_, service.host, service.type)
         if service_key not in topo_dict.keys():
             topo_dict[service_key] = {}
         topo_dict[service_key][service_instance_id] = {
@@ -251,17 +241,15 @@ class AScrypto:
     core_keys = {}
 
     @classmethod
-    def from_AS(cls, isd=None, as_id=None):
+    def from_AS(cls, as_):
         """
         Build AS_crypto from a model.AS object
-        :param str isd: ISD identifier of the target AS
-        :param str as_id: AS identifier of the target AS
+        :param AS as_: AS object of the target AS
         :return:
         """
         inst = cls()
-        as_ = AS.objects.filter(isd=isd, as_id=as_id).first()
         inst.certificate = str(as_.certificates)
-        inst.trc = str(ISD.objects.filter(id=as_.isd.id).first().trc)
+        inst.trc = str(ISD.objects.get(id=as_.isd.id).trc)
         inst.keys = {
             'sig_key': as_.sig_priv_key,
             'sig_key_raw': as_.enc_priv_key,

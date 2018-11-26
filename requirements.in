@@ -2,7 +2,7 @@ Django
 django-extensions
 django-recaptcha2
 django-registration
-jsonfield2
-cffi
-pygments
 django-widget-tweaks
+jsonfield2
+pycapnp
+pynacl
