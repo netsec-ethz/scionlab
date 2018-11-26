@@ -35,8 +35,8 @@ from scionlab.util import as_ids
 MAX_PORT = 2**16-1
 """ Max value for ports """
 
-USER_AS_ID_BEGIN = as_ids.parse('ff00:1:1')
-USER_AS_ID_END = as_ids.parse('ff00:1:ffff')
+USER_AS_ID_BEGIN = as_ids.parse('ffaa:1:1')
+USER_AS_ID_END = as_ids.parse('ffaa:1:ffff')
 
 DEFAULT_INTERFACE_PUBLIC_PORT = 50000
 DEFAULT_INTERFACE_INTERNAL_PORT = 30000
