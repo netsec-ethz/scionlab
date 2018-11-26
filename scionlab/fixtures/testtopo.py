@@ -18,7 +18,7 @@ from collections import namedtuple
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.
 ISDdef = namedtuple('ISDdef', ['id', 'label'])
-ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'default_host_ip', 'is_core', 'is_ap'])
+ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'host_ip', 'is_core', 'is_ap'])
 LinkDef = namedtuple('LinkDef', ['type', 'as_id_a', 'as_id_b'])
 
 
@@ -27,9 +27,9 @@ def _expand_as_id(as_id_tail):
     return 'ffaa:0:%x' % as_id_tail
 
 
-def makeASdef(isd_id, as_id_tail, label, default_host_ip, is_core=False, is_ap=False):
+def makeASdef(isd_id, as_id_tail, label, host_ip, is_core=False, is_ap=False):
     """ Helper for readable ASdef  declaration """
-    return ASdef(isd_id, _expand_as_id(as_id_tail), label, default_host_ip, is_core, is_ap)
+    return ASdef(isd_id, _expand_as_id(as_id_tail), label, host_ip, is_core, is_ap)
 
 
 def makeLinkDef(type, as_id_tail_a, as_id_tail_b):
@@ -98,14 +98,14 @@ def create_testtopo_links():
         _create_as_link(**linkdef._asdict())
 
 
-def _create_as(isd_id, as_id, label, default_host_ip, is_core=False, is_ap=False):
+def _create_as(isd_id, as_id, label, host_ip, is_core=False, is_ap=False):
     isd = ISD.objects.get(id=isd_id)
     as_ = AS.objects.create_with_default_services(
         isd=isd,
         as_id=as_id,
         label=label,
         is_core=is_core)
-    _set_default_public_ip(as_.hosts.first(), default_host_ip)
+    _set_public_ip(as_.hosts.first(), host_ip)
 
     if is_ap:
         AttachmentPoint.objects.create(AS=as_)
@@ -117,6 +117,6 @@ def _create_as_link(type, as_id_a, as_id_b):
     Link.objects.create_default(type, as_a, as_b)
 
 
-def _set_default_public_ip(host, ip):
-    host.default_public_ip = ip
+def _set_public_ip(host, public_ip):
+    host.public_ip = public_ip
     host.save()

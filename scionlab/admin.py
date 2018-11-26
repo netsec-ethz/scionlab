@@ -308,25 +308,25 @@ class LinkAdmin(admin.ModelAdmin):
     list_filter = ('type', 'active', 'interfaceA__AS', 'interfaceB__AS',)
 
     def public_ip_a(self, obj):
-        return obj.interfaceA.public_ip
+        return obj.interfaceA.get_public_ip()
 
     def public_port_a(self, obj):
         return obj.interfaceA.public_port
 
     def bind_ip_a(self, obj):
-        return obj.interfaceA.public_ip
+        return obj.interfaceA.get_bind_ip()
 
     def bind_port_a(self, obj):
         return obj.interfaceA.public_port
 
     def public_ip_b(self, obj):
-        return obj.interfaceB.public_ip
+        return obj.interfaceB.get_public_ip()
 
     def public_port_b(self, obj):
         return obj.interfaceB.public_port
 
     def bind_ip_b(self, obj):
-        return obj.interfaceB.public_ip
+        return obj.interfaceB.get_bind_ip()
 
     def bind_port_b(self, obj):
         return obj.interfaceB.public_port

@@ -72,7 +72,7 @@ class InitASTests(TestCase):
         self.assertTrue(hasattr(as_, 'hosts'))
         self.assertEqual(as_.hosts.count(), 1)
         host = as_.hosts.first()
-        self.assertEqual(host.ip, "127.0.0.1")
+        self.assertEqual(host.internal_ip, "127.0.0.1")
         self.assertTrue(host.needs_config_deployment())
 
         self.assertTrue(hasattr(host, 'services'))

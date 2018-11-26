@@ -31,79 +31,79 @@
 - model: scionlab.as
   pk: 1
   fields: {isd: 17, as_id: 'ffaa:0:1101', as_id_int: 281105609527553, label: SCMN,
-    owner: null, sig_pub_key: 9kp85HhajniVYiJK0n+R3yi0r5+pHW+SzKOLB+ZrF28=, sig_priv_key: 0U6Mm0icKzhlEVzAexbz5mimD0EDHJ9XJ6O0Yv0Hokw=,
-    enc_pub_key: VgA/nfTJIQBCr0Mboe+a+q0moEkRA4xz+gHKxO+/7gc=, enc_priv_key: 8YyvjLxZnAAoKI3/h+dlKLptMjxyn+gkfmywOggJ15g=,
-    master_as_key: Yj6/Ahb1AVU41a2nfA6UXw==, is_core: true, core_sig_priv_key: ontRi45xHsYlbrwmgF6bRzt4JMR41ANQymjg3qIMHYI=,
-    core_sig_pub_key: C22SDFFLSiQ4VDkGUZpFG8wZVKnDZBZtuwKR8rz/iWk=, core_online_priv_key: Ali5M2RogJd7Kc8wRGq+7p4hMWUr5z3h0f0p63nuv2I=,
-    core_online_pub_key: yrdhAaMvN7amRSNd6vN0jBb6IZFMiBwWXjEXIhxJkI4=, core_offline_priv_key: awzqjqK1rzMiR2VR3kk9rh57P9ZjLLCkEGLA7jl5MOE=,
-    core_offline_pub_key: mjVJMB8BcmdQRJ46MbLyBANMvjPgr4sYXwzWpZQ6tVw=, certificates: null,
+    owner: null, sig_pub_key: MEOFf4iUFx8ZlhkBZyNnRO5CDqkfDYAjPrS3IetP5d0=, sig_priv_key: /bVaAX5CiFbpm7XJlizpSU32ychRy5z/oZ5zuhc7woo=,
+    enc_pub_key: qW/J1QYt/D3FNp8ZY+XxOqeK/0XUbIXf1Y2gRNPaTzE=, enc_priv_key: lwUk7bPNU0iXg+9I2PR8nxtwZHA1a6sULQItt7yOehM=,
+    master_as_key: tnCx3awGwOxZARSmgXmW8w==, is_core: true, core_sig_priv_key: 1rJrdgiVucZpkjQMKzqEAF63Db1ZtoNRO9XeLuLFFx8=,
+    core_sig_pub_key: kPmxj6QgJfCGTKWdWAmbQo/muhxdM7uHoww+BKf6pXo=, core_online_priv_key: OOEUFadKz5z21qewZYvwHMEaBd9fo3VZEgGGWP7GG48=,
+    core_online_pub_key: 9Ga5CeFoDRZnHcFxFyu4pMRAGbZY/hl7xC+7IlFyo50=, core_offline_priv_key: LeEaBV0MKvNrb2r6sX0jOjAKIyNMTxvEJOCJPcNsJfM=,
+    core_offline_pub_key: VIYtzVBbYnehhrbIJqNAryHF0hiQOh0OhW6A+Pb4vTM=, certificates: null,
     certificates_needs_update: true}
 - model: scionlab.as
   pk: 2
   fields: {isd: 17, as_id: 'ffaa:0:1102', as_id_int: 281105609527554, label: ETHZ,
-    owner: null, sig_pub_key: 9tbEe76a5OXB4v/jw9hkGxSoBLpXL8SKFzTuknet+Yo=, sig_priv_key: BmybJLqvACozjOGXTbNk33XlTs0EtkGcYM9R5WL6lzA=,
-    enc_pub_key: tL88d/RLea9TMj/+uV5cxLb9mRb8i1pNZvwcLPqxNBI=, enc_priv_key: 2Ij/ABsKpkjgBzpD8gWmr3qQGYk2p94xhLYd+6XBfLI=,
-    master_as_key: vsuFbhLP2Fqgpsplpswygg==, is_core: false, core_sig_priv_key: null,
+    owner: null, sig_pub_key: 5a3QGrRauj93DrCqShhED+EQzLL8Z6fSU+vqQ4PlW7Q=, sig_priv_key: 3brX95hyGbgnqYdiChcwjndKyowubj+uV8drqcyR5Go=,
+    enc_pub_key: +GjiuOs4r0uchcKMbDMN0+ASRYJhTpfM9qcwoHtXo20=, enc_priv_key: QTF767wBCvkY747/qRzLLiA0usaamtumfUol8zAy1WY=,
+    master_as_key: YzIziLmo2dULvwpAIO62nw==, is_core: false, core_sig_priv_key: null,
     core_sig_pub_key: null, core_online_priv_key: null, core_online_pub_key: null,
     core_offline_priv_key: null, core_offline_pub_key: null, certificates: null, certificates_needs_update: true}
 - model: scionlab.as
   pk: 3
   fields: {isd: 17, as_id: 'ffaa:0:1103', as_id_int: 281105609527555, label: SWTH,
-    owner: null, sig_pub_key: ZgeESPRap8njSUViRSWTUzNYyfm0L+MFljq60dNoqzk=, sig_priv_key: zAy2udSqmt50ZGMP4t6a5aeSaqZVB36M/4uQCt7up5s=,
-    enc_pub_key: 2luxgCbUyTgGILIWOQRBpuSsr5nxT/9rLoUughVIF0c=, enc_priv_key: pZjlcgOcHFD0hb7cab3JUi8uBkuwdOJC6pi6BwDm8Ps=,
-    master_as_key: hTe+MQx7hv7g/grLaimkLw==, is_core: false, core_sig_priv_key: null,
+    owner: null, sig_pub_key: 0XKvZWlTnIq4OYM7SX74bCocsVXFLpVMSWHN0bANfsM=, sig_priv_key: oUm3bx53HCeM6k6syIjGC43fPtxANBeBfwAsTCR4/x8=,
+    enc_pub_key: JWeUJPtKzcaoBcnsE8uchZVW26HiTAtPAGduXiebqVI=, enc_priv_key: T34izrCn54RHWBhyoeP/XCtiVHAhYPKksCSTyyl+OzM=,
+    master_as_key: PSrBqSwzUFDuLUW4792JaA==, is_core: false, core_sig_priv_key: null,
     core_sig_pub_key: null, core_online_priv_key: null, core_online_pub_key: null,
     core_offline_priv_key: null, core_offline_pub_key: null, certificates: null, certificates_needs_update: true}
 - model: scionlab.as
   pk: 4
   fields: {isd: 17, as_id: 'ffaa:0:1107', as_id_int: 281105609527559, label: ETHZ-AP,
-    owner: null, sig_pub_key: xlQoncgasmVSg8U9qtHTg5LgXRkDQr88pWXyHbJ6tPE=, sig_priv_key: +bCP9eEUD205qCP+gBJg1imj28qH+L+flCTIC7uJUbQ=,
-    enc_pub_key: KWswpCGIgOHGLVh7sKOdcZu9ZaBMVaWL1+jLVPzlSUo=, enc_priv_key: FBxEgBnq3j2dfqxSx/TxnVqyxEJdC3afZtc5QECljlw=,
-    master_as_key: 4yzooNGFfirO/C1jSauGWw==, is_core: false, core_sig_priv_key: null,
+    owner: null, sig_pub_key: sI6hJqmFTyIFcRT8LN0g+Fm/WMY94O5RI16HA59T9r0=, sig_priv_key: 1ijer1Iz084Ud27g79c8xP4mCISxbBQwKxUdlVNA5zE=,
+    enc_pub_key: Wn1YGAwg+wfFQVrrt6lZkOSrk7aiF+HoE57+CpzF+nw=, enc_priv_key: +/4fkHpKPfd8QbQ4M+OIuOrhGtyIno4vvWMFob43e+0=,
+    master_as_key: F9+Un2MVURHq8NAQjRp5ew==, is_core: false, core_sig_priv_key: null,
     core_sig_pub_key: null, core_online_priv_key: null, core_online_pub_key: null,
     core_offline_priv_key: null, core_offline_pub_key: null, certificates: null, certificates_needs_update: true}
 - model: scionlab.as
   pk: 5
   fields: {isd: 19, as_id: 'ffaa:0:1301', as_id_int: 281105609528065, label: PV, owner: null,
-    sig_pub_key: KTfAwPVcFgGjEgfyjqeAa4cZ1e+NkVvPoc/SznwybFo=, sig_priv_key: nUXSoFUmkwB8ZHd/E8EtcZoZeL1JTlurZZ4OLajeApg=,
-    enc_pub_key: 12xiAWBXW0JcNK+wOzNPIQvAJNO48Z6DDlXx1F64U3s=, enc_priv_key: SlUSVTEdc9JzxdAw/28B2Tku23rPUZVqWC7+I5tsiTc=,
-    master_as_key: 8nQDuUbX9eBjG+nIMaUGrw==, is_core: true, core_sig_priv_key: HxgjllcSXnjjSNNQEmBTHCY2STGfy8RyZYAVVSKwXko=,
-    core_sig_pub_key: VQfqvazEXZOvFnWbxwoqFdlaLk37put9/7Z8I/gMZiM=, core_online_priv_key: 5CautTRT/TJHB2PtzFMB02bsPg7MX0lun5pPGkDQ1W0=,
-    core_online_pub_key: gQv6hO6sDQx6Dk3WX9uGWj1+RCVLPIk+bl2a0GDpiWQ=, core_offline_priv_key: YV6LmLkbPf9vjoQ6vXTmgsyssW4D7oqltOBrusQfKIY=,
-    core_offline_pub_key: INcxcXvXucSJtJxPokVFSgqbq7t8/cVO54lJ8o+o6GY=, certificates: null,
+    sig_pub_key: IJA1VaDKnl7ybmLoqO4XC+fkF0GX9bH4dDPGRrR22hI=, sig_priv_key: RGlMVyjfVcr0i5DHS6ISte9cx2L2l/z+hcyweD/YLrk=,
+    enc_pub_key: FQgLGyP6a+H7yrsFC4zLdTuGlbxMAhO3PGlNg4kUYhw=, enc_priv_key: B9JzKa4erFZ+aj8x/Q52lKFIzKnqzol5ybmZ7ehUbRo=,
+    master_as_key: U5fxf9BefQuFvkrKB9mXqQ==, is_core: true, core_sig_priv_key: qabLBBxXYQsZxfTqbOr5dRfbhIlAW974UE7ZA6GDEWI=,
+    core_sig_pub_key: nuT4WnawF3M9mMkNkUNlmbvzxKYBMBgefYQenB1i0F0=, core_online_priv_key: +CqCDHVNX148nMSGaZPobFvbSNe8pf5P0iqEPil3WiY=,
+    core_online_pub_key: TIkMk//xwGqx7eFpToOYUNL9zkDCKkAlZGNQqkVlaJ4=, core_offline_priv_key: oDAIUGiLoBM1PE30E8h0pelB9sj5FynB8NlevTMVkjo=,
+    core_offline_pub_key: iyIpp/pHjM2fDwaXUfTX2nk9hTkEZ+EjATqEf/OKlSQ=, certificates: null,
     certificates_needs_update: true}
 - model: scionlab.as
   pk: 6
   fields: {isd: 19, as_id: 'ffaa:0:1302', as_id_int: 281105609528066, label: GEANT,
-    owner: null, sig_pub_key: nV2r8OGEwguUsc8izdI5NRG8qhoHUuaMRg6S1k9Oyz4=, sig_priv_key: twdhrJMfSbKFmLCXxbg2mhzfn2IAOQEJ/iovbDDmZqA=,
-    enc_pub_key: 6dug+Z9QLHkp9MKd2pllU/RNSYMSxZ8EXh/u0ZqUVXU=, enc_priv_key: C8ejNxCOiRSZiLWXAdMT2dAyapvhAW1mSFHnkm9itRE=,
-    master_as_key: 05eoMMRiz7TBQced7xnoYg==, is_core: true, core_sig_priv_key: bJwC55F7zwTJxrNixaqkRn5SLw45hdXbWvs7ktvt0iY=,
-    core_sig_pub_key: hfGceZLy7U2/lVjDPA1KPFmXphp/iod08wP805v2TpY=, core_online_priv_key: 9n16JoHf/86ofFMl6m8PKMcwE8zYpO/8BCeRtgLpSJ0=,
-    core_online_pub_key: 1ArWL8KQfFvOFzGS5m8x7IjDTkQ4cUv/OTQXiImGcjc=, core_offline_priv_key: XDW7CjybMT7ymv8TFOpEr5myrDREB7oucMOrJ8pJDxc=,
-    core_offline_pub_key: mCJx4Ow3wpJwOcOp2XxLEHDzt1+hyY1/1uJiGyse6Js=, certificates: null,
+    owner: null, sig_pub_key: obgxmQufQco66T98CC1f+OzWRk2jpEZyL7pfRpVTwYg=, sig_priv_key: 9O4yBqCp++xzCaE2Xg+8HskaYL5mbjYUQKJ4ywLYzFo=,
+    enc_pub_key: 5u6AbNB+DbQW64Oqtwk+RXUO6l+gTZnpwZPx4CzAaTc=, enc_priv_key: krTGSfDKwNPDZHFLqzXJ3lKWNWNIEpakgrz10hM4d8A=,
+    master_as_key: 6xZvZx16IDbEQYxUz/FA2A==, is_core: true, core_sig_priv_key: rEfnA2+xNN6i2RV/C5ewd9f4q7xuM3zlM/W7M9Z6WnU=,
+    core_sig_pub_key: Kfmun+bYvNVa7L3JAaiYcY6XIqeaKkVvoEidQCDIMec=, core_online_priv_key: drSIL/28YlBuKvuZ1W8o/hOW5/TzvTp/UYrxBsJubF8=,
+    core_online_pub_key: DBohCpMcXzlC0AmHx+dhheCl6k+8h93UX2KD6N+hYYc=, core_offline_priv_key: H3Cw83DJUyumH+Mbr0QXUFGuDKXvkExBV0ZQeQdYXfo=,
+    core_offline_pub_key: gw4N978RtLRX2e7ec8kyNM2MGNY8rbb30AP0ZCP5nRw=, certificates: null,
     certificates_needs_update: true}
 - model: scionlab.as
   pk: 7
   fields: {isd: 19, as_id: 'ffaa:0:1303', as_id_int: 281105609528067, label: Magdeburg,
-    owner: null, sig_pub_key: mRtR31gftphOKraYOSZ5PkgNN4Q5DNoCf1mBqYZBt2k=, sig_priv_key: mYmgbBK/edfpO3GJIcpTgX54ilta7Pwd8Z6x6EzK2Oc=,
-    enc_pub_key: WsPhTE8NeV5UcSsQXTeFHMnrw7EHPP0nA5jk6YvMVXQ=, enc_priv_key: orls7cGKRn5TIT0Fx9l9Q6jL1uJjfC62bPgiteGaxto=,
-    master_as_key: z09TjMkemGITrB6OEDGxFA==, is_core: false, core_sig_priv_key: null,
+    owner: null, sig_pub_key: tJg9NtyCfItGOmwf9qdFDuM1sIi1Roxfb1D8NsNNKWM=, sig_priv_key: 3nhmf4BcZDD74tj/zpZqHAmAct6qViJFg2Y+6994pLc=,
+    enc_pub_key: i/6w9HTp1FYMamM/qSjfuAu3jTMwII3ulBjnFy3DNzw=, enc_priv_key: En7QHZrF4lOzhBSKFA/ToSSBRn/rTg2Gi46oXg9tQlY=,
+    master_as_key: jR8e7Pbz0lFSiGhp7MISnw==, is_core: false, core_sig_priv_key: null,
     core_sig_pub_key: null, core_online_priv_key: null, core_online_pub_key: null,
     core_offline_priv_key: null, core_offline_pub_key: null, certificates: null, certificates_needs_update: true}
 - model: scionlab.as
   pk: 8
   fields: {isd: 19, as_id: 'ffaa:0:1304', as_id_int: 281105609528068, label: FR@Linode,
-    owner: null, sig_pub_key: GFYwTp7Ggj2yTF1IuSJgxQbwK0I4y9b9cdUuZBDTfxo=, sig_priv_key: SHcDFbdkLnHrUyVNYMYLguLKRKBsQRTUdIWLfePCpqc=,
-    enc_pub_key: PC1R63UvyIXM4bpnJb2QjWtLj+ntvDPTZv5eJwdWbXo=, enc_priv_key: HdZWFt5Z+B2KyfzG0Ta7zZ73QujWGX+aam9t5arMdf0=,
-    master_as_key: S7zKpqh4ur6r06d2ri2wSw==, is_core: false, core_sig_priv_key: null,
+    owner: null, sig_pub_key: KzuKwO6UtF0LvcaWCnYlxR7b0rm1NqU1Qw/yTVkEVm4=, sig_priv_key: 0uWKo0FYUjKZITPdprcQNjyyiVsvIbkkYydgkPWQ9ts=,
+    enc_pub_key: j5sIFcLq0mj83T9FzvT1KgVKlmpV417Qxt5pMDl86WM=, enc_priv_key: LaGVknQjNFRYItQeQapdBH0IVysV6/MIcFD12kBytF8=,
+    master_as_key: JxCDCVTS9PpvHpCu/ncY/Q==, is_core: false, core_sig_priv_key: null,
     core_sig_pub_key: null, core_online_priv_key: null, core_online_pub_key: null,
     core_offline_priv_key: null, core_offline_pub_key: null, certificates: null, certificates_needs_update: true}
 - model: scionlab.as
   pk: 9
   fields: {isd: 19, as_id: 'ffaa:0:1305', as_id_int: 281105609528069, label: Darmstadt,
-    owner: null, sig_pub_key: ol6O5zFCI6+2tnxturl0DZQwjsqZB5SMUALr3U4VlAU=, sig_priv_key: GIpuluTUmoWD6cmnr0mHRKt8g1FVcQu2Osnxje4M9AE=,
-    enc_pub_key: s3vEIGYhUKhX9aOtFT6/w4IJPCYfBpDbKzCrARy/Cx8=, enc_priv_key: bAPd5A6RbSooHGc8d9WBUq9ZctUB9r3N05ttMom/K90=,
-    master_as_key: N0b/NpxNEtg8SwNLTFiLJg==, is_core: false, core_sig_priv_key: null,
+    owner: null, sig_pub_key: uCgbR0D1BjsJWixm89P6zAPUrcuKEK2ymGbDvtAmgy4=, sig_priv_key: JU873B9/jQOY6M/Fv8PE9e5kDb2Q8Oajj3mmnvN3SSk=,
+    enc_pub_key: 06QOdV0ufc2pl+V8C3oPTnOftb8eq8s+qGqncQhemXM=, enc_priv_key: Bd16ID3RXmq3x1ySWhHrCOn4BNV8skYUREYzqwZsmZ4=,
+    master_as_key: So+sJupHpS1OTnyFBBcl1A==, is_core: false, core_sig_priv_key: null,
     core_sig_pub_key: null, core_online_priv_key: null, core_online_pub_key: null,
     core_offline_priv_key: null, core_offline_pub_key: null, certificates: null, certificates_needs_update: true}
 - model: scionlab.attachmentpoint
@@ -114,49 +114,40 @@
   fields: {AS: 7, vpn: null}
 - model: scionlab.host
   pk: 1
-  fields: {AS: 1, ip: 127.0.0.1, default_public_ip: 192.0.2.11, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 1, internal_ip: 127.0.0.1, public_ip: 192.0.2.11, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.host
   pk: 2
-  fields: {AS: 2, ip: 127.0.0.1, default_public_ip: 192.0.2.12, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 2, internal_ip: 127.0.0.1, public_ip: 192.0.2.12, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.host
   pk: 3
-  fields: {AS: 3, ip: 127.0.0.1, default_public_ip: 192.0.2.13, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 3, internal_ip: 127.0.0.1, public_ip: 192.0.2.13, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.host
   pk: 4
-  fields: {AS: 4, ip: 127.0.0.1, default_public_ip: 192.0.2.17, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 4, internal_ip: 127.0.0.1, public_ip: 192.0.2.17, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.host
   pk: 5
-  fields: {AS: 5, ip: 127.0.0.1, default_public_ip: 192.0.2.31, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 5, internal_ip: 127.0.0.1, public_ip: 192.0.2.31, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.host
   pk: 6
-  fields: {AS: 6, ip: 127.0.0.1, default_public_ip: 192.0.2.32, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 6, internal_ip: 127.0.0.1, public_ip: 192.0.2.32, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.host
   pk: 7
-  fields: {AS: 7, ip: 127.0.0.1, default_public_ip: 192.0.2.33, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 7, internal_ip: 127.0.0.1, public_ip: 192.0.2.33, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.host
   pk: 8
-  fields: {AS: 8, ip: 127.0.0.1, default_public_ip: 192.0.2.34, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 8, internal_ip: 127.0.0.1, public_ip: 192.0.2.34, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.host
   pk: 9
-  fields: {AS: 9, ip: 127.0.0.1, default_public_ip: 192.0.2.35, default_bind_ip: null,
-    label: null, managed: false, management_ip: null, ssh_port: 22, config_version: 1,
-    config_version_deployed: 0}
+  fields: {AS: 9, internal_ip: 127.0.0.1, public_ip: 192.0.2.35, bind_ip: null, label: null,
+    managed: false, management_ip: null, ssh_port: 22, config_version: 1, config_version_deployed: 0}
 - model: scionlab.service
   pk: 1
   fields: {AS: 1, host: 1, port: null, type: BS}

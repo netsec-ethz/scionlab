@@ -250,7 +250,7 @@ class AS(models.Model):
         """
         Initialise a default Host object and the default AS services
         """
-        host = Host.objects.create(AS=self, ip=DEFAULT_HOST_IP)
+        host = Host.objects.create(AS=self, internal_ip=DEFAULT_HOST_IP)
 
         default_services = (Service.BS, Service.PS, Service.CS, Service.ZK)
         for service_type in default_services:
@@ -344,8 +344,8 @@ class UserASManager(models.Manager):
         if use_vpn:
             vpn_client = attachment_point.vpn.create_client(host)
 
-        host.default_public_ip = public_ip if not use_vpn else vpn_client.ip
-        host.default_bind_ip = bind_ip if not use_vpn else None
+        host.public_ip = public_ip if not use_vpn else vpn_client.ip
+        host.bind_ip = bind_ip if not use_vpn else None
         host.save()
 
         Link.objects.create(type=Link.PROVIDER,
@@ -446,9 +446,9 @@ class UserAS(AS):
         else:
             host.vpn_clients.update(active=False)   # deactivate all vpn clients
 
-        host.update_default_interface_ips(
-            default_public_ip=public_ip if not use_vpn else vpn_client.ip,
-            default_bind_ip=bind_ip if not use_vpn else None
+        host.update_interface_ips(
+            public_ip=public_ip if not use_vpn else vpn_client.ip,
+            bind_ip=bind_ip if not use_vpn else None
         )
         interface_user.update(
             public_port=public_port,
@@ -528,7 +528,7 @@ class AttachmentPoint(models.Model):
             assert(self.vpn.server.AS == self.AS)
             return self.vpn.server
         else:
-            return self.AS.hosts.filter(default_public_ip__isnull=False)[0]
+            return self.AS.hosts.filter(public_ip__isnull=False)[0]
 
     def check_vpn_available(self):
         """
@@ -564,16 +564,16 @@ class Host(models.Model):
         on_delete=models.SET_NULL,
     )
     # TODO(matzf): handle changes in the ip fields
-    ip = models.GenericIPAddressField(
+    internal_ip = models.GenericIPAddressField(
         default=DEFAULT_HOST_IP,
         help_text="IP of the host in the AS"
     )
-    default_public_ip = models.GenericIPAddressField(
+    public_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
         help_text="Default public IP for for border router interfaces running on this host."
     )
-    default_bind_ip = models.GenericIPAddressField(
+    bind_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
         help_text="Default bind IP for for border router interfaces running on this host."
@@ -597,12 +597,12 @@ class Host(models.Model):
     objects = HostManager()
 
     class Meta:
-        unique_together = ('AS', 'ip')
+        unique_together = ('AS', 'internal_ip')
 
     def __str__(self):
         if self.label:
             return self.label
-        return '%s,[%s]' % (self.AS.isd_as_str(), self.ip)
+        return '%s,[%s]' % (self.AS.isd_as_str(), self.internal_ip)
 
     def needs_config_deployment(self):
         """
@@ -611,16 +611,16 @@ class Host(models.Model):
         """
         return self.config_version_deployed < self.config_version
 
-    def update_default_interface_ips(self, default_public_ip, default_bind_ip):
+    def update_interface_ips(self, public_ip, bind_ip):
         """
-        Update the default_public_ip/default_bind_ip of this host instance, and immediately `save`.
+        Update the public_ip/bind_ip of this host instance, and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
         """
-        if default_bind_ip != self.default_bind_ip:
-            self.default_bind_ip = default_bind_ip
+        if bind_ip != self.bind_ip:
+            self.bind_ip = bind_ip
 
-        if default_public_ip != self.default_public_ip:
-            self.default_public_ip = default_public_ip
+        if public_ip != self.public_ip:
+            self.public_ip = public_ip
             # bump affected remote ASes
             for interface in self.interfaces.filter(public_ip=None).iterator():
                 interface.remote_as().bump_hosts_config()
@@ -650,9 +650,15 @@ class Interface(models.Model):
         related_name='interfaces',
         on_delete=models.CASCADE,
     )
-    public_ip = models.GenericIPAddressField(null=True, blank=True)
+    public_ip = models.GenericIPAddressField(null=True, blank=True,
+                                             help_text="""Public IP for this interface.
+                                                Only needs to be provided if it differs from the
+                                                Host's default public IP.""")
     public_port = models.PositiveSmallIntegerField(default=DEFAULT_INTERFACE_PUBLIC_PORT)
-    bind_ip = models.GenericIPAddressField(null=True, blank=True)
+    bind_ip = models.GenericIPAddressField(null=True, blank=True,
+                                           help_text="""Bind IP for this interface (optional).
+                                                Only needs to be provided if it differs from the
+                                                Host's default bind IP.""")
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
     internal_port = models.PositiveSmallIntegerField(default=DEFAULT_INTERFACE_INTERNAL_PORT)
 
@@ -670,9 +676,9 @@ class Interface(models.Model):
         self.AS.bump_hosts_config()
 
     def clean(self):
-        if not self.public_ip and not self.host.default_public_ip:
+        if not self.public_ip and not self.host.public_ip:
             raise ValidationError(
-                "If the host doesn't specify a default public ip, the public ip must be specified",
+                "If the host doesn't specify a public ip, the public ip must be specified",
                 code='interface_no_public_ip'
             )
 
@@ -732,15 +738,16 @@ class Interface(models.Model):
         self.save()
 
     def get_public_ip(self):
+        """ Get the effective public IP for this interface """
         if self.public_ip:
             return self.public_ip
-        return self.host.default_public_ip
+        return self.host.public_ip
 
     def get_bind_ip(self):
-        """ May be None """
+        """ Get the effective bind IP for this interface. May be None. """
         if self.bind_ip:
             return self.bind_ip
-        return self.host.default_bind_ip
+        return self.host.bind_ip
 
     def link(self):
         return (
