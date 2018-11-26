@@ -158,7 +158,7 @@ class ASAdmin(admin.ModelAdmin):
         """
         base_fields = (
             None, {
-                'fields': ASCreationForm.Meta.fields#('isd', 'as_id', 'label', 'is_core', 'owner',)
+                'fields': ASCreationForm.Meta.fields
             }
         )
         host_ip_fields = (

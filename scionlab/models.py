@@ -550,6 +550,7 @@ class UserAS(AS):
         else:
             return self.attachment_point.vpn.create_client(host)
 
+
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
         AS,
