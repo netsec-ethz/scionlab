@@ -66,8 +66,11 @@ class InitASTests(TestCase):
 
     def test_create_as_with_default_services(self):
         isd = ISD.objects.create(id=17, label='Switzerland')
-        as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
-        as_.init_default_services()
+        as_ = AS.objects.create_with_default_services(
+            isd=isd,
+            as_id='ff00:1:1',
+            public_ip='192.0.2.11'
+        )
 
         self.assertTrue(hasattr(as_, 'hosts'))
         self.assertEqual(as_.hosts.count(), 1)

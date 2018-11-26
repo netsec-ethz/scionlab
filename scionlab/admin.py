@@ -28,6 +28,7 @@ from .models import (
     MAX_PORT,
     DEFAULT_INTERFACE_PUBLIC_PORT,
     DEFAULT_INTERFACE_INTERNAL_PORT,
+    DEFAULT_HOST_INTERNAL_IP,
 )
 
 admin.site.register([
@@ -112,8 +113,16 @@ class ServiceInline(admin.TabularInline):
 class ASCreationForm(forms.ModelForm):
     """
     Specialised ModelForm for AS creation which will
-    initialise keys on creation
+    initialise keys on creation.
+    Also allows to define the internal/public and bind IPs for the
+    first host of the AS.
     """
+    class Meta:
+        fields = ('isd', 'as_id', 'label', 'is_core', 'owner',)
+
+    internal_ip = forms.GenericIPAddressField(required=False, initial=DEFAULT_HOST_INTERNAL_IP)
+    public_ip = forms.GenericIPAddressField()
+    bind_ip = forms.GenericIPAddressField(required=False)
 
     def save(self, commit=True):
         """
@@ -127,6 +136,9 @@ class ASCreationForm(forms.ModelForm):
             label=self.cleaned_data['label'],
             is_core=self.cleaned_data['is_core'],
             owner=self.cleaned_data['owner'],
+            internal_ip=self.cleaned_data['internal_ip'],
+            public_ip=self.cleaned_data['public_ip'],
+            bind_ip=self.cleaned_data['bind_ip'],
         )
 
 
@@ -146,7 +158,12 @@ class ASAdmin(admin.ModelAdmin):
         """
         base_fields = (
             None, {
-                'fields': ('isd', 'as_id', 'label', 'is_core', 'owner',)
+                'fields': ASCreationForm.Meta.fields#('isd', 'as_id', 'label', 'is_core', 'owner',)
+            }
+        )
+        host_ip_fields = (
+            'Host IPs', {
+                'fields': ('internal_ip', 'public_ip', 'bind_ip', )
             }
         )
         key_fields = (
@@ -165,7 +182,7 @@ class ASAdmin(admin.ModelAdmin):
             }
         )
         if not obj:
-            return (base_fields,)
+            return (base_fields, host_ip_fields)
         return (base_fields, key_fields)
 
     def get_readonly_fields(self, request, obj):

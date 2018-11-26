@@ -29,7 +29,8 @@ class ASAdminTests(TestCase):
         form_data = {
             'isd': 17,
             'as_id': as_id,
-            'label': 'Test'
+            'label': 'Test',
+            'public_ip': '192.0.2.11'
         }
         # This mimicks what ModelAdmin does to create the form:
         form_factory = modelform_factory(AS, form=ASCreationForm, fields='__all__')

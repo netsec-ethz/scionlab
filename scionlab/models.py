@@ -42,7 +42,7 @@ USER_AS_ID_END = as_ids.parse('ffaa:1:ffff')
 
 DEFAULT_INTERFACE_PUBLIC_PORT = 50000
 DEFAULT_INTERFACE_INTERNAL_PORT = 30000
-DEFAULT_HOST_IP = "127.0.0.1"
+DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
@@ -111,8 +111,15 @@ class ISD(models.Model):
 
 class ASManager(models.Manager):
     def create(self, isd, as_id, is_core=False, label=None, owner=None):
-        """ Create the AS and initialise the required keys """
-
+        """
+        Create the AS and initialise the required keys
+        :param ISD isd:
+        :param str as_id: valid AS-identifier string
+        :param bool is_core: should this AS be created as a core AS?
+        :param str label: optional
+        :param User owner: optional
+        :returns: AS
+        """
         as_id_int = as_ids.parse(as_id)
         as_ = AS(
             isd=isd,
@@ -126,13 +133,35 @@ class ASManager(models.Manager):
         as_.save()
         return as_
 
-    def create_with_default_services(self, **kwargs):
+    def create_with_default_services(self, isd, as_id, public_ip,
+                                     is_core=False, label=None, owner=None,
+                                     bind_ip=None, internal_ip=None):
         """
-        Create the AS, initialise the required keys and create a default host object
-        with default services
+        Create the AS, initialise the required keys and create a default Host object
+        with default services.
+        Create the AS and initialise the required keys
+        :param ISD isd:
+        :param str as_id: valid AS-identifier string
+        :param bool is_core: should this AS be created as a core AS?
+        :param str label: optional
+        :param User owner: optional
+        :param str internal_ip: AS-internal IP for the Host, defaults to 127.0.0.1
+        :param str public_ip: public IP for the first Host
+        :param str bind_ip: optional, bind IP for the first Host
+        :returns: AS
         """
-        as_ = self.create(**kwargs)
-        as_.init_default_services()
+        as_ = self.create(
+            isd=isd,
+            as_id=as_id,
+            is_core=is_core,
+            label=label,
+            owner=owner,
+        )
+        as_.init_default_services(
+            public_ip=public_ip,
+            bind_ip=bind_ip,
+            internal_ip=internal_ip
+        )
         return as_
 
 
@@ -140,10 +169,17 @@ class AS(models.Model):
     isd = models.ForeignKey(
         ISD,
         related_name='ases',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='ISD'
     )
-    as_id = models.CharField(max_length=15,
-                             validators=[RegexValidator(regex=as_ids.REGEX)])
+    as_id = models.CharField(
+        max_length=15,
+        validators=[
+            RegexValidator(regex=as_ids.REGEX),
+            RegexValidator(regex=r"0+:0+:0+", inverse_match=True),
+        ],
+        verbose_name='AS-ID'
+    )
     as_id_int = models.BigIntegerField(editable=False)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
@@ -246,11 +282,16 @@ class AS(models.Model):
         if self.is_core:
             self._bump_hosts_config_core_change()
 
-    def init_default_services(self):
+    def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):
         """
         Initialise a default Host object and the default AS services
         """
-        host = Host.objects.create(AS=self, internal_ip=DEFAULT_HOST_IP)
+        host = Host.objects.create(
+            AS=self,
+            public_ip=public_ip,
+            bind_ip=bind_ip,
+            internal_ip=internal_ip or DEFAULT_HOST_INTERNAL_IP
+        )
 
         default_services = (Service.BS, Service.PS, Service.CS, Service.ZK)
         for service_type in default_services:
@@ -337,23 +378,26 @@ class UserASManager(models.Manager):
 
         user_as.init_keys()
         user_as.save()
-        user_as.init_default_services()
+        user_as.init_default_services(
+            public_ip=public_ip,
+            bind_ip=bind_ip,
+        )
+
         host = user_as.hosts.first()
 
-        vpn_client = None
         if use_vpn:
             vpn_client = attachment_point.vpn.create_client(host)
 
-        host.public_ip = public_ip if not use_vpn else vpn_client.ip
-        host.bind_ip = bind_ip if not use_vpn else None
-        host.save()
-
         Link.objects.create(type=Link.PROVIDER,
-                            kwargsA=dict(host=attachment_point.get_host_for_useras_interface()),
+                            kwargsA=dict(
+                                host=attachment_point.get_host_for_useras_interface(),
+                                public_ip=attachment_point.vpn.server_vpn_ip() if use_vpn else None
+                            ),
                             kwargsB=dict(
                                 host=user_as.hosts.first(),
+                                public_ip=vpn_client.ip if use_vpn else None,
                                 public_port=public_port,
-                                bind_port=bind_port if not use_vpn else None
+                                bind_port=bind_port,
                             ))
 
         # TODO(matzf): somewhere we need to trigger the config deployment
@@ -439,7 +483,6 @@ class UserAS(AS):
 
         if attachment_point != self.attachment_point:
             self.attachment_point = attachment_point
-            interface_ap.update(host=attachment_point.get_host_for_useras_interface())
 
         if use_vpn:
             vpn_client = self._create_or_activate_vpn_client()
@@ -447,12 +490,17 @@ class UserAS(AS):
             host.vpn_clients.update(active=False)   # deactivate all vpn clients
 
         host.update_interface_ips(
-            public_ip=public_ip if not use_vpn else vpn_client.ip,
-            bind_ip=bind_ip if not use_vpn else None
+            public_ip=public_ip,
+            bind_ip=bind_ip
         )
         interface_user.update(
+            public_ip=vpn_client.ip if use_vpn else None,
             public_port=public_port,
-            bind_port=bind_port if not use_vpn else None
+            bind_port=bind_port
+        )
+        interface_ap.update(
+            host=attachment_point.get_host_for_useras_interface(),
+            public_ip=attachment_point.vpn.server_vpn_ip() if use_vpn else None
         )
 
         self.installation_type = installation_type
@@ -565,7 +613,7 @@ class Host(models.Model):
     )
     # TODO(matzf): handle changes in the ip fields
     internal_ip = models.GenericIPAddressField(
-        default=DEFAULT_HOST_IP,
+        default=DEFAULT_HOST_INTERNAL_IP,
         help_text="IP of the host in the AS"
     )
     public_ip = models.GenericIPAddressField(
@@ -650,15 +698,18 @@ class Interface(models.Model):
         related_name='interfaces',
         on_delete=models.CASCADE,
     )
-    public_ip = models.GenericIPAddressField(null=True, blank=True,
-                                             help_text="""Public IP for this interface.
-                                                Only needs to be provided if it differs from the
-                                                Host's default public IP.""")
+    public_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="""Public IP for this interface. If this is not null, overrides the Host's default
+            public IP."""
+    )
     public_port = models.PositiveSmallIntegerField(default=DEFAULT_INTERFACE_PUBLIC_PORT)
-    bind_ip = models.GenericIPAddressField(null=True, blank=True,
-                                           help_text="""Bind IP for this interface (optional).
-                                                Only needs to be provided if it differs from the
-                                                Host's default bind IP.""")
+    bind_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="""Bind IP for this interface (optional). If `public_ip` (!) is not null, this
+            overrides the Host's default bind IP.""")
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
     internal_port = models.PositiveSmallIntegerField(default=DEFAULT_INTERFACE_INTERNAL_PORT)
 
@@ -745,7 +796,7 @@ class Interface(models.Model):
 
     def get_bind_ip(self):
         """ Get the effective bind IP for this interface. May be None. """
-        if self.bind_ip:
+        if self.public_ip:  # SIC! Overriding the public_ip enables overriding bind_ip
             return self.bind_ip
         return self.host.bind_ip
 
@@ -812,7 +863,6 @@ class Link(models.Model):
         (CORE, 'Core link (symmetric)'),
         (PEER, 'Peering link (symmetric)'),
     )
-    # TODO(matzf): reduce number of types? CORE can be deduced?
     interfaceA = models.OneToOneField(
         Interface,
         related_name='link_as_interfaceA',
@@ -941,15 +991,19 @@ class VPN(models.Model):
         on_delete=models.CASCADE
     )
     server_port = models.PositiveSmallIntegerField()
+
     subnet = models.CharField(max_length=15)
     keys = models.TextField(null=True, blank=True)
 
     def create_client(self, host):
         return VPNClient.objects.create(vpn=self, host=host, ip=self._find_client_ip())
 
+    def server_vpn_ip(self):
+        return '10.0.1.1'
+
     def _find_client_ip(self):
         # TODO(matzf)
-        return '10.0.0.1'
+        return '10.0.1.25'
 
 
 class VPNClient(models.Model):
