@@ -20,6 +20,9 @@ ALLOWED_HOSTS = [
 
 DATABASES = {
     # TODO
+
+    # Imporant:
+    # ATOMIC_REQUESTS: True
 }
 
 # ##### MAILER CONFIGURATION ##############################
