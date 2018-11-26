@@ -4,10 +4,10 @@
         password: pbkdf2_sha256$120000$k9Hi6RVkVkL7$1vrICoIi5UMK9fayfEh8oWXiB1cTM98607paOPANjhw=
         last_login: null
         is_superuser: false
-        username: scion@example.com
+        username: scion@scionlab.org
         first_name: ''
         last_name: ''
-        email: scion@example.com
+        email: scion@scionlab.org
         is_staff: false
         is_active: true
         date_joined: 2018-10-22 04:50:07.516756

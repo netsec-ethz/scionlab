@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Metadata and object creation procedure for the fixture `testuser.yaml` """
+"""
+Metadata and object creation procedure for the fixtures `testuser.yaml` and `testuser-admin.yaml`
+"""
 
 from scionlab.models import User
 
-TESTUSER_EMAIL = 'scion@example.com'
+TESTUSER_EMAIL = 'scion@scionlab.org'
 TESTUSER_PWD = 'scion'
+TESTUSER_ADMIN_EMAIL = 'admin@scionlab.org'
+TESTUSER_ADMIN_PWD = 'scion53cure'
 
 
 def get_testuser():
@@ -25,8 +29,15 @@ def get_testuser():
     return User.objects.get(username=TESTUSER_EMAIL)
 
 
-# Explicitly make `get_testuser` not a test; nose thinks this looks like a test...
+def get_testuser_admin():
+    """ Return the User object for testuser """
+    return User.objects.get(username=TESTUSER_EMAIL)
+
+
+# Explicitly make `get_testuser` and `get_testuser_admin` not a test;
+# nose thinks this looks like a test...
 get_testuser.__test__ = False
+get_testuser_admin.__test__ = False
 
 
 def create_testuser():
@@ -39,4 +50,17 @@ def create_testuser():
         username=TESTUSER_EMAIL,
         email=TESTUSER_EMAIL,
         password=TESTUSER_PWD
+    )
+
+
+def create_testuser_admin():
+    """
+    Create an admin-user `TESTUSER_ADMIN_EMAIL` with the password `TESTUSER_PWD`.
+    :return: User
+    """
+
+    return User.objects.create_superuser(
+        username=TESTUSER_ADMIN_EMAIL,
+        email=TESTUSER_ADMIN_EMAIL,
+        password=TESTUSER_ADMIN_PWD,
     )

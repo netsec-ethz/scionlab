@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from django.test import TestCase
+from django_webtest import WebTest
 from django.forms.models import modelform_factory
 from scionlab.models import AS, Link
 from scionlab.tests import utils
 from scionlab.admin import ASCreationForm, LinkAdminForm
+from scionlab.fixtures.testuser import TESTUSER_ADMIN_EMAIL
 
 
 class ASAdminTests(TestCase):
@@ -109,3 +111,27 @@ class LinkAdminFormTests(TestCase):
         edit_form = LinkAdminForm(instance=link, data=form_data)
         self.assertTrue(edit_form.is_valid(), edit_form.errors)
         self.assertFalse(edit_form.has_changed(), edit_form.changed_data)
+
+
+class LinkAdminViewTests(WebTest):
+    fixtures = ['testuser-admin', 'testtopo-ases']
+
+    def test_create_link(self):
+        """
+        Check that adding a link succeeds
+        """
+        self.app.set_user(TESTUSER_ADMIN_EMAIL)
+
+        link_create_page = self.app.get('/admin/scionlab/link/add/')
+        form = link_create_page.form
+
+        as_a = AS.objects.first()
+        as_b = AS.objects.last()
+
+        form.select('type', value=Link.PROVIDER)
+        form.select('from_host', text=str(as_a.hosts.first()))
+        form.select('to_host', text=str(as_b.hosts.first()))
+        form.submit(value="Save").follow()  # redirect on success
+
+        link = Link.objects.get()
+        self.assertEqual(link.type, Link.PROVIDER)
