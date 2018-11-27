@@ -26,8 +26,6 @@ from .models import (
     VPN,
     VPNClient,
     MAX_PORT,
-    DEFAULT_INTERFACE_PUBLIC_PORT,
-    DEFAULT_INTERFACE_INTERNAL_PORT,
     DEFAULT_HOST_INTERNAL_IP,
 )
 
