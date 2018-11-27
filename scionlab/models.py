@@ -51,6 +51,9 @@ _MAX_LEN_CHOICES_DEFAULT = 16
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """
 
+_placeholder = object()
+""" Placeholder value for optional parameters, different from None """
+
 
 class User(auth_User):
     class Meta:
@@ -713,20 +716,16 @@ class InterfaceManager(models.Manager):
         Create an Interface
         :param Host host: The host on which this Interface should be configured. Defines the AS.
         :param str public_ip: optional, the public IP for this interface to override host.public_ip
-        :param int public_port: optional, if None free port is searched
-        :param str bind_ip: optional, the bind IP for
+        :param int public_port: optional, a free port is selected if not specified
+        :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
+        :param int bind_port: optional, a free port is selected if bind IP set and not specified
+        :param int internal_port: optional, a free port is selected if not specified
         """
         as_ = host.AS
         ifid = as_.find_interface_id()
-        if not public_port:
-            public_port = host.find_free_port(public_ip or host.public_ip,
-                                              min=DEFAULT_INTERFACE_PUBLIC_PORT)
-        if not bind_port and (bind_ip or (not public_ip and host.bind_ip)):
-            bind_port = host.find_free_port(bind_ip or host.bind_ip,
-                                            min=DEFAULT_INTERFACE_PUBLIC_PORT)
-        if not internal_port:
-            internal_port = host.find_free_port(host.internal_ip,
-                                                min=DEFAULT_INTERFACE_INTERNAL_PORT)
+        public_port = Interface._assign_public_port(host, public_ip, public_port)
+        bind_port = Interface._assign_bind_port(host, public_ip, bind_ip, bind_port)
+        internal_port = Interface._assign_internal_port(host, internal_port)
         as_.bump_hosts_config()
 
         return super().create(
@@ -793,20 +792,26 @@ class Interface(models.Model):
         super().save(**kwargs)
 
     def update(self,
-               host=None,
-               public_ip=None,
-               public_port=None,
-               bind_ip=None,
-               bind_port=None,
-               internal_port=None):
-        # TODO(matzf): free port assignment
+               host=_placeholder,
+               public_ip=_placeholder,
+               public_port=_placeholder,
+               bind_ip=_placeholder,
+               bind_port=_placeholder,
+               internal_port=_placeholder):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
+        :param Host host: The host on which this Interface should be configured. Defines the AS.
+        :param str public_ip: optional, the public IP for this interface to override host.public_ip
+        :param int public_port: optional, a free port is selected if not specified
+        :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
+        :param int bind_port: optional, a free port is selected if bind IP set and not specified
+        :param int internal_port: optional, a free port is selected if not specified
         """
-        bump_local = False
-        bump_local_remote = False
-        if host is not None and host != self.host:
+        prev_public_info = self._get_public_info()
+        prev_local_info = self._get_local_info()
+
+        if host is not _placeholder:
             old_as = self.AS
             new_as = host.AS
             if new_as != old_as:
@@ -815,30 +820,25 @@ class Interface(models.Model):
                 self.interface_id = ifid
                 old_as.bump_hosts_config()
             self.host = host
-            bump_local_remote = True
-
-        # TODO(matzf): this is overly verbose
-        if public_ip is not None and public_ip != self.public_ip:
-            bump_local_remote = True
+        if public_ip is not _placeholder:
             self.public_ip = public_ip
-        if public_port is not None and public_port != self.public_port:
-            bump_local_remote = True
-            self.public_port = public_port
-        if bind_ip is not None and bind_ip != self.bind_ip:
-            bump_local = True
+        if public_port is not _placeholder:
+            self.public_port = Interface._assign_public_port(self.host, self.public_ip, public_port)
+        if bind_ip is not _placeholder:
             self.bind_ip = bind_ip
-        if bind_port is not None and bind_port != self.bind_port:
-            bump_local = True
-            self.bind_port = bind_port
-        if internal_port is not None and internal_port != self.internal_port:
-            bump_local = True
-            self.internal_port = internal_port
+        if bind_port is not _placeholder:
+            self.bind_port = Interface._assign_bind_port(self.host, self.public_ip, self.bind_ip,
+                                                         bind_port)
+        if internal_port is not _placeholder:
+            self.internal_port = Interface._assign_internal_port(self.host, internal_port)
 
-        if bump_local or bump_local_remote:
+        diff_public = self._get_public_info() != prev_public_info
+        diff_local = self._get_local_info() != prev_local_info
+        if diff_local or diff_public:
             self.AS.bump_hosts_config()
-        if bump_local_remote:
+        if diff_public:
             # bump remote AS
-            # if both ASes of both interfaces are changed, this can be either old
+            # if the ASes of both interfaces of a link are changed, this can be either old
             # or new AS, depending on order. Redundant but correct.
             self.remote_as().bump_hosts_config()
         self.save()
@@ -856,12 +856,20 @@ class Interface(models.Model):
         return self.host.bind_ip
 
     def link(self):
+        """
+        Get the link associated with this interface.
+        :returns: Link
+        """
         return (
             Link.objects.filter(interfaceA=self) |
             Link.objects.filter(interfaceB=self)
         ).first()
 
     def remote_interface(self):
+        """
+        Get the "other" interface of the link associated with this interface.
+        :returns: Interface
+        """
         # FIXME(matzf): naive queries
         link = self.link()
         if self == link.interfaceA:
@@ -870,8 +878,65 @@ class Interface(models.Model):
             return link.interfaceA
 
     def remote_as(self):
+        """
+        Get the AS of the "other" interface of the link associated with this interface.
+        :returns: AS
+        """
         # FIXME(matzf): naive queries
         return self.remote_interface().AS
+
+    @staticmethod
+    def _assign_public_port(host, public_ip, public_port):
+        """
+        Helper to assign the public port. Returns the given public_port if defined,
+        otherwise, selects and returns an appropriate free port.
+        :param Host host:
+        :param str public_ip: optional
+        :param int public_port: optional
+        """
+        return public_port or host.find_free_port(public_ip or host.public_ip,
+                                                  min=DEFAULT_INTERFACE_PUBLIC_PORT)
+
+    @staticmethod
+    def _assign_bind_port(host, public_ip, bind_ip, bind_port):
+        """
+        Helper to assign the bind port. Returns the given bind_port if defined,
+        otherwise, selects and returns an appropriate free port.
+        :param Host host:
+        :param str public_ip: optional
+        :param str bind_ip: optional
+        :param int bind_port: optional
+        """
+        if not bind_port and (bind_ip or (not public_ip and host.bind_ip)):
+            return host.find_free_port(bind_ip or host.bind_ip,
+                                       min=DEFAULT_INTERFACE_PUBLIC_PORT)
+        else:
+            return bind_port
+
+    @staticmethod
+    def _assign_internal_port(host, internal_port):
+        """
+        Helper to assign the internal port. Returns the given internal_port if defined,
+        otherwise, selects and returns an appropriate free port.
+        :param Host host:
+        :param int internal_port: optional
+        """
+        return internal_port or host.find_free_port(host.internal_ip,
+                                                    min=DEFAULT_INTERFACE_INTERNAL_PORT)
+
+    def _get_public_info(self):
+        """
+        Helper for update: return the information that when changed triggers an update
+        of both the remote and the local AS.
+        """
+        return [self.get_public_ip(), self.public_port]
+
+    def _get_local_info(self):
+        """
+        Helper for update: return the information that when changed triggers an update
+        of only the local AS.
+        """
+        return [self.host, self.get_bind_ip(), self.bind_port, self.internal_port]
 
 
 class LinkManager(models.Manager):
