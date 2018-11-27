@@ -301,7 +301,7 @@ class AS(models.Model):
         """
         Find an unused interface id
         """
-        existing_ids = set(self.interfaces.values_list('interface_id', flat=True).iterator())
+        existing_ids = _value_set(self.interfaces, 'interface_id')
         for candidate_id in range(1, MAX_INTERFACE_ID):
             if candidate_id not in existing_ids:
                 return candidate_id
@@ -677,14 +677,68 @@ class Host(models.Model):
         self.save()
         self.AS.bump_hosts_config()
 
+    def find_free_port(self, ip, min, max=MAX_PORT):
+        used_ports = self.find_used_ports(ip)
+        for port in range(min, max):
+            if port not in used_ports:
+                return port
+        raise RuntimeError('No free port available')
+
+    def find_used_ports(self, ip):
+        """
+        :returns: Set of used ports for the given IP
+        """
+        ports = _value_set(self.interfaces.filter(public_ip=ip), 'public_port')
+        ports |= _value_set(self.interfaces.filter(bind_ip=ip), 'bind_port')
+        if ip == self.public_ip:
+            ports |= _value_set(self.interfaces.filter(public_ip=None), 'public_port')
+            ports |= _value_set(self.vpn_servers, 'server_port')
+        if ip == self.bind_ip:
+            ports |= _value_set(self.interfaces.filter(bind_ip=None), 'public_port')
+        if ip == self.internal_ip:
+            ports |= _value_set(self.services, 'port')
+            ports |= _value_set(self.interfaces, 'internal_port')
+        return ports
+
 
 class InterfaceManager(models.Manager):
-    def create(self, host, **kwargs):
-        # TODO(matzf): free port assignment
+    def create(self,
+               host,
+               public_ip=None,
+               public_port=None,
+               bind_ip=None,
+               bind_port=None,
+               internal_port=None):
+        """
+        Create an Interface
+        :param Host host: The host on which this Interface should be configured. Defines the AS.
+        :param str public_ip: optional, the public IP for this interface to override host.public_ip
+        :param int public_port: optional, if None free port is searched
+        :param str bind_ip: optional, the bind IP for
+        """
         as_ = host.AS
         ifid = as_.find_interface_id()
+        if not public_port:
+            public_port = host.find_free_port(public_ip or host.public_ip,
+                                              min=DEFAULT_INTERFACE_PUBLIC_PORT)
+        if not bind_port and (bind_ip or (not public_ip and host.bind_ip)):
+            bind_port = host.find_free_port(bind_ip or host.bind_ip,
+                                            min=DEFAULT_INTERFACE_PUBLIC_PORT)
+        if not internal_port:
+            internal_port = host.find_free_port(host.internal_ip,
+                                                min=DEFAULT_INTERFACE_INTERNAL_PORT)
         as_.bump_hosts_config()
-        return super().create(AS=as_, interface_id=ifid, host=host, **kwargs)
+
+        return super().create(
+            AS=as_,
+            interface_id=ifid,
+            host=host,
+            public_ip=public_ip,
+            public_port=public_port,
+            bind_ip=bind_ip,
+            bind_port=bind_port,
+            internal_port=internal_port
+        )
 
 
 class Interface(models.Model):
@@ -705,14 +759,14 @@ class Interface(models.Model):
         help_text="""Public IP for this interface. If this is not null, overrides the Host's default
             public IP."""
     )
-    public_port = models.PositiveSmallIntegerField(default=DEFAULT_INTERFACE_PUBLIC_PORT)
+    public_port = models.PositiveSmallIntegerField()
     bind_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
         help_text="""Bind IP for this interface (optional). If `public_ip` (!) is not null, this
             overrides the Host's default bind IP.""")
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
-    internal_port = models.PositiveSmallIntegerField(default=DEFAULT_INTERFACE_INTERNAL_PORT)
+    internal_port = models.PositiveSmallIntegerField()
 
     objects = InterfaceManager()
 
@@ -1052,3 +1106,10 @@ def _gen_sig_keypair():
 
 def _gen_enc_keypair():
     return _base64encode_tuple(lib.crypto.asymcrypto.generate_enc_keypair())
+
+
+def _value_set(query_set, field_name):
+    """
+    Short-hand for creating a set out of a values-query for a single model field
+    """
+    return set(query_set.values_list(field_name, flat=True))

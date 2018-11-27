@@ -244,17 +244,17 @@ class LinkAdminForm(forms.ModelForm):
     # TODO(matzf): avoid duplication, make naming consistent (to/from vs. a/b)?
     from_host = forms.ModelChoiceField(queryset=Host.objects.all())
     from_public_ip = forms.GenericIPAddressField(required=False)
-    from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
+    from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     from_bind_ip = forms.GenericIPAddressField(required=False)
     from_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
-    from_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
+    from_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     to_host = forms.ModelChoiceField(queryset=Host.objects.all())
     to_public_ip = forms.GenericIPAddressField(required=False)
-    to_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
+    to_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     to_bind_ip = forms.GenericIPAddressField(required=False)
     to_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
-    to_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT)
+    to_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     def __init__(self, data=None, files=None, initial=None, instance=None, **kwargs):
         initial = initial or {}
@@ -279,8 +279,7 @@ class LinkAdminForm(forms.ModelForm):
         initial[prefix+'internal_port'] = interface.internal_port
 
     def _init_default_form_data(self, initial, prefix):
-        initial[prefix+'public_port'] = DEFAULT_INTERFACE_PUBLIC_PORT
-        initial[prefix+'internal_port'] = DEFAULT_INTERFACE_INTERNAL_PORT
+        pass
 
     def _get_interface_form_data(self, prefix):
         return dict(
