@@ -360,7 +360,17 @@ class UserASManager(models.Manager):
                bind_port=None):
         """
         Create a UserAS attached to the given attachment point.
-        The public_ip must be specified if use_vpn is not enabled.
+
+        :param User owner: owner of this UserAS
+        :param AttachmentPoint attachment_point: the attachment point (AP) to connect to
+        :param int public_port: the public port for the connection to the AP
+        :param str label: optional label
+        :param bool use_vpn: use VPN for the connection to the AP
+        :param str public_ip: the public IP for the connection to the AP.
+                              Must be specified if use_vpn is not enabled.
+        :param str bind_ip: the bind IP for the connection to the AP (for NAT)
+        :param str bind_port: the bind port for the connection to the AP (for NAT port remapping)
+        :returns: UserAS
         """
         owner.check_as_quota()
 
@@ -386,22 +396,35 @@ class UserASManager(models.Manager):
             bind_ip=bind_ip,
         )
 
-        host = user_as.hosts.first()
+        host = user_as.hosts.get()
 
         if use_vpn:
             vpn_client = attachment_point.vpn.create_client(host)
 
-        Link.objects.create(type=Link.PROVIDER,
-                            kwargsA=dict(
-                                host=attachment_point.get_host_for_useras_interface(),
-                                public_ip=attachment_point.vpn.server_vpn_ip() if use_vpn else None
-                            ),
-                            kwargsB=dict(
-                                host=user_as.hosts.first(),
-                                public_ip=vpn_client.ip if use_vpn else None,
-                                public_port=public_port,
-                                bind_port=bind_port,
-                            ))
+            interface_client = Interface.objects.create(
+                host=host,
+                public_ip=vpn_client.ip,
+                public_port=public_port,
+            )
+            interface_ap = Interface.objects.create(
+                host=attachment_point.get_host_for_useras_interface(),
+                public_ip=attachment_point.vpn.server_vpn_ip()
+            )
+        else:
+            interface_client = Interface.objects.create(
+                host=host,
+                public_port=public_port,
+                bind_port=bind_port
+            )
+            interface_ap = Interface.objects.create(
+                host=attachment_point.get_host_for_useras_interface(),
+            )
+
+        Link.objects.create(
+            type=Link.PROVIDER,
+            interfaceA=interface_ap,
+            interfaceB=interface_client
+        )
 
         # TODO(matzf): somewhere we need to trigger the config deployment
 
@@ -478,34 +501,42 @@ class UserAS(AS):
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
-        host = self.hosts.first()   # UserAS always has only one host
+        host = self.hosts.get()   # UserAS always has only one host
         link = self._get_ap_link()
         interface_ap = link.interfaceA
         interface_user = link.interfaceB
         assert interface_user.host == host
 
-        if attachment_point != self.attachment_point:
-            self.attachment_point = attachment_point
-
-        if use_vpn:
-            vpn_client = self._create_or_activate_vpn_client()
-        else:
-            host.vpn_clients.update(active=False)   # deactivate all vpn clients
-
         host.update_interface_ips(
             public_ip=public_ip,
             bind_ip=bind_ip
         )
-        interface_user.update(
-            public_ip=vpn_client.ip if use_vpn else None,
-            public_port=public_port,
-            bind_port=bind_port
-        )
-        interface_ap.update(
-            host=attachment_point.get_host_for_useras_interface(),
-            public_ip=attachment_point.vpn.server_vpn_ip() if use_vpn else None
-        )
 
+        if use_vpn:
+            vpn_client = self._create_or_activate_vpn_client(attachment_point.vpn)
+            interface_user.update(
+                public_ip=vpn_client.ip,
+                public_port=public_port,
+                bind_port=None
+            )
+            interface_ap.update(
+                host=attachment_point.get_host_for_useras_interface(),
+                public_ip=attachment_point.vpn.server_vpn_ip()
+            )
+        else:
+            host.vpn_clients.update(active=False)   # deactivate all vpn clients
+            interface_user.update(
+                public_ip=None,
+                public_port=public_port,
+                bind_ip=None,
+                bind_port=bind_port
+            )
+            interface_ap.update(
+                host=attachment_point.get_host_for_useras_interface(),
+                public_ip=None
+            )
+
+        self.attachment_point = attachment_point
         self.installation_type = installation_type
         self.public_ip = public_ip
         self.bind_ip = bind_ip
@@ -524,34 +555,36 @@ class UserAS(AS):
         """
         Is this UserAS currently active?
         """
-        return self.interfaces.first().link().active
+        return self.interfaces.get().link().active
 
     def get_public_port(self):
-        return self.interfaces.first().public_port
+        return self.interfaces.get().public_port
 
     def set_active(self, active):
-        self.interfaces.first().link().set_active(active)
+        self.interfaces.get().link().set_active(active)
         # TODO(matzf) trigger AP config deployment (delayed?)
 
     def _get_ap_link(self):
         # FIXME(matzf): find the correct link to the AP if multiple links present!
-        return self.interfaces.first().link()
+        return self.interfaces.get().link()
 
-    def _create_or_activate_vpn_client(self):
+    def _create_or_activate_vpn_client(self, vpn):
         """
-        Get or create the VPN client config for the VPN of the current attachment point,
-        and activate it.
-        Deactivate all other vpn clients configured on this host.
+        Get or create the VPN client config for the given VPN.
+        Deactivate all other VPN clients configured on this host.
+        :param VPN vpn:
+        :returns: VPNClient
         """
-        host = self.hosts.first()
-        host.vpn_clients.update(active=False)
-        vpn_client = host.vpn_clients.filter(vpn=self.attachment_point.vpn).first()
+        host = self.hosts.get()
+        host.vpn_clients.exclude(vpn=vpn).update(active=False)
+        vpn_client = host.vpn_clients.filter(vpn=vpn).first()
         if vpn_client:
-            vpn_client.active = True
-            vpn_client.save()
+            if not vpn_client.active:
+                vpn_client.active = True
+                vpn_client.save()
             return vpn_client
         else:
-            return self.attachment_point.vpn.create_client(host)
+            return vpn.create_client(host)
 
 
 class AttachmentPoint(models.Model):
@@ -677,8 +710,8 @@ class Host(models.Model):
             for interface in self.interfaces.filter(public_ip=None).iterator():
                 interface.remote_as().bump_hosts_config()
 
-        self.save()
         self.AS.bump_hosts_config()
+        self.save()
 
     def find_free_port(self, ip, min, max=MAX_PORT):
         used_ports = self.find_used_ports(ip)
@@ -863,7 +896,7 @@ class Interface(models.Model):
         return (
             Link.objects.filter(interfaceA=self) |
             Link.objects.filter(interfaceB=self)
-        ).first()
+        ).get()
 
     def remote_interface(self):
         """
@@ -929,24 +962,27 @@ class Interface(models.Model):
         Helper for update: return the information that when changed triggers an update
         of both the remote and the local AS.
         """
-        return [self.get_public_ip(), self.public_port]
+        return [self.host.AS, self.get_public_ip(), self.public_port]
 
     def _get_local_info(self):
         """
         Helper for update: return the information that when changed triggers an update
         of only the local AS.
         """
-        return [self.host, self.get_bind_ip(), self.bind_port, self.internal_port]
+        return [self.get_bind_ip(), self.bind_port, self.host.internal_ip, self.internal_port]
 
 
 class LinkManager(models.Manager):
-    def create(self, type, kwargsA, kwargsB, active=True):
+    def create(self, type, interfaceA, interfaceB, active=True):
         """
-        Create an AS-Link from the AS of host A to to the AS of host B.
+        Create a Link
+        :param str type: Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
+        :param Interface interfaceA: interface representing the A side of the link
+        :param Interface interfaceB: interface representing the B side of the link
+        :param bool active: is the link created as active?
+        :returns: Link
         """
-        self._check_link(kwargsA.get('host'), kwargsB.get('host'))
-        interfaceA = Interface.objects.create(**kwargsA)
-        interfaceB = Interface.objects.create(**kwargsB)
+        self._check_link(type, interfaceA.AS, interfaceB.AS)
         return super().create(
             type=type,
             active=active,
@@ -954,23 +990,51 @@ class LinkManager(models.Manager):
             interfaceB=interfaceB,
         )
 
-    def create_default(self, type, as_a, as_b):
+    def create_from_hosts(self, type, host_a, host_b, active=True):
         """
-        Utility function, for tests etc.
-        Create a link between these ASes. The interfaces are created on
-        the first host of each AS.
+        Create a Link connecting the given two hosts.
+        Creates a default Interface for both hosts and a Link connecting the two Interfaces.
+        :param str type: Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
+        :param Host host_a: host on the A side of the link
+        :param Host host_b: host on the B side of the link
+        :param bool active: is the link created as active?
+        :returns: Link
         """
-        hostA = as_a.hosts.first()
-        hostB = as_b.hosts.first()
-        return self.create(type, dict(host=hostA), dict(host=hostB))
+        self._check_link(type, host_a.AS, host_b.AS)
+        interfaceA = Interface.objects.create(host=host_a)
+        interfaceB = Interface.objects.create(host=host_b)
+        return super().create(
+            type=type,
+            active=active,
+            interfaceA=interfaceA,
+            interfaceB=interfaceB,
+        )
 
-    def _check_link(self, hostA, hostB):
+    def create_from_ases(self, type, as_a, as_b, active=True):
+        """
+        Create a link connecting the given two ASes.
+        The interfaces are created on the *first* host of each AS.
+        Creates a default Interface for both hosts and a Link connecting the two Interfaces.
+
+        :param str type: Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
+        :param Host host_a: host on the A side of the link
+        :param Host host_b: host on the B side of the link
+        :param bool active: is the link created as active?
+        """
+        return self.create_from_hosts(
+            type=type,
+            active=active,
+            host_a=as_a.hosts.first(),
+            host_b=as_b.hosts.first(),
+        )
+
+    def _check_link(self, type, as_a, as_b):
         # TODO(matzf): validation (should be reusable for forms and for global system checks)
         # - no provider loops
         # - core links only for core ases
         # - no providers links for core ases
         # - no cross ISD provider links
-        if hostA.AS == hostB.AS:
+        if as_a == as_b:
             raise ValueError("Loop AS-link (from AS to itself) not allowed")
 
 
@@ -1015,32 +1079,23 @@ class Link(models.Model):
         for interface in filter(None, [self.get_interface_a(), self.get_interface_b()]):
             interface.delete()
 
-    def update(self,
-               type=None,
-               active=None,
-               kwargsA=None,
-               kwargsB=None):
+    def update(self, type=None, active=None):
         """
         Update the fields for this Link instance and the two related interfaces
         and immediately `save`. This will trigger a configuration bump for all
         Hosts in all affected ASes.
+        :param str type: optional, Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
+        :param bool active: optional, should the link be active?
         """
-        bump = False
-        if type is not None and type != self.type:
+        prev_info = [self.type, self.active]
+
+        if type is not None:
             self.type = type
-            bump = True
-
-        if active is not None and active != self.active:
+        if active is not None:
             self.active = active
-            bump = True
 
-        if kwargsA is not None:
-            self.interfaceA.update(**kwargsA)
-
-        if kwargsB is not None:
-            self.interfaceB.update(**kwargsB)
-
-        if bump:
+        new_info = [self.type, self.active]
+        if new_info != prev_info:
             self.save()
             self.interfaceA.AS.bump_hosts_config()
             self.interfaceB.AS.bump_hosts_config()
@@ -1049,6 +1104,7 @@ class Link(models.Model):
         """
         Set the link to be active/inactive.
         This will trigger a configuration bump for all Hosts in all affected ASes.
+        :param bool active: should the link be active?
         """
         if self.active != active:
             self.active = active

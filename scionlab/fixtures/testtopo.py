@@ -115,4 +115,4 @@ def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
 def _create_as_link(type, as_id_a, as_id_b):
     as_a = AS.objects.get(as_id=as_id_a)
     as_b = AS.objects.get(as_id=as_id_b)
-    Link.objects.create_default(type, as_a, as_b)
+    Link.objects.create_from_ases(type, as_a, as_b)

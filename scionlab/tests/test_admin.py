@@ -77,14 +77,14 @@ class LinkAdminFormTests(TestCase):
     def test_render_edit(self):
         as_a = AS.objects.first()
         as_b = AS.objects.last()
-        link = Link.objects.create_default(Link.PROVIDER, as_a, as_b)
+        link = Link.objects.create_from_ases(Link.PROVIDER, as_a, as_b)
         form = LinkAdminForm(instance=link)
         self.assertIsNotNone(form.as_table())
 
     def test_edit_link(self):
         as_a = AS.objects.first()
         as_b = AS.objects.last()
-        link = Link.objects.create_default(Link.PROVIDER, as_a, as_b)
+        link = Link.objects.create_from_ases(Link.PROVIDER, as_a, as_b)
 
         form_data = dict(
             type=Link.PROVIDER,

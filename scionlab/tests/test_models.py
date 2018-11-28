@@ -122,9 +122,7 @@ class LinkModificationTests(TestCase):
 
         Host.objects.reset_needs_config_deployment()
 
-        link = Link.objects.create(type=Link.PROVIDER,
-                                   kwargsA=dict(host=as_a.hosts.first()),
-                                   kwargsB=dict(host=as_b.hosts.first()))
+        link = Link.objects.create_from_ases(Link.PROVIDER, as_a, as_b)
         self._sanity_check_link(link)
         self.assertEqual(link.type, Link.PROVIDER)
         self.assertEqual(Interface.objects.count(), 2)
@@ -143,7 +141,7 @@ class LinkModificationTests(TestCase):
     def test_update_link(self):
         as_a = self._as_a()
         as_b = self._as_b()
-        link = Link.objects.create_default(Link.PROVIDER, as_a, as_b)
+        link = Link.objects.create_from_ases(Link.PROVIDER, as_a, as_b)
         self._sanity_check_link(link)
 
         Host.objects.reset_needs_config_deployment()

@@ -22,6 +22,7 @@ from .models import (
     AttachmentPoint,
     Host,
     Link,
+    Interface,
     Service,
     VPN,
     VPNClient,
@@ -297,18 +298,20 @@ class LinkAdminForm(forms.ModelForm):
         self.save_m2m = lambda: None
 
         if self.instance.pk is None:    # No pk means creating a new object
+            interfaceA = Interface.objects.create(**self._get_interface_form_data('from_'))
+            interfaceB = Interface.objects.create(**self._get_interface_form_data('to_'))
             return Link.objects.create(
                 type=self.cleaned_data['type'],
                 active=self.cleaned_data['active'],
-                kwargsA=self._get_interface_form_data('from_'),
-                kwargsB=self._get_interface_form_data('to_')
+                interfaceA=interfaceA,
+                interfaceB=interfaceB
             )
         else:
+            self.instance.interfaceA.update(**self._get_interface_form_data('from_'))
+            self.instance.interfaceB.update(**self._get_interface_form_data('to_'))
             self.instance.update(
                 type=self.cleaned_data['type'],
                 active=self.cleaned_data['active'],
-                kwargsA=self._get_interface_form_data('from_'),
-                kwargsB=self._get_interface_form_data('to_')
             )
             return self.instance
 
