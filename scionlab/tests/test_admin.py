@@ -19,6 +19,7 @@ from scionlab.models import AS, Link
 from scionlab.tests import utils
 from scionlab.admin import ASCreationForm, LinkAdminForm
 from scionlab.fixtures.testuser import TESTUSER_ADMIN_EMAIL
+from scionlab.models import ISD
 
 
 class ASAdminTests(TestCase):
@@ -26,8 +27,9 @@ class ASAdminTests(TestCase):
 
     def test_create_as_form(self):
         as_id = 'ff00:bad:f00d'
+        isd_17_pk = ISD.objects.get(isd_id=17).pk
         form_data = {
-            'isd': 17,
+            'isd': isd_17_pk,
             'as_id': as_id,
             'label': 'Test',
             'public_ip': '192.0.2.11'
@@ -35,12 +37,12 @@ class ASAdminTests(TestCase):
         # This mimicks what ModelAdmin does to create the form:
         form_factory = modelform_factory(AS, form=ASCreationForm, fields='__all__')
         form = form_factory(data=form_data)
-        self.assertTrue(form.is_valid())
+        self.assertTrue(form.is_valid(), form.errors.as_data())
         form.save()
 
         as_ = AS.objects.get(as_id=as_id)
         self.assertEqual(as_.as_id, as_id)
-        self.assertEqual(as_.isd.id, 17)
+        self.assertEqual(as_.isd.isd_id, 17)
         self.assertEqual(as_.label, 'Test')
         utils.check_as_keys(self, as_)
 
@@ -57,10 +59,10 @@ class LinkAdminFormTests(TestCase):
         as_b = AS.objects.last()
         form_data = dict(
             type=Link.PROVIDER,
-            from_host=as_a.hosts.first().id,
+            from_host=as_a.hosts.first().pk,
             from_public_port=50000,
             from_internal_port=30000,
-            to_host=as_b.hosts.first().id,
+            to_host=as_b.hosts.first().pk,
             to_public_port=50000,
             to_internal_port=30000,
         )
@@ -88,8 +90,8 @@ class LinkAdminFormTests(TestCase):
 
         form_data = dict(
             type=Link.PROVIDER,
-            from_host=as_a.hosts.first().id,
-            to_host=as_b.hosts.first().id,
+            from_host=as_a.hosts.first().pk,
+            to_host=as_b.hosts.first().pk,
             from_public_ip='192.0.2.1',
             from_public_port=50000,
             from_internal_port=30001,

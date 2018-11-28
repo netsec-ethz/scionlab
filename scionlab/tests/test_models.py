@@ -21,10 +21,10 @@ from scionlab.tests import utils
 class StringRepresentationTests(TestCase):
 
     def setUp(self):
-        isd17 = ISD.objects.create(id=17, label='Switzerland')
-        ISD.objects.create(id=18, label='North America')
-        ISD.objects.create(id=19, label='EU')
-        ISD.objects.create(id=60)
+        isd17 = ISD.objects.create(isd_id=17, label='Switzerland')
+        ISD.objects.create(isd_id=18, label='North America')
+        ISD.objects.create(isd_id=19, label='EU')
+        ISD.objects.create(isd_id=60)
 
         AS.objects.create(isd=isd17, as_id='ff00:0:1101', label='SCMN')
         AS.objects.create(isd=isd17, as_id='ff00:0:1102', label='ETHZ')
@@ -54,18 +54,18 @@ class StringRepresentationTests(TestCase):
 
 class InitASTests(TestCase):
     def test_create_as_with_keys(self):
-        isd = ISD.objects.create(id=17, label='Switzerland')
+        isd = ISD.objects.create(isd_id=17, label='Switzerland')
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
         utils.check_as_keys(self, as_)
 
     def test_create_coreas_with_keys(self):
-        isd = ISD.objects.create(id=17, label='Switzerland')
+        isd = ISD.objects.create(isd_id=17, label='Switzerland')
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
         utils.check_as_keys(self, as_)
         utils.check_as_core_keys(self, as_)
 
     def test_create_as_with_default_services(self):
-        isd = ISD.objects.create(id=17, label='Switzerland')
+        isd = ISD.objects.create(isd_id=17, label='Switzerland')
         as_ = AS.objects.create_with_default_services(
             isd=isd,
             as_id='ff00:1:1',
@@ -204,13 +204,13 @@ class DeleteASTests(TestCase):
     def test_delete_single_as(self):
         as_ = AS.objects.last()
 
-        host_ids = [h.id for h in as_.hosts.all().iterator()]
-        interface_ids = [h.id for h in as_.interfaces.all().iterator()]
-        service_ids = [h.id for h in as_.services.all().iterator()]
+        host_pks = [h.pk for h in as_.hosts.iterator()]
+        interface_pks = [h.pk for h in as_.interfaces.iterator()]
+        service_pks = [h.pk for h in as_.services.iterator()]
         # Check that we are testing something useful:
-        self.assertGreater(len(host_ids), 0, msg="Uninteresting test data")
-        self.assertGreater(len(interface_ids), 0, msg="Uninteresting test data")
-        self.assertGreater(len(service_ids), 0, msg="Uninteresting test data")
+        self.assertGreater(len(host_pks), 0, msg="Uninteresting test data")
+        self.assertGreater(len(interface_pks), 0, msg="Uninteresting test data")
+        self.assertGreater(len(service_pks), 0, msg="Uninteresting test data")
 
         Host.objects.reset_needs_config_deployment()
 
@@ -219,15 +219,15 @@ class DeleteASTests(TestCase):
         self.assertEqual(self.mock_as_pre_delete.call_count, 1)
 
         # Check hosts have not been deleted and `needs_config_deployment`:
-        for host_id in host_ids:
-            self.assertTrue(Host.objects.filter(id=host_id).exists())
-            self.assertTrue(Host.objects.get(id=host_id).needs_config_deployment())
+        for host_pk in host_pks:
+            self.assertTrue(Host.objects.filter(pk=host_pk).exists())
+            self.assertTrue(Host.objects.get(pk=host_pk).needs_config_deployment())
 
         # Check interfaces and service objects have been deleted
-        for interface_id in interface_ids:
-            self.assertFalse(Interface.objects.filter(id=interface_id).exists())
-        for service_id in service_ids:
-            self.assertFalse(Service.objects.filter(id=service_id).exists())
+        for interface_pk in interface_pks:
+            self.assertFalse(Interface.objects.filter(pk=interface_pk).exists())
+        for service_pk in service_pks:
+            self.assertFalse(Service.objects.filter(pk=service_pk).exists())
 
         # Check no dangling interfaces:
         self.assertFalse(

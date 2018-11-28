@@ -79,7 +79,7 @@ class User(auth_User):
 
 
 class ISD(models.Model):
-    id = models.PositiveIntegerField(primary_key=True)
+    isd_id = models.PositiveIntegerField()
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     trc = jsonfield.JSONField(
@@ -108,9 +108,9 @@ class ISD(models.Model):
 
     def __str__(self):
         if self.label:
-            return 'ISD %d (%s)' % (self.id, self.label)
+            return 'ISD %d (%s)' % (self.isd_id, self.label)
         else:
-            return 'ISD %d' % self.id
+            return 'ISD %d' % self.isd_id
 
 
 class ASManager(models.Manager):
@@ -243,7 +243,7 @@ class AS(models.Model):
         """
         :return: the ISD-AS string representation
         """
-        return '%d-%s' % (self.isd.id, self.as_id)
+        return '%d-%s' % (self.isd.isd_id, self.as_id)
 
     isd_as_str.short_description = 'ISD-AS'
 
@@ -1185,7 +1185,7 @@ class Service(models.Model):
         related_name='services',
         on_delete=models.CASCADE
     )
-    port = models.PositiveSmallIntegerField(null=True, blank=True)
+    port = models.PositiveSmallIntegerField(blank=True)
     type = models.CharField(
         choices=SERVICE_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT

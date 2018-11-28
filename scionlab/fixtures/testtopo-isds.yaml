@@ -1,30 +1,30 @@
 - model: scionlab.isd
-  pk: 16
-  fields: {label: AWS, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 1
+  fields: {isd_id: 16, label: AWS, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 17
-  fields: {label: Switzerland, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 2
+  fields: {isd_id: 17, label: Switzerland, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 18
-  fields: {label: North America, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 3
+  fields: {isd_id: 18, label: North America, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 19
-  fields: {label: EU, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 4
+  fields: {isd_id: 19, label: EU, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 20
-  fields: {label: Korea, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 5
+  fields: {isd_id: 20, label: Korea, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 21
-  fields: {label: Japan, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 6
+  fields: {isd_id: 21, label: Japan, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 22
-  fields: {label: Taiwan, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 7
+  fields: {isd_id: 22, label: Taiwan, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 23
-  fields: {label: Singapore, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 8
+  fields: {isd_id: 23, label: Singapore, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 24
-  fields: {label: Australia, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 9
+  fields: {isd_id: 24, label: Australia, trc: null, trc_priv_keys: null, trc_needs_update: true}
 - model: scionlab.isd
-  pk: 25
-  fields: {label: China, trc: null, trc_priv_keys: null, trc_needs_update: true}
+  pk: 10
+  fields: {isd_id: 25, label: China, trc: null, trc_priv_keys: null, trc_needs_update: true}

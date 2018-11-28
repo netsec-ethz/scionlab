@@ -40,18 +40,16 @@ admin.site.register([
 
 @admin.register(ISD)
 class ISDAdmin(admin.ModelAdmin):
-    fieldsets = (
-    )
-    list_display = ('id', 'label',)
+    list_display = ('isd_id', 'label',)
     list_editable = ('label',)
-    ordering = ['id']
+    ordering = ['isd_id']
 
     def get_fieldsets(self, request, obj=None):
         """
         Don't show trc fields during ISD creation
         """
         base_fields = (None, {
-            'fields': ('id', 'label',)
+            'fields': ('isd_id', 'label',)
         })
         trc_fields = ('TRC', {
             'classes': ('collapse',),
@@ -64,10 +62,9 @@ class ISDAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj):
         """
         Don't allow editing the ISD-id after creation.
-        Note: editing the primary key does not work anyway...
         """
         if obj:
-            return ('id',)
+            return ('isd_id',)
         return ()
 
 

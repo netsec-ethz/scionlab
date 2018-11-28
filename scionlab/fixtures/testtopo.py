@@ -17,7 +17,7 @@ from collections import namedtuple
 
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.
-ISDdef = namedtuple('ISDdef', ['id', 'label'])
+ISDdef = namedtuple('ISDdef', ['isd_id', 'label'])
 ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'public_ip', 'is_core', 'is_ap'])
 LinkDef = namedtuple('LinkDef', ['type', 'as_id_a', 'as_id_b'])
 
@@ -99,7 +99,7 @@ def create_testtopo_links():
 
 
 def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
-    isd = ISD.objects.get(id=isd_id)
+    isd = ISD.objects.get(isd_id=isd_id)
     as_ = AS.objects.create_with_default_services(
         isd=isd,
         as_id=as_id,
