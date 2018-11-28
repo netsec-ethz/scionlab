@@ -714,6 +714,14 @@ class Host(models.Model):
         self.save()
 
     def find_free_port(self, ip, min, max=MAX_PORT):
+        """
+        Find a free port for the given IP, in the range {min..max}.
+        :param str ip: IP
+        :param int min: start of the port range to search
+        :param int max: end of the port range to search (included)
+        :return: a free port
+        :raises: RuntimeError if no port could be found
+        """
         used_ports = self.find_used_ports(ip)
         for port in range(min, max):
             if port not in used_ports:
@@ -722,6 +730,8 @@ class Host(models.Model):
 
     def find_used_ports(self, ip):
         """
+        Find a set of ports used with the given IP.
+        :param str ip: IP
         :returns: Set of used ports for the given IP
         """
         ports = _value_set(self.interfaces.filter(public_ip=ip), 'public_port')
