@@ -40,8 +40,9 @@ MAX_INTERFACE_ID = 2**12-1
 USER_AS_ID_BEGIN = as_ids.parse('ffaa:1:1')
 USER_AS_ID_END = as_ids.parse('ffaa:1:ffff')
 
-DEFAULT_INTERFACE_PUBLIC_PORT = 50000
-DEFAULT_INTERFACE_INTERNAL_PORT = 30000
+DEFAULT_PUBLIC_PORT = 50000
+DEFAULT_INTERNAL_PORT = 30000
+DEFAULT_ZOOKEEPER_PORT = 2181
 DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
 
 _MAX_LEN_DEFAULT = 255
@@ -298,7 +299,7 @@ class AS(models.Model):
 
         default_services = (Service.BS, Service.PS, Service.CS, Service.ZK)
         for service_type in default_services:
-            Service.objects.create(AS=self, host=host, type=service_type)
+            Service.objects.create(host=host, type=service_type)
 
     def find_interface_id(self):
         """
@@ -696,6 +697,10 @@ class Host(models.Model):
         """
         return self.config_version_deployed < self.config_version
 
+    def bump_config(self):
+        self.config_version += 1
+        self.save()
+
     def update_interface_ips(self, public_ip, bind_ip):
         """
         Update the public_ip/bind_ip of this host instance, and immediately `save`.
@@ -938,7 +943,7 @@ class Interface(models.Model):
         :param int public_port: optional
         """
         return public_port or host.find_free_port(public_ip or host.public_ip,
-                                                  min=DEFAULT_INTERFACE_PUBLIC_PORT)
+                                                  min=DEFAULT_PUBLIC_PORT)
 
     @staticmethod
     def _assign_bind_port(host, public_ip, bind_ip, bind_port):
@@ -952,7 +957,7 @@ class Interface(models.Model):
         """
         if not bind_port and (bind_ip or (not public_ip and host.bind_ip)):
             return host.find_free_port(bind_ip or host.bind_ip,
-                                       min=DEFAULT_INTERFACE_PUBLIC_PORT)
+                                       min=DEFAULT_PUBLIC_PORT)
         else:
             return bind_port
 
@@ -965,7 +970,7 @@ class Interface(models.Model):
         :param int internal_port: optional
         """
         return internal_port or host.find_free_port(host.internal_ip,
-                                                    min=DEFAULT_INTERFACE_INTERNAL_PORT)
+                                                    min=DEFAULT_INTERNAL_PORT)
 
     def _get_public_info(self):
         """
@@ -1133,6 +1138,23 @@ class Link(models.Model):
         return None
 
 
+class ServiceManager(models.Manager):
+    def create(self, host, type, port=None):
+        """
+        Create a Service object.
+        :param Host host: the host, defines the AS
+        :param str type: Service type (Service.BS, PS, CS, ZK, BW, or PP)
+        :returns: Service
+        """
+        Service._bump_affected(host, type)
+        return super().create(
+            AS=host.AS,
+            host=host,
+            type=type,
+            port=Service._assign_service_port(host, type, port)
+        )
+
+
 class Service(models.Model):
     """
     A SCION service, both for the control plane services (beacon, path, ...)
@@ -1168,6 +1190,47 @@ class Service(models.Model):
         choices=SERVICE_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
+
+    objects = ServiceManager()
+
+    def _pre_delete(self):
+        """
+        Called by the pre_delete signal handler `_service_pre_delete`.
+        Note: the pre_delete signal has the advantage that it is called
+        also for bulk deletion, while this `delete()` method is not.
+        """
+        Service._bump_affected(self.host, self.type)
+
+    @staticmethod
+    def _assign_service_port(host, type, port):
+        """
+        Helper to assign the public port. Returns the given public_port if defined,
+        otherwise, selects and returns an appropriate free port.
+        :param Host host: host
+        :param str type: Service type
+        :param int port: optional, a free port is selected if not specified
+        """
+        if port:
+            return port
+
+        if type == Service.ZK:
+            return DEFAULT_ZOOKEEPER_PORT
+        else:
+            return host.find_free_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
+
+
+    @staticmethod
+    def _bump_affected(host, type):
+        """
+        Helper: trigger a configuration bump for the hosts affected by a service of the given type
+        on the given host.
+        :param Host host:
+        :param str type: Service type
+        """
+        if type in [Service.BS, Service.PS, Service.CS, Service.ZK]:
+            host.AS.bump_hosts_config()
+        else:
+            host.bump_config()
 
 
 class VPN(models.Model):
@@ -1221,6 +1284,11 @@ def _interface_pre_delete(sender, instance, using, **kwargs):
 @receiver(post_delete, sender=Link, dispatch_uid='link_delete_callback')
 def _link_post_delete(sender, instance, using, **kwargs):
     instance._post_delete()
+
+
+@receiver(pre_delete, sender=Service, dispatch_uid='service_delete_callback')
+def _service_pre_delete(sender, instance, using, **kwargs):
+    instance._pre_delete()
 
 
 def _base64encode(key):

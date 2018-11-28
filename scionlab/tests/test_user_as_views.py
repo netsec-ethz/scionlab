@@ -17,7 +17,7 @@ from django.test import TestCase
 from parameterized import parameterized, param
 from django.urls import reverse
 from django_webtest import WebTest
-from scionlab.models import User, UserAS, AttachmentPoint, VPN, DEFAULT_INTERFACE_PUBLIC_PORT
+from scionlab.models import User, UserAS, AttachmentPoint, VPN, DEFAULT_PUBLIC_PORT
 from scionlab.fixtures.testuser import get_testuser, TESTUSER_EMAIL
 from scionlab.fixtures import testtopo
 from scionlab.views.user_as_views import UserASForm
@@ -270,7 +270,7 @@ class UserASCreateTests(_WebTestHack):
         self.assertEqual([o[2] for o in form['attachment_point'].options],
                          self.attachment_points)
         self.assertEqual(form['public_port'].value,
-                         str(DEFAULT_INTERFACE_PUBLIC_PORT))
+                         str(DEFAULT_PUBLIC_PORT))
 
     @parameterized.expand(UserASFormTests.valid_form_params)
     def test_submit_create_form_valid(self, **kwargs):

@@ -15,6 +15,153 @@
 import re
 import base64
 import lib.crypto.asymcrypto
+from collections import namedtuple, Counter
+from scionlab.models import AS, Host, Service, Link, MAX_PORT
+
+
+def check_topology(testcase):
+    """
+    Run all sanity checks for the current state of the models in the DB.
+    """
+    for as_ in AS.objects.iterator():
+        check_as_services(testcase, as_)
+        check_as_keys(testcase, as_)
+        if as_.is_core:
+            check_as_core_keys(testcase, as_)
+    for host in Host.objects.iterator():
+        check_host_ports(testcase, host)
+    for link in Link.objects.iterator():
+        check_link(testcase, link)
+
+
+def check_as_services(testcase, as_):
+    """
+    Check that all the AS has all required services configured.
+    """
+    counter = Counter(service.type for service in as_.services.iterator())
+    testcase.assertGreaterEqual(counter[Service.BS], 1)
+    testcase.assertGreaterEqual(counter[Service.PS], 1)
+    testcase.assertGreaterEqual(counter[Service.CS], 1)
+    testcase.assertEqual(counter[Service.ZK], 1)
+
+
+def check_host_ports(testcase, host):
+    """
+    Check that no port on the given host is used twice.
+    """
+    ports_used = {}
+
+    def _add_port(ip, port):
+        _check_port(testcase, port)
+        ip_port_counter = ports_used.setdefault(ip, Counter())
+        ip_port_counter[port] += 1
+
+    for interface in host.interfaces.iterator():
+        _add_port(interface.get_public_ip(), interface.public_port)
+        _add_port(interface.host.internal_ip, interface.internal_port)
+        if interface.get_bind_ip():
+            _add_port(interface.get_bind_ip(), interface.bind_port)
+
+    for service in host.services.iterator():
+        _add_port(service.host.internal_ip, service.port)
+
+    clashes = []
+    for ip, ip_port_counter in ports_used.items():
+        for port, count in ip_port_counter.items():
+            if count > 1:
+                clashes.append(dict(ip=ip, port=port, count=count))
+
+    testcase.assertEqual(clashes, [], "Ports clashing on host %s" % host)
+
+
+LinkDescription = namedtuple('LinkDescription', [
+    'type',
+    'from_as_id',
+    'from_public_ip',
+    'from_public_port',
+    'from_bind_ip',
+    'from_bind_port',
+    'from_internal_ip',
+    'from_internal_port',
+    'to_as_id',
+    'to_public_ip',
+    'to_public_port',
+    'to_bind_ip',
+    'to_bind_port',
+    'to_internal_ip',
+    'to_internal_port',
+])
+
+
+def check_links(testcase, link_descriptions):
+    """
+    Check that the system contains exactly the links described.
+    :param TestCase testcase: for assertions
+    :param [LinkDescription] link_descriptions: the expected state of the links
+    """
+    for link in Link.objects.iterator():
+        check_link(testcase, link)
+    actual_link_descs = [_describe_link(testcase, l) for l in Link.objects.iterator()]
+    testcase.assertEqual(sorted(actual_link_descs), sorted(link_descriptions))
+
+
+def check_link(testcase, link, link_desc=None):
+    """
+    Check that link is in a sane state.
+    If a LinkDescription is provided, check that the current state of the link corresponds to the
+    expected state.
+    :param TestCase testcase: for assertions
+    :param Link link: link to be checked
+    :param LinkDescription link_desc: optional, the expected state of the link
+    """
+    testcase.assertIsNotNone(link)
+    testcase.assertIsNotNone(link.interfaceA)
+    testcase.assertIsNotNone(link.interfaceB)
+    testcase.assertEqual(link.interfaceA.AS, link.interfaceA.host.AS)
+    testcase.assertEqual(link.interfaceB.AS, link.interfaceB.host.AS)
+    _check_port(testcase, link.interfaceA.public_port)
+    _check_port(testcase, link.interfaceA.internal_port)
+    if link.interfaceA.get_bind_ip():
+        _check_port(testcase, link.interfaceA.bind_port)
+    _check_port(testcase, link.interfaceB.public_port)
+    _check_port(testcase, link.interfaceB.internal_port)
+    if link.interfaceB.get_bind_ip():
+        _check_port(testcase, link.interfaceB.bind_port)
+
+    if link_desc:
+        actual_link_desc = _describe_link(link)
+        testcase.assertEqual(link_desc, actual_link_desc)
+
+
+def _describe_link(testcase, link):
+    """
+    Helper for checks. Return the LinkDescription describing the current state of the link.
+    """
+    return LinkDescription(
+        type=link.type,
+        from_as_id=link.interfaceA.AS.as_id,
+        from_public_ip=link.interfaceA.get_public_ip(),
+        from_public_port=link.interfaceA.public_port(),
+        from_bind_ip=link.interfaceA.bind_ip(),
+        from_bind_port=link.interfaceA.bind_port,
+        from_internal_ip=link.interfaceA.host.internal_ip,
+        from_internal_port=link.interfaceA.internal_port,
+        to_as_id=link.interfaceB.AS.as_id,
+        to_public_ip=link.interfaceB.get_public_ip(),
+        to_public_port=link.interfaceB.public_port(),
+        to_bind_ip=link.interfaceB.bind_ip(),
+        to_bind_port=link.interfaceB.bind_port,
+        to_internal_ip=link.interfaceB.host.internal_ip,
+        to_internal_port=link.interfaceB.internal_port,
+    )
+
+
+def _check_port(testcase, port):
+    """
+    Check that this looks like a valid port.
+    """
+    testcase.assertIsNotNone(port)
+    testcase.assertTrue(1024 < port <= MAX_PORT, port)
 
 
 def check_as_keys(testcase, as_):

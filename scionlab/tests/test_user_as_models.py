@@ -26,6 +26,7 @@ from scionlab.models import (
 )
 from scionlab.fixtures import testtopo
 from scionlab.fixtures.testuser import get_testuser
+from scionlab.tests import utils
 
 
 def _setup_vpn_attachment_point():
@@ -60,7 +61,7 @@ def _get_public_ip_testtopo(as_id):
     :return: str, ip
     """
     asdef = next(a for a in testtopo.ases if a.as_id == as_id)
-    return asdef.default_host_ip
+    return asdef.public_ip
 
 
 class GenerateUserASIDTests(TestCase):
@@ -199,6 +200,7 @@ class UpdateUserASTests(TestCase):
                  attachment_point_2.AS.hosts.all())
         )
 
+        utils.check_topology(self)
         # TODO check links
 
     def test_cycle_ap(self):
