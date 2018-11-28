@@ -1218,7 +1218,6 @@ class Service(models.Model):
         else:
             return host.find_free_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
 
-
     @staticmethod
     def _bump_affected(host, type):
         """
