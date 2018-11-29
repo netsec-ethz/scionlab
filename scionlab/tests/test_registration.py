@@ -115,6 +115,6 @@ class ActivationRequiredTest(TestCase):
         # Check success
         self.assertTemplateUsed(
             response,
-            'scionlab/ASes_overview.html',
+            'scionlab/user.html',
             "Expected user page template."
         )

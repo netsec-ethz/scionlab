@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.views.generic import TemplateView
 
-
-class ASesView(TemplateView):
-    template_name = 'scionlab/ASes_overview.html'
+def grafana_url(request):
+    """
+    Inject the `settings.GRAFANA_URL` into the request context to make
+    it available for the navbar in the scionlab/base.html template
+    """
+    from django.conf import settings
+    return {'grafana_url': settings.GRAFANA_URL}

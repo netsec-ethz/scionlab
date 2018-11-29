@@ -1,0 +1,16 @@
+{% extends 'scionlab/base.html' %}
+
+{% block title %}Delete User AS{% endblock %}
+
+{% block content %}
+<h2>Are you sure?</h2>
+
+<form action="" method="post">{% csrf_token %}
+  <p>Are you sure you want to delete AS {{ object }}?</p>
+
+  <input type="submit" value="Yes, delete it!" class="btn btn-danger"/>
+  <a href="{% url 'user_as_detail' pk=object.pk %}" class="btn btn-outline-dark">
+    No, take me back
+  </a>
+</form>
+{% endblock content %}

@@ -1,3 +1,5 @@
+#!/bin/sh
+#
 # Copyright 2018 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,18 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .common import *
+set -e
 
-ALLOWED_HOSTS = [
-    # TODO
-]
+rm run/dev.sqlite3 || true
+rm -r scionlab/migrations/ || true
 
-DATABASES = {
-    # TODO
+python manage.py makemigrations scionlab
+python manage.py migrate
 
-    # Imporant:
-    # ATOMIC_REQUESTS: True
-}
+python manage.py createsuperuser --username admin --email admin@scionlab.org --noinput
+python manage.py shell -c 'from scionlab.models import User; u = User.objects.get(username="admin"); u.set_password("admin"); u.save()'
 
-# ##### MAILER CONFIGURATION ##############################
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+python manage.py loaddata scionlab/fixtures/testtopo-ases-links.yaml

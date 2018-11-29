@@ -17,6 +17,7 @@ from .common import *
 
 # ##### DEBUG CONFIGURATION ###############################
 DEBUG = True
+TEMPLATES[0]['OPTIONS']['debug'] = True
 
 # allow all hosts during development
 ALLOWED_HOSTS = ['*']
@@ -26,6 +27,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'run', 'dev.sqlite3'),
+        'ATOMIC_REQUESTS': True,
     }
 }
 

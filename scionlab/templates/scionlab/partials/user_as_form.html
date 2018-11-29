@@ -1,0 +1,79 @@
+{% load widget_tweaks %}
+
+{# Partial with the fields for a User-AS form. To be included inside a <form>-tag. #}
+{# TODO(matzf): JS: hide use_vpn if *selected* AP does not support VPN #}
+{# TODO(matzf): JS: hide public-ip field if use_vpn is selected #}
+{# TODO(matzf): add bind-address/port (hidden/collapsed by default?), #}
+{# TODO(matzf): should we just use django-crispy-forms? #}
+
+{% if form.non_field_errors %}
+<div class="alert alert-warning">
+  {{ form.non_field_errors }}
+</div>
+{% endif %}
+<div class="form-group has-feedback">
+  {{ form.label.errors }}
+  {{ form.attachment_point.label_tag }}
+  <div class="input-group">
+    {% render_field form.attachment_point class="form-control" %}
+    <div class="input-group-append">
+      <span class="input-group-text bg-white">
+        <span class="fa fa-cloud"/>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="form-group has-feedback">
+  {{ form.label.errors }}
+  {{ form.label.label_tag }}
+  <div class="input-group">
+    {% render_field form.label class="form-control" placeholder=form.label.label %}
+    <div class="input-group-append">
+      <span class="input-group-text bg-white">
+        <span class="fa fa-pencil"/>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  {{ form.installation_type.errors }}
+  {% for choice in form.installation_type %}
+  <div>
+    {{ choice.tag }}
+    <label class="form-check-label" for="{{ choice.id_for_label }}">
+      {{ choice.choice_label }}
+    </label>
+  </div>
+  {% endfor %}
+</div>
+<div class="form-group">
+  {{ form.use_vpn.errors }}
+  {{ form.use_vpn }}
+  <label class="form-check-label" for="{{ form.use_vpn.id_for_label }}">
+    {{ form.use_vpn.label }}
+  </label>
+</div>
+<div class="form-group has-feedback">
+  {{ form.public_ip.errors }}
+  {{ form.public_ip.label_tag }}
+  <div class="input-group">
+    {% render_field form.public_ip class="form-control" placeholder=form.public_ip.label %}
+    <div class="input-group-append">
+      <span class="input-group-text bg-white">
+        <span class="fa fa-home"/>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="form-group has-feedback">
+  {{ form.public_port.errors }}
+  {{ form.public_port.label_tag }}
+  <div class="input-group">
+    {% render_field form.public_port class="form-control" placeholder="Port (default: 50000)" %}
+    <div class="input-group-append">
+      <span class="input-group-text bg-white">
+        <span class="fa fa-sign-in"/>
+      </span>
+    </div>
+  </div>
+</div>

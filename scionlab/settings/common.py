@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'scionlab',
     'django_registration',  # used for two-step user account activation (Email verification)
     'snowpenguin.django.recaptcha2',  # used for human verification (no bot)
+    'widget_tweaks',    # used to control form widget in the template
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,6 +56,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'scionlab.context_processors.grafana_url',
             ],
         },
     },
@@ -66,6 +68,7 @@ TEMPLATES = [
 STATIC_URL = '/static/'
 
 # ##### AUTH CONFIGURATION ################################
+AUTHENTICATION_BACKENDS = ['scionlab.auth_backends.ProxyModelBackend', ]
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'user'
 
@@ -74,6 +77,38 @@ LOGIN_REDIRECT_URL = 'user'
 # django_registration
 ACCOUNT_ACTIVATION_DAYS = 14  # Allow a two-week time window for account activation after signup
 REGISTRATION_OPEN = True  # Accept new registrations
+
+# ##### DEFAULT SETTINGS CONFIGURATION ####################
+MAX_ASES_ADMIN = 10
+MAX_ASES_USER = 5
+GRAFANA_URL = "https://prometheus.scionlab.org"
+IOT_IMAGES = [
+    {
+        "name": "ubuntu-odroid-xu4",
+        "display_name": "Odroid XU4 Ubuntu minimal image",
+        "description": "Short description",
+        "version": "1.0"
+    },
+    {"name": "rpi-2-ubuntu",
+     "display_name": "Raspberry PI 2 Ubuntu",
+     "description": "Short description.",
+     "version": "1.0"
+     },
+    {"name": "rpi-3-ubuntu",
+     "display_name": "Raspberry PI 3 Ubuntu",
+     "description": "Short description...",
+     "version": "1.0"
+     },
+    {"name": "rpi-mate",
+     "display_name": "Raspberry PI Ubuntu MATE",
+     "description": "Short description.",
+     "version": "1.0"
+     },
+    {"name": "odroid-xu4-mate",
+     "display_name": "Odroid XU4 Ubuntu MATE",
+     "description": "Short description",
+     "version": "1.0"}
+]
 
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []

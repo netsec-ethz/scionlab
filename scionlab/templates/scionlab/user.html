@@ -1,205 +1,40 @@
-<br class="wrapper" ng-show="user">
+{% extends 'scionlab/base.html' %}
 
-  <div class="spacer"></div>
-  <h3>Welcome to SCIONLab!</h3>
+{% block title %}User ASes{% endblock %}
 
-  <span ng-if="grafanaLink.length > 0">
-    <a target="_blank" ng-href="{{grafanaLink}}">Grafana Monitor</a>
-  </span>
+{% block content %}
+<h3>Welcome to SCIONLab!</h3>
 
-
-  <div ng-show="asInfos" class="alert alert-info">
-    <p>
-      <span ng-if="asInfos.length == 0">
-        You currently have no registered SCIONLab ASes.
-      </span>
-      <span ng-if="asInfos.length > 0">
-        You currently have <strong>{{asInfos.length}}</strong> SCIONLab AS{{asInfos.length > 1 ? "es" : ""}}.
-      </span>
-      <span ng-if="asInfos.length < maxASes">
-        You can create up to {{maxASes}} ASes with your account.
-        Please use the button below.
-      </span>
-      <span ng-if="asInfos.length >= maxASes">
-        You have reached the maximum number of ASes and cannot create further ones.
-      </span>
-    </p>
-  </div>
-
-  <button ng-click="generateSCIONLabAS()" ng-hide="asInfos.length >= maxASes"
-          class="btn btn-success btn-block">
-    Generate a new SCIONLab AS
-  </button>
-
-  <br/>
-  <div ng-show="error1" class="alert alert-danger alert-dismissible fade in">
-    <button type="button" class="close" aria-label="Close" ng-click="dismissError(1)">&times;
-    </button>
-  {{error1}}
-  </div>
-  <div ng-show="message1" class="alert alert-success alert-dismissible fade in">
-    <button type="button" class="close" aria-label="Close" ng-click="dismissSuccess(1)">&times;
-    </button>
-  {{message1}}
-  </div>
-
-  <div ng-if="asInfos.length > 0">
-    <p>
-      You can configure and download you SCIONLab AS configurations using the form below.
-      Please extract the downloaded tarball in a desired location and refer to the
-      README.md file inside or the <a href="https://netsec-ethz.github.io/scion-tutorials/">
-      SCION tutorials</a> for instructions.
-    </p>
-    <p>
-      If you have a static public IP address, please select that option below and specify your IP
-      address and the port you want to use for the connection (default: 50000).
-      Otherwise, a VPN-based setup is set up for you, such that you do not need to apply any
-      further configuration.
-    </p>
-  </div>
-
-  <div>
-    <span>You can change your password <a href="#/account">here</a>.</span>
-  </div>
-
-  <div class="spacer"></div>
-
-  <select class="form-control btn btn-primary dropdown-toggle" ng-model="asInfo"
-          ng-options="'AS ' + x.IALabel group by x.StatusStr for x in asInfos | orderBy:
-          ['StatusStr', 'IALabel']" ng-show="asInfos.length">
-  </select>
-
-  <strong>
-    {{asInfo.ASText}}
-  </strong>
-  <p></p>
-  <!-- The asInfo.Type is enumerated as Infrastructure: 0, VM: 1, Dedicated: 2, Box: 3 -->
-  <form ng-show="asInfo" name="scionLabASForm">
-    <div class="form-group has-feedback">
-      <label>Attachment point to connect to</label>
-        <select name="AP" class="form-control dropdown-toggle" ng-model="asInfo.AP"
-                ng-options="i as x.Label group by x.ISD for (i, x) in aps"
-                ng-disabled="asInfo.Type == 0" required ng-change="disableVPN(asInfo.AP)">
-        </select>
-      <span class="glyphicon glyphicon-cloud form-control-feedback"></span>
-    </div>
-    <div class="form-group has-feedback">
-      <label>Label for this AS (optional)</label>
-      <input type="text" class="form-control" ng-model="asInfo.Label" name="Label"
-             placeholder="Label for this AS" ng-disabled="asInfo.Type == 0">
-      <span class="glyphicon glyphicon-pencil form-control-feedback"></span>
-    </div>
-    <div class="form-group">
-      <div class="radio">
-        <label><input type="radio" ng-model="asInfo.Type" value="1" ng-disabled="asInfo.Type == 0">
-          Install inside a virtual machine
-        </label>
-      </div>
-      <div class="radio">
-        <label><input type="radio" ng-model="asInfo.Type" value="2" ng-disabled="asInfo.Type == 0">
-          Install on a dedicated SCION system (for experts)
-        </label>
-      </div>
-    </div>
-    <div class="form-group checkbox" ng-hide="!aps[asInfo.AP].HasVPN">
-        <label>
-          <input type="checkbox" ng-model="asInfo.IsVPN" name="IsVPN"
-                 ng-disabled="asInfo.Type == 0">
-          Use an OpenVPN connection for this AS
-        </label>
-    </div>
-    <div class="form-group has-feedback" ng-show="!asInfo.IsVPN">
-      <label>My host's public IP address</label>
-      <input type="text" class="form-control" ng-model="asInfo.IP" name="IP"
-             placeholder="My host's public IP address" ng-required="!asInfo.IsVPN"
-             ng-pattern="/^(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/"
-             ng-disabled="asInfo.Type == 0">
-      <span class="glyphicon glyphicon-home form-control-feedback"></span>
-    </div>
-    <div class="form-group has-feedback">
-      <label>Port where this AS accepts traffic</label>
-      <input type="number" class="form-control" min="1024" max="65535" required
-             ng-model="asInfo.Port" name="Port" placeholder="Port (default: 50000)"
-             ng-disabled="asInfo.Type == 0">
-      <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
-    </div>
-
-    <div class="row">
-      <div class="col-xs-12">
-        <div id="buttongroup" ng-class="{true:'btn-group-vertical btn-block',
-        false:'btn-group btn-group-justified'}[isSmall]">
-          <div ng-repeat="button in asInfo.Buttons" class="btn-group" role="group"
-               ng-if="button.Hide == false">
-            <button ng-click="submitForm(button.Action, user, asInfo)" ng-disabled="button.Disable"
-                    class="btn btn-primary {{button.Class}}" data-toggle="tooltip"
-                    title="{{button.Disable ? button.TooltipDisabled : ''}}">
-              {{button.Text}}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </form>
-
-
-  <div ng-if="asInfos.length > 0">
-    <div>
-      <h3>Create SCION image for IoT device</h3>
-      <p>
-        This option allows you to generate prebuilt images for some of the most popular IoT devices that contain a preinstalled SCION AS.
-        For this option to be enabled you must select option <strong>"Install on a dedicated SCION system"</strong>. 
-        Choose the device you have and click on <strong>"Build image"</strong>.
-      </p>
-    </div>
-
-    <div class="row">
-      <div class="col-xs-4">
-        <select class="form-control btn btn-primary dropdown-toggle" ng-model="selectedImage"
-              ng-options="img.name as img.display_name for img in availableImages">
-              <option value="">Select image</option>
-        </select>
-      </div>
-
-      <div class="col-xd-4">
-          <button ng-click="buildImage(selectedImage, asInfo)"
-              class="btn btn-primary" data-toggle="tooltip"
-              title="Build image" ng-disabled="(!selectedImage) || asInfo.Type!=2">
-            Build image
-          </button>
-      </div>
-
-    </div>
-    <div class="row">
-
-        <div class="col-xs-12">
-            <h3>Available images will appear underneath</h3>
-
-            <div id="buttongroup" ng-class="{true:'btn-group-vertical btn-block',
-              false:'btn-group btn-group-justified'}[isSmall]">
-
-              <div ng-repeat="userImg in userImages" class="btn-group" role="group">
-                <button ng-click="downloadImage(userImg)" class="btn btn-default" data-toggle="tooltip" 
-                ng-disabled="userImg.status=='building'">
-                  {{userImg.status=='building' && 'Building' || 'Download: '}} {{userImg.displayName}}
-                </button>
-              </div>
-
-            </div>
-          </div>
-    </div>
-  </div>
-
-  <br/>
-  <div ng-show="error2" class="alert alert-danger alert-dismissible fade in">
-    <button type="button" class="close" aria-label="Close" ng-click="dismissError(2)">&times;
-    </button>
-    {{error2}}
-  </div>
-  <div ng-show="message2" class="alert alert-success alert-dismissible fade in">
-    <button type="button" class="close" aria-label="Close" ng-click="dismissSuccess(2)">&times;
-    </button>
-    {{message2}}
-  </div>
-
-    <div class="spacer"></div>
+<div class="alert alert-info">
+  <p>
+    {% if object_list.count == 0 %}
+    You currently have no registered SCIONLab ASes.
+    {% else %}
+    You currently have <strong>{{ object_list.count }}</strong> SCIONLab AS{{ object_list.count|pluralize:"es" }}.
+    {% endif %}
+  </p>
+  <p>
+    {% if object_list.count < request.user.max_num_ases %}
+    You can create up to {{ request.user.max_num_ases }} ASes with your account.
+    Please use the button below to create a new AS.
+    {% else %}
+    You have reached the maximum number of ASes and cannot create further ones.
+    {% endif %}
+  </p>
 </div>
+
+<div class="spacer"></div>
+<div>
+  <h3>Your ASes</h3>
+  <ul>
+  {% for user_as in object_list %}
+      <li><a href="{% url 'user_as_detail' pk=user_as.pk %}">{{ user_as.as_id }}</a></li>
+  {% empty %}
+      <li>You have no AS yet.</li>
+  {% endfor %}
+  </ul>
+</div>
+{%  if object_list.count < request.user.max_num_ases %}
+<a class="btn btn-primary" href="{% url 'user_as_add' %}">Create a new SCIONLab AS</a>
+{% endif %}
+{% endblock content %}

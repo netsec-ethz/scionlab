@@ -26,3 +26,4 @@ python manage.py createsuperuser
 # start the server
 python manage.py runserver
 ```
+
