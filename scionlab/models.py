@@ -237,7 +237,7 @@ class AS(models.Model):
         if self.is_core:
             self._bump_hosts_config_core_change()
         else:
-            self.bump_hosts_config()
+            self.hosts.bump_config()
 
     def isd_as_str(self):
         """
@@ -274,7 +274,7 @@ class AS(models.Model):
         # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
         self.certificates_needs_update = True
-        self.bump_hosts_config()
+        self.hosts.bump_config()
 
     def update_core_keys(self):
         """
@@ -311,9 +311,6 @@ class AS(models.Model):
                 return candidate_id
         raise RuntimeError('Interface IDs exhausted')
 
-    def bump_hosts_config(self):
-        self.hosts.update(config_version=F('config_version') + 1)
-
     def _bump_hosts_config_core_change(self):
         # TODO(matzf): untested
         self.isd.trc_needs_update = True
@@ -322,7 +319,7 @@ class AS(models.Model):
             .ases \
             .filter(is_core=True) \
             .hosts \
-            .update(config_version=F('config_version') + 1)
+            .bump_config()
 
         # TODO(matzf): add issuer/subject relation, reset certificates for all signed_by
 
@@ -508,7 +505,7 @@ class UserAS(AS):
         interface_user = link.interfaceB
         assert interface_user.host == host
 
-        host.update_interface_ips(
+        host.update(
             public_ip=public_ip,
             bind_ip=bind_ip
         )
@@ -626,6 +623,12 @@ class AttachmentPoint(models.Model):
 
 
 class HostManager(models.Manager):
+    def bump_config(self):
+        """
+        Increment the config version counter, i.e. set `needs_config_deployement` to True.
+        """
+        self.update(config_version=F('config_version') + 1)
+
     def reset_needs_config_deployment(self):
         """
         Reset `needs_config_deployement` to False for all hosts.
@@ -698,29 +701,53 @@ class Host(models.Model):
                managed=_placeholder,
                management_ip=_placeholder,
                ssh_port=_placeholder):
-        #TODO
+        """
+        Update the specified fields of this host instance, and immediately `save`.
+        Updates to the IPs will trigger a configuration bump for all Hosts in all affected ASes.
 
+        :param str internal_ip: optional, IP of the host in the AS
+        :param str public_ip: optional, default public IP for border router interfaces on this host
+        :param str bind_ip: optional, default bind IP for border router interfaces on this host
+        :param str label: optional
+        :param bool managed: optional
+        :param str management_ip: optional, public IP of the host for management
+        :param int ssh_port: optional, port used for
+        """
 
+        prev_internal_ip = self.internal_ip
+        prev_public_ip = self.public_ip
+        prev_bind_ip = self.bind_ip
+
+        if internal_ip is not _placeholder:
+            self.internal_ip = internal_ip or None
+        if public_ip is not _placeholder:
+            self.public_ip = public_ip or None
+        if bind_ip is not _placeholder:
+            self.bind_ip = bind_ip or None
+        if label is not _placeholder:
+            self.label = label or None
+        if managed is not _placeholder:
+            self.managed = managed
+        if management_ip is not _placeholder:
+            self.management_ip = management_ip or None
+        if ssh_port is not _placeholder:
+            self.ssh_port = ssh_port
+        self.save()
+
+        bump_internal_ip = (self.internal_ip != prev_internal_ip) and self.services.exists()
+        has_affected_interfaces = self.interfaces.filter(public_ip=None).exists()
+        bump_public_ip = (self.public_ip != prev_public_ip) and has_affected_interfaces
+        bump_bind_ip = (self.bind_ip != prev_bind_ip) and has_affected_interfaces
+
+        if bump_internal_ip or bump_public_ip or bump_bind_ip:
+            self.AS.hosts.bump_config()
+        if bump_public_ip:
+            # bump affected remote ASes
+            for interface in self.interfaces.filter(public_ip=None).iterator():
+                interface.remote_as().hosts.bump_config()
 
     def bump_config(self):
         self.config_version += 1
-        self.save()
-
-    def update_interface_ips(self, public_ip, bind_ip):
-        """
-        Update the public_ip/bind_ip of this host instance, and immediately `save`.
-        This will trigger a configuration bump for all Hosts in all affected ASes.
-        """
-        if bind_ip != self.bind_ip:
-            self.bind_ip = bind_ip
-
-        if public_ip != self.public_ip:
-            self.public_ip = public_ip
-            # bump affected remote ASes
-            for interface in self.interfaces.filter(public_ip=None).iterator():
-                interface.remote_as().bump_hosts_config()
-
-        self.AS.bump_hosts_config()
         self.save()
 
     def needs_config_deployment(self):
@@ -786,7 +813,7 @@ class InterfaceManager(models.Manager):
         public_port = Interface._assign_public_port(host, public_ip, public_port)
         bind_port = Interface._assign_bind_port(host, public_ip, bind_ip, bind_port)
         internal_port = Interface._assign_internal_port(host, internal_port)
-        as_.bump_hosts_config()
+        as_.hosts.bump_config()
 
         return super().create(
             AS=as_,
@@ -830,7 +857,7 @@ class Interface(models.Model):
     objects = InterfaceManager()
 
     def __str__(self):
-        return '%s (%i)' % (self.AS.isd_as_str(), self.interface_id)
+        return '%s [IF %i]' % (self.AS, self.interface_id)
 
     def _pre_delete(self):
         """
@@ -838,7 +865,7 @@ class Interface(models.Model):
         Note: the deletion-signals have the advantage that they are triggerd
         also for bulk deletion, while the `delete()` method is not.
         """
-        self.AS.bump_hosts_config()
+        self.AS.hosts.bump_config()
 
     def clean(self):
         if not self.public_ip and not self.host.public_ip:
@@ -861,7 +888,7 @@ class Interface(models.Model):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
-        :param Host host: The host on which this Interface should be configured. Defines the AS.
+        :param Host host: optional, defines the AS.
         :param str public_ip: optional, the public IP for this interface to override host.public_ip
         :param int public_port: optional, a free port is selected if not specified
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
@@ -878,30 +905,30 @@ class Interface(models.Model):
                 ifid = new_as.find_interface_id()   # before setting AS-relation
                 self.AS = new_as
                 self.interface_id = ifid
-                old_as.bump_hosts_config()
+                old_as.hosts.bump_config()
             self.host = host
         if public_ip is not _placeholder:
-            self.public_ip = public_ip
+            self.public_ip = public_ip or None
         if public_port is not _placeholder:
             self.public_port = Interface._assign_public_port(self.host, self.public_ip, public_port)
         if bind_ip is not _placeholder:
-            self.bind_ip = bind_ip
+            self.bind_ip = bind_ip or None
         if bind_port is not _placeholder:
             self.bind_port = Interface._assign_bind_port(self.host, self.public_ip, self.bind_ip,
                                                          bind_port)
         if internal_port is not _placeholder:
             self.internal_port = Interface._assign_internal_port(self.host, internal_port)
+        self.save()
 
         diff_public = self._get_public_info() != prev_public_info
         diff_local = self._get_local_info() != prev_local_info
         if diff_local or diff_public:
-            self.AS.bump_hosts_config()
+            self.AS.hosts.bump_config()
         if diff_public:
             # bump remote AS
             # if the ASes of both interfaces of a link are changed, this can be either old
             # or new AS, depending on order. Redundant but correct.
-            self.remote_as().bump_hosts_config()
-        self.save()
+            self.remote_as().hosts.bump_config()
 
     def get_public_ip(self):
         """ Get the effective public IP for this interface """
@@ -1121,11 +1148,11 @@ class Link(models.Model):
         if active is not None:
             self.active = active
 
-        new_info = [self.type, self.active]
-        if new_info != prev_info:
+        curr_info = [self.type, self.active]
+        if curr_info != prev_info:
             self.save()
-            self.interfaceA.AS.bump_hosts_config()
-            self.interfaceB.AS.bump_hosts_config()
+            self.interfaceA.AS.hosts.bump_config()
+            self.interfaceB.AS.hosts.bump_config()
 
     def set_active(self, active):
         """
@@ -1136,8 +1163,8 @@ class Link(models.Model):
         if self.active != active:
             self.active = active
             self.save()
-            self.interfaceA.AS.bump_hosts_config()
-            self.interfaceB.AS.bump_hosts_config()
+            self.interfaceA.AS.hosts.bump_config()
+            self.interfaceB.AS.hosts.bump_config()
 
     def get_interface_a(self):
         if hasattr(self, 'interfaceA'):
@@ -1156,6 +1183,7 @@ class ServiceManager(models.Manager):
         Create a Service object.
         :param Host host: the host, defines the AS
         :param str type: Service type (Service.BS, PS, CS, ZK, BW, or PP)
+        :param int port: optional, port, assigned automatically if not specified
         :returns: Service
         """
         Service._bump_affected(host, type)
@@ -1213,6 +1241,27 @@ class Service(models.Model):
         """
         Service._bump_affected(self.host, self.type)
 
+    def update(self, host=_placeholder, port=_placeholder):
+        """
+        Update the given fields of the
+        :param Host host: optional, the host
+        :param str port: optional, port
+        """
+        prev_info = [self.host, self.port]
+
+        if host is not _placeholder:
+            if host != self.host:
+                self._bump_affected(self.host, self.type)
+            self.host = host
+        if port is not _placeholder:
+            self.port = Service._assign_service_port(self.host, self.type, port)
+
+        self.save()
+
+        curr_info = [self.host, self.port]
+        if curr_info != prev_info:
+            self._bump_affected(self.host, self.type)
+
     @staticmethod
     def _assign_service_port(host, type, port):
         """
@@ -1231,15 +1280,16 @@ class Service(models.Model):
             return host.find_free_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
 
     @staticmethod
-    def _bump_affected(host, type):
+    def _bump_affected(host, type, prev_host=None):
         """
         Helper: trigger a configuration bump for the hosts affected by a service of the given type
         on the given host.
         :param Host host:
         :param str type: Service type
+        :param Host prev_host:
         """
         if type in [Service.BS, Service.PS, Service.CS, Service.ZK]:
-            host.AS.bump_hosts_config()
+            host.AS.hosts.bump_config()
         else:
             host.bump_config()
 

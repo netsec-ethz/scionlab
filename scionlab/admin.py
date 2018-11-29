@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from django import urls
+from django.utils.html import format_html
+from django.core.exceptions import ValidationError
 from django.contrib import admin
 from django import forms
 from django.urls import resolve
@@ -37,6 +40,7 @@ admin.site.register([
     VPNClient,
 ])
 
+
 class _AlwaysChangedModelForm(forms.ModelForm):
     """
     Helper form: allows to save newly created ModelInlines with default values.
@@ -51,8 +55,10 @@ class _CreateUpdateModelForm(_AlwaysChangedModelForm):
     """
     Helper form class: because most of our models require explicit
     create or update logic to be executed, it seems easier to explicitly
-    call the appropriate model logic, than to rely on the ModelForm's
-    default behaviour of setting all fields and then calling save.
+    call the appropriate model logic, than using ModelForm's default behaviour of
+    setting all fields and trying to find what's changed later.
+
+    Note that this form class problably has severe restrictions over ModelForm.
 
     Note that, while it may be cleaner to use a fully custom form instead of
     adapting the already convoluted logic of ModelForms, using ModelAdmin
@@ -63,11 +69,9 @@ class _CreateUpdateModelForm(_AlwaysChangedModelForm):
         """
         Entry point for subclass for when creating a new objects.
         Use the information in self.cleaned_data to create a new object.
-        Default implementation is to create the object based on ModelForm's logic.
         :returns: new object
         """
-        self.instance.save()
-        return self.instance
+        pass
 
     def update(self):
         """
@@ -76,21 +80,41 @@ class _CreateUpdateModelForm(_AlwaysChangedModelForm):
         Default implementation is to update the object based on ModelForm's logic.
         :returns: updated object
         """
-        self.instance.save()
-        return self.instance
+        pass
+
+    def _post_clean(self):
+        # This is the hook were ModelForm does part of its magic; here
+        # it calls `construct_instance(self, self.instance, self.instance._meta.fields,...)`
+        # which is the call that we want to replace with a call to the model logic.
+        # Note (for our purposes minor) difference: ModelForm does *not* save to the DB yet, but we
+        # do.
+        if self.errors:
+            return
+
+        try:
+            if self.instance.pk is None:
+                self.instance = self.create()
+            elif self.has_changed():
+                self.update()
+        except ValidationError as e:
+            self._update_errors(e)
+
+        # Call more stuff that ModelForm usually does.
+        try:
+            self.instance.full_clean(validate_unique=False)
+        except ValidationError as e:
+            self._update_errors(e)
+        self.validate_unique()
 
     def save(self, commit=True):
+        # We override this hook too, because we have already saved our model at this point.
         # calling super().save(commit=False) is a no-op as far as we're concerned, but
         # has some side-effects:
         #  - it checks that no errors are present. This should never occur (ModelAdmin checks this)
         #  - it sets up a method self.save_m2m, which is required for the ModelAdmin to function
         #    properly
         super().save(commit=False)
-
-        if self.instance.pk is None:
-            return self.create()
-        else:
-            return self.update()
+        return self.instance
 
 
 @admin.register(ISD)
@@ -124,21 +148,70 @@ class ISDAdmin(admin.ModelAdmin):
 
 
 class HostAdminForm(_CreateUpdateModelForm):
+    class Meta:
+        fields = ('internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'management_ip',
+                  'ssh_port')
+
+    def create(self):
+        return Host.objects.create(
+            AS=self.instance.AS,    # Hmmm...
+            internal_ip=self.cleaned_data['internal_ip'],
+            public_ip=self.cleaned_data['public_ip'],
+            bind_ip=self.cleaned_data['bind_ip'],
+            label=self.cleaned_data['label'],
+            managed=self.cleaned_data['managed'],
+            management_ip=self.cleaned_data['management_ip'],
+            ssh_port=self.cleaned_data['ssh_port'],
+        )
+
     def update(self):
-        pass
-        # TODO
+        self.instance.update(
+            internal_ip=self.cleaned_data['internal_ip'],
+            public_ip=self.cleaned_data['public_ip'],
+            bind_ip=self.cleaned_data['bind_ip'],
+            label=self.cleaned_data['label'],
+            managed=self.cleaned_data['managed'],
+            management_ip=self.cleaned_data['management_ip'],
+            ssh_port=self.cleaned_data['ssh_port'],
+        )
 
 
 class HostInline(admin.TabularInline):
     model = Host
     extra = 0
     form = HostAdminForm
+    readonly_fields = ('latest_config_deployed', )
+
+    def latest_config_deployed(self, obj):
+        return not obj.needs_config_deployment()
+
+    latest_config_deployed.boolean = True
+
+
+class ServiceAdminForm(_CreateUpdateModelForm):
+    def __init__(self, instance=None, *args, **kwargs):
+        super().__init__(instance=instance, *args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['type'].disabled = True
+
+    def create(self):
+        return Service.objects.create(
+            host=self.cleaned_data['host'],
+            type=self.cleaned_data['type'],
+            port=self.cleaned_data['port']
+        )
+
+    def update(self):
+        self.instance.update(
+            host=self.cleaned_data['host'],
+            port=self.cleaned_data['port']
+        )
 
 
 class ServiceInline(admin.TabularInline):
     model = Service
     extra = 0
-    form = _AlwaysChangedModelForm
+    form = ServiceAdminForm
     fields = ('type', 'host', 'port')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -155,6 +228,48 @@ class ServiceInline(admin.TabularInline):
         if 'object_id' in resolved.kwargs:
             return self.parent_model.objects.get(pk=resolved.kwargs['object_id'])
         return None
+
+
+class InterfaceInline(admin.TabularInline):
+    """
+    Inline to show the interface and the associated link in the AS change page.
+
+    This is mostly read-only for now.
+    """
+
+    # TODO(matzf): extending this to allow creation and editing of links seemed impossible at first
+    # but looking at the LinkAdmin/LinkAdminForm setup, it actually seems doable now using a similar
+    # setup.
+
+    model = Interface
+    extra = 0
+    fields = ('link', 'interface_id', 'host', 'internal_port', 'public_ip_', 'public_port',
+              'bind_ip_', 'bind_port', 'type', 'active', )
+    readonly_fields = ('link', 'active', 'type', 'public_ip_', 'bind_ip_')
+
+    def link(self, obj):
+        url = urls.reverse('admin:scionlab_link_change', args=[obj.pk])
+        return format_html('<a href="%s">%s</a>' % (url, obj.link()))
+
+    def type(self, obj):
+        return obj.link().type
+
+    def active(self, obj):
+        return obj.link().active
+
+    active.boolean = True
+
+    def public_ip_(self, obj):
+        return obj.get_public_ip()
+
+    def bind_ip_(self, obj):
+        return obj.get_bind_ip() or '-'  # XXX(matzf): don't know why *this* prints 'None' otherwise
+
+    def has_add_permission(self, *args, **kwargs):
+        return False
+
+    def has_change_permission(self, *args, **kwargs):
+        return False
 
 
 class ASCreationForm(_CreateUpdateModelForm):
@@ -188,7 +303,7 @@ class ASCreationForm(_CreateUpdateModelForm):
 @admin.register(AS, UserAS)
 class ASAdmin(admin.ModelAdmin):
 
-    inlines = [HostInline, ServiceInline]
+    inlines = [InterfaceInline, ServiceInline, HostInline]
     actions = ['update_keys']
     list_display = ('isd_as_str', 'label', 'is_core', 'is_ap', 'is_userAS')
     list_filter = ('isd', 'is_core',)
@@ -351,7 +466,6 @@ class LinkAdminForm(_CreateUpdateModelForm):
             type=self.cleaned_data['type'],
             active=self.cleaned_data['active'],
         )
-        return self.instance
 
 
 @admin.register(Link)
@@ -372,7 +486,7 @@ class LinkAdmin(admin.ModelAdmin):
         return obj.interfaceA.get_bind_ip()
 
     def bind_port_a(self, obj):
-        return obj.interfaceA.public_port
+        return obj.interfaceA.bind_port
 
     def public_ip_b(self, obj):
         return obj.interfaceB.get_public_ip()
@@ -384,4 +498,4 @@ class LinkAdmin(admin.ModelAdmin):
         return obj.interfaceB.get_bind_ip()
 
     def bind_port_b(self, obj):
-        return obj.interfaceB.public_port
+        return obj.interfaceB.bind_port
