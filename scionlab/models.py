@@ -690,12 +690,17 @@ class Host(models.Model):
             return self.label
         return '%s,[%s]' % (self.AS.isd_as_str(), self.internal_ip)
 
-    def needs_config_deployment(self):
-        """
-        Has the configuration for the services/interfaces running on this Host changed since the
-        last deployment?
-        """
-        return self.config_version_deployed < self.config_version
+    def update(self,
+               internal_ip=_placeholder,
+               public_ip=_placeholder,
+               bind_ip=_placeholder,
+               label=_placeholder,
+               managed=_placeholder,
+               management_ip=_placeholder,
+               ssh_port=_placeholder):
+        #TODO
+
+
 
     def bump_config(self):
         self.config_version += 1
@@ -717,6 +722,13 @@ class Host(models.Model):
 
         self.AS.bump_hosts_config()
         self.save()
+
+    def needs_config_deployment(self):
+        """
+        Has the configuration for the services/interfaces running on this Host changed since the
+        last deployment?
+        """
+        return self.config_version_deployed < self.config_version
 
     def find_free_port(self, ip, min, max=MAX_PORT):
         """

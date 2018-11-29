@@ -37,6 +37,61 @@ admin.site.register([
     VPNClient,
 ])
 
+class _AlwaysChangedModelForm(forms.ModelForm):
+    """
+    Helper form: allows to save newly created ModelInlines with default values.
+    """
+    def has_changed(self, *args, **kwargs):
+        if self.instance.pk is None:
+            return True
+        return super().has_changed(*args, **kwargs)
+
+
+class _CreateUpdateModelForm(_AlwaysChangedModelForm):
+    """
+    Helper form class: because most of our models require explicit
+    create or update logic to be executed, it seems easier to explicitly
+    call the appropriate model logic, than to rely on the ModelForm's
+    default behaviour of setting all fields and then calling save.
+
+    Note that, while it may be cleaner to use a fully custom form instead of
+    adapting the already convoluted logic of ModelForms, using ModelAdmin
+    requires using ModelForms.
+    """
+
+    def create(self):
+        """
+        Entry point for subclass for when creating a new objects.
+        Use the information in self.cleaned_data to create a new object.
+        Default implementation is to create the object based on ModelForm's logic.
+        :returns: new object
+        """
+        self.instance.save()
+        return self.instance
+
+    def update(self):
+        """
+        Entry point for subclass for when updating an existing object.
+        Use the information in `self.cleaned_data` to update `self.instance`.
+        Default implementation is to update the object based on ModelForm's logic.
+        :returns: updated object
+        """
+        self.instance.save()
+        return self.instance
+
+    def save(self, commit=True):
+        # calling super().save(commit=False) is a no-op as far as we're concerned, but
+        # has some side-effects:
+        #  - it checks that no errors are present. This should never occur (ModelAdmin checks this)
+        #  - it sets up a method self.save_m2m, which is required for the ModelAdmin to function
+        #    properly
+        super().save(commit=False)
+
+        if self.instance.pk is None:
+            return self.create()
+        else:
+            return self.update()
+
 
 @admin.register(ISD)
 class ISDAdmin(admin.ModelAdmin):
@@ -68,20 +123,16 @@ class ISDAdmin(admin.ModelAdmin):
         return ()
 
 
-class _AlwaysChangedModelForm(forms.ModelForm):
-    """
-    Helper form: allows to save ModelInlines with default values.
-    """
-    def has_changed(self, *args, **kwargs):
-        if self.instance.pk is None:
-            return True
-        return super().has_changed(*args, **kwargs)
+class HostAdminForm(_CreateUpdateModelForm):
+    def update(self):
+        pass
+        # TODO
 
 
 class HostInline(admin.TabularInline):
     model = Host
     extra = 0
-    form = _AlwaysChangedModelForm
+    form = HostAdminForm
 
 
 class ServiceInline(admin.TabularInline):
@@ -106,12 +157,10 @@ class ServiceInline(admin.TabularInline):
         return None
 
 
-class ASCreationForm(forms.ModelForm):
+class ASCreationForm(_CreateUpdateModelForm):
     """
-    Specialised ModelForm for AS creation which will
-    initialise keys on creation.
-    Also allows to define the internal/public and bind IPs for the
-    first host of the AS.
+    Specialised ModelForm for AS creation which will initialise keys and initialise default AS
+    services. Also allows to define the internal/public and bind IPs for the first host of the AS.
     """
     class Meta:
         fields = ('isd', 'as_id', 'label', 'is_core', 'owner',)
@@ -120,12 +169,10 @@ class ASCreationForm(forms.ModelForm):
     public_ip = forms.GenericIPAddressField()
     bind_ip = forms.GenericIPAddressField(required=False)
 
-    def save(self, commit=True):
+    def create(self):
         """
-        Initialise keys on form save
+        Create the AS, initialise keys and create a first host with default services.
         """
-        self.save_m2m = lambda: None
-
         return AS.objects.create_with_default_services(
             isd=self.cleaned_data['isd'],
             as_id=self.cleaned_data['as_id'],
@@ -232,7 +279,7 @@ class ASAdmin(admin.ModelAdmin):
             as_.update_keys()
 
 
-class LinkAdminForm(forms.ModelForm):
+class LinkAdminForm(_CreateUpdateModelForm):
     class Meta:
         model = Link
         exclude = ['interfaceA', 'interfaceB']
@@ -287,30 +334,24 @@ class LinkAdminForm(forms.ModelForm):
             internal_port=self.cleaned_data[prefix+'internal_port'],
         )
 
-    def save(self, commit=True):
-        # setup save_m2m, which is usually a side-effect of `super().save(commit=False)`.
-        # Note: `save_m2m` is called by the ModelAdmin, directly after calling `save`
-        # Note: the ModelAdmin calls this function with commit=False, and then later
-        # saves the related objects. We ignore this and just commit anyway.
-        self.save_m2m = lambda: None
+    def create(self):
+        interfaceA = Interface.objects.create(**self._get_interface_form_data('from_'))
+        interfaceB = Interface.objects.create(**self._get_interface_form_data('to_'))
+        return Link.objects.create(
+            type=self.cleaned_data['type'],
+            active=self.cleaned_data['active'],
+            interfaceA=interfaceA,
+            interfaceB=interfaceB
+        )
 
-        if self.instance.pk is None:    # No pk means creating a new object
-            interfaceA = Interface.objects.create(**self._get_interface_form_data('from_'))
-            interfaceB = Interface.objects.create(**self._get_interface_form_data('to_'))
-            return Link.objects.create(
-                type=self.cleaned_data['type'],
-                active=self.cleaned_data['active'],
-                interfaceA=interfaceA,
-                interfaceB=interfaceB
-            )
-        else:
-            self.instance.interfaceA.update(**self._get_interface_form_data('from_'))
-            self.instance.interfaceB.update(**self._get_interface_form_data('to_'))
-            self.instance.update(
-                type=self.cleaned_data['type'],
-                active=self.cleaned_data['active'],
-            )
-            return self.instance
+    def update(self):
+        self.instance.interfaceA.update(**self._get_interface_form_data('from_'))
+        self.instance.interfaceB.update(**self._get_interface_form_data('to_'))
+        self.instance.update(
+            type=self.cleaned_data['type'],
+            active=self.cleaned_data['active'],
+        )
+        return self.instance
 
 
 @admin.register(Link)
