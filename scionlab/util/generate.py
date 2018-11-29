@@ -38,18 +38,22 @@ def create_gen_AS(AS_id):
     as_ = AS.objects.get(as_id=AS_id)
     hosts = as_.hosts.all()
 
+    tp, host_service_id_map = generate_topology_from_DB(as_)  # topology file
+
     for host in hosts:
         host_gen_dir = path.join(settings.GEN_ROOT, host.path_str())
         os.makedirs(host_gen_dir, mode=0o755, exist_ok=True)
-        create_gen(host, host_gen_dir)
+        create_gen(host, host_gen_dir, tp, host_service_id_map)
     return
 
 
-def create_gen(host, host_gen_dir):
+def create_gen(host, host_gen_dir, tp, host_service_id_map):
     """
     Generate the gen folder for the :host: in the :directory:
     :param host: Host object
     :param host_gen_dir: output directory string, as an absolute path to an existing directory
+    :param tp: topology dict
+    :param host_service_id_map: map from (Host, Service.type) to instance id
     :return:
     """
     if not os.path.exists(host_gen_dir):
@@ -57,13 +61,13 @@ def create_gen(host, host_gen_dir):
 
     interfaces = Interface.objects.filter(host=host)
     for interface in interfaces:
-        ISD_id = interface.AS.isd.id
-        AS_id = interface.AS.as_id
-        ia = ISD_AS("%s-%s" % (ISD_id, AS_id))
-        stype = 'router'
+        ia = ISD_AS(interface.AS.isd_as_str())
+        service_nick = 'BR'
 
-        instance_id = get_router_instance_id(AS.objects.get(as_id=ia.as_str()), interface.host)
-        generate_instance_dir(ia, host_gen_dir, stype, instance_id)
+        #instance_id = get_router_instance_id(AS.objects.get(as_id=ia.as_str()), interface.host)
+        instance_name = host_service_id_map[(interface.host, service_nick)]
+        service_type = generator.NICKS_TO_TYPES[service_nick]
+        generate_instance_dir(ia, host_gen_dir, service_type, tp, instance_name)
 
     services = Service.objects.filter(host=host)
     for service in services:
@@ -74,10 +78,11 @@ def create_gen(host, host_gen_dir):
         if service_nick not in generator.JOB_NAMES.values():
             continue
 
-        instance_id = get_service_instance_id(AS.objects.get(as_id=ia.as_str()),
-                                              service.host, service_nick)
+        #instance_id = get_service_instance_id(AS.objects.get(as_id=ia.as_str()),
+        #                                      service.host, service_nick)
         service_type = generator.NICKS_TO_TYPES[service_nick]
-        generate_instance_dir(ia, host_gen_dir, service_type, instance_id)
+        instance_name = host_service_id_map[(service.host, service_nick)]
+        generate_instance_dir(ia, host_gen_dir, service_type, tp, instance_name)
 
     tar_gen(host_gen_dir, path.join(host_gen_dir, "%s.%s" % (host_gen_dir.split("/")[-1], "tgz")))
     return
@@ -123,22 +128,21 @@ def get_service_instance_id(as_, host, service_type):
     return instance_id
 
 
-def generate_instance_dir(ia, directory, stype, instance_id):
+def generate_instance_dir(ia, directory, stype, tp, instance_name):
     """
     Generate the service instance directory for the gen folder
     :param ISD_AS ia: ISD_AS in which the instance runs
     :param str directory: base directory of the gen folder
     :param str stype: service type
-    :param str instance_id: instance identifier
+    :param tp: topology dict
+    :param str instance_name: instance name
     :return:
     """
     topo_id = TopoID(str(ia))
     as_base_dir = topo_id.base_dir(directory)
     os.makedirs(as_base_dir, mode=0o755, exist_ok=True)
 
-    nick = generator.JOB_NAMES[generator.TYPES_TO_KEYS[stype]].lower()
-    elem_id = "%s%s-%s" % (nick, ia.file_fmt(), instance_id)
-    instance_path = path.join(as_base_dir, elem_id)
+    instance_path = path.join(as_base_dir, instance_name)
     os.makedirs(instance_path, mode=0o755, exist_ok=True)
 
     # Generate service configuration to directory, with certs and keys
@@ -147,25 +151,25 @@ def generate_instance_dir(ia, directory, stype, instance_id):
     generator.write_certs_trc_keys(ia, as_crypto_obj, instance_path)
     generator.write_as_conf_and_path_policy(ia, as_crypto_obj, instance_path)
     executable_name = generator.TYPES_TO_EXECUTABLES[stype]
-    tp = generate_topology_from_DB(as_)  # topology file
     type_key = generator.TYPES_TO_KEYS[stype]
 
-    config = generator.prep_supervisord_conf(tp[type_key][instance_id], executable_name,
-                                             stype, str(instance_id), ia)
+    config = generator.prep_supervisord_conf(tp[type_key][instance_name], executable_name,
+                                             stype, str(instance_name), ia)
     generator.write_supervisord_config(config, instance_path)
     generator.write_topology_file(tp, stype, instance_path)
-    generator.write_zlog_file(stype, elem_id, instance_path)
+    generator.write_zlog_file(stype, instance_name, instance_path)
 
 
 def generate_topology_from_DB(as_):
     """
     Generate the topology.conf from the database values
     :param AS as_: AS object
-    :return:
+    :return: topo_dict: topology dict, host_service_id_map: map from (Host, stype) to instance id
     """
     interfaces = as_.interfaces.active()
     services = as_.services.all()
     topo_dict = {}
+    host_service_id_map = {}
 
     # AS wide entries
     topo_dict["ISD_AS"] = str(ISD_AS("%s-%s" % (as_.isd_id, as_.as_id)))
@@ -180,9 +184,11 @@ def generate_topology_from_DB(as_):
     for interface in interfaces:
         router_instance_id = get_router_instance_id(as_,
                                                     interface.host)
-        if router_instance_id not in topo_dict[generator.TYPES_TO_KEYS['router']].keys():
-            topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_id] = {}
-        router_instance_entry = topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_id]
+        router_instance_name = "%s%s-%s" % ("br", as_.isd_as_path_str(),router_instance_id)
+        host_service_id_map[(interface.host, "BR")] = router_instance_name
+        if router_instance_name not in topo_dict[generator.TYPES_TO_KEYS['router']].keys():
+            topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_name] = {}
+        router_instance_entry = topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_name]
         if "Interfaces" not in router_instance_entry.keys():
             router_instance_entry = {"Interfaces": {}}
         remote_if_obj = interface.remote_interface()
@@ -222,13 +228,16 @@ def generate_topology_from_DB(as_):
             continue
         service_key = generator.TYPES_TO_KEYS[generator.NICKS_TO_TYPES[service.type]]
         service_instance_id = get_service_instance_id(as_, service.host, service.type)
+        service_instance_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(),
+                                             service_instance_id)
+        host_service_id_map[(service.host, service.type)] = service_instance_name
         if service_key not in topo_dict.keys():
             topo_dict[service_key] = {}
-        topo_dict[service_key][service_instance_id] = {
+        topo_dict[service_key][service_instance_name] = {
             "Public": [{"L4Port": service.port,
                         "Addr": service.host.ip}]
         }
-    return topo_dict
+    return topo_dict, host_service_id_map
 
 
 class AScrypto:

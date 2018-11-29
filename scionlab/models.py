@@ -606,15 +606,11 @@ class Interface(models.Model):
 
     def link_relation(self):
         if self.link().type == Link.PROVIDER:
-            if self.AS.is_core and not self.remote_as().is_core:
-                return "CHILD"
-            elif not self.AS.is_core and self.remote_as().is_core:
+            # By definition, interfaceA is on the parent side
+            if self.link().interfaceA == self:
                 return "PARENT"
             else:
-                raise ValueError("Link type is set to PROVIDER, but no PARENT-CHILD relation "
-                                 "can be established: as.is_core: %s, "
-                                 "remote_as.is_core: %s" % (self.AS.is_core,
-                                                            self.remote_as().is_core))
+                return"CHILD"
         else:
             return self.link().type()
 
@@ -646,7 +642,7 @@ class Link(models.Model):
     CORE = 'CORE'
     PEER = 'PEER'
     LINK_TYPES = (
-        (PROVIDER, 'Provider link from A to B'),
+        (PROVIDER, 'Provider link from parent A to child B'),
         (CORE, 'Core link (symmetric)'),
         (PEER, 'Peering link (symmetric)'),
     )
