@@ -18,7 +18,10 @@ from django.contrib.auth.decorators import login_required
 from django.urls import include, path, reverse_lazy
 
 from scionlab.forms.login_form import AuthenticationFormWithCaptcha
-from scionlab.views.user_as_views import UserASesView, UserASCreateView, UserASDeleteView, UserASDetailView
+from scionlab.views.user_as_views import (UserASesView,
+                                          UserASCreateView,
+                                          UserASDeleteView,
+                                          UserASDetailView)
 from scionlab.views.placehoder_view import PlaceholderView, PlaceholderUserView
 from scionlab.views.registration_view import UserRegistrationView
 
@@ -39,8 +42,9 @@ urlpatterns = [
     # user pages
     path('user/', login_required(UserASesView.as_view()), name='user'),
     path('user/as/add', login_required(UserASCreateView.as_view()), name='user_as_add'),
-        # TODO(matzf): maybe we need a slugified AS-id to use in the URL instead of the PK
-    path('user/as/<int:pk>/delete', login_required(UserASDeleteView.as_view()), name='user_as_delete'),
+    # TODO(matzf): maybe we need a slugified AS-id to use in the URL instead of the PK
+    path('user/as/<int:pk>/delete', login_required(UserASDeleteView.as_view()),
+         name='user_as_delete'),
     path('user/as/<int:pk>', login_required(UserASDetailView.as_view()), name='user_as_detail'), 
     path('user/test/', PlaceholderUserView.as_view(), name='userpage'),
 

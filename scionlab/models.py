@@ -11,17 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import operator
 import os
 import base64
+
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User as auth_User
 from django.dispatch import receiver
 from django.db import models
 from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
+
 import ipaddress
 import jsonfield
+
 import lib.crypto.asymcrypto
 
 
@@ -33,6 +36,8 @@ DEFAULT_INTERFACE_PUBLIC_PORT = 50000
 DEFAULT_INTERFACE_INTERNAL_PORT = 30000
 DEFAULT_HOST_IP = "127.0.0.1"
 
+DEFAULT_MAX_ROUTER_INTERFACES = 12
+
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
 _MAX_LEN_CHOICES_DEFAULT = 16
@@ -40,12 +45,13 @@ _MAX_LEN_CHOICES_DEFAULT = 16
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """
 
+
 class User(auth_User):
     class Meta:
-        proxy=True
+        proxy = True
 
     def max_ases(self):
-        return 5 # TODO
+        return 5  # TODO
 
     def num_ases(self):
         return UserAS.objects.filter(owner=self).count()
@@ -115,6 +121,9 @@ class AS(models.Model):
     as_id = models.CharField(max_length=15)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     mtu = models.PositiveIntegerField(default=1500 - 20 - 8)
+
+    # Max number of interfaces per router
+    interfaces_per_br = models.PositiveIntegerField(default=DEFAULT_MAX_ROUTER_INTERFACES)
 
     owner = models.ForeignKey(
         User,
@@ -283,14 +292,15 @@ class AS(models.Model):
 
 
 class UserASManager(models.Manager):
-    def create(self, user, attachment_point, public_port, label=None, use_vpn=False, public_ip=None, bind_ip=None,
-            bind_port=None):
+    def create(self, user, attachment_point, public_port, label=None,
+               use_vpn=False, public_ip=None, bind_ip=None, bind_port=None):
         if user.num_ases() >= user.max_ases():
             raise ValidationError("UserAS quota exceeded", code='user_as_quota_exceeded')
 
         isd = attachment_point.AS.isd
         as_id = self.get_next_id()
-        user_as = UserAS(owner=user, isd=isd, as_id=as_id, attachment_point=attachment_point, label=label, public_ip=public_ip, bind_ip=bind_ip, bind_port=bind_port)
+        user_as = UserAS(owner=user, isd=isd, as_id=as_id, attachment_point=attachment_point,
+                         label=label, public_ip=public_ip, bind_ip=bind_ip, bind_port=bind_port)
         user_as.init_keys()
         user_as.save()
         user_as.init_default_services()
@@ -306,8 +316,8 @@ class UserASManager(models.Manager):
         # TODO(matzf) Link.create() should take all interface params
         # TODO(matzf) if multiple, which host of the AP runs the BR?
         link = Link.objects.create(attachment_point.AS.hosts.first(),
-                            user_as.hosts.first(),
-                            Link.PROVIDER)
+                                   user_as.hosts.first(),
+                                   Link.PROVIDER)
 
         link.interfaceB.public_port = public_port
         if user_as.bind_port:
@@ -338,9 +348,9 @@ class UserAS(AS):
         'AttachmentPoint',
         related_name='user_ases',
         on_delete=models.SET_NULL,
-        null=True, # Null on deletion of AP
+        null=True,  # Null on deletion of AP
         blank=False,
-        default='' # Invalid default avoids rendering a '----' selection choice
+        default=''  # Invalid default avoids rendering a '----' selection choice
     )
     # These fields are redundant for the network model
     # They are here to retain the values entered by the user
@@ -398,6 +408,7 @@ class AttachmentPoint(models.Model):
 
     def __str__(self):
         return str(self.AS)
+
 
 class HostManager(models.Manager):
     def reset_needs_config_deployment(self):
@@ -604,6 +615,16 @@ class Interface(models.Model):
         # FIXME(matzf): naive queries
         return self.remote_interface().AS
 
+    def get_router_instance_id(self):
+        """
+        Get the service instance identifier for the router of the interface
+        :return: str _: the router instance id
+        """
+        # Get instance id from DB id order:
+        AS_interfaces = Interface.objects.filter(AS=self.AS).order_by("id")
+        interface_no = operator.indexOf(AS_interfaces, self)
+        return (interface_no // self.AS.interfaces_per_br) + 1
+
     def link_relation(self):
         if self.link().type == Link.PROVIDER:
             # By definition, interfaceA is on the parent side
@@ -612,7 +633,7 @@ class Interface(models.Model):
             else:
                 return"CHILD"
         else:
-            return self.link().type()
+            return self.link().type
 
 
 class LinkManager(models.Manager):
@@ -681,6 +702,16 @@ class Link(models.Model):
         for interface in filter(None, [self.get_interface_a(), self.get_interface_b()]):
             interface.delete()
 
+    def overlay(self):
+        link_overlay = "UDP/IPv6"
+        if self.interfaceA.public_ip and self.interfaceB.public_ip and \
+                isinstance(ipaddress.ip_address(self.interfaceA.public_ip),
+                           ipaddress.IPv4Address) and \
+                isinstance(ipaddress.ip_address(self.interfaceB.public_ip),
+                           ipaddress.IPv4Address):
+            link_overlay = "UDP/IPv4"
+        return link_overlay
+
     def get_interface_a(self):
         if hasattr(self, 'interfaceA'):
             return self.interfaceA
@@ -734,6 +765,16 @@ class Service(models.Model):
         choices=SERVICE_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
+
+    def get_service_instance_id(self):
+        """
+        Get the service instance identifier for a service
+        :return: str instance_id: the service instance id
+        """
+        # Get instance id from DB id order:
+        AS_service_instances = Service.objects.filter(type=self.type, AS=self.AS).order_by("id")
+        instance_id = operator.indexOf(AS_service_instances, self) + 1
+        return instance_id
 
 
 class VPN(models.Model):

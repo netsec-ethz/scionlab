@@ -15,6 +15,7 @@
 from django.contrib.auth.backends import ModelBackend
 from scionlab.models import User
 
+
 class ProxyModelBackend(ModelBackend):
     def get_user(self, user_id):
         try:

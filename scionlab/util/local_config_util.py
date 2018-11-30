@@ -78,6 +78,13 @@ TYPES_TO_KEYS = {
     'path_server': 'PathService',
 }
 
+NICKS_TO_KEYS = {
+    "BS": 'BeaconService',
+    "CS": 'CertificateService',
+    "BR": 'BorderRouters',
+    "PS": 'PathService',
+}
+
 NICKS_TO_TYPES = {
     "BS": 'beacon_server',
     "CS": 'certificate_server',
@@ -108,8 +115,10 @@ PROM_PORT_OFFSET = 1000
 def isdas_str(isd_as):
     return isd_as.file_fmt() if 'file_fmt' in dir(isd_as) else str(isd_as)
 
+
 def isd_str(isd_as):
     return isd_as.isd_str() if 'isd_str' in dir(isd_as) else isd_as[0]
+
 
 def as_str(isd_as):
     return isd_as.as_file_fmt() if 'as_file_fmt' in dir(isd_as) else isd_as[1]
@@ -172,17 +181,19 @@ def prep_supervisord_conf(instance_dict, executable_name, service_type, instance
         prom_addr = "%s:%s" % (instance_dict['InternalAddrs'][0][addr_type][0]['Addr'],
                                instance_dict['InternalAddrs'][0][addr_type][0]['L4Port'] +
                                PROM_PORT_OFFSET)
-        cmd = ('bash -c \'exec "bin/%s" -id "%s" -confd "%s" -log.age "2" -prom "%s" &>logs/%s.OUT\'') % (
+        cmd = ('bash -c \'exec "bin/%s" -id "%s" '
+               '-confd "%s" -log.age "2" -prom "%s" &>logs/%s.OUT\'') % (
             executable_name, instance_name, get_elem_dir(GEN_PATH, isd_as, instance_name),
             prom_addr, instance_name)
         env = env_tmpl % (get_elem_dir(GEN_PATH, isd_as, instance_name),
                           instance_name)
-    elif service_type == 'certificate_server': # go certificate server
+    elif service_type == 'certificate_server':  # go certificate server
         env_tmpl += ',SCIOND_PATH="/run/shm/sciond/default.sock"'
         addr_type = 'Bind' if 'Bind' in instance_dict.keys() else 'Public'
         prom_addr = "%s:%s" % (instance_dict[addr_type][0]['Addr'],
                                instance_dict[addr_type][0]['L4Port'] + PROM_PORT_OFFSET)
-        cmd = ('bash -c \'exec "bin/%s" -id "%s" -confd "%s" -log.age "2" -prom "%s" &>logs/%s.OUT\'') % (
+        cmd = ('bash -c \'exec "bin/%s" -id "%s" '
+               '-confd "%s" -log.age "2" -prom "%s" &>logs/%s.OUT\'') % (
             executable_name, instance_name, get_elem_dir(GEN_PATH, isd_as, instance_name),
             prom_addr, instance_name)
         env = env_tmpl % (get_elem_dir(GEN_PATH, isd_as, instance_name),
@@ -353,11 +364,11 @@ def write_certs_trc_keys(isd_as, as_obj, instance_path):
         'offline_key_raw': get_offline_key_raw_file_path(instance_path),
     }
     for key, path in as_key_path.items():
-        if key == 'cert': # write certificates
+        if key == 'cert':  # write certificates
             write_file(path, as_obj.certificate)
-        elif key == 'trc': # write trc
+        elif key == 'trc':  # write trc
             write_file(path, as_obj.trc)
-        else: # write keys
+        else:  # write keys
             write_file(path, as_obj.keys[key])
     if as_obj.core_keys:
         for key, path in core_key_path.items():
