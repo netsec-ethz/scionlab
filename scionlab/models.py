@@ -555,7 +555,9 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip()
+                public_ip=attachment_point.vpn.server_vpn_ip(),
+                public_port=None,
+                internal_port=None
             )
         else:
             host.vpn_clients.update(active=False)   # deactivate all vpn clients
@@ -567,7 +569,9 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=None
+                public_ip=None,
+                public_port=None,
+                internal_port=None
             )
 
         self.attachment_point = attachment_point

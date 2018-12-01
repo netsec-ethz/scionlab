@@ -15,7 +15,7 @@
 import re
 import base64
 import lib.crypto.asymcrypto
-from collections import namedtuple, Counter
+from collections import namedtuple, Counter, OrderedDict
 from scionlab.models import AS, Host, Service, Link, MAX_PORT
 
 
@@ -74,6 +74,7 @@ def check_host_ports(testcase, host):
     testcase.assertEqual(clashes, [], "Ports clashing on host %s" % host)
 
 
+_dont_care = object()
 LinkDescription = namedtuple('LinkDescription', [
     'type',
     'from_as_id',
@@ -91,6 +92,8 @@ LinkDescription = namedtuple('LinkDescription', [
     'to_internal_ip',
     'to_internal_port',
 ])
+# little hack: from future-3.7 import namedtuple(defaults=...)
+LinkDescription.__new__.__defaults__ = (_dont_care,) * len(LinkDescription._fields)
 
 
 def check_links(testcase, link_descriptions):
@@ -123,17 +126,22 @@ def check_link(testcase, link, link_desc=None):
     _check_port(testcase, link.interfaceA.internal_port)
     if link.interfaceA.get_bind_ip():
         _check_port(testcase, link.interfaceA.bind_port)
+    else:
+        testcase.assertIsNone(link.interfaceA.bind_port)    # No harm, but this seems cleaner
     _check_port(testcase, link.interfaceB.public_port)
     _check_port(testcase, link.interfaceB.internal_port)
     if link.interfaceB.get_bind_ip():
         _check_port(testcase, link.interfaceB.bind_port)
+    else:
+        testcase.assertIsNone(link.interfaceB.bind_port)    # ditto
 
     if link_desc:
         actual_link_desc = _describe_link(link)
-        testcase.assertEqual(link_desc, actual_link_desc)
+        diff = _diff_link_description(link_desc, actual_link_desc)
+        testcase.assertFalse(bool(diff), diff)
 
 
-def _describe_link(testcase, link):
+def _describe_link(link):
     """
     Helper for checks. Return the LinkDescription describing the current state of the link.
     """
@@ -141,19 +149,28 @@ def _describe_link(testcase, link):
         type=link.type,
         from_as_id=link.interfaceA.AS.as_id,
         from_public_ip=link.interfaceA.get_public_ip(),
-        from_public_port=link.interfaceA.public_port(),
-        from_bind_ip=link.interfaceA.bind_ip(),
+        from_public_port=link.interfaceA.public_port,
+        from_bind_ip=link.interfaceA.get_bind_ip(),
         from_bind_port=link.interfaceA.bind_port,
         from_internal_ip=link.interfaceA.host.internal_ip,
         from_internal_port=link.interfaceA.internal_port,
         to_as_id=link.interfaceB.AS.as_id,
         to_public_ip=link.interfaceB.get_public_ip(),
-        to_public_port=link.interfaceB.public_port(),
-        to_bind_ip=link.interfaceB.bind_ip(),
+        to_public_port=link.interfaceB.public_port,
+        to_bind_ip=link.interfaceB.get_bind_ip(),
         to_bind_port=link.interfaceB.bind_port,
         to_internal_ip=link.interfaceB.host.internal_ip,
         to_internal_port=link.interfaceB.internal_port,
     )
+
+
+def _diff_link_description(link_desc, actual_link_desc):
+    diff = OrderedDict()
+    for field, expected in link_desc._asdict().items():
+        actual = actual_link_desc._asdict()[field]
+        if expected is not _dont_care and expected != actual:
+            diff[field] = dict(expcted=expected, actual=actual)
+    return diff
 
 
 def _check_port(testcase, port):
