@@ -24,15 +24,25 @@ def check_topology(testcase):
     Run all sanity checks for the current state of the models in the DB.
     """
     for as_ in AS.objects.iterator():
-        check_as_services(testcase, as_)
-        check_as_keys(testcase, as_)
-        if as_.is_core:
-            check_as_core_keys(testcase, as_)
+        check_as(testcase, as_)
     for host in Host.objects.iterator():
         check_host_ports(testcase, host)
     for link in Link.objects.iterator():
         check_link(testcase, link)
 
+
+def check_as(testcase, as_):
+    # TODO: generalize (topo checks)
+    for interface in as_.interfaces.iterator():
+        link = interface.link()
+        if link.type == Link.PROVIDER and link.interfaceB == interface:
+            parent_as = link.interfaceA.AS
+            testcase.assertEqual(parent_as.isd, as_.isd)
+
+    check_as_services(testcase, as_)
+    check_as_keys(testcase, as_)
+    if as_.is_core:
+        check_as_core_keys(testcase, as_)
 
 def check_as_services(testcase, as_):
     """
