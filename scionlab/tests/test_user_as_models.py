@@ -32,7 +32,6 @@ from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
 
 
-
 def _create_and_check_useras(testcase,
                              attachment_point,
                              owner,
@@ -74,19 +73,11 @@ def _create_and_check_useras(testcase,
         list(user_as.hosts.all() | attachment_point.AS.hosts.all())
     )
 
-    link = _get_provider_link(attachment_point.AS, user_as)
-    utils.check_link(testcase, link, utils.LinkDescription(
-        type=Link.PROVIDER,
-        from_as_id=attachment_point.AS.as_id,
-        from_public_ip=_get_public_ip_testtopo(attachment_point.AS.as_id),
-        from_bind_ip=None,
-        to_public_ip=public_ip,
-        to_public_port=public_port,
-        to_bind_ip=bind_ip,
-        to_bind_port=bind_port
-    ))
+    utils.check_as(testcase, user_as)
+    utils.check_as(testcase, attachment_point.AS)
 
     return user_as
+
 
 # Some test data:
 test_public_ip = '192.0.2.111'
@@ -194,28 +185,74 @@ class CreateUserASTests(TestCase):
     @parameterized.expand(zip(range(2)))
     def test_create_public_ip(self, ap_index):
         attachment_point = AttachmentPoint.objects.all()[ap_index]
-        _create_and_check_useras(self,
-                                 owner=get_testuser(),
-                                 attachment_point=attachment_point,
-                                 use_vpn=False,
-                                 public_ip=test_public_ip,
-                                 public_port=test_public_port)
+        user_as = _create_and_check_useras(self,
+                                           owner=get_testuser(),
+                                           attachment_point=attachment_point,
+                                           use_vpn=False,
+                                           public_ip=test_public_ip,
+                                           public_port=test_public_port)
+
+        link = _get_provider_link(attachment_point.AS, user_as)
+        utils.check_link(self, link, utils.LinkDescription(
+            type=Link.PROVIDER,
+            from_as_id=attachment_point.AS.as_id,
+            from_public_ip=_get_public_ip_testtopo(attachment_point.AS.as_id),
+            from_bind_ip=None,
+            from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+            to_public_ip=test_public_ip,
+            to_public_port=test_public_port,
+            to_bind_ip=None,
+            to_bind_port=None,
+            to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+        ))
 
     @parameterized.expand(zip(range(2)))
     def test_create_public_bind_ip(self, ap_index):
         attachment_point = AttachmentPoint.objects.all()[ap_index]
-        _create_and_check_useras(self,
-                                 owner=get_testuser(),
-                                 attachment_point=attachment_point,
-                                 use_vpn=False,
-                                 public_ip=test_public_ip,
-                                 public_port=test_public_port,
-                                 bind_ip=test_bind_ip,
-                                 bind_port=test_bind_port)
+        user_as = _create_and_check_useras(self,
+                                           owner=get_testuser(),
+                                           attachment_point=attachment_point,
+                                           use_vpn=False,
+                                           public_ip=test_public_ip,
+                                           public_port=test_public_port,
+                                           bind_ip=test_bind_ip,
+                                           bind_port=test_bind_port)
+
+        link = _get_provider_link(attachment_point.AS, user_as)
+        utils.check_link(self, link, utils.LinkDescription(
+            type=Link.PROVIDER,
+            from_as_id=attachment_point.AS.as_id,
+            from_public_ip=_get_public_ip_testtopo(attachment_point.AS.as_id),
+            from_bind_ip=None,
+            from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+            to_public_ip=test_public_ip,
+            to_public_port=test_public_port,
+            to_bind_ip=test_bind_ip,
+            to_bind_port=test_bind_port,
+            to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+        ))
 
     def test_create_vpn(self):
-        pass
+        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        user_as = _create_and_check_useras(self,
+                                           owner=get_testuser(),
+                                           attachment_point=attachment_point,
+                                           use_vpn=True,
+                                           public_port=test_public_port)
 
+        link = _get_provider_link(attachment_point.AS, user_as)
+        utils.check_link(self, link, utils.LinkDescription(
+            type=Link.PROVIDER,
+            from_as_id=attachment_point.AS.as_id,
+            from_public_ip=attachment_point.vpn.server_vpn_ip(),
+            from_bind_ip=None,
+            from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+            to_public_ip=user_as.hosts.get().vpn_clients.get().ip,
+            to_public_port=test_public_port,
+            to_bind_ip=None,
+            to_bind_port=None,
+            to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+        ))
 
 
 class UpdateUserASTests(TestCase):
@@ -253,7 +290,13 @@ class UpdateUserASTests(TestCase):
 
     def _change_ap(self, user_as, attachment_point):
         """ Helper: update UserAS, changing only the attachment point. """
+
         ap_old = user_as.attachment_point
+        public_ip = user_as.public_ip
+        public_port = user_as.get_public_port()
+        bind_ip = user_as.bind_ip
+        bind_port = user_as.bind_port
+
         user_as.update(
             attachment_point=attachment_point,
             label=user_as.label,
@@ -264,14 +307,29 @@ class UpdateUserASTests(TestCase):
             bind_ip=user_as.bind_ip,
             bind_port=user_as.bind_port,
         )
+
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
             list(user_as.hosts.all() |
                  ap_old.AS.hosts.all() |
                  attachment_point.AS.hosts.all())
         )
+
         utils.check_topology(self)
-        # TODO check links
+
+        link = _get_provider_link(attachment_point.AS, user_as)
+        utils.check_link(self, link, utils.LinkDescription(
+            type=Link.PROVIDER,
+            from_as_id=attachment_point.AS.as_id,
+            from_public_ip=_get_public_ip_testtopo(attachment_point.AS.as_id),
+            from_bind_ip=None,
+            from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+            to_public_ip=public_ip,
+            to_public_port=public_port,
+            to_bind_ip=bind_ip,
+            to_bind_port=bind_port,
+            to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+        ))
 
 
 class ActivateUserASTests(TestCase):
