@@ -305,7 +305,7 @@ class AS(models.Model):
         """
         Generate new signing and encryption key pairs.
         Bump the corresponding indicators, so that certificates will be renewed
-        and the configuration will be to all affected hosts.
+        and the configuration will updated on all affected hosts.
         """
         # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
@@ -316,7 +316,7 @@ class AS(models.Model):
         """
         Generate new core AS signing key pairs.
         Bump the corresponding indicators, so that certificates will be renewed
-        and the configuration will be to all affected hosts.
+        and the configuration will updated on all affected hosts.
         """
         self._gen_core_keys()
         if self.is_core:
@@ -346,6 +346,21 @@ class AS(models.Model):
             if candidate_id not in existing_ids:
                 return candidate_id
         raise RuntimeError('Interface IDs exhausted')
+
+    def _change_isd(self, isd):
+        """
+        Change the AS to be part of a different ISD.
+        Bump the corresponding indicators, so that certificates will be renewed
+        and the configuration will updated on all affected hosts.
+        Note: does *not* check/update any links etc.
+        """
+        if self.is_core:
+            raise NotImplementedError
+
+        self.isd = isd
+        self.certificates_needs_update = True
+        self.save()
+        self.hosts.bump_config()
 
     def _bump_hosts_config_core_change(self):
         # TODO(matzf): untested
@@ -540,6 +555,9 @@ class UserAS(AS):
         interface_ap = link.interfaceA
         interface_user = link.interfaceB
         assert interface_user.host == host
+
+        if self.isd != attachment_point.AS.isd:
+            self._change_isd(attachment_point.AS.isd)
 
         host.update(
             public_ip=public_ip,
