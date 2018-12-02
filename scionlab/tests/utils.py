@@ -16,7 +16,7 @@ import re
 import base64
 import lib.crypto.asymcrypto
 from collections import namedtuple, Counter, OrderedDict
-from scionlab.models import AS, Host, Service, Link, MAX_PORT
+from scionlab.models import AS, Service, Link, MAX_PORT
 
 
 def check_topology(testcase):
@@ -25,8 +25,6 @@ def check_topology(testcase):
     """
     for as_ in AS.objects.iterator():
         check_as(testcase, as_)
-    for host in Host.objects.iterator():
-        check_host_ports(testcase, host)
     for link in Link.objects.iterator():
         check_link(testcase, link)
 
@@ -43,6 +41,10 @@ def check_as(testcase, as_):
     check_as_keys(testcase, as_)
     if as_.is_core:
         check_as_core_keys(testcase, as_)
+
+    for host in as_.hosts.iterator():
+        check_host_ports(testcase, host)
+
 
 def check_as_services(testcase, as_):
     """
