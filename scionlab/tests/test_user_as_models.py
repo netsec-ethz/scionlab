@@ -277,10 +277,29 @@ class UpdateUserASTests(TestCase):
                                       attachment_point=attachment_point_1,
                                       use_vpn=False)
 
+        public_ip = user_as.public_ip
+        public_port = user_as.get_public_port()
+        bind_ip = user_as.bind_ip
+        bind_port = user_as.bind_port
+
         attachment_point_2 = AttachmentPoint.objects.all()[(ap_index + 1) %
                                                            AttachmentPoint.objects.count()]
 
         self._change_ap(user_as, attachment_point_2)
+
+        link = _get_provider_link(attachment_point_2.AS, user_as)
+        utils.check_link(self, link, utils.LinkDescription(
+            type=Link.PROVIDER,
+            from_as_id=attachment_point_2.AS.as_id,
+            from_public_ip=_get_public_ip_testtopo(attachment_point_2.AS.as_id),
+            from_bind_ip=None,
+            from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+            to_public_ip=public_ip,
+            to_public_port=public_port,
+            to_bind_ip=bind_ip,
+            to_bind_port=bind_port,
+            to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
+        ))
 
     def test_cycle_ap(self):
         pass
@@ -292,10 +311,6 @@ class UpdateUserASTests(TestCase):
         """ Helper: update UserAS, changing only the attachment point. """
 
         ap_old = user_as.attachment_point
-        public_ip = user_as.public_ip
-        public_port = user_as.get_public_port()
-        bind_ip = user_as.bind_ip
-        bind_port = user_as.bind_port
 
         user_as.update(
             attachment_point=attachment_point,
@@ -314,22 +329,12 @@ class UpdateUserASTests(TestCase):
                  ap_old.AS.hosts.all() |
                  attachment_point.AS.hosts.all())
         )
+        self.assertEqual(
+            user_as.certificates_needs_update,
+            ap_old.AS.isd != attachment_point.AS.isd
+        )
 
         utils.check_topology(self)
-
-        link = _get_provider_link(attachment_point.AS, user_as)
-        utils.check_link(self, link, utils.LinkDescription(
-            type=Link.PROVIDER,
-            from_as_id=attachment_point.AS.as_id,
-            from_public_ip=_get_public_ip_testtopo(attachment_point.AS.as_id),
-            from_bind_ip=None,
-            from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
-            to_public_ip=public_ip,
-            to_public_port=public_port,
-            to_bind_ip=bind_ip,
-            to_bind_port=bind_port,
-            to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
-        ))
 
 
 class ActivateUserASTests(TestCase):
