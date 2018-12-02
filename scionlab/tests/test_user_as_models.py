@@ -46,6 +46,8 @@ def _create_and_check_useras(testcase,
     Helper function for testing. Create a UserAS and verify that things look right.
     Set some defaults to reduce verbosity in tests.
     """
+    hosts_pending_before = set(Host.objects.needs_config_deployment())
+
     user_as = UserAS.objects.create(
         owner=owner,
         attachment_point=attachment_point,
@@ -68,9 +70,9 @@ def _create_and_check_useras(testcase,
     testcase.assertEqual(user_as.bind_port, bind_port)
 
     # Check AS needs_config_deployment:
-    testcase.assertEqual(
-        list(Host.objects.needs_config_deployment()),
-        list(user_as.hosts.all() | attachment_point.AS.hosts.all())
+    testcase.assertSetEqual(
+        hosts_pending_before | set(user_as.hosts.all() | attachment_point.AS.hosts.all()),
+        set(Host.objects.needs_config_deployment())
     )
 
     utils.check_as(testcase, user_as)
@@ -93,7 +95,7 @@ def _create_test_useras(testcase, seed, **kwargs):
     r = random.Random(seed)
 
     def _randbool():
-        return r.choice((True, False))
+        return r.choice([True, False])
 
     use_vpn = kwargs.setdefault('use_vpn', _randbool())
     candidate_APs = AttachmentPoint.objects.all()
@@ -106,7 +108,7 @@ def _create_test_useras(testcase, seed, **kwargs):
         public_port_range = range(DEFAULT_PUBLIC_PORT, DEFAULT_PUBLIC_PORT + 20)
         kwargs.setdefault('public_port', r.choice(public_port_range))
     if _randbool():
-        kwargs.setdefault('bind_ip', '192.168.1.%i' % r.randing(10, 254))
+        kwargs.setdefault('bind_ip', '192.168.1.%i' % r.randint(10, 254))
         bind_port_range = range(DEFAULT_PUBLIC_PORT + 1000, DEFAULT_PUBLIC_PORT + 1020)
         kwargs.setdefault('bind_port', r.choice(bind_port_range))
     kwargs.setdefault('installation_type', r.choice((UserAS.DEDICATED, UserAS.VM)))
@@ -253,6 +255,15 @@ class CreateUserASTests(TestCase):
             to_bind_port=None,
             to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
         ))
+
+    @patch('scionlab.models.User.max_num_ases', return_value=32)
+    def test_create_mixed(self, mock):
+        r = random.Random()
+        r.seed(5)
+        for i in range(0, 32):
+            if r.choice([True, False]): # pretend to deploy sometimes
+                Host.objects.reset_needs_config_deployment()
+            _create_test_useras(self, seed=i)
 
 
 class UpdateUserASTests(TestCase):
