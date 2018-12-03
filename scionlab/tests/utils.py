@@ -181,7 +181,7 @@ def _diff_link_description(link_desc, actual_link_desc):
     for field, expected in link_desc._asdict().items():
         actual = actual_link_desc._asdict()[field]
         if expected is not _dont_care and expected != actual:
-            diff[field] = dict(expcted=expected, actual=actual)
+            diff[field] = dict(expected=expected, actual=actual)
     return diff
 
 
