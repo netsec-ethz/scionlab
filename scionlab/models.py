@@ -551,10 +551,6 @@ class UserAS(AS):
         a configuration bump for the hosts of the affected attachment point(s).
         """
         host = self.hosts.get()   # UserAS always has only one host
-        link = self._get_ap_link()
-        interface_ap = link.interfaceA
-        interface_user = link.interfaceB
-        assert interface_user.host == host
 
         if self.isd != attachment_point.AS.isd:
             self._change_isd(attachment_point.AS.isd)
@@ -564,6 +560,9 @@ class UserAS(AS):
             bind_ip=bind_ip
         )
 
+        link = self._get_ap_link()
+        interface_ap = link.interfaceA
+        interface_user = link.interfaceB
         if use_vpn:
             vpn_client = self._create_or_activate_vpn_client(attachment_point.vpn)
             interface_user.update(
