@@ -49,8 +49,8 @@ DEFAULT_PUBLIC_PORT = 50000
 DEFAULT_INTERNAL_PORT = 30000
 DEFAULT_ZOOKEEPER_PORT = 2181
 DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
-
-DEFAULT_MAX_ROUTER_INTERFACES = 12
+DEFAULT_LINK_MTU = 1500 - 20 - 8
+DEFAULT_LINK_BANDWIDTH = 1000
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
@@ -121,7 +121,7 @@ class ISD(models.Model):
 
 
 class ASManager(models.Manager):
-    def create(self, isd, as_id, is_core=False, label=None, owner=None):
+    def create(self, isd, as_id, is_core=False, label=None, mtu=None, owner=None):
         """
         Create the AS and initialise the required keys
         :param ISD isd:
@@ -138,6 +138,7 @@ class ASManager(models.Manager):
             as_id_int=as_id_int,
             is_core=is_core,
             label=label,
+            mtu=mtu or DEFAULT_LINK_MTU,
             owner=owner,
         )
         as_.init_keys()
@@ -145,7 +146,7 @@ class ASManager(models.Manager):
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
-                                     is_core=False, label=None, owner=None,
+                                     is_core=False, label=None, mtu=None, owner=None,
                                      bind_ip=None, internal_ip=None):
         """
         Create the AS, initialise the required keys and create a default Host object
@@ -166,6 +167,7 @@ class ASManager(models.Manager):
             as_id=as_id,
             is_core=is_core,
             label=label,
+            mtu=mtu,
             owner=owner,
         )
         as_.init_default_services(
@@ -193,10 +195,8 @@ class AS(models.Model):
     )
     as_id_int = models.BigIntegerField(editable=False)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-    mtu = models.PositiveIntegerField(default=1500 - 20 - 8)
-
-    # Max number of interfaces per router
-    interfaces_per_br = models.PositiveIntegerField(default=DEFAULT_MAX_ROUTER_INTERFACES)
+    mtu = models.PositiveIntegerField(default=DEFAULT_LINK_MTU,
+                                      help_text="Maximum Transfer Unit for intra AS packets.")
 
     owner = models.ForeignKey(
         User,
@@ -1028,7 +1028,7 @@ class Interface(models.Model):
         # Get instance id from DB id order:
         AS_interfaces = Interface.objects.filter(AS=self.AS).order_by("id")
         interface_no = operator.indexOf(AS_interfaces, self)
-        return (interface_no // self.AS.interfaces_per_br) + 1
+        return (interface_no // 12) + 1
 
     def link_relation(self):
         if self.link().type == Link.PROVIDER:
@@ -1039,7 +1039,6 @@ class Interface(models.Model):
                 return"CHILD"
         else:
             return self.link().type
-
 
     @staticmethod
     def _assign_bind_port(host, public_ip, bind_ip, bind_port):
@@ -1084,24 +1083,28 @@ class Interface(models.Model):
 
 
 class LinkManager(models.Manager):
-    def create(self, type, interfaceA, interfaceB, active=True):
+    def create(self, type, interfaceA, interfaceB, active=True, bandwidth=None, mtu=None):
         """
         Create a Link
         :param str type: Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
         :param Interface interfaceA: interface representing the A side of the link
         :param Interface interfaceB: interface representing the B side of the link
         :param bool active: is the link created as active?
+        :param int bandwidth: optional, bandwidth for this link
+        :param int mtu: optional, MTU for this link
         :returns: Link
         """
         self._check_link(type, interfaceA.AS, interfaceB.AS)
         return super().create(
             type=type,
             active=active,
+            bandwidth=bandwidth or DEFAULT_LINK_BANDWIDTH,
+            mtu=mtu or DEFAULT_LINK_MTU,
             interfaceA=interfaceA,
             interfaceB=interfaceB,
         )
 
-    def create_from_hosts(self, type, host_a, host_b, active=True):
+    def create_from_hosts(self, type, host_a, host_b, active=True, bandwidth=None, mtu=None):
         """
         Create a Link connecting the given two hosts.
         Creates a default Interface for both hosts and a Link connecting the two Interfaces.
@@ -1109,6 +1112,8 @@ class LinkManager(models.Manager):
         :param Host host_a: host on the A side of the link
         :param Host host_b: host on the B side of the link
         :param bool active: is the link created as active?
+        :param int bandwidth: optional, bandwidth for this link
+        :param int mtu: optional, MTU for this link
         :returns: Link
         """
         self._check_link(type, host_a.AS, host_b.AS)
@@ -1117,11 +1122,13 @@ class LinkManager(models.Manager):
         return super().create(
             type=type,
             active=active,
+            bandwidth=bandwidth or DEFAULT_LINK_BANDWIDTH,
+            mtu=mtu or DEFAULT_LINK_MTU,
             interfaceA=interfaceA,
             interfaceB=interfaceB,
         )
 
-    def create_from_ases(self, type, as_a, as_b, active=True):
+    def create_from_ases(self, type, as_a, as_b, active=True, bandwidth=None, mtu=None):
         """
         Create a link connecting the given two ASes.
         The interfaces are created on the *first* host of each AS.
@@ -1131,10 +1138,15 @@ class LinkManager(models.Manager):
         :param Host host_a: host on the A side of the link
         :param Host host_b: host on the B side of the link
         :param bool active: is the link created as active?
+        :param int bandwidth: optional, bandwidth for this link
+        :param int mtu: optional, MTU for this link
+        :returns: Link
         """
         return self.create_from_hosts(
             type=type,
             active=active,
+            bandwidth=bandwidth,
+            mtu=mtu,
             host_a=as_a.hosts.first(),
             host_b=as_b.hosts.first(),
         )
@@ -1172,9 +1184,9 @@ class Link(models.Model):
         choices=LINK_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
-    bandwidth = models.PositiveIntegerField(default=1000)
-    mtu = models.PositiveIntegerField(default=1500 - 20 - 8)
     active = models.BooleanField(default=True)
+    bandwidth = models.PositiveIntegerField(default=DEFAULT_LINK_BANDWIDTH)
+    mtu = models.PositiveIntegerField(default=DEFAULT_LINK_MTU)
 
     objects = LinkManager()
 
@@ -1192,7 +1204,7 @@ class Link(models.Model):
         for interface in filter(None, [self.get_interface_a(), self.get_interface_b()]):
             interface.delete()
 
-    def update(self, type=None, active=None):
+    def update(self, type=None, active=None, bandwidth=None, mtu=None):
         """
         Update the fields for this Link instance and the two related interfaces
         and immediately `save`. This will trigger a configuration bump for all
@@ -1200,14 +1212,18 @@ class Link(models.Model):
         :param str type: optional, Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
         :param bool active: optional, should the link be active?
         """
-        prev_info = [self.type, self.active]
+        prev_info = [self.type, self.active, self.bandwidth, self.mtu]
 
         if type is not None:
             self.type = type
         if active is not None:
             self.active = active
+        if bandwidth is not None:
+            self.bandwidth = bandwidth
+        if mtu is not None:
+            self.mtu = mtu
 
-        curr_info = [self.type, self.active]
+        curr_info = [self.type, self.active, self.bandwidth, self.mtu]
         if curr_info != prev_info:
             self.save()
             self.interfaceA.AS.hosts.bump_config()

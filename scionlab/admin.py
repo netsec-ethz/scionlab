@@ -278,7 +278,7 @@ class ASCreationForm(_CreateUpdateModelForm):
     services. Also allows to define the internal/public and bind IPs for the first host of the AS.
     """
     class Meta:
-        fields = ('isd', 'as_id', 'label', 'is_core', 'owner',)
+        fields = ('isd', 'as_id', 'label', 'mtu', 'is_core', 'owner',)
 
     internal_ip = forms.GenericIPAddressField(required=False, initial=DEFAULT_HOST_INTERNAL_IP)
     public_ip = forms.GenericIPAddressField()
@@ -292,6 +292,7 @@ class ASCreationForm(_CreateUpdateModelForm):
             isd=self.cleaned_data['isd'],
             as_id=self.cleaned_data['as_id'],
             label=self.cleaned_data['label'],
+            mtu=self.cleaned_data['mtu'],
             is_core=self.cleaned_data['is_core'],
             owner=self.cleaned_data['owner'],
             internal_ip=self.cleaned_data['internal_ip'],
@@ -455,6 +456,8 @@ class LinkAdminForm(_CreateUpdateModelForm):
         return Link.objects.create(
             type=self.cleaned_data['type'],
             active=self.cleaned_data['active'],
+            bandwidth=self.cleaned_data['bandwidth'],
+            mtu=self.cleaned_data['mtu'],
             interfaceA=interfaceA,
             interfaceB=interfaceB
         )
@@ -465,6 +468,8 @@ class LinkAdminForm(_CreateUpdateModelForm):
         self.instance.update(
             type=self.cleaned_data['type'],
             active=self.cleaned_data['active'],
+            bandwidth=self.cleaned_data['bandwidth'],
+            mtu=self.cleaned_data['mtu'],
         )
 
 

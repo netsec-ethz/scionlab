@@ -32,6 +32,7 @@ class ASAdminTests(TestCase):
             'isd': isd_17_pk,
             'as_id': as_id,
             'label': 'Test',
+            'mtu': 1234,
             'public_ip': '192.0.2.11'
         }
         # This mimicks what ModelAdmin does to create the form:
@@ -44,6 +45,7 @@ class ASAdminTests(TestCase):
         self.assertEqual(as_.as_id, as_id)
         self.assertEqual(as_.isd.isd_id, 17)
         self.assertEqual(as_.label, 'Test')
+        self.assertEqual(as_.mtu, 1234)
         utils.check_as_keys(self, as_)
 
 
@@ -59,6 +61,9 @@ class LinkAdminFormTests(TestCase):
         as_b = AS.objects.last()
         form_data = dict(
             type=Link.PROVIDER,
+            active=True,
+            bandwidth=1234,
+            mtu=2345,
             from_host=as_a.hosts.first().pk,
             from_public_port=50000,
             from_internal_port=30000,
@@ -67,7 +72,7 @@ class LinkAdminFormTests(TestCase):
             to_internal_port=30000,
         )
         form = LinkAdminForm(data=form_data)
-        self.assertTrue(form.is_valid())
+        self.assertTrue(form.is_valid(), form.errors.as_data())
         link = form.save()
         self.assertIsNotNone(link)
 
@@ -90,6 +95,9 @@ class LinkAdminFormTests(TestCase):
 
         form_data = dict(
             type=Link.PROVIDER,
+            active=True,
+            bandwidth=1234,
+            mtu=2345,
             from_host=as_a.hosts.first().pk,
             to_host=as_b.hosts.first().pk,
             from_public_ip='192.0.2.1',
@@ -100,9 +108,13 @@ class LinkAdminFormTests(TestCase):
             to_internal_port=30000,
         )
         form = LinkAdminForm(instance=link, data=form_data)
-        self.assertTrue(form.is_valid())
+        self.assertTrue(form.is_valid(), form.errors.as_data())
         link = form.save()
         self.assertIsNotNone(link)
+        self.assertEqual(link.type, Link.PROVIDER)
+        self.assertEqual(link.active, True)
+        self.assertEqual(link.bandwidth, 1234)
+        self.assertEqual(link.mtu, 2345)
         self.assertEqual(link.interfaceA.public_ip, '192.0.2.1')
         self.assertEqual(link.interfaceA.public_port, 50000)
         self.assertEqual(link.interfaceA.internal_port, 30001)
