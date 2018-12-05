@@ -486,17 +486,34 @@ class UpdateUserASTests(TestCase):
 
         ap_old = user_as.attachment_point
 
+        # pretend to have generated the certificates before to check
+        # that this will be bumped if necessary.
+        user_as.certificates_needs_update = False
+        user_as.save()
+
+        hosts_pending_before = set(Host.objects.needs_config_deployment())
+
         update_useras(user_as, attachment_point=attachment_point)
 
-        self.assertEqual(
-            list(Host.objects.needs_config_deployment()),
-            list(user_as.hosts.all() |
-                 ap_old.AS.hosts.all() |
-                 attachment_point.AS.hosts.all())
+        # Check needs_config_deployment: hosts of UserAS and both APs
+        self.assertSetEqual(
+            hosts_pending_before | set(
+                user_as.hosts.all() |
+                ap_old.AS.hosts.all() |
+                attachment_point.AS.hosts.all()
+            ),
+            set(Host.objects.needs_config_deployment())
         )
+
+        # Check certificates reset if ISD changed
         self.assertEqual(
             user_as.certificates_needs_update,
-            ap_old.AS.isd != attachment_point.AS.isd
+            ap_old.AS.isd != attachment_point.AS.isd,
+            "certificates_needs_update %s, ISD before: %s, ISD after:%s" % (
+                user_as.certificates_needs_update,
+                ap_old.AS.isd,
+                attachment_point.AS.isd
+            )
         )
 
         utils.check_topology(self)
