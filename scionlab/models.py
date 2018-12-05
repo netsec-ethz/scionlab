@@ -679,6 +679,13 @@ class AttachmentPoint(models.Model):
 
 
 class HostManager(models.Manager):
+    def create(self, secret=None, **kwargs):
+        secret = secret or Host._gen_secret()
+        return super().create(
+            secret=secret,
+            **kwargs
+        )
+
     def bump_config(self):
         """
         Increment the config version counter, i.e. set `needs_config_deployement` to True.
@@ -732,6 +739,7 @@ class Host(models.Model):
         help_text="Public IP of the host for management (should be reachable by the coordinator)."
     )
     ssh_port = models.PositiveSmallIntegerField(default=22)
+    secret = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     # TODO(matzf): we may need additional information for container or VM
     # initialisation (to access the host's host)
@@ -759,7 +767,8 @@ class Host(models.Model):
                label=_placeholder,
                managed=_placeholder,
                management_ip=_placeholder,
-               ssh_port=_placeholder):
+               ssh_port=_placeholder,
+               secret=_placeholder):
         """
         Update the specified fields of this host instance, and immediately `save`.
         Updates to the IPs will trigger a configuration bump for all Hosts in all affected ASes.
@@ -791,6 +800,8 @@ class Host(models.Model):
             self.management_ip = management_ip or None
         if ssh_port is not _placeholder:
             self.ssh_port = ssh_port
+        if secret is not _placeholder:
+            self.secret = secret or self._gen_secret()
         self.save()
 
         bump_internal_ip = (self.internal_ip != prev_internal_ip) and self.services.exists()
@@ -848,6 +859,10 @@ class Host(models.Model):
             ports |= _value_set(self.services, 'port')
             ports |= _value_set(self.interfaces, 'internal_port')
         return ports
+
+    @staticmethod
+    def _gen_secret():
+        return base64.urlsafe_b64encode(os.urandom(16)).decode()
 
 
 class InterfaceManager(models.Manager):
