@@ -16,7 +16,7 @@ import re
 import base64
 import lib.crypto.asymcrypto
 from collections import namedtuple, Counter, OrderedDict
-from scionlab.models import AS, Service, Link, MAX_PORT
+from scionlab.models import AS, Service, Interface, Link, MAX_PORT
 
 
 def check_topology(testcase):
@@ -27,6 +27,7 @@ def check_topology(testcase):
         check_as(testcase, as_)
     for link in Link.objects.iterator():
         check_link(testcase, link)
+    check_no_dangling_interfaces(testcase)
 
 
 def check_as(testcase, as_):
@@ -191,6 +192,14 @@ def _check_port(testcase, port):
     """
     testcase.assertIsNotNone(port)
     testcase.assertTrue(1024 < port <= MAX_PORT, port)
+
+
+def check_no_dangling_interfaces(testcase):
+    testcase.assertFalse(
+        Interface.objects.filter(
+            link_as_interfaceA=None,
+            link_as_interfaceB=None
+        ).exists())
 
 
 def check_as_keys(testcase, as_):
