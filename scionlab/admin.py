@@ -150,7 +150,7 @@ class ISDAdmin(admin.ModelAdmin):
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
         fields = ('internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'management_ip',
-                  'ssh_port')
+                  'ssh_port', 'secret')
 
     def create(self):
         return Host.objects.create(
@@ -162,6 +162,7 @@ class HostAdminForm(_CreateUpdateModelForm):
             managed=self.cleaned_data['managed'],
             management_ip=self.cleaned_data['management_ip'],
             ssh_port=self.cleaned_data['ssh_port'],
+            secret=self.cleaned_data['secret']
         )
 
     def update(self):
@@ -173,6 +174,7 @@ class HostAdminForm(_CreateUpdateModelForm):
             managed=self.cleaned_data['managed'],
             management_ip=self.cleaned_data['management_ip'],
             ssh_port=self.cleaned_data['ssh_port'],
+            secret=self.cleaned_data['secret']
         )
 
 
