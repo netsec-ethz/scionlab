@@ -554,8 +554,49 @@ class ActivateUserASTests(TestCase):
 
 
 class DeleteUserASTests(TestCase):
+    fixtures = ['testuser', 'testtopo-ases-links']
+
+    def setUp(self):
+        Host.objects.reset_needs_config_deployment()
+        setup_vpn_attachment_point(AttachmentPoint.objects.first())
+
     def test_delete_single(self):
-        pass
+        seed = 456
+        user_as = create_random_useras(self, seed=seed)
+        user_as_hosts = list(user_as.hosts.all())
+        attachment_point = user_as.attachment_point
+
+        user_as.delete()
+
+        self.assertEqual(
+            list(Host.objects.needs_config_deployment()),
+            sorted(user_as_hosts + list(attachment_point.AS.hosts.all()),
+                   key=lambda host: host.pk)
+        )
+
+        utils.check_topology(self)
 
     def test_delete_user(self):
-        pass
+        testuser = get_testuser()
+        user_as_pks = []
+        user_as_hosts = []
+        attachment_point_hosts = set()
+        for i in range(testuser.max_num_ases()):
+            seed = 789 + i
+            user_as = create_random_useras(self, seed=seed)
+            user_as_pks.append(user_as.pk)
+            user_as_hosts += list(user_as.hosts.all())
+            attachment_point_hosts |= set(user_as.attachment_point.AS.hosts.all())
+
+        testuser.delete()
+
+        for user_as_pk in user_as_pks:
+            self.assertFalse(UserAS.objects.filter(pk=user_as_pk).exists())
+
+        self.assertEqual(
+            list(Host.objects.needs_config_deployment()),
+            sorted(user_as_hosts + list(attachment_point_hosts),
+                   key=lambda host: host.pk)
+        )
+
+        utils.check_topology(self)
