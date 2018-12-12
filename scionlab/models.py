@@ -296,7 +296,7 @@ class AS(models.Model):
         """
         Generate new signing and encryption key pairs.
         Bump the corresponding indicators, so that certificates will be renewed
-        and the configuration will be to all affected hosts.
+        and the configuration will updated on all affected hosts.
         """
         # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
@@ -307,7 +307,7 @@ class AS(models.Model):
         """
         Generate new core AS signing key pairs.
         Bump the corresponding indicators, so that certificates will be renewed
-        and the configuration will be to all affected hosts.
+        and the configuration will updated on all affected hosts.
         """
         self._gen_core_keys()
         if self.is_core:
@@ -337,6 +337,21 @@ class AS(models.Model):
             if candidate_id not in existing_ids:
                 return candidate_id
         raise RuntimeError('Interface IDs exhausted')
+
+    def _change_isd(self, isd):
+        """
+        Change the AS to be part of a different ISD.
+        Bump the corresponding indicators, so that certificates will be renewed
+        and the configuration will updated on all affected hosts.
+        Note: does *not* check/update any links etc.
+        """
+        if self.is_core:
+            raise NotImplementedError
+
+        self.isd = isd
+        self.certificates_needs_update = True
+        self.save()
+        self.hosts.bump_config()
 
     def _bump_hosts_config_core_change(self):
         # TODO(matzf): untested
@@ -527,16 +542,18 @@ class UserAS(AS):
         a configuration bump for the hosts of the affected attachment point(s).
         """
         host = self.hosts.get()   # UserAS always has only one host
-        link = self._get_ap_link()
-        interface_ap = link.interfaceA
-        interface_user = link.interfaceB
-        assert interface_user.host == host
+
+        if self.isd != attachment_point.AS.isd:
+            self._change_isd(attachment_point.AS.isd)
 
         host.update(
             public_ip=public_ip,
             bind_ip=bind_ip
         )
 
+        link = self._get_ap_link()
+        interface_ap = link.interfaceA
+        interface_user = link.interfaceB
         if use_vpn:
             vpn_client = self._create_or_activate_vpn_client(attachment_point.vpn)
             interface_user.update(
@@ -546,7 +563,9 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip()
+                public_ip=attachment_point.vpn.server_vpn_ip(),
+                public_port=None,
+                internal_port=None
             )
         else:
             host.vpn_clients.update(active=False)   # deactivate all vpn clients
@@ -558,7 +577,9 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=None
+                public_ip=None,
+                public_port=None,
+                internal_port=None
             )
 
         self.attachment_point = attachment_point

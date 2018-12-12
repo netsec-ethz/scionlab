@@ -63,6 +63,13 @@ ases = [
     makeASdef(19, 0x1303, 'Magdeburg', '192.0.2.33', is_ap=True),
     makeASdef(19, 0x1304, 'FR@Linode', '192.0.2.34'),
     makeASdef(19, 0x1305, 'Darmstadt', '192.0.2.35'),
+    # korea (Kompletely made up)
+    makeASdef(20, 0x1401, 'K_core1', '192.0.2.41', is_core=True),
+    makeASdef(20, 0x1402, 'K_core2', '192.0.2.42', is_core=True),
+    makeASdef(20, 0x1403, 'K_L1', '192.0.2.43'),
+    makeASdef(20, 0x1404, 'K_AP1', '192.0.2.44', is_ap=True),
+    makeASdef(20, 0x1405, 'K_AP2', '192.0.2.45', is_ap=True),
+    makeASdef(20, 0x1406, 'K_L3', '192.0.2.46'),
 ]
 
 # Links
@@ -80,6 +87,14 @@ links = [
     # ch-eu
     makeLinkDef(Link.CORE, 0x1101, 0x1301),
     makeLinkDef(Link.CORE, 0x1101, 0x1302),
+    # korea
+    makeLinkDef(Link.CORE, 0x1401, 0x1402),
+    makeLinkDef(Link.PROVIDER, 0x1401, 0x1403),
+    makeLinkDef(Link.PROVIDER, 0x1402, 0x1403),
+    makeLinkDef(Link.PROVIDER, 0x1403, 0x1404),
+    makeLinkDef(Link.PROVIDER, 0x1401, 0x1405),
+    makeLinkDef(Link.PROVIDER, 0x1402, 0x1405),
+    makeLinkDef(Link.PROVIDER, 0x1404, 0x1406),
 ]
 
 
