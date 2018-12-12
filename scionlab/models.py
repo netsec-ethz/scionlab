@@ -268,7 +268,7 @@ class AS(models.Model):
         hosts = Host.objects.filter(AS=self)
         AS_internal_overlay = "UDP/IPv6"  # FIXME(FR4NK-W): should the AS overlay be explicit?
         for host in hosts:
-            ip = ipaddress.ip_address(host.ip)
+            ip = ipaddress.ip_address(host.internal_ip)
             if isinstance(ip, ipaddress.IPv4Address):
                 AS_internal_overlay = "UDP/IPv4"
                 break
@@ -716,7 +716,7 @@ class Host(models.Model):
         unique_together = ('AS', 'internal_ip')
 
     def path_str(self):
-        return'%s__%s' % (self.AS.isd_as_path_str(), str(self.ip).replace(":", "_"))
+        return'%s__%s' % (self.AS.isd_as_path_str(), str(self.internal_ip).replace(":", "_"))
 
     def __str__(self):
         if self.label:
