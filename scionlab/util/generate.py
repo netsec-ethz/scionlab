@@ -22,7 +22,7 @@ from nacl.signing import SigningKey
 from topology.generator import TopoID
 from django.conf import settings
 
-from scionlab.models import AS, ISD, Service
+from scionlab.models import AS, ISD, Service, Interface
 import scionlab.util.local_config_util as generator
 
 
@@ -68,13 +68,11 @@ def create_gen(host, host_gen_dir, tp, service_name_map):
         instance_name = service_name_map[service]
         generate_instance_dir(service.AS, host_gen_dir, service_type, tp, instance_name)
 
-    border_router_names = tp[generator.NICKS_TO_KEYS["BR"]].keys()
+    border_router_nick = 'BR'
+    border_router_names = tp[generator.NICKS_TO_KEYS[border_router_nick]].keys()
     for border_router in border_router_names:
-        ia = ISD_AS(tp["ISD_AS"])
-        service_nick = 'BR'
-        service_type = generator.NICKS_TO_TYPES[service_nick]
-        as_ = AS.objects.get(as_id=ia.as_str())
-        generate_instance_dir(as_, host_gen_dir, service_type, tp, border_router)
+        service_type = generator.NICKS_TO_TYPES[border_router_nick]
+        generate_instance_dir(host.AS, host_gen_dir, service_type, tp, border_router)
 
     tar_gen(host_gen_dir, path.join(host_gen_dir, "%s.%s" % (host_gen_dir.split("/")[-1], "tgz")))
     return
@@ -117,8 +115,6 @@ def generate_topology_from_DB(as_):
     :param AS as_: AS object
     :return: topo_dict: topology dict, service_name_map: map from Service object to instance name
     """
-    interfaces = as_.interfaces.active()
-    services = as_.services.all()
     topo_dict = {}
     service_name_map = {}
 
@@ -132,8 +128,10 @@ def generate_topology_from_DB(as_):
     topo_dict["Overlay"] = AS_internal_overlay
 
     topo_dict[generator.TYPES_TO_KEYS['router']] = {}
-    for interface in interfaces:
-        router_instance_id = interface.get_router_instance_id()
+    interface_enumerator = Interface.get_interface_router_instance_ids(as_)
+    for router_instance_id, interface in interface_enumerator:
+        if not interface.link().active:
+            continue
         router_instance_name = "%s%s-%s" % ("br", as_.isd_as_path_str(), router_instance_id)
         if router_instance_name not in topo_dict[generator.TYPES_TO_KEYS['router']].keys():
             topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_name] = {}
@@ -145,7 +143,7 @@ def generate_topology_from_DB(as_):
         router_instance_entry["InternalAddrs"].append({
             "Public": [
                 {
-                    "Addr": interface.bind_ip,  # FIXME(FR4NK-W): Could be diff. from the bind IP
+                    "Addr": interface.host.internal_ip,
                     "L4Port": interface.internal_port
                 }
             ]
@@ -163,36 +161,37 @@ def generate_topology_from_DB(as_):
             "Bandwidth": interface.link().bandwidth,
             "Public": [{
                 "L4Port": interface.public_port,
-                "Addr": interface.public_ip
+                "Addr": interface.get_public_ip()
             }],
             "MTU": interface.link().bandwidth,
             "Remote": {
                 "L4Port": remote_if_obj.public_port,
-                "Addr": remote_if_obj.public_ip
+                "Addr": remote_if_obj.get_public_ip()
             },
             "Overlay": link_overlay
         }
-        if interface.bind_ip:
+        if interface.get_bind_ip():
             router_instance_entry["Interfaces"][interface.interface_id]["Bind"] = {
                 "L4Port": interface.bind_port,
-                "Addr": interface.bind_ip
+                "Addr": interface.get_bind_ip()
             }
         topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_name] = router_instance_entry
 
-    for service in services:
-        if service.type not in generator.JOB_NAMES.values():
+    for stype, _ in Service.SERVICE_TYPES:
+        if stype not in generator.JOB_NAMES.values():
             continue
-        service_key = generator.TYPES_TO_KEYS[generator.NICKS_TO_TYPES[service.type]]
-        service_instance_id = service.get_service_instance_id()
-        service_instance_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(),
-                                             service_instance_id)
-        service_name_map[service] = service_instance_name
-        if service_key not in topo_dict.keys():
-            topo_dict[service_key] = {}
-        topo_dict[service_key][service_instance_name] = {
-            "Public": [{"L4Port": service.port,
-                        "Addr": service.host.ip}]
-        }
+        service_key = generator.TYPES_TO_KEYS[generator.NICKS_TO_TYPES[stype]]
+        service_enumerator = Service.get_service_type_ids(as_, stype)
+        for service_instance_id, service in service_enumerator:
+            service_instance_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(),
+                                                 service_instance_id)
+            service_name_map[service] = service_instance_name
+            if service_key not in topo_dict.keys():
+                topo_dict[service_key] = {}
+            topo_dict[service_key][service_instance_name] = {
+                "Public": [{"L4Port": service.port,
+                            "Addr": service.host.internal_ip}]
+            }
     return topo_dict, service_name_map
 
 

@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import base64
+import ipaddress
+import jsonfield
 import operator
 import os
-import base64
 
 from django import urls
 from django.conf import settings
@@ -25,8 +28,6 @@ from django.db import models
 from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
 
-import ipaddress
-import jsonfield
 
 import lib.crypto.asymcrypto
 from scionlab.util import as_ids
@@ -51,6 +52,8 @@ DEFAULT_ZOOKEEPER_PORT = 2181
 DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
 DEFAULT_LINK_MTU = 1500 - 20 - 8
 DEFAULT_LINK_BANDWIDTH = 1000
+
+DEFAULT_MAX_ROUTER_INTERFACES = 12
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
@@ -197,6 +200,9 @@ class AS(models.Model):
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     mtu = models.PositiveIntegerField(default=DEFAULT_LINK_MTU,
                                       help_text="Maximum Transfer Unit for intra AS packets.")
+
+    # Max number of interfaces per router
+    interfaces_per_br = models.PositiveIntegerField(default=DEFAULT_MAX_ROUTER_INTERFACES)
 
     owner = models.ForeignKey(
         User,
@@ -1008,6 +1014,18 @@ class Interface(models.Model):
         # FIXME(matzf): naive queries
         return self.remote_interface().AS
 
+    @classmethod
+    def get_interface_router_instance_ids(cls, as_):
+        """
+        Get the service instance identifier for the router of the interfaces of the AS
+        :return: str _: the list of Interfaces and their router instance id
+        """
+        # Get instance id from DB id order:
+        AS_interfaces = Interface.objects.filter(AS=as_).order_by("id")
+        AS_interface_ids = enumerate(AS_interfaces, start=0)
+        return [((interface_no // as_.interfaces_per_br) + 1, interface)
+                for interface_no, interface in AS_interface_ids]
+
     @staticmethod
     def _assign_public_port(host, public_ip, public_port):
         """
@@ -1019,16 +1037,6 @@ class Interface(models.Model):
         """
         return public_port or host.find_free_port(public_ip or host.public_ip,
                                                   min=DEFAULT_PUBLIC_PORT)
-
-    def get_router_instance_id(self):
-        """
-        Get the service instance identifier for the router of the interface
-        :return: str _: the router instance id
-        """
-        # Get instance id from DB id order:
-        AS_interfaces = Interface.objects.filter(AS=self.AS).order_by("id")
-        interface_no = operator.indexOf(AS_interfaces, self)
-        return (interface_no // 12) + 1
 
     def link_relation(self):
         if self.link().type == Link.PROVIDER:
@@ -1318,6 +1326,29 @@ class Service(models.Model):
 
     objects = ServiceManager()
 
+    @classmethod
+    def get_service_type_ids(cls, as_, stype):
+        """
+        Get the service instance identifier for all service in a AS of a type
+        :param AS as_: AS
+        :param str stype: service type
+        :return: enumerate object with the services of stype and their id
+        """
+        # Get instance ids from DB id order:
+        AS_service_instances = enumerate(as_.services.filter(type=stype).order_by("id"),
+                                         start=1)
+        return AS_service_instances
+
+    def get_service_instance_id(self):
+        """
+        Get the service instance identifier for a service
+        :return: str instance_id: the service instance id
+        """
+        # Get instance id from DB id order:
+        AS_service_instances = Service.objects.filter(type=self.type, AS=self.AS).order_by("id")
+        instance_id = operator.indexOf(AS_service_instances, self) + 1
+        return instance_id
+
     def _pre_delete(self):
         """
         Called by the pre_delete signal handler `_service_pre_delete`.
@@ -1377,16 +1408,6 @@ class Service(models.Model):
             host.AS.hosts.bump_config()
         else:
             host.bump_config()
-
-    def get_service_instance_id(self):
-        """
-        Get the service instance identifier for a service
-        :return: str instance_id: the service instance id
-        """
-        # Get instance id from DB id order:
-        AS_service_instances = Service.objects.filter(type=self.type, AS=self.AS).order_by("id")
-        instance_id = operator.indexOf(AS_service_instances, self) + 1
-        return instance_id
 
 
 class VPN(models.Model):
