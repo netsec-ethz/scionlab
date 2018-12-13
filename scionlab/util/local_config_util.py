@@ -39,8 +39,6 @@ from lib.crypto.asymcrypto import (
 from lib.crypto.certificate_chain import get_cert_chain_file_path
 from lib.crypto.trc import get_trc_file_path
 from lib.crypto.util import (
-    get_ca_cert_file_path,
-    get_ca_private_key_file_path,
     get_offline_key_file_path,
     get_offline_key_raw_file_path,
     get_online_key_file_path,
@@ -167,7 +165,6 @@ def prep_supervisord_conf(instance_dict, executable_name, service_type, instance
     :returns: supervisord configuration as a ConfigParser object
     :rtype: ConfigParser
     """
-    ISDAS = isdas_str(isd_as)
     config = configparser.ConfigParser()
     env_tmpl = 'PYTHONPATH=python:.,TZ=UTC,ZLOG_CFG="%s/%s.zlog.conf"'
     if not instance_dict:
