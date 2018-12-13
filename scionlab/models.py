@@ -100,6 +100,13 @@ class User(auth_User):
                                   code='user_as_quota_exceeded')
 
 
+class ISDManager(models.Manager):
+    def update_trcs(self):
+        for isd in self.filter(trc_needs_update=True).iterator():
+            isd.update_trc()
+            isd.save()
+
+
 class ISD(models.Model):
     isd_id = models.PositiveIntegerField()
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
@@ -124,6 +131,8 @@ class ISD(models.Model):
             their keys."""
     )
 
+    objects = ISDManager()
+
     class Meta:
         verbose_name = 'ISD'
         verbose_name_plural = 'ISDs'
@@ -133,6 +142,11 @@ class ISD(models.Model):
             return 'ISD %d (%s)' % (self.isd_id, self.label)
         else:
             return 'ISD %d' % self.isd_id
+
+    def update_trc(self):
+        from scionlab.util.certificates import create_trc
+        self.trc, self.trc_priv_keys = create_trc(self)
+        self.trc_needs_update = False
 
 
 class ASManager(models.Manager):
@@ -192,6 +206,25 @@ class ASManager(models.Manager):
         )
         return as_
 
+    def update_certificates(self):
+        """
+        Update AS Certificates and Core AS Certificates for all ASes where required.
+        Ensures that the certificates are updated in the correct order, i.e. Core AS certificates
+        first.
+        """
+        core_ases = (self.filter(is_core=True, core_certificate_needs_update=True)
+                     | self.filter(is_core=True, certificates_needs_update=True))
+        for core_as in core_ases.iterator():
+            if core_as.core_certificate_needs_update:
+                core_as.update_core_certificates()
+            if core_as.certificate_needs_update:
+                core_as.update_certificate()
+            core_as.save()
+
+        for as_ in self.filter(is_core=False, certificates_needs_update=True).iterator():
+            as_.update_certificate()
+            as_.save()
+
 
 class AS(models.Model):
     isd = models.ForeignKey(
@@ -235,11 +268,17 @@ class AS(models.Model):
     core_offline_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
     core_offline_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
 
-    certificates = jsonfield.JSONField(null=True, blank=True)
-    certificates_needs_update = models.BooleanField(
-        default=True,
-        help_text=''
+    certificate = jsonfield.JSONField(null=True, blank=True)
+    certificate_needs_update = models.BooleanField(default=True)
+    certificate_issuer = models.ForeignKey(
+        'AS',
+        related_name='certificate_subjects',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
     )
+    core_certificate = jsonfield.JSONField(null=True, blank=True)
+    core_certificate_needs_update = models.BooleanField(default=True)
 
     objects = ASManager()
 
@@ -326,6 +365,42 @@ class AS(models.Model):
         self._gen_core_keys()
         if self.is_core:
             self._bump_hosts_config_core_change()
+
+    def update_certificate(self):
+        """
+        Create or update the AS Certificate.
+
+        Requires that the TRC in this ISD exists/is up to date.
+
+        Requires that a Core AS in this ISD with existing/up to date Core AS Certificate exists;
+        for core ASes, `update_core_certificate` needs to be called first.
+        See ASManager.update_certificates, which calls this function in the correct order.
+        """
+        from scionlab.util.certificates import create_as_certificate
+        if self.is_core:
+            self.certificate_issuer = self
+        else:
+            # Find new issuer if necessary
+            if (not self.certificate_issuer
+                    or not self.certificate_issuer.is_core
+                    or not self.certificate_issuer.isd_pk != self.isd_pk):
+                candidates = self.isd.ases.filter(is_core=True,
+                                                  core_certificate_needs_update=False)
+                self.certificate_issuer = candidates.first()
+
+        if self.certificate_issuer:  # Skip if failed to find a core AS as issuer
+            self.certificate = create_as_certificate(self, self.certificate_issuer)
+            self.certificates_needs_update = False
+
+    def update_core_certificate(self):
+        """
+        Create or update the Core AS Certificate.
+
+        Requires that the TRC in this ISD exists/is up to date.
+        """
+        from scionlab.util.certificates import create_core_certificate
+        self.core_certificate = create_core_certificate(self)
+        self.core_certificate_needs_update = False
 
     def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):
         """
