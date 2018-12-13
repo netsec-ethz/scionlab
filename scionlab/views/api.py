@@ -18,24 +18,25 @@ import shutil
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
 from django.http import (
-    FileResponse,
+    HttpResponse,
     HttpResponseBadRequest,
     HttpResponseForbidden,
     HttpResponseNotModified
 )
 
 from scionlab.models import Host
-from scionlab.util import generate
 
 
-def _create_config(host, tarfilename):
+def _create_config(host, tarfileobj):
+    from scionlab.util import generate
+
     gen_dir = tempfile.mkdtemp()
 
     # XXX: should be the entry point of generate. And no tar!
     tp, service_name_map = generate.generate_topology_from_DB(host.AS)
     generate.create_gen(host, gen_dir, tp, service_name_map)
 
-    tar = tarfile.open(tarfilename, 'w:gz')
+    tar = tarfile.open(mode='w:gz', fileobj=tarfileobj)
     tar.add(gen_dir, arcname="gen")
     # TODO(matzf):
     # - VPN config
@@ -44,6 +45,13 @@ def _create_config(host, tarfilename):
     tar.close()
 
     shutil.rmtree(gen_dir)
+
+
+def _is_empty_config(host):
+    return (not host.services.exists()
+            and not host.interfaces.exists()
+            and not host.vpn_clients.exists()
+            and not host.vpn_servers.exists())
 
 
 class GetHostConfig(SingleObjectMixin, View):
@@ -61,12 +69,16 @@ class GetHostConfig(SingleObjectMixin, View):
             if version >= host.config_version:
                 return HttpResponseNotModified()
 
-        # All good, return generate and return the config
-        # TODO(matzf): check this HEAD handling works
-        tarball = ()
-        if request.method != 'HEAD':
-            tarball = tempfile.NamedTemporaryFile(suffix='.tar.gz')
-            _create_config(host, tarball.name)
+        if _is_empty_config(host):
+            return HttpResponse(status=204)
 
+        # All good, return generate and return the config
         filename = "%s_v%i.tar.gz" % (host.path_str(), host.config_version)
-        return FileResponse(tarball, as_attachment=True, filename=filename)
+
+        # Note: not using FileResponse as streaming is not expected to be beneficial for small file
+        # size
+        response = HttpResponse()
+        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+        response['Content-Type'] = 'application/gzip'
+        _create_config(host, response)  # Use the response as file-like object to write the tar
+        return response
