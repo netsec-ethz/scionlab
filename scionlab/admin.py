@@ -411,8 +411,10 @@ class ASAdmin(admin.ModelAdmin):
                     ('core_sig_pub_key', 'core_sig_priv_key'),
                     ('core_online_pub_key', 'core_online_priv_key'),
                     ('core_offline_pub_key', 'core_offline_priv_key'),
-                    'certificates',
-                    'certificates_needs_update'
+                    'certificate_chain',
+                    'certificate_chain_needs_update'
+                    'core_certificate',
+                    'core_certificate_needs_update'
                 )
             }
         )
