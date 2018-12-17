@@ -212,10 +212,8 @@ def generate_zk_config(tp, as_, local_gen_path, simple_conf_mode):
     :param AS as_: AS for which the ZK config will be written.
     :param str local_gen_path: The gen path of scion-web.
     """
-    ISD = as_.isd.isd_id
-    AS = as_.as_id
     for zk_id, zk in tp['ZookeeperService'].items():
-        instance_name = 'zk%s-%s-%s' % (ISD, AS, zk_id)
+        instance_name = 'zk%s-%s' % (as_.isd_as_path_str(), zk_id)
         write_zk_conf(local_gen_path, as_, instance_name, zk, simple_conf_mode)
 
 
