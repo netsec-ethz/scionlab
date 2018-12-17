@@ -20,7 +20,8 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django import forms
 
-from scionlab.models import UserAS, MAX_PORT
+from scionlab.models import UserAS, MAX_PORT, AS
+from scionlab.util import generate
 
 
 class UserASForm(forms.ModelForm):
@@ -118,6 +119,7 @@ class UserASCreateView(CreateView):
 
     def post(self, request, *args, **kwargs):
         user = self.request.user
+        generate.create_gen_AS(AS.objects.first().as_id)
         if user.num_ases() >= user.max_num_ases():
             return HttpResponseForbidden()
         return super().post(request, *args, **kwargs)
