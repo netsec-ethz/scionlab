@@ -17,7 +17,6 @@ import os
 import os.path as path
 import tarfile
 
-from lib.packet.scion_addr import ISD_AS
 from nacl.signing import SigningKey
 from topology.generator import TopoID
 from django.conf import settings
@@ -96,13 +95,13 @@ def generate_instance_dir(as_, directory, stype, tp, instance_name):
 
     # Generate service configuration to directory, with certs and keys
     as_crypto_obj = AScrypto.from_AS(as_)
-    generator.write_certs_trc_keys(ISD_AS(as_.isd_as_str()), as_crypto_obj, instance_path)
-    generator.write_as_conf_and_path_policy(ISD_AS(as_.isd_as_str()), as_crypto_obj, instance_path)
+    generator.write_certs_trc_keys(as_, as_crypto_obj, instance_path)
+    generator.write_as_conf_and_path_policy(as_, as_crypto_obj, instance_path)
     executable_name = generator.TYPES_TO_EXECUTABLES[stype]
     type_key = generator.TYPES_TO_KEYS[stype]
 
     config = generator.prep_supervisord_conf(tp[type_key][instance_name], executable_name,
-                                             stype, str(instance_name), ISD_AS(as_.isd_as_str()))
+                                             stype, str(instance_name), as_)
     generator.write_supervisord_config(config, instance_path)
     generator.write_topology_file(tp, stype, instance_path)
     generator.write_zlog_file(stype, instance_name, instance_path)

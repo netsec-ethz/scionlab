@@ -261,6 +261,12 @@ class AS(models.Model):
 
     isd_as_str.short_description = 'ISD-AS'
 
+    def as_path_str(self):
+        """
+        :return: the AS string representation in the file format
+        """
+        return self.as_id.replace(":", "_")
+
     def isd_as_path_str(self):
         """
         :return: the ISD-AS string representation in the file format

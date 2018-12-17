@@ -36,9 +36,8 @@ from lib.crypto.asymcrypto import (
     get_sig_key_file_path,
     get_sig_key_raw_file_path,
 )
-from lib.crypto.certificate_chain import get_cert_chain_file_path
-from lib.crypto.trc import get_trc_file_path
 from lib.crypto.util import (
+    CERT_DIR,
     get_offline_key_file_path,
     get_offline_key_raw_file_path,
     get_online_key_file_path,
@@ -110,18 +109,6 @@ JOB_NAMES = {
 PROM_PORT_OFFSET = 1000
 
 
-def isdas_str(isd_as):
-    return isd_as.file_fmt() if 'file_fmt' in dir(isd_as) else str(isd_as)
-
-
-def isd_str(isd_as):
-    return isd_as.isd_str() if 'isd_str' in dir(isd_as) else isd_as[0]
-
-
-def as_str(isd_as):
-    return isd_as.as_file_fmt() if 'as_file_fmt' in dir(isd_as) else isd_as[1]
-
-
 class ASCredential(object):
     """
     A class to keep the credentials of the SCION ASes.
@@ -153,7 +140,7 @@ def write_overlay_config(local_gen_path):
         write_file(overlay_file_path, 'UDP/IPv4')
 
 
-def prep_supervisord_conf(instance_dict, executable_name, service_type, instance_name, isd_as):
+def prep_supervisord_conf(instance_dict, executable_name, service_type, instance_name, as_):
     """
     Prepares the supervisord configuration for the infrastructure elements
     and returns it as a ConfigParser object.
@@ -161,7 +148,7 @@ def prep_supervisord_conf(instance_dict, executable_name, service_type, instance
     :param str executable_name: the name of the executable.
     :param str service_type: the type of the service (e.g. beacon_server).
     :param str instance_name: the instance of the service (e.g. br1-8-1).
-    :param ISD_AS isd_as: the ISD-AS the service belongs to.
+    :param AS as_: the AS the service belongs to.
     :returns: supervisord configuration as a ConfigParser object
     :rtype: ConfigParser
     """
@@ -170,7 +157,7 @@ def prep_supervisord_conf(instance_dict, executable_name, service_type, instance
     if not instance_dict:
         cmd = ('bash -c \'exec "python/bin/%s" "--api-addr" "%s" "%s" "%s" &>logs/%s.OUT\'') % (
             executable_name, "/run/shm/sciond/default.sock", instance_name,
-            get_elem_dir(GEN_PATH, isd_as, "endhost"), instance_name)
+            get_elem_dir(GEN_PATH, as_, "endhost"), instance_name)
         env = 'PYTHONPATH=python/:.,TZ=UTC'
     elif service_type == 'router':  # go router
         env_tmpl += ',GODEBUG="cgocheck=0"'
@@ -180,9 +167,9 @@ def prep_supervisord_conf(instance_dict, executable_name, service_type, instance
                                PROM_PORT_OFFSET)
         cmd = ('bash -c \'exec "bin/%s" -id "%s" '
                '-confd "%s" -log.age "2" -prom "%s" &>logs/%s.OUT\'') % (
-            executable_name, instance_name, get_elem_dir(GEN_PATH, isd_as, instance_name),
+            executable_name, instance_name, get_elem_dir(GEN_PATH, as_, instance_name),
             prom_addr, instance_name)
-        env = env_tmpl % (get_elem_dir(GEN_PATH, isd_as, instance_name),
+        env = env_tmpl % (get_elem_dir(GEN_PATH, as_, instance_name),
                           instance_name)
     elif service_type == 'certificate_server':  # go certificate server
         env_tmpl += ',SCIOND_PATH="/run/shm/sciond/default.sock"'
@@ -191,18 +178,18 @@ def prep_supervisord_conf(instance_dict, executable_name, service_type, instance
                                instance_dict[addr_type][0]['L4Port'] + PROM_PORT_OFFSET)
         cmd = ('bash -c \'exec "bin/%s" -id "%s" '
                '-confd "%s" -log.age "2" -prom "%s" &>logs/%s.OUT\'') % (
-            executable_name, instance_name, get_elem_dir(GEN_PATH, isd_as, instance_name),
+            executable_name, instance_name, get_elem_dir(GEN_PATH, as_, instance_name),
             prom_addr, instance_name)
-        env = env_tmpl % (get_elem_dir(GEN_PATH, isd_as, instance_name),
+        env = env_tmpl % (get_elem_dir(GEN_PATH, as_, instance_name),
                           instance_name)
     else:  # other infrastructure elements
         addr_type = 'Bind' if 'Bind' in instance_dict.keys() else 'Public'
         prom_addr = "%s:%s" % (instance_dict[addr_type][0]['Addr'],
                                instance_dict[addr_type][0]['L4Port'] + PROM_PORT_OFFSET)
         cmd = ('bash -c \'exec "python/bin/%s" "%s" "%s" --prom "%s" &>logs/%s.OUT\'') % (
-            executable_name, instance_name, get_elem_dir(GEN_PATH, isd_as, instance_name),
+            executable_name, instance_name, get_elem_dir(GEN_PATH, as_, instance_name),
             prom_addr, instance_name)
-        env = env_tmpl % (get_elem_dir(GEN_PATH, isd_as, instance_name),
+        env = env_tmpl % (get_elem_dir(GEN_PATH, as_, instance_name),
                           instance_name)
     config['program:' + instance_name] = {
         'autostart': 'false',
@@ -218,25 +205,25 @@ def prep_supervisord_conf(instance_dict, executable_name, service_type, instance
     return config
 
 
-def generate_zk_config(tp, isd_as, local_gen_path, simple_conf_mode):
+def generate_zk_config(tp, as_, local_gen_path, simple_conf_mode):
     """
     Generates Zookeeper configuration files for Zookeeper instances of an AS.
     :param dict tp: the topology of the AS provided as a dict of dicts.
-    :param ISD_AS isd_as: ISD-AS for which the ZK config will be written.
+    :param AS as_: AS for which the ZK config will be written.
     :param str local_gen_path: The gen path of scion-web.
     """
-    ISD = isd_str(isd_as)
-    AS = as_str(isd_as)
+    ISD = as_.isd.isd_id
+    AS = as_.as_id
     for zk_id, zk in tp['ZookeeperService'].items():
         instance_name = 'zk%s-%s-%s' % (ISD, AS, zk_id)
-        write_zk_conf(local_gen_path, isd_as, instance_name, zk, simple_conf_mode)
+        write_zk_conf(local_gen_path, as_, instance_name, zk, simple_conf_mode)
 
 
-def write_zk_conf(local_gen_path, isd_as, instance_name, zk, simple_conf_mode):
+def write_zk_conf(local_gen_path, as_, instance_name, zk, simple_conf_mode):
     """
     Writes a Zookeeper configuration file for the given Zookeeper instance.
     :param str local_gen_path: The gen path of scion-web.
-    :param ISD_AS isd_as: ISD-AS for which the ZK config will be written.
+    :param AS as_: AS for which the ZK config will be written.
     :param str instance_name: the instance of the ZK service (e.g. zk1-5-1).
     :param dict zk: Zookeeper instance information from the topology as a
     dictionary.
@@ -255,23 +242,38 @@ def write_zk_conf(local_gen_path, isd_as, instance_name, zk, simple_conf_mode):
     else:
         # set the dataLogDir only if we are operating in the normal mode.
         conf['dataLogDir'] = '/run/shm/host-zk'
-    zk_conf_path = get_elem_dir(local_gen_path, isd_as, instance_name)
+    zk_conf_path = get_elem_dir(local_gen_path, as_, instance_name)
     zk_conf_file = os.path.join(zk_conf_path, 'zoo.cfg')
     write_file(zk_conf_file, yaml.dump(conf, default_flow_style=False))
 
 
-def get_elem_dir(path, isd_as, elem_id):
+def get_elem_dir(path, as_, elem_id):
     """
     Generates and returns the directory of a SCION element.
     :param str path: Relative or absolute path.
-    :param ISD_AS isd_as: ISD-AS to which the element belongs.
+    :param AS as_: AS to which the element belongs.
     :param elem_id: The name of the instance.
     :returns: The directory of the instance.
     :rtype: string
     """
-    ISD = isd_str(isd_as)
-    AS = as_str(isd_as)
+    ISD = as_.isd.isd_id
+    AS = as_.as_id
     return "%s/ISD%s/AS%s/%s" % (path, ISD, AS, elem_id)
+
+
+def get_cert_chain_file_path(conf_dir, as_, version):  # pragma: no cover
+    """
+    Return the certificate chain file path for a given ISD.
+    """
+    return os.path.join(conf_dir, CERT_DIR, 'ISD%s-AS%s-V%s.crt' %
+                        (as_.isd.isd_id, as_.as_path_str(), version))
+
+
+def get_trc_file_path(conf_dir, isd, version):  # pragma: no cover
+    """
+    Return the TRC file path for a given ISD.
+    """
+    return os.path.join(conf_dir, CERT_DIR, 'ISD%s-V%s.trc' % (isd, version))
 
 
 def prep_dispatcher_supervisord_conf():
@@ -335,21 +337,21 @@ def write_supervisord_config(config, instance_path):
         config.write(configfile)
 
 
-def write_certs_trc_keys(isd_as, as_obj, instance_path):
+def write_certs_trc_keys(as_, as_obj, instance_path):
     """
     Writes the certificate and the keys for the given service
     instance of the given AS.
-    :param ISD_AS isd_as: ISD the AS belongs to.
+    :param AS as_: AS of the service instance
     :param obj as_obj: An object that stores crypto information for AS
     :param str instance_path: Location (in the file system) to write
     the configuration into.
     """
     # write keys
     as_key_path = {
-        'cert': get_cert_chain_file_path(instance_path, isd_as,
+        'cert': get_cert_chain_file_path(instance_path, as_,
                                          as_obj.certificate[list(as_obj.certificate.keys())[0]]
                                          ['Version']),
-        'trc': get_trc_file_path(instance_path, isd_as[0], as_obj.trc['Version']),
+        'trc': get_trc_file_path(instance_path, as_.isd.isd_id, as_obj.trc['Version']),
         'enc_key': get_enc_key_file_path(instance_path),
         'sig_key': get_sig_key_file_path(instance_path),
         'sig_key_raw': get_sig_key_raw_file_path(instance_path),
@@ -374,10 +376,10 @@ def write_certs_trc_keys(isd_as, as_obj, instance_path):
             write_file(path, as_obj.core_keys[key])
 
 
-def write_as_conf_and_path_policy(isd_as, as_obj, instance_path):
+def write_as_conf_and_path_policy(as_, as_obj, instance_path):
     """
     Writes AS configuration (i.e. as.yml) and path policy files.
-    :param ISD_AS isd_as: ISD-AS for which the config will be written.
+    :param AS as_: AS for which the config will be written.
     :param obj as_obj: An object that stores crypto information for AS
     :param str instance_path: Location (in the file system) to write
     the configuration into.
@@ -395,21 +397,18 @@ def write_as_conf_and_path_policy(isd_as, as_obj, instance_path):
     copy_file(path_policy_file, os.path.join(instance_path, PATH_POLICY_FILE))
 
 
-def generate_sciond_config(isd_as, as_obj, topo_dicts, gen_path=GEN_PATH):
+def generate_sciond_config(as_, as_obj, topo_dicts, gen_path=GEN_PATH):
     """
     Writes the endhost folder into the given location.
-    :param ISD_AS isd_as: ISD the AS belongs to.
+    :param AS as_: AS of the sciond instance
     :param obj as_obj: An object that stores crypto information for AS
     :param dict topo_dicts: the topology as a dict of dicts.
     :param str gen_path: the target location for a gen folder.
     """
     executable_name = "sciond"
-    ISD = isd_str(isd_as)
-    AS = as_str(isd_as)
-    ISDAS = isdas_str(isd_as)
-    instance_name = "sd%s" % ISDAS
+    instance_name = "sd%s" % as_.isd_as_path_str()
     service_type = "endhost"
-    instance_path = get_elem_dir(gen_path, isd_as, service_type)
+    instance_path = get_elem_dir(gen_path, as_, service_type)
     processes = []
     for svc_type in ["BorderRouters", "BeaconService",
                      "CertificateService", "PathService"]:
@@ -418,15 +417,16 @@ def generate_sciond_config(isd_as, as_obj, topo_dicts, gen_path=GEN_PATH):
         for elem_id, elem in topo_dicts[svc_type].items():
             processes.append(elem_id)
     processes.append(instance_name)
-    config = prep_supervisord_conf(None, executable_name, service_type, instance_name, isd_as)
-    config['group:' + "as%s" % ISDAS] = {'programs': ",".join(processes)}
-    write_certs_trc_keys(isd_as, as_obj, instance_path)
-    write_as_conf_and_path_policy(isd_as, as_obj, instance_path)
-    write_supervisord_config(config, os.path.join(gen_path, "ISD%s" % ISD, "AS%s" % AS))
+    config = prep_supervisord_conf(None, executable_name, service_type, instance_name, as_)
+    config['group:' + "as%s" % as_.isd_as_path_str()] = {'programs': ",".join(processes)}
+    write_certs_trc_keys(as_, as_obj, instance_path)
+    write_as_conf_and_path_policy(as_, as_obj, instance_path)
+    write_supervisord_config(config, os.path.join(gen_path, "ISD%s" % as_.isd.isd_id,
+                                                  "AS%s" % as_.as_path_str()))
     write_topology_file(topo_dicts, None, instance_path)
 
 
-def generate_prom_config(isd_as, topo_dicts, gen_path=GEN_PATH):
+def generate_prom_config(as_, topo_dicts, gen_path=GEN_PATH):
     """
     """
     config_dict = defaultdict(list)
@@ -437,13 +437,11 @@ def generate_prom_config(isd_as, topo_dicts, gen_path=GEN_PATH):
             continue
         for elem_id, elem in topo_dicts[svc_type].items():
             config_dict[svc_type].append(_prom_addr_infra(elem))
-    _write_prom_files(isd_as, config_dict, gen_path)
+    _write_prom_files(as_, config_dict, gen_path)
 
 
-def _write_prom_files(isd_as, config_dict, gen_path=GEN_PATH):
-    ISD = isd_str(isd_as)
-    AS = as_str(isd_as)
-    base = os.path.join(gen_path, 'ISD%s' % ISD, 'AS%s' % AS)
+def _write_prom_files(as_, config_dict, gen_path=GEN_PATH):
+    base = os.path.join(gen_path, 'ISD%s' % as_.isd.isd_id, 'AS%s' % as_.as_path_str())
     as_local_targets_path = {}
     targets_paths = defaultdict(list)
     for ele_type, target_list in config_dict.items():
