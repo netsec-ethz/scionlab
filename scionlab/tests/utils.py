@@ -105,7 +105,9 @@ LinkDescription = namedtuple('LinkDescription', [
     'to_internal_ip',
     'to_internal_port',
 ])
-# little hack: from future-3.7 import namedtuple(defaults=...)
+# little hack: the `defaults` parameter for namedtuple will only be introduced in python-3.7.
+# As a simple workaround we manually provide the desired default value (_dont_care) for all
+# positional arguments by overwriting the magic __defaults__ field of the constructor function.
 LinkDescription.__new__.__defaults__ = (_dont_care,) * len(LinkDescription._fields)
 
 
