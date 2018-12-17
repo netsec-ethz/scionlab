@@ -869,7 +869,8 @@ class InterfaceManager(models.Manager):
         """
         return list of Interfaces from active links
         """
-        return [e for e in self.all() if e.link().active]
+        return self.filter(link_as_interfaceA__active=True) |\
+            self.filter(link_as_interfaceB__active=True)
 
 
 class Interface(models.Model):

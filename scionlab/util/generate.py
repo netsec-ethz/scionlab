@@ -72,7 +72,6 @@ def create_gen(host, host_gen_dir, tp, service_name_map):
         service_type = generator.NICKS_TO_TYPES[border_router_nick]
         generate_instance_dir(host.AS, host_gen_dir, service_type, tp, border_router)
 
-    tar_gen(host_gen_dir, path.join(host_gen_dir, "%s.%s" % (host_gen_dir.split("/")[-1], "tgz")))
     return
 
 

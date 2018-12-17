@@ -255,7 +255,7 @@ def get_elem_dir(path, as_, elem_id):
     :rtype: string
     """
     ISD = as_.isd.isd_id
-    AS = as_.as_id
+    AS = as_.as_path_str()
     return "%s/ISD%s/AS%s/%s" % (path, ISD, AS, elem_id)
 
 
