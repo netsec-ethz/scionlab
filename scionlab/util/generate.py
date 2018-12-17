@@ -63,7 +63,6 @@ def create_gen(host, host_gen_dir, tp, service_name_map):
         service_nick = service.type
         if service_nick not in generator.JOB_NAMES.values():
             continue
-
         service_type = generator.NICKS_TO_TYPES[service_nick]
         instance_name = service_name_map[service]
         generate_instance_dir(service.AS, host_gen_dir, service_type, tp, instance_name)
@@ -212,8 +211,8 @@ class AScrypto:
         :return:
         """
         inst = cls()
-        inst.certificate = str(as_.certificates)
-        inst.trc = str(ISD.objects.get(id=as_.isd.id).trc)
+        inst.certificate = as_.certificates
+        inst.trc = ISD.objects.get(id=as_.isd.id).trc
         inst.keys = {
             'sig_key': as_.sig_priv_key,
             'sig_key_raw': as_.enc_priv_key,

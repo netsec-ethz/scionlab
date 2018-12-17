@@ -201,9 +201,6 @@ class AS(models.Model):
     mtu = models.PositiveIntegerField(default=DEFAULT_LINK_MTU,
                                       help_text="Maximum Transfer Unit for intra AS packets.")
 
-    # Max number of interfaces per router
-    interfaces_per_br = models.PositiveIntegerField(default=DEFAULT_MAX_ROUTER_INTERFACES)
-
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -1023,7 +1020,7 @@ class Interface(models.Model):
         # Get instance id from DB id order:
         AS_interfaces = Interface.objects.filter(AS=as_).order_by("id")
         AS_interface_ids = enumerate(AS_interfaces, start=0)
-        return [((interface_no // as_.interfaces_per_br) + 1, interface)
+        return [((interface_no // DEFAULT_MAX_ROUTER_INTERFACES) + 1, interface)
                 for interface_no, interface in AS_interface_ids]
 
     @staticmethod
