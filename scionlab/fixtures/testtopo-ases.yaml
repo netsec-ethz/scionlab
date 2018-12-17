@@ -37,8 +37,8 @@
     is_core: true, core_sig_priv_key: AJx+095VPrpTtN4QMOqROD3N9yTNi3IXFP5R4IL/7n0=,
     core_sig_pub_key: Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=, core_online_priv_key: G02NSrQfjFXQ7Io09syajJZJcReYzGJRkz1KLzDSLwg=,
     core_online_pub_key: XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=, core_offline_priv_key: nPuoQnkRFq3BIeAm7AnXFOWz7NSKrmTWtIZGhc882Tc=,
-    core_offline_pub_key: b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=, certificates: null,
-    certificates_needs_update: true}
+    core_offline_pub_key: b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=, certificate_chain: null,
+    certificate_chain_needs_update: true, core_certificate: null, core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 2
   fields: {isd: 2, as_id: 'ffaa:0:1102', as_id_int: 281105609527554, label: ETHZ,
@@ -47,7 +47,8 @@
     enc_priv_key: HbQ4X8srVW3QDxnIJdqyOAvRkqLo74iarhIGH6Iwm9Q=, master_as_key: kx5kF17V+x0JmwUx9vgvtw==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 3
   fields: {isd: 2, as_id: 'ffaa:0:1103', as_id_int: 281105609527555, label: SWTH,
@@ -56,7 +57,8 @@
     enc_priv_key: M0Jb57t41ubrkSuyrDT3xA7JrSjYKVeHQB6Y63GqLAM=, master_as_key: eK5o5pHfgupPpltj1qhAJw==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 4
   fields: {isd: 2, as_id: 'ffaa:0:1107', as_id_int: 281105609527559, label: ETHZ-AP,
@@ -65,7 +67,8 @@
     enc_priv_key: atSmFACYMbJVKD05o3JgteCskd9qCGbfs5Frxam1Cyo=, master_as_key: chBCsyhyh+J86I+awQDiCQ==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 5
   fields: {isd: 4, as_id: 'ffaa:0:1301', as_id_int: 281105609528065, label: PV, mtu: 1472,
@@ -74,8 +77,8 @@
     master_as_key: yh3cQSKnhdGmpVgd3ydH2Q==, is_core: true, core_sig_priv_key: BAoKNK5CjlDyXfCR6NkK2L/2s5unfrak53Wjb1/fiS0=,
     core_sig_pub_key: LGA/Puogbvc0ahK2mhKv5T8+MkHFAFr8m81x5NMYDkM=, core_online_priv_key: NWCWSgIjJkVVVspetxdWx54JCkUpJvuVSlxl/YwhSx0=,
     core_online_pub_key: hmiYLdo4o6qL3MrDN3dzlmQ7dhHkNUNTY6d6irTNMkc=, core_offline_priv_key: ers97wxOLduFuhJNZ9VUTGobGY/oe3lW18z5z1cfeh0=,
-    core_offline_pub_key: gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=, certificates: null,
-    certificates_needs_update: true}
+    core_offline_pub_key: gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=, certificate_chain: null,
+    certificate_chain_needs_update: true, core_certificate: null, core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 6
   fields: {isd: 4, as_id: 'ffaa:0:1302', as_id_int: 281105609528066, label: GEANT,
@@ -85,8 +88,8 @@
     is_core: true, core_sig_priv_key: JRoydWBci9MmGv2Y+3wlkGejrmzghX6t6uNS1X//f6I=,
     core_sig_pub_key: HCnbPxH+m9v+/N96SujsbEhJNQbh82z0lrBiN/G4ZoM=, core_online_priv_key: q98zipzuOAJXtPa/5lHRUgmGJd9Bmsgn12GVS7e0zng=,
     core_online_pub_key: 3hTUMS6IXGxGcXxuW0iMoIg4tsE1WHRPTqAdqLEz6XA=, core_offline_priv_key: EMwVhN7qChA5IQpMA8LYclTcKcwm3qd191+BYeaHgAg=,
-    core_offline_pub_key: EzyWTTpNiYt0+6dDMQhjIRTfrREsNygTNSgKu8M3Ae4=, certificates: null,
-    certificates_needs_update: true}
+    core_offline_pub_key: EzyWTTpNiYt0+6dDMQhjIRTfrREsNygTNSgKu8M3Ae4=, certificate_chain: null,
+    certificate_chain_needs_update: true, core_certificate: null, core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 7
   fields: {isd: 4, as_id: 'ffaa:0:1303', as_id_int: 281105609528067, label: Magdeburg,
@@ -95,7 +98,8 @@
     enc_priv_key: zAWo4gC9Lk2BkUFVEH7cQ/HTTcVoYs9iDymk7yA9Sbo=, master_as_key: 1FUO8Ql7aiR9492atxSssg==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 8
   fields: {isd: 4, as_id: 'ffaa:0:1304', as_id_int: 281105609528068, label: FR@Linode,
@@ -104,7 +108,8 @@
     enc_priv_key: fRzhD5yzd52h71amH/iutp9Lydkg9eljzEvqvt/1rvs=, master_as_key: zx+E3Mn+MAnIZHFfwTB0Ww==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 9
   fields: {isd: 4, as_id: 'ffaa:0:1305', as_id_int: 281105609528069, label: Darmstadt,
@@ -113,7 +118,8 @@
     enc_priv_key: TvIdJW3kkGzsFe8aahAZasYnu/QHynJur2oHf+vd9lM=, master_as_key: uEAUWhIfW7EHWFktAtT5Ow==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 10
   fields: {isd: 5, as_id: 'ffaa:0:1401', as_id_int: 281105609528321, label: K_core1,
@@ -123,8 +129,8 @@
     is_core: true, core_sig_priv_key: BWQTsxIha0yMar3tJJdsTKNaFT9xoV6j8ocOYGgCavY=,
     core_sig_pub_key: wP22c7vAfIeDt9RDa7LbiHeJw42aY7wP9On9Bn21foI=, core_online_priv_key: uuZScDRfS/N4F/MvyxtGHI6bsCfLs3LtZi/Ea24sP/U=,
     core_online_pub_key: bVB8gv4k1p2e9y3undWFhHzO5Tqs49ygL/ZIaL7hCl8=, core_offline_priv_key: dFfvhSRadqGjFnvBNEsA1LJynnYBN0wdxPqhTYubJ2w=,
-    core_offline_pub_key: VznkquG5zL0uhCbdgCgdsN3vWdADY1qBrazlQJ4leU4=, certificates: null,
-    certificates_needs_update: true}
+    core_offline_pub_key: VznkquG5zL0uhCbdgCgdsN3vWdADY1qBrazlQJ4leU4=, certificate_chain: null,
+    certificate_chain_needs_update: true, core_certificate: null, core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 11
   fields: {isd: 5, as_id: 'ffaa:0:1402', as_id_int: 281105609528322, label: K_core2,
@@ -134,8 +140,8 @@
     is_core: true, core_sig_priv_key: SnFfkaAjKB+yHmFml3cjj6tMWqF5vmo3en2xgFF+pvU=,
     core_sig_pub_key: c+LO/s2rpe6CR2J9f23PFNiD+EYkkZBQKKzVXOc4wOw=, core_online_priv_key: D3FMJL5+DeOfNwZaeGTj/gLYhvoRr90Ur/O97KtlAVw=,
     core_online_pub_key: q6NQNph3vnkNxb8s99KFktHrkR7H7954gXMI3hq7AKM=, core_offline_priv_key: Ch2eAP9F36OzSrrmOiTAkkkwGm91t1RiK1RrpeWvbyU=,
-    core_offline_pub_key: N2ZQF9IYo9/vLzoaoxBXARWg8JcCyp8ObCrYTWFXk8A=, certificates: null,
-    certificates_needs_update: true}
+    core_offline_pub_key: N2ZQF9IYo9/vLzoaoxBXARWg8JcCyp8ObCrYTWFXk8A=, certificate_chain: null,
+    certificate_chain_needs_update: true, core_certificate: null, core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 12
   fields: {isd: 5, as_id: 'ffaa:0:1403', as_id_int: 281105609528323, label: K_L1,
@@ -144,7 +150,8 @@
     enc_priv_key: O6IV3i9dDr6jrSw7nEycFrTeg8BIxeDiWml1DaGyhKo=, master_as_key: 9Kb0jO68726UdH1BtHk3Vg==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 13
   fields: {isd: 5, as_id: 'ffaa:0:1404', as_id_int: 281105609528324, label: K_AP1,
@@ -153,7 +160,8 @@
     enc_priv_key: Uol05FNBB4ULMF4UNd6GWDDWM0CsurxNT4TcYkF7WN8=, master_as_key: tj0LTu+NEgJ1frlwDOrPaQ==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 14
   fields: {isd: 5, as_id: 'ffaa:0:1405', as_id_int: 281105609528325, label: K_AP2,
@@ -162,7 +170,8 @@
     enc_priv_key: INfeR+9aUf5vG47mSZyKyTO2S8dxg5p2iaJCRTsEHp0=, master_as_key: yLYZLLtqPzdI4bz/qAG9iQ==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.as
   pk: 15
   fields: {isd: 5, as_id: 'ffaa:0:1406', as_id_int: 281105609528326, label: K_L3,
@@ -171,7 +180,8 @@
     enc_priv_key: oHpJlSsjzwONgVNdlaIGzyHgZSf5LYL9EyLDNMjqxn8=, master_as_key: kcSy+DY8uyHQO8JiWpuXIQ==,
     is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
     core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
-    certificates: null, certificates_needs_update: true}
+    certificate_chain: null, certificate_chain_needs_update: true, core_certificate: null,
+    core_certificate_needs_update: true}
 - model: scionlab.attachmentpoint
   pk: 1
   fields: {AS: 4, vpn: null}
