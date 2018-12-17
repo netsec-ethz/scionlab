@@ -213,16 +213,16 @@ class ASManager(models.Manager):
         first.
         """
         core_ases = (self.filter(is_core=True, core_certificate_needs_update=True)
-                     | self.filter(is_core=True, certificates_needs_update=True))
+                     | self.filter(is_core=True, certificate_chain_needs_update=True))
         for core_as in core_ases.iterator():
             if core_as.core_certificate_needs_update:
-                core_as.update_core_certificates()
-            if core_as.certificate_needs_update:
-                core_as.update_certificate()
+                core_as.update_core_certificate()
+            if core_as.certificate_chain_needs_update:
+                core_as.update_certificate_chain()
             core_as.save()
 
-        for as_ in self.filter(is_core=False, certificates_needs_update=True).iterator():
-            as_.update_certificate()
+        for as_ in self.filter(is_core=False, certificate_chain_needs_update=True).iterator():
+            as_.update_certificate_chain()
             as_.save()
 
 
@@ -268,15 +268,8 @@ class AS(models.Model):
     core_offline_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
     core_offline_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
 
-    certificate = jsonfield.JSONField(null=True, blank=True)
-    certificate_needs_update = models.BooleanField(default=True)
-    certificate_issuer = models.ForeignKey(
-        'AS',
-        related_name='certificate_subjects',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
+    certificate_chain = jsonfield.JSONField(null=True, blank=True)
+    certificate_chain_needs_update = models.BooleanField(default=True)
     core_certificate = jsonfield.JSONField(null=True, blank=True)
     core_certificate_needs_update = models.BooleanField(default=True)
 
@@ -353,7 +346,7 @@ class AS(models.Model):
         """
         # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
-        self.certificates_needs_update = True
+        self.certificate_chain_needs_update = True
         self.hosts.bump_config()
 
     def update_core_keys(self):
@@ -366,31 +359,27 @@ class AS(models.Model):
         if self.is_core:
             self._bump_hosts_config_core_change()
 
-    def update_certificate(self):
+    def update_certificate_chain(self):
         """
-        Create or update the AS Certificate.
+        Create or update the AS Certificate chain.
 
         Requires that the TRC in this ISD exists/is up to date.
 
         Requires that a Core AS in this ISD with existing/up to date Core AS Certificate exists;
         for core ASes, `update_core_certificate` needs to be called first.
-        See ASManager.update_certificates, which calls this function in the correct order.
+        See ASManager.update_certificates, which creates the certificates in the correct order.
         """
-        from scionlab.util.certificates import create_as_certificate
+        from scionlab.util.certificates import create_as_certificate_chain
         if self.is_core:
-            self.certificate_issuer = self
+            issuer = self
         else:
-            # Find new issuer if necessary
-            if (not self.certificate_issuer
-                    or not self.certificate_issuer.is_core
-                    or not self.certificate_issuer.isd_pk != self.isd_pk):
-                candidates = self.isd.ases.filter(is_core=True,
-                                                  core_certificate_needs_update=False)
-                self.certificate_issuer = candidates.first()
+            # Find an issuer:
+            candidates = self.isd.ases.filter(is_core=True, core_certificate_needs_update=False)
+            issuer = candidates.first()
 
-        if self.certificate_issuer:  # Skip if failed to find a core AS as issuer
-            self.certificate = create_as_certificate(self, self.certificate_issuer)
-            self.certificates_needs_update = False
+        if issuer:  # Skip if failed to find a core AS as issuer
+            self.certificate_chain = create_as_certificate_chain(self, issuer)
+            self.certificate_chain_needs_update = False
 
     def update_core_certificate(self):
         """
@@ -438,13 +427,13 @@ class AS(models.Model):
             raise NotImplementedError
 
         self.isd = isd
-        self.certificates_needs_update = True
+        self.certificate_chain_needs_update = True
         self.hosts.bump_config()
 
     def _bump_hosts_config_core_change(self):
         # TODO(matzf): untested
         self.isd.trc_needs_update = True
-        self.certificates_needs_update = True
+        self.certificate_chain_needs_update = True
         core_ases = self.isd.ases.filter(is_core=True)
         for core_as in core_ases:
             if core_as.hosts:
