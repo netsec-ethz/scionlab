@@ -79,50 +79,6 @@ def create_trc(isd):
     return _base64encode_dict(trc.dict(with_signatures=True)), core_ases_online_priv_keys
 
 
-def create_as_certificate(subject_as, issuing_as):
-    """
-    Create or update the AS Certificate for `subject_as`, issued by `issuing_as`.
-    If the AS already has an AS Certificate, the version number is incremented for the
-    new certificate.
-
-    Requires that `issuing_as` is a core AS with an existing/up to date Core AS Certificate.
-    Requires that the ASes are in the same ISD and that the TRC exists/is up to date.
-
-    :param AS subject_as: Subject AS
-    :param AS issuing_AS: Issuing AS
-    :returns: the AS Certificate as a dict
-    """
-    assert issuing_as.is_core
-    assert not issuing_as.core_certificate_needs_update
-    assert issuing_as.core_certificate
-    assert issuing_as.isd == subject_as.isd
-    isd = issuing_as.isd
-    assert not isd.trc_needs_update
-
-    trc_version = isd.trc['Version']
-
-    if subject_as.certificate:
-        version = subject_as.certificate['Version'] + 1
-    else:
-        version = 1
-
-    core_as_cert = Certificate(issuing_as.core_certificate)
-
-    cert = Certificate.from_values(
-        subject=subject_as.isd_as_str(),
-        issuer=issuing_as.isd_as_str(),
-        trc_version=trc_version,
-        version=version,
-        comment="AS Certificate",
-        can_issue=False,
-        validity_period=core_as_cert.expiration_time - int(time.time()) - 1,
-        subject_enc_key=base64.b64decode(subject_as.enc_pub_key),  # will be encoded again, but WTH
-        subject_sig_key=base64.b64decode(subject_as.sig_pub_key),
-        iss_priv_key=base64.b64decode(issuing_as.core_sig_priv_key)
-    )
-    return cert.dict()
-
-
 def create_core_certificate(as_):
     """
     Create or update the Core AS Certificate for `as_`.
@@ -153,9 +109,58 @@ def create_core_certificate(as_):
         validity_period=CORE_AS_VALIDITY_PERIOD,
         subject_enc_key=b"",
         subject_sig_key=base64.b64decode(as_.core_sig_pub_key),
-        iss_priv_key=base64.b64decode(as_.core_online_pub_key)
+        iss_priv_key=base64.b64decode(as_.core_online_priv_key)
     )
     return cert.dict()
+
+
+def create_as_certificate_chain(subject_as, issuing_as):
+    """
+    Create or update the AS Certificate for `subject_as`, issued by `issuing_as`.
+    If the AS already has an AS Certificate, the version number is incremented for the
+    new certificate.
+
+    Requires that `issuing_as` is a core AS with an existing/up to date Core AS Certificate.
+    Requires that the ASes are in the same ISD and that the TRC exists/is up to date.
+
+    :param AS subject_as: Subject AS
+    :param AS issuing_AS: Issuing AS
+    :returns: the AS Certificate chain as a dict
+    """
+    assert issuing_as.is_core
+    assert not issuing_as.core_certificate_needs_update
+    assert issuing_as.core_certificate
+    assert issuing_as.isd == subject_as.isd
+    isd = issuing_as.isd
+    assert not isd.trc_needs_update
+
+    trc_version = isd.trc['Version']
+
+    if subject_as.certificate_chain:
+        version = subject_as.certificate_chain["0"]['Version'] + 1
+    else:
+        version = 1
+
+    core_as_cert = Certificate(issuing_as.core_certificate)
+
+    cert = Certificate.from_values(
+        subject=subject_as.isd_as_str(),
+        issuer=issuing_as.isd_as_str(),
+        trc_version=trc_version,
+        version=version,
+        comment="AS Certificate",
+        can_issue=False,
+        validity_period=core_as_cert.expiration_time - int(time.time()) - 1,
+        subject_enc_key=base64.b64decode(subject_as.enc_pub_key),  # will be encoded again, but WTH
+        subject_sig_key=base64.b64decode(subject_as.sig_pub_key),
+        iss_priv_key=base64.b64decode(issuing_as.core_sig_priv_key)
+    )
+    # CertificateChain does NOT have a dict method (only "to_json"), so we just do this manually:
+    cert_chain_dict = {
+        "0": cert.dict(),
+        "1": core_as_cert.dict()
+    }
+    return cert_chain_dict
 
 
 def _base64encode_dict(dict_):
