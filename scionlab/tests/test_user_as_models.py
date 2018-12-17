@@ -488,7 +488,7 @@ class UpdateUserASTests(TestCase):
 
         # pretend to have generated the certificates before to check
         # that this will be bumped if necessary.
-        user_as.certificates_needs_update = False
+        user_as.certificate_chain_needs_update = False
         user_as.save()
 
         hosts_pending_before = set(Host.objects.needs_config_deployment())
@@ -507,10 +507,10 @@ class UpdateUserASTests(TestCase):
 
         # Check certificates reset if ISD changed
         self.assertEqual(
-            user_as.certificates_needs_update,
+            user_as.certificate_chain_needs_update,
             ap_old.AS.isd != attachment_point.AS.isd,
-            "certificates_needs_update %s, ISD before: %s, ISD after:%s" % (
-                user_as.certificates_needs_update,
+            "certificate_chain_needs_update %s, ISD before: %s, ISD after:%s" % (
+                user_as.certificate_chain_needs_update,
                 ap_old.AS.isd,
                 attachment_point.AS.isd
             )
