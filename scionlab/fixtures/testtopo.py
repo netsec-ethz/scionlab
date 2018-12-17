@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from scionlab.models import ISD, AS, Link, AttachmentPoint
+import random
+from unittest.mock import patch
 from collections import namedtuple
+from scionlab.models import ISD, AS, Link, AttachmentPoint
 
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.
@@ -104,8 +106,17 @@ def create_testtopo_isds():
 
 
 def create_testtopo_ases():
-    for asdef in ases:
-        _create_as(**asdef._asdict())
+    r = random.Random(0)
+
+    def seeded_random_bytes(size=32):
+        print(size)
+        return bytes(r.getrandbits(8) for _ in range(size))
+
+    # Somewhat scary trick; to reduce noise when regenerating the fixture from scratch,
+    # make the AS keys somewhat deterministic by replacing os.urandom with seeded "random" bytes.
+    with patch('os.urandom', side_effect=seeded_random_bytes):
+        for asdef in ases:
+            _create_as(**asdef._asdict())
 
 
 def create_testtopo_links():
