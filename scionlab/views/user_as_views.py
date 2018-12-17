@@ -155,7 +155,7 @@ class UserASDetailView(OwnedUserASQuerysetMixin, UpdateView):
 class UserASDeleteView(OwnedUserASQuerysetMixin, DeleteView):
     template_name = "scionlab/user_as_confirm_delete.html"
     model = UserAS
-    sucess_url = reverse_lazy('user')
+    success_url = reverse_lazy('user')
 
 
 class UserASActivateView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):

@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import base64
+import ipaddress
+import jsonfield
+import operator
+import os
+
 from django import urls
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -23,7 +27,8 @@ from django.dispatch import receiver
 from django.db import models
 from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
-import jsonfield
+
+
 import lib.crypto.asymcrypto
 from scionlab.util import as_ids
 
@@ -32,6 +37,7 @@ from scionlab.util import as_ids
 # we can make better use of e.g. changed_data information of the forms.
 
 # TODO(matzf) move to common definitions module?
+
 MAX_PORT = 2**16-1
 """ Max value for ports """
 
@@ -44,6 +50,10 @@ DEFAULT_PUBLIC_PORT = 50000
 DEFAULT_INTERNAL_PORT = 30000
 DEFAULT_ZOOKEEPER_PORT = 2181
 DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
+DEFAULT_LINK_MTU = 1500 - 20 - 8
+DEFAULT_LINK_BANDWIDTH = 1000
+
+DEFAULT_MAX_ROUTER_INTERFACES = 12
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
@@ -114,7 +124,7 @@ class ISD(models.Model):
 
 
 class ASManager(models.Manager):
-    def create(self, isd, as_id, is_core=False, label=None, owner=None):
+    def create(self, isd, as_id, is_core=False, label=None, mtu=None, owner=None):
         """
         Create the AS and initialise the required keys
         :param ISD isd:
@@ -131,6 +141,7 @@ class ASManager(models.Manager):
             as_id_int=as_id_int,
             is_core=is_core,
             label=label,
+            mtu=mtu or DEFAULT_LINK_MTU,
             owner=owner,
         )
         as_.init_keys()
@@ -138,7 +149,7 @@ class ASManager(models.Manager):
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
-                                     is_core=False, label=None, owner=None,
+                                     is_core=False, label=None, mtu=None, owner=None,
                                      bind_ip=None, internal_ip=None):
         """
         Create the AS, initialise the required keys and create a default Host object
@@ -159,6 +170,7 @@ class ASManager(models.Manager):
             as_id=as_id,
             is_core=is_core,
             label=label,
+            mtu=mtu,
             owner=owner,
         )
         as_.init_default_services(
@@ -186,6 +198,8 @@ class AS(models.Model):
     )
     as_id_int = models.BigIntegerField(editable=False)
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+    mtu = models.PositiveIntegerField(default=DEFAULT_LINK_MTU,
+                                      help_text="Maximum Transfer Unit for intra AS packets.")
 
     owner = models.ForeignKey(
         User,
@@ -246,6 +260,28 @@ class AS(models.Model):
         return '%d-%s' % (self.isd.isd_id, self.as_id)
 
     isd_as_str.short_description = 'ISD-AS'
+
+    def as_path_str(self):
+        """
+        :return: the AS string representation in the file format
+        """
+        return self.as_id.replace(":", "_")
+
+    def isd_as_path_str(self):
+        """
+        :return: the ISD-AS string representation in the file format
+        """
+        return ('%d-%s' % (self.isd.id, self.as_id)).replace(":", "_")
+
+    def AS_internal_overlay(self):
+        hosts = Host.objects.filter(AS=self)
+        AS_internal_overlay = "UDP/IPv6"  # FIXME(FR4NK-W): should the AS overlay be explicit?
+        for host in hosts:
+            ip = ipaddress.ip_address(host.internal_ip)
+            if isinstance(ip, ipaddress.IPv4Address):
+                AS_internal_overlay = "UDP/IPv4"
+                break
+        return AS_internal_overlay
 
     def init_keys(self):
         """
@@ -688,6 +724,9 @@ class Host(models.Model):
     class Meta:
         unique_together = ('AS', 'internal_ip')
 
+    def path_str(self):
+        return'%s__%s' % (self.AS.isd_as_path_str(), str(self.internal_ip).replace(":", "_"))
+
     def __str__(self):
         if self.label:
             return self.label
@@ -825,6 +864,13 @@ class InterfaceManager(models.Manager):
             bind_port=bind_port,
             internal_port=internal_port
         )
+
+    def active(self):
+        """
+        return list of Interfaces from active links
+        """
+        return self.filter(link_as_interfaceA__active=True) |\
+            self.filter(link_as_interfaceB__active=True)
 
 
 class Interface(models.Model):
@@ -972,6 +1018,18 @@ class Interface(models.Model):
         # FIXME(matzf): naive queries
         return self.remote_interface().AS
 
+    @classmethod
+    def get_interface_router_instance_ids(cls, as_):
+        """
+        Get the service instance identifier for the router of the interfaces of the AS
+        :return: str _: the list of Interfaces and their router instance id
+        """
+        # Get instance id from DB id order:
+        AS_interfaces = Interface.objects.filter(AS=as_).order_by("id")
+        AS_interface_ids = enumerate(AS_interfaces, start=0)
+        return [((interface_no // DEFAULT_MAX_ROUTER_INTERFACES) + 1, interface)
+                for interface_no, interface in AS_interface_ids]
+
     @staticmethod
     def _assign_public_port(host, public_ip, public_port):
         """
@@ -983,6 +1041,16 @@ class Interface(models.Model):
         """
         return public_port or host.find_free_port(public_ip or host.public_ip,
                                                   min=DEFAULT_PUBLIC_PORT)
+
+    def link_relation(self):
+        if self.link().type == Link.PROVIDER:
+            # By definition, interfaceA is on the parent side
+            if self.link().interfaceA == self:
+                return "PARENT"
+            else:
+                return"CHILD"
+        else:
+            return self.link().type
 
     @staticmethod
     def _assign_bind_port(host, public_ip, bind_ip, bind_port):
@@ -1027,24 +1095,28 @@ class Interface(models.Model):
 
 
 class LinkManager(models.Manager):
-    def create(self, type, interfaceA, interfaceB, active=True):
+    def create(self, type, interfaceA, interfaceB, active=True, bandwidth=None, mtu=None):
         """
         Create a Link
         :param str type: Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
         :param Interface interfaceA: interface representing the A side of the link
         :param Interface interfaceB: interface representing the B side of the link
         :param bool active: is the link created as active?
+        :param int bandwidth: optional, bandwidth for this link
+        :param int mtu: optional, MTU for this link
         :returns: Link
         """
         self._check_link(type, interfaceA.AS, interfaceB.AS)
         return super().create(
             type=type,
             active=active,
+            bandwidth=bandwidth or DEFAULT_LINK_BANDWIDTH,
+            mtu=mtu or DEFAULT_LINK_MTU,
             interfaceA=interfaceA,
             interfaceB=interfaceB,
         )
 
-    def create_from_hosts(self, type, host_a, host_b, active=True):
+    def create_from_hosts(self, type, host_a, host_b, active=True, bandwidth=None, mtu=None):
         """
         Create a Link connecting the given two hosts.
         Creates a default Interface for both hosts and a Link connecting the two Interfaces.
@@ -1052,6 +1124,8 @@ class LinkManager(models.Manager):
         :param Host host_a: host on the A side of the link
         :param Host host_b: host on the B side of the link
         :param bool active: is the link created as active?
+        :param int bandwidth: optional, bandwidth for this link
+        :param int mtu: optional, MTU for this link
         :returns: Link
         """
         self._check_link(type, host_a.AS, host_b.AS)
@@ -1060,11 +1134,13 @@ class LinkManager(models.Manager):
         return super().create(
             type=type,
             active=active,
+            bandwidth=bandwidth or DEFAULT_LINK_BANDWIDTH,
+            mtu=mtu or DEFAULT_LINK_MTU,
             interfaceA=interfaceA,
             interfaceB=interfaceB,
         )
 
-    def create_from_ases(self, type, as_a, as_b, active=True):
+    def create_from_ases(self, type, as_a, as_b, active=True, bandwidth=None, mtu=None):
         """
         Create a link connecting the given two ASes.
         The interfaces are created on the *first* host of each AS.
@@ -1074,10 +1150,15 @@ class LinkManager(models.Manager):
         :param Host host_a: host on the A side of the link
         :param Host host_b: host on the B side of the link
         :param bool active: is the link created as active?
+        :param int bandwidth: optional, bandwidth for this link
+        :param int mtu: optional, MTU for this link
+        :returns: Link
         """
         return self.create_from_hosts(
             type=type,
             active=active,
+            bandwidth=bandwidth,
+            mtu=mtu,
             host_a=as_a.hosts.first(),
             host_b=as_b.hosts.first(),
         )
@@ -1097,7 +1178,7 @@ class Link(models.Model):
     CORE = 'CORE'
     PEER = 'PEER'
     LINK_TYPES = (
-        (PROVIDER, 'Provider link from A to B'),
+        (PROVIDER, 'Provider link from parent A to child B'),
         (CORE, 'Core link (symmetric)'),
         (PEER, 'Peering link (symmetric)'),
     )
@@ -1116,6 +1197,8 @@ class Link(models.Model):
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
     active = models.BooleanField(default=True)
+    bandwidth = models.PositiveIntegerField(default=DEFAULT_LINK_BANDWIDTH)
+    mtu = models.PositiveIntegerField(default=DEFAULT_LINK_MTU)
 
     objects = LinkManager()
 
@@ -1133,7 +1216,7 @@ class Link(models.Model):
         for interface in filter(None, [self.get_interface_a(), self.get_interface_b()]):
             interface.delete()
 
-    def update(self, type=None, active=None):
+    def update(self, type=None, active=None, bandwidth=None, mtu=None):
         """
         Update the fields for this Link instance and the two related interfaces
         and immediately `save`. This will trigger a configuration bump for all
@@ -1141,14 +1224,18 @@ class Link(models.Model):
         :param str type: optional, Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
         :param bool active: optional, should the link be active?
         """
-        prev_info = [self.type, self.active]
+        prev_info = [self.type, self.active, self.bandwidth, self.mtu]
 
         if type is not None:
             self.type = type
         if active is not None:
             self.active = active
+        if bandwidth is not None:
+            self.bandwidth = bandwidth
+        if mtu is not None:
+            self.mtu = mtu
 
-        curr_info = [self.type, self.active]
+        curr_info = [self.type, self.active, self.bandwidth, self.mtu]
         if curr_info != prev_info:
             self.save()
             self.interfaceA.AS.hosts.bump_config()
@@ -1165,6 +1252,16 @@ class Link(models.Model):
             self.save()
             self.interfaceA.AS.hosts.bump_config()
             self.interfaceB.AS.hosts.bump_config()
+
+    def overlay(self):
+        link_overlay = "UDP/IPv6"
+        if self.interfaceA.public_ip and self.interfaceB.public_ip and \
+                isinstance(ipaddress.ip_address(self.interfaceA.public_ip),
+                           ipaddress.IPv4Address) and \
+                isinstance(ipaddress.ip_address(self.interfaceB.public_ip),
+                           ipaddress.IPv4Address):
+            link_overlay = "UDP/IPv4"
+        return link_overlay
 
     def get_interface_a(self):
         if hasattr(self, 'interfaceA'):
@@ -1232,6 +1329,29 @@ class Service(models.Model):
     )
 
     objects = ServiceManager()
+
+    @classmethod
+    def get_service_type_ids(cls, as_, stype):
+        """
+        Get the service instance identifier for all service in a AS of a type
+        :param AS as_: AS
+        :param str stype: service type
+        :return: enumerate object with the services of stype and their id
+        """
+        # Get instance ids from DB id order:
+        AS_service_instances = enumerate(as_.services.filter(type=stype).order_by("id"),
+                                         start=1)
+        return AS_service_instances
+
+    def get_service_instance_id(self):
+        """
+        Get the service instance identifier for a service
+        :return: str instance_id: the service instance id
+        """
+        # Get instance id from DB id order:
+        AS_service_instances = self.AS.services.filter(type=self.type).order_by("id")
+        instance_id = operator.indexOf(AS_service_instances, self) + 1
+        return instance_id
 
     def _pre_delete(self):
         """
