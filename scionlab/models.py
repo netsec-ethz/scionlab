@@ -1349,7 +1349,7 @@ class Service(models.Model):
         :return: str instance_id: the service instance id
         """
         # Get instance id from DB id order:
-        AS_service_instances = Service.objects.filter(type=self.type, AS=self.AS).order_by("id")
+        AS_service_instances = self.AS.services.filter(type=self.type).order_by("id")
         instance_id = operator.indexOf(AS_service_instances, self) + 1
         return instance_id
 
