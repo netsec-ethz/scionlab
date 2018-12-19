@@ -31,10 +31,7 @@ def _create_config(host, tarfileobj):
     from scionlab.util import generate
 
     gen_dir = tempfile.mkdtemp()
-
-    # XXX: should be the entry point of generate. And no tar!
-    tp, service_name_map = generate.generate_topology_from_DB(host.AS)
-    generate.create_gen(host, gen_dir, tp, service_name_map)
+    generate.create_gen(host, gen_dir)
 
     tar = tarfile.open(mode='w:gz', fileobj=tarfileobj)
     tar.add(gen_dir, arcname="gen")

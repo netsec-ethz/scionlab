@@ -346,10 +346,10 @@ def write_certs_trc_keys(as_, as_obj, instance_path):
     """
     # write keys
     as_key_path = {
-        'cert': get_cert_chain_file_path(instance_path, as_,
-                                         as_obj.certificate[list(as_obj.certificate.keys())[0]]
-                                         ['Version']),
-        'trc': get_trc_file_path(instance_path, as_.isd.isd_id, as_obj.trc['Version']),
+        # 'cert': get_cert_chain_file_path(instance_path, as_,
+        #                                  as_obj.certificate[list(as_obj.certificate.keys())[0]]
+        #                                  ['Version']),
+        # 'trc': get_trc_file_path(instance_path, as_.isd.isd_id, as_obj.trc['Version']),
         'enc_key': get_enc_key_file_path(instance_path),
         'sig_key': get_sig_key_file_path(instance_path),
         'sig_key_raw': get_sig_key_raw_file_path(instance_path),
