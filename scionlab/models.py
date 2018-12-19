@@ -571,7 +571,9 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip()
+                public_ip=attachment_point.vpn.server_vpn_ip(),
+                public_port=None,
+                internal_port=None
             )
         else:
             host.vpn_clients.update(active=False)   # deactivate all vpn clients
@@ -583,7 +585,9 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=None
+                public_ip=None,
+                public_port=None,
+                internal_port=None
             )
 
         self.attachment_point = attachment_point
@@ -953,13 +957,13 @@ class Interface(models.Model):
         This will trigger a configuration bump for all Hosts in all affected ASes.
         :param Host host: optional, defines the AS.
         :param str public_ip: optional, the public IP for this interface to override host.public_ip
-        :param int public_port: optional, a free port is selected if `None` is passed or if not
-                                given and either `host` or `public_ip` are changed
+        :param int public_port: optional, a free port is selected if `None` is passed and either
+                                `host` or `public_ip` are changed.
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, if bind IP is set, a free port is selected if `None` is
-                              passed or if not given and either `host` or `bind_ip` are changed
-        :param int internal_port: optional, a free port is selected if `None` is passed or if not
-                                  given and `host` is changed
+                              passed and either `host` or `bind_ip` are changed
+        :param int internal_port: optional, a free port is selected if `None` is passed and
+                                  `host` is changed
         """
         prev_host = self.host
         prev_public_ip = self.get_public_ip()
@@ -981,22 +985,23 @@ class Interface(models.Model):
         if bind_ip is not _placeholder:
             self.bind_ip = bind_ip or None
 
-        if isinstance(public_port, int):
-            self.public_port = public_port
-        elif public_port is None \
-                or self.host != prev_host or self.get_public_ip() != prev_public_ip:
-            self._assign_public_port()
+        if public_port is not _placeholder:
+            if public_port is not None:
+                self.public_port = public_port
+            elif self.host != prev_host or self.get_public_ip() != prev_public_ip:
+                self._assign_public_port()
 
-        if isinstance(bind_port, int):
-            self.bind_port = bind_port
-        elif bind_port is None \
-                or self.host != prev_host or self.get_bind_ip() != prev_bind_ip:
-            self._assign_bind_port()
+        if bind_port is not _placeholder:
+            if bind_port is not None:
+                self.bind_port = bind_port
+            elif self.host != prev_host or self.get_bind_ip() != prev_bind_ip:
+                self._assign_bind_port()
 
-        if isinstance(internal_port, int):
-            self.internal_port = internal_port
-        elif internal_port is None or self.host != prev_host:
-            self._assign_internal_port()
+        if internal_port is not _placeholder:
+            if internal_port is not None:
+                self.internal_port = internal_port
+            elif internal_port is None or self.host != prev_host:
+                self._assign_internal_port()
 
         self.save()
 
