@@ -779,7 +779,9 @@ class Host(models.Model):
         :param str label: optional
         :param bool managed: optional
         :param str management_ip: optional, public IP of the host for management
-        :param int ssh_port: optional, port used for
+        :param int ssh_port: optional, port used for management access with ssh
+        :param str secret: optional, a secret to authenticate the host. If `None` is given, a new
+                           random secret is generated.
         """
 
         prev_internal_ip = self.internal_ip
