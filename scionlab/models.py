@@ -359,7 +359,6 @@ class AS(models.Model):
 
         self.isd = isd
         self.certificates_needs_update = True
-        self.save()
         self.hosts.bump_config()
 
     def _bump_hosts_config_core_change(self):
