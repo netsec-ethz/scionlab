@@ -571,9 +571,7 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip(),
-                public_port=None,
-                internal_port=None
+                public_ip=attachment_point.vpn.server_vpn_ip()
             )
         else:
             host.vpn_clients.update(active=False)   # deactivate all vpn clients
@@ -585,9 +583,7 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=None,
-                public_port=None,
-                internal_port=None
+                public_ip=None
             )
 
         self.attachment_point = attachment_point
@@ -869,9 +865,10 @@ class InterfaceManager(models.Manager):
         """
         as_ = host.AS
         ifid = as_.find_interface_id()
-        public_port = Interface._assign_public_port(host, public_ip, public_port)
-        bind_port = Interface._assign_bind_port(host, public_ip, bind_ip, bind_port)
-        internal_port = Interface._assign_internal_port(host, internal_port)
+        public_port = public_port or Interface._find_public_port(host, public_ip)
+        if bind_port is None and Interface._has_bind_ip(host, public_ip, bind_ip):
+            bind_port = Interface._find_bind_port(host, bind_ip)
+        internal_port = internal_port or Interface._find_internal_port(host)
         as_.hosts.bump_config()
 
         return super().create(
@@ -956,11 +953,17 @@ class Interface(models.Model):
         This will trigger a configuration bump for all Hosts in all affected ASes.
         :param Host host: optional, defines the AS.
         :param str public_ip: optional, the public IP for this interface to override host.public_ip
-        :param int public_port: optional, a free port is selected if not specified
+        :param int public_port: optional, a free port is selected if `None` is passed or if not
+                                given and either `host` or `public_ip` are changed
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
-        :param int bind_port: optional, a free port is selected if bind IP set and not specified
-        :param int internal_port: optional, a free port is selected if not specified
+        :param int bind_port: optional, if bind IP is set, a free port is selected if `None` is
+                              passed or if not given and either `host` or `bind_ip` are changed
+        :param int internal_port: optional, a free port is selected if `None` is passed or if not
+                                  given and `host` is changed
         """
+        prev_host = self.host
+        prev_public_ip = self.get_public_ip()
+        prev_bind_ip = self.get_bind_ip()
         prev_public_info = self._get_public_info()
         prev_local_info = self._get_local_info()
 
@@ -975,15 +978,26 @@ class Interface(models.Model):
             self.host = host
         if public_ip is not _placeholder:
             self.public_ip = public_ip or None
-        if public_port is not _placeholder:
-            self.public_port = Interface._assign_public_port(self.host, self.public_ip, public_port)
         if bind_ip is not _placeholder:
             self.bind_ip = bind_ip or None
-        if bind_port is not _placeholder:
-            self.bind_port = Interface._assign_bind_port(self.host, self.public_ip, self.bind_ip,
-                                                         bind_port)
-        if internal_port is not _placeholder:
-            self.internal_port = Interface._assign_internal_port(self.host, internal_port)
+
+        if isinstance(public_port, int):
+            self.public_port = public_port
+        elif public_port is None \
+                or self.host != prev_host or self.get_public_ip() != prev_public_ip:
+            self._assign_public_port()
+
+        if isinstance(bind_port, int):
+            self.bind_port = bind_port
+        elif bind_port is None \
+                or self.host != prev_host or self.get_bind_ip() != prev_bind_ip:
+            self._assign_bind_port()
+
+        if isinstance(internal_port, int):
+            self.internal_port = internal_port
+        elif internal_port is None or self.host != prev_host:
+            self._assign_internal_port()
+
         self.save()
 
         diff_public = self._get_public_info() != prev_public_info
@@ -1018,6 +1032,16 @@ class Interface(models.Model):
             Link.objects.filter(interfaceB=self)
         ).get()
 
+    def link_relation(self):
+        if self.link().type == Link.PROVIDER:
+            # By definition, interfaceA is on the parent side
+            if self.link().interfaceA == self:
+                return "PARENT"
+            else:
+                return"CHILD"
+        else:
+            return self.link().type
+
     def remote_interface(self):
         """
         Get the "other" interface of the link associated with this interface.
@@ -1050,54 +1074,60 @@ class Interface(models.Model):
         return [((interface_no // DEFAULT_MAX_ROUTER_INTERFACES) + 1, interface)
                 for interface_no, interface in AS_interface_ids]
 
+    def _assign_public_port(self):
+        """
+        Helper for update: find and assign a free public port
+        """
+        self.public_port = self._find_public_port(self.host, self.public_ip)
+
+    def _assign_bind_port(self):
+        """
+        Helper for update: find and assign a free bind port if the bind IP is used
+        """
+        if self.get_bind_ip():
+            self.bind_port = self._find_bind_port(self.host, self.bind_ip)
+        else:
+            self.bind_port = None
+
+    def _assign_internal_port(self):
+        """
+        Helper for update: find and assign a free internal port
+        """
+        self.internal_port = self._find_internal_port(self.host)
+
     @staticmethod
-    def _assign_public_port(host, public_ip, public_port):
+    def _find_public_port(host, public_ip):
         """
         Helper to assign the public port. Returns the given public_port if defined,
         otherwise, selects and returns an appropriate free port.
         :param Host host:
         :param str public_ip: optional
-        :param int public_port: optional
         """
-        return public_port or host.find_free_port(public_ip or host.public_ip,
-                                                  min=DEFAULT_PUBLIC_PORT)
-
-    def link_relation(self):
-        if self.link().type == Link.PROVIDER:
-            # By definition, interfaceA is on the parent side
-            if self.link().interfaceA == self:
-                return "PARENT"
-            else:
-                return"CHILD"
-        else:
-            return self.link().type
+        return host.find_free_port(public_ip or host.public_ip, min=DEFAULT_PUBLIC_PORT)
 
     @staticmethod
-    def _assign_bind_port(host, public_ip, bind_ip, bind_port):
+    def _find_bind_port(host, bind_ip):
         """
-        Helper to assign the bind port. Returns the given bind_port if defined,
-        otherwise, selects and returns an appropriate free port.
+        Helper to find a free bind port.
         :param Host host:
-        :param str public_ip: optional
-        :param str bind_ip: optional
-        :param int bind_port: optional
+        :param str bind_ip:
         """
-        if not bind_port and (bind_ip or (not public_ip and host.bind_ip)):
-            return host.find_free_port(bind_ip or host.bind_ip,
-                                       min=DEFAULT_PUBLIC_PORT)
-        else:
-            return bind_port
+        return host.find_free_port(bind_ip or host.bind_ip, min=DEFAULT_PUBLIC_PORT)
 
     @staticmethod
-    def _assign_internal_port(host, internal_port):
+    def _find_internal_port(host):
         """
-        Helper to assign the internal port. Returns the given internal_port if defined,
-        otherwise, selects and returns an appropriate free port.
+        Helper to find a free internal port.
         :param Host host:
-        :param int internal_port: optional
         """
-        return internal_port or host.find_free_port(host.internal_ip,
-                                                    min=DEFAULT_INTERNAL_PORT)
+        return host.find_free_port(host.internal_ip, min=DEFAULT_INTERNAL_PORT)
+
+    @staticmethod
+    def _has_bind_ip(host, public_ip, bind_ip):
+        """
+        Helper to determine whether `get_bind_ip` will be non-null.
+        """
+        return bind_ip or (not public_ip and host.bind_ip)
 
     def _get_public_info(self):
         """
