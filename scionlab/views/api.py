@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tempfile
-import tarfile
+import hmac
 import shutil
+import tarfile
+import tempfile
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
 from django.http import (
@@ -56,7 +57,8 @@ class GetHostConfig(SingleObjectMixin, View):
 
     def get(self, request, *args, **kwargs):
         host = self.get_object()
-        if 'secret' not in request.GET or request.GET['secret'] != host.secret:
+        if 'secret' not in request.GET \
+                or not hmac.compare_digest(request.GET['secret'], host.secret):
             return HttpResponseForbidden()
         if 'version' in request.GET:
             version_str = request.GET['version']
