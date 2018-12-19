@@ -271,7 +271,7 @@ class AS(models.Model):
         """
         :return: the ISD-AS string representation in the file format
         """
-        return ('%d-%s' % (self.isd.id, self.as_id)).replace(":", "_")
+        return self.isd_as_str().replace(":", "_")
 
     def AS_internal_overlay(self):
         hosts = Host.objects.filter(AS=self)
