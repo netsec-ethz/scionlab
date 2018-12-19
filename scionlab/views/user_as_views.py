@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from os import path
+import tarfile
 
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse, reverse_lazy
 from django.views import View
@@ -20,7 +23,9 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django import forms
 
+from django.conf import settings
 from scionlab.models import UserAS, MAX_PORT
+from scionlab.util.generate import create_gen_AS
 
 
 class UserASForm(forms.ModelForm):
@@ -177,6 +182,28 @@ class UserASActivateView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
         success_url = self.get_success_url()
         self.object.set_active(self.active)
         return HttpResponseRedirect(success_url)
+
+
+class UserASHostDownloadView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
+    """
+    Download the configuration tar for the first Host of a UserAS
+    """
+
+    def get(self, request, *args, **kwargs):
+        as_ = self.get_object()
+        create_gen_AS(as_.as_id)
+        first_host = as_.hosts.first()
+
+        resp = HttpResponse()
+        resp['content-disposition'] = 'attachment; filename="{}"'.format(first_host.path_str())
+        resp['content-type'] = 'application/gzip'
+
+        tar = tarfile.open(mode='w:gz', fileobj=resp)
+        host_gen_dir = path.join(settings.GEN_ROOT, first_host.path_str())
+        tar.add(host_gen_dir, arcname="gen")
+        tar.close()
+
+        return resp
 
 
 class UserASesView(OwnedUserASQuerysetMixin, ListView):

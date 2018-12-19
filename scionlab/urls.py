@@ -23,8 +23,8 @@ from scionlab.views.user_as_views import (
     UserASCreateView,
     UserASDeleteView,
     UserASActivateView,
-    UserASDetailView
-)
+    UserASDetailView,
+    UserASHostDownloadView)
 from scionlab.views.placehoder_view import PlaceholderView, PlaceholderUserView
 from scionlab.views.registration_view import UserRegistrationView
 
@@ -56,6 +56,9 @@ urlpatterns = [
     path('user/as/<int:pk>/deactivate',
          login_required(UserASActivateView.as_view(active=False)),
          name='user_as_deactivate'),
+    path('user/as/<int:pk>/download',
+         login_required(UserASHostDownloadView.as_view()),
+         name='download_host_tar'),
     path('user/as/<int:pk>',
          login_required(UserASDetailView.as_view()),
          name='user_as_detail'),
