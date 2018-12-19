@@ -32,7 +32,7 @@ from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
 
 
-testtopo_num_attachment_points = sum(1 for asdef in testtopo.ases if asdef.is_ap)
+testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 
 # Some test data:
 test_public_ip = '192.0.2.111'
