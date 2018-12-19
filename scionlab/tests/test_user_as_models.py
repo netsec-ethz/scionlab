@@ -71,8 +71,8 @@ def _get_public_ip_testtopo(as_id):
     :param str as_id: AS-id
     :return: str, ip
     """
-    asdef = next(a for a in testtopo.ases if a.as_id == as_id)
-    return asdef.public_ip
+    as_def = next(a for a in testtopo.ases if a.as_id == as_id)
+    return as_def.public_ip
 
 
 def create_and_check_useras(testcase,

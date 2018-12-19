@@ -254,9 +254,9 @@ class UserASCreateTests(_WebTestHack):
     @staticmethod
     def get_ap_strs():
         """ Get a str-list of attachment points from the testtopo-metadata """
-        def as_str(asdef):
-            return "%s-%s (%s)" % (asdef.isd_id, asdef.as_id, asdef.label)
-        return [as_str(asdef) for asdef in testtopo.ases if asdef.is_ap]
+        def as_str(as_def):
+            return "%s-%s (%s)" % (as_def.isd_id, as_def.as_id, as_def.label)
+        return [as_str(as_def) for as_def in testtopo.ases if as_def.is_ap]
 
     def setUp(self):
         _setup_vpn_attachment_point()

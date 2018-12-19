@@ -101,27 +101,26 @@ links = [
 
 
 def create_testtopo_isds():
-    for isddef in isds:
-        ISD.objects.create(**isddef._asdict())
+    for isd_def in isds:
+        ISD.objects.create(**isd_def._asdict())
 
 
 def create_testtopo_ases():
     r = random.Random(0)
 
     def seeded_random_bytes(size=32):
-        print(size)
         return bytes(r.getrandbits(8) for _ in range(size))
 
     # Somewhat scary trick; to reduce noise when regenerating the fixture from scratch,
     # make the AS keys somewhat deterministic by replacing os.urandom with seeded "random" bytes.
     with patch('os.urandom', side_effect=seeded_random_bytes):
-        for asdef in ases:
-            _create_as(**asdef._asdict())
+        for as_def in ases:
+            _create_as(**as_def._asdict())
 
 
 def create_testtopo_links():
-    for linkdef in links:
-        _create_as_link(**linkdef._asdict())
+    for link_def in links:
+        _create_as_link(**link_def._asdict())
 
 
 def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
