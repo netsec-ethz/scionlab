@@ -14,6 +14,7 @@
 from os import path
 import tarfile
 
+import io
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseForbidden
@@ -195,12 +196,50 @@ class UserASHostDownloadView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
         first_host = as_.hosts.first()
 
         resp = HttpResponse()
-        resp['content-disposition'] = 'attachment; filename="{}"'.format(first_host.path_str())
+        resp['content-disposition'] = 'attachment; filename="{}.tar.gz"'.format(first_host.path_str())
         resp['content-type'] = 'application/gzip'
 
         tar = tarfile.open(mode='w:gz', fileobj=resp)
         host_gen_dir = path.join(settings.GEN_ROOT, first_host.path_str())
         tar.add(host_gen_dir, arcname="gen")
+
+        if as_.is_use_vpn():
+            # Get file from issue #10
+            #client_file = path.join(first_host.path_str(), "client.conf")
+            #tar.add(client_file, arcname="client.conf")
+            pass
+
+        hostfiles_dir = path.join(settings.BASE_DIR, "scionlab", "hostfiles")
+        if as_.installation_type == UserAS.VM:
+            readme_file = path.join(hostfiles_dir, "README_vm.md")
+            tar.add(readme_file, arcname="README.md")
+            if not as_.is_use_vpn():
+                forwarding_string = 'config.vm.network "forwarded_port",' \
+                                    ' guest: {0}, host: {0}, protocol: "udp"'. \
+                    format(first_host.interfaces.first().public_port)
+            else:
+                forwarding_string = ''
+            with open(path.join(hostfiles_dir, "Vagrantfile.tmpl")) as f:
+                vagrant_tmpl = f.read()
+                vagrant_file_content = vagrant_tmpl.\
+                    replace("{{.PortForwarding}}", forwarding_string).\
+                    replace("{{.ASID}}", as_.as_id).encode('utf-8')
+                vagrant_file = io.BytesIO()
+                f_size = vagrant_file.write(vagrant_file_content)
+                vagrant_file.seek(0)
+                t_info = tarfile.TarInfo("Vagrantfile")
+                t_info.size = f_size
+                tar.addfile(t_info, vagrant_file)
+        elif as_.installation_type == UserAS.DEDICATED:
+            readme_file = path.join(hostfiles_dir, "README_standalone.md")
+            tar.add(readme_file, arcname="README.md")
+
+        service_files = ["scion.service", "scionupgrade.service", "scion-viz.service", "scionupgrade.timer"]
+        script_files = ["run.sh", "scionupgrade.sh"]
+        for f in service_files + script_files:
+            file_path = path.join(hostfiles_dir, f)
+            tar.add(file_path, arcname=f)
+
         tar.close()
 
         return resp
