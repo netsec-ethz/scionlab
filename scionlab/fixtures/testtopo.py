@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from scionlab.models import ISD, AS, Link, AttachmentPoint
+import random
+from unittest.mock import patch
 from collections import namedtuple
+from scionlab.models import ISD, AS, Link, AttachmentPoint
 
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.
@@ -63,6 +65,13 @@ ases = [
     makeASdef(19, 0x1303, 'Magdeburg', '192.0.2.33', is_ap=True),
     makeASdef(19, 0x1304, 'FR@Linode', '192.0.2.34'),
     makeASdef(19, 0x1305, 'Darmstadt', '192.0.2.35'),
+    # korea (Kompletely made up)
+    makeASdef(20, 0x1401, 'K_core1', '192.0.2.41', is_core=True),
+    makeASdef(20, 0x1402, 'K_core2', '192.0.2.42', is_core=True),
+    makeASdef(20, 0x1403, 'K_L1', '192.0.2.43'),
+    makeASdef(20, 0x1404, 'K_AP1', '192.0.2.44', is_ap=True),
+    makeASdef(20, 0x1405, 'K_AP2', '192.0.2.45', is_ap=True),
+    makeASdef(20, 0x1406, 'K_L3', '192.0.2.46'),
 ]
 
 # Links
@@ -80,22 +89,38 @@ links = [
     # ch-eu
     makeLinkDef(Link.CORE, 0x1101, 0x1301),
     makeLinkDef(Link.CORE, 0x1101, 0x1302),
+    # korea
+    makeLinkDef(Link.CORE, 0x1401, 0x1402),
+    makeLinkDef(Link.PROVIDER, 0x1401, 0x1403),
+    makeLinkDef(Link.PROVIDER, 0x1402, 0x1403),
+    makeLinkDef(Link.PROVIDER, 0x1403, 0x1404),
+    makeLinkDef(Link.PROVIDER, 0x1401, 0x1405),
+    makeLinkDef(Link.PROVIDER, 0x1402, 0x1405),
+    makeLinkDef(Link.PROVIDER, 0x1404, 0x1406),
 ]
 
 
 def create_testtopo_isds():
-    for isddef in isds:
-        ISD.objects.create(**isddef._asdict())
+    for isd_def in isds:
+        ISD.objects.create(**isd_def._asdict())
 
 
 def create_testtopo_ases():
-    for asdef in ases:
-        _create_as(**asdef._asdict())
+    r = random.Random(0)
+
+    def seeded_random_bytes(size=32):
+        return bytes(r.getrandbits(8) for _ in range(size))
+
+    # Somewhat scary trick; to reduce noise when regenerating the fixture from scratch,
+    # make the AS keys somewhat deterministic by replacing os.urandom with seeded "random" bytes.
+    with patch('os.urandom', side_effect=seeded_random_bytes):
+        for as_def in ases:
+            _create_as(**as_def._asdict())
 
 
 def create_testtopo_links():
-    for linkdef in links:
-        _create_as_link(**linkdef._asdict())
+    for link_def in links:
+        _create_as_link(**link_def._asdict())
 
 
 def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):

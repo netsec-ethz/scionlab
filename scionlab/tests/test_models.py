@@ -229,12 +229,7 @@ class DeleteASTests(TestCase):
         for service_pk in service_pks:
             self.assertFalse(Service.objects.filter(pk=service_pk).exists())
 
-        # Check no dangling interfaces:
-        self.assertFalse(
-            Interface.objects.filter(
-                link_as_interfaceA=None,
-                link_as_interfaceB=None
-            ).exists())
+        utils.check_no_dangling_interfaces(self)
 
     def test_delete_bulk(self):
         ases = AS.objects.filter(is_core=False)

@@ -15,8 +15,8 @@
 import re
 import base64
 import lib.crypto.asymcrypto
-from collections import namedtuple, Counter
-from scionlab.models import AS, Host, Service, Link, MAX_PORT
+from collections import namedtuple, Counter, OrderedDict
+from scionlab.models import AS, Service, Interface, Link, MAX_PORT
 
 
 def check_topology(testcase):
@@ -24,14 +24,27 @@ def check_topology(testcase):
     Run all sanity checks for the current state of the models in the DB.
     """
     for as_ in AS.objects.iterator():
-        check_as_services(testcase, as_)
-        check_as_keys(testcase, as_)
-        if as_.is_core:
-            check_as_core_keys(testcase, as_)
-    for host in Host.objects.iterator():
-        check_host_ports(testcase, host)
+        check_as(testcase, as_)
     for link in Link.objects.iterator():
         check_link(testcase, link)
+    check_no_dangling_interfaces(testcase)
+
+
+def check_as(testcase, as_):
+    # TODO: generalize (topo checks)
+    for interface in as_.interfaces.iterator():
+        link = interface.link()
+        if link.type == Link.PROVIDER and link.interfaceB == interface:
+            parent_as = link.interfaceA.AS
+            testcase.assertEqual(parent_as.isd, as_.isd)
+
+    check_as_services(testcase, as_)
+    check_as_keys(testcase, as_)
+    if as_.is_core:
+        check_as_core_keys(testcase, as_)
+
+    for host in as_.hosts.iterator():
+        check_host_ports(testcase, host)
 
 
 def check_as_services(testcase, as_):
@@ -74,6 +87,7 @@ def check_host_ports(testcase, host):
     testcase.assertEqual(clashes, [], "Ports clashing on host %s" % host)
 
 
+_dont_care = object()
 LinkDescription = namedtuple('LinkDescription', [
     'type',
     'from_as_id',
@@ -91,6 +105,10 @@ LinkDescription = namedtuple('LinkDescription', [
     'to_internal_ip',
     'to_internal_port',
 ])
+# little hack: the `defaults` parameter for namedtuple will only be introduced in python-3.7.
+# As a simple workaround we manually provide the desired default value (_dont_care) for all
+# positional arguments by overwriting the magic __defaults__ field of the constructor function.
+LinkDescription.__new__.__defaults__ = (_dont_care,) * len(LinkDescription._fields)
 
 
 def check_links(testcase, link_descriptions):
@@ -123,17 +141,22 @@ def check_link(testcase, link, link_desc=None):
     _check_port(testcase, link.interfaceA.internal_port)
     if link.interfaceA.get_bind_ip():
         _check_port(testcase, link.interfaceA.bind_port)
+    else:
+        testcase.assertIsNone(link.interfaceA.bind_port)    # No harm, but this seems cleaner
     _check_port(testcase, link.interfaceB.public_port)
     _check_port(testcase, link.interfaceB.internal_port)
     if link.interfaceB.get_bind_ip():
         _check_port(testcase, link.interfaceB.bind_port)
+    else:
+        testcase.assertIsNone(link.interfaceB.bind_port)    # ditto
 
     if link_desc:
         actual_link_desc = _describe_link(link)
-        testcase.assertEqual(link_desc, actual_link_desc)
+        diff = _diff_link_description(link_desc, actual_link_desc)
+        testcase.assertFalse(bool(diff), diff)
 
 
-def _describe_link(testcase, link):
+def _describe_link(link):
     """
     Helper for checks. Return the LinkDescription describing the current state of the link.
     """
@@ -141,19 +164,28 @@ def _describe_link(testcase, link):
         type=link.type,
         from_as_id=link.interfaceA.AS.as_id,
         from_public_ip=link.interfaceA.get_public_ip(),
-        from_public_port=link.interfaceA.public_port(),
-        from_bind_ip=link.interfaceA.bind_ip(),
+        from_public_port=link.interfaceA.public_port,
+        from_bind_ip=link.interfaceA.get_bind_ip(),
         from_bind_port=link.interfaceA.bind_port,
         from_internal_ip=link.interfaceA.host.internal_ip,
         from_internal_port=link.interfaceA.internal_port,
         to_as_id=link.interfaceB.AS.as_id,
         to_public_ip=link.interfaceB.get_public_ip(),
-        to_public_port=link.interfaceB.public_port(),
-        to_bind_ip=link.interfaceB.bind_ip(),
+        to_public_port=link.interfaceB.public_port,
+        to_bind_ip=link.interfaceB.get_bind_ip(),
         to_bind_port=link.interfaceB.bind_port,
         to_internal_ip=link.interfaceB.host.internal_ip,
         to_internal_port=link.interfaceB.internal_port,
     )
+
+
+def _diff_link_description(link_desc, actual_link_desc):
+    diff = OrderedDict()
+    for field, expected in link_desc._asdict().items():
+        actual = actual_link_desc._asdict()[field]
+        if expected is not _dont_care and expected != actual:
+            diff[field] = dict(expected=expected, actual=actual)
+    return diff
 
 
 def _check_port(testcase, port):
@@ -162,6 +194,14 @@ def _check_port(testcase, port):
     """
     testcase.assertIsNotNone(port)
     testcase.assertTrue(1024 < port <= MAX_PORT, port)
+
+
+def check_no_dangling_interfaces(testcase):
+    testcase.assertFalse(
+        Interface.objects.filter(
+            link_as_interfaceA=None,
+            link_as_interfaceB=None
+        ).exists())
 
 
 def check_as_keys(testcase, as_):
