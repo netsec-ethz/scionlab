@@ -15,6 +15,7 @@
 import io
 import os
 import shutil
+import string
 import tarfile
 import tempfile
 from contextlib import closing
@@ -22,6 +23,8 @@ from contextlib import closing
 from django.conf import settings
 from scionlab.util import generate
 from scionlab.models import UserAS
+from scionlab.util.openvpn_config import generate_vpn_client_config, generate_vpn_server_config, \
+    ccd_config
 
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
@@ -99,15 +102,17 @@ def _add_vpn_config(host, tar):
     """
     vpn_clients = list(host.vpn_clients.filter(active=True))
     for vpn_client in vpn_clients:
-        # TODO Get file from issue #10
-        # _tar_add_textfile(tar, "client.conf", generate_vpn_client_conf(vpn_client))
-        raise NotImplementedError('Missing OpenVPN client.conf generation.')
+        client_config = generate_vpn_client_config(vpn_client.host.AS.attachment_point.AS,
+                                                   vpn_client.private_key,
+                                                   vpn_client.cert)
+        _tar_add_textfile(tar, "client.conf", client_config)
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
-        # TODO Get server config file from issue #10
-        # _tar_add_textfile(tar, "server.conf", generate_vpn_server_conf(vpn_server))
-        raise NotImplementedError('Missing OpenVPN server.conf generation.')
+        _tar_add_textfile(tar, "server.conf", generate_vpn_server_config(vpn_server))
+        for vpn_client in vpn_server.clients:
+            common_name, config_string = ccd_config(vpn_client)
+            _tar_add_textfile(tar, common_name, config_string)
 
 
 def _add_vagrantfiles(host, tar):
@@ -124,9 +129,10 @@ def _add_vagrantfiles(host, tar):
 
     with open(_hostfiles_path("Vagrantfile.tmpl")) as f:
         vagrant_tmpl = f.read()
-    vagrant_file_content = vagrant_tmpl.\
-        replace("{{.PortForwarding}}", forwarding_string).\
-        replace("{{.ASID}}", host.AS.as_id)
+    vagrant_file_content = string.Template(vagrant_tmpl).substitute(
+        PortForwarding=forwarding_string,
+        ASID=host.AS.as_id,
+    )
     _tar_add_textfile(tar, "Vagrantfile", vagrant_file_content)
 
     # Add services and scripts:
