@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 from os import path
 import tarfile
 
@@ -26,6 +27,7 @@ from django import forms
 
 from django.conf import settings
 from scionlab.models import UserAS, MAX_PORT
+from scionlab.settings.common import BASE_DIR
 from scionlab.util.generate import create_gen_AS
 
 
@@ -204,10 +206,11 @@ class UserASHostDownloadView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
         tar.add(host_gen_dir, arcname="gen")
 
         if as_.is_use_vpn():
-            # Get file from issue #10
-            #client_file = path.join(first_host.path_str(), "client.conf")
-            #tar.add(client_file, arcname="client.conf")
-            pass
+            client_config_file = "%s_client.config" % first_host.path_str()
+            client_config_path = os.path.join(BASE_DIR, 'run', client_config_file)
+            if not os.path.exists(client_config_path):
+                first_host.write_vpn_client_config()
+            tar.add(client_config_path, arcname="client.conf")
 
         hostfiles_dir = path.join(settings.BASE_DIR, "scionlab", "hostfiles")
         if as_.installation_type == UserAS.VM:
