@@ -862,7 +862,7 @@ class Host(models.Model):
     def write_vpn_ca_config(self):
         x509_config_file = os.path.join(BASE_DIR, 'scionlab', 'settings', 'x509_cert.default')
         x509_config = configparser.ConfigParser(converters={
-            'string':lambda e: str(e).replace('"', '')}
+            'string': lambda e: str(e).replace('"', '')}
         )
         x509_config.read(x509_config_file)
 
@@ -1028,9 +1028,22 @@ class Host(models.Model):
                 datetime.datetime.utcnow() +
                 datetime.timedelta(days=x509_config['x509_config'].getint('KEY_EXPIRE'))
             ).add_extension(
-                x509.SubjectAlternativeName([x509.DNSName(
-                    x509_config['x509_config'].getstring('KEY_EMAIl'))]),
+                x509.SubjectAlternativeName(
+                    [x509.DNSName(self.AS.owner.email+"__"+self.AS.isd_as_path_str())]),
                 critical=False,
+            ).add_extension(
+                x509.SubjectKeyIdentifier.from_public_key(key.public_key()),
+                critical=False,
+            ).add_extension(
+                # digital_signature
+                x509.KeyUsage(True, False, False, False, False, False, False, False, False),
+                critical=True,
+            ).add_extension(
+                x509.ExtendedKeyUsage([x509.ExtendedKeyUsageOID.SERVER_AUTH]),
+                critical=True,
+            ).add_extension(
+                x509.BasicConstraints(ca=False, path_length=None),
+                critical=True,
             ).sign(ca_key, hashes.SHA256(), default_backend())
 
             # store the ca certificate
@@ -1062,8 +1075,8 @@ class Host(models.Model):
             with open(ca_key_path, "rb") as f:
                 ca_key_data = f.read()
                 ca_key = serialization.load_pem_private_key(ca_key_data,
-                                                         password=SECRET_KEY.encode('utf-8'),
-                                                         backend=default_backend())
+                                                            password=SECRET_KEY.encode('utf-8'),
+                                                            backend=default_backend())
                 if not isinstance(ca_key, rsa.RSAPrivateKey):
                     raise TypeError
 
@@ -1103,12 +1116,25 @@ class Host(models.Model):
                 datetime.timedelta(days=x509_config['x509_config'].getint('KEY_EXPIRE'))
             ).add_extension(
                 x509.SubjectAlternativeName(
-                    [x509.DNSName(x509_config['x509_config'].getstring('KEY_EMAIl'))]),
+                    [x509.DNSName(self.AS.owner.email+"__"+self.AS.isd_as_path_str())]),
                 critical=False,
+            ).add_extension(
+                x509.SubjectKeyIdentifier.from_public_key(client_key.public_key()),
+                critical=False,
+            ).add_extension(
+                # digital_signature
+                x509.KeyUsage(True, False, False, False, False, False, False, False, False),
+                critical=True,
+            ).add_extension(
+                x509.ExtendedKeyUsage([x509.ExtendedKeyUsageOID.CLIENT_AUTH]),
+                critical=True,
+            ).add_extension(
+                x509.BasicConstraints(ca=False, path_length=None),
+                critical=True,
             ).sign(ca_key, hashes.SHA256(), default_backend())
 
             client_config_template = os.path.join(settings.BASE_DIR, "scionlab",
-                                               "hostfiles", "client.conf.tmpl")
+                                                  "hostfiles", "client.conf.tmpl")
             with open(client_config_template, 'r', encoding='utf-8') as f:
                 client_config = f.read()
                 server_vpn_ip = self.AS.attachment_point_info.vpn.server_vpn_ip()
