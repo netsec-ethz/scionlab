@@ -198,7 +198,8 @@ class UserASHostDownloadView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
         first_host = as_.hosts.first()
 
         resp = HttpResponse()
-        resp['content-disposition'] = 'attachment; filename="{}.tar.gz"'.format(first_host.path_str())
+        resp['content-disposition'] = 'attachment; ' \
+                                      'filename="{}.tar.gz"'.format(first_host.path_str())
         resp['content-type'] = 'application/gzip'
 
         tar = tarfile.open(mode='w:gz', fileobj=resp)
@@ -237,7 +238,8 @@ class UserASHostDownloadView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
             readme_file = path.join(hostfiles_dir, "README_standalone.md")
             tar.add(readme_file, arcname="README.md")
 
-        service_files = ["scion.service", "scionupgrade.service", "scion-viz.service", "scionupgrade.timer"]
+        service_files = ["scion.service", "scionupgrade.service",
+                         "scion-viz.service", "scionupgrade.timer"]
         script_files = ["run.sh", "scionupgrade.sh"]
         for f in service_files + script_files:
             file_path = path.join(hostfiles_dir, f)
