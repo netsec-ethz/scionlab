@@ -971,7 +971,7 @@ class Host(models.Model):
         if not os.path.exists(dh_param_path):
             with open(dh_param_path, "wb") as f:
                 dh_parameters = dh.generate_parameters(generator=2, key_size=4096,
-                                                    backend=default_backend())
+                                                       backend=default_backend())
                 f.write(dh_parameters.parameter_bytes(serialization.Encoding.PEM,
                                                       serialization.ParameterFormat.PKCS3))
 
@@ -982,6 +982,8 @@ class Host(models.Model):
             # get ca material
             ca_cert_file = "%s_cacert.pem" % self.path_str()
             ca_cert_path = os.path.join(BASE_DIR, 'run', ca_cert_file)
+            if not os.path.exists(ca_cert_path):
+                self.write_vpn_ca_config()
             with open(ca_cert_path, 'rb') as f:
                 ca_cert_data = f.read()
                 ca_cert = x509.load_pem_x509_certificate(ca_cert_data, backend=default_backend())
@@ -1085,7 +1087,7 @@ class Host(models.Model):
                 x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
                                    x509_config['x509_config'].getstring('KEY_OU')),
                 x509.NameAttribute(NameOID.COMMON_NAME,
-                                   self.AS.owner.email+self.AS.isd_as_path_str())
+                                   self.AS.owner.email+"__"+self.AS.isd_as_path_str())
             ])
 
             # create and sign the client certificate

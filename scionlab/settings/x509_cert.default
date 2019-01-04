@@ -1,0 +1,26 @@
+[x509_config]
+# A large key size will slow
+# down TLS negotiation performance
+# as well as the one-time DH parms
+# generation process.
+KEY_SIZE=4096
+
+# In how many days should the root CA key expire?
+CA_EXPIRE=1000
+
+# In how many days should certificates expire?
+KEY_EXPIRE=730
+
+# These are the default values for fields
+# which will be placed in the certificate.
+# Don't leave any of these fields blank.
+KEY_COUNTRY="CH"
+KEY_PROVINCE="ZH"
+KEY_CITY="Zurich"
+KEY_ORG="ETH"
+KEY_EMAIL="scion@lists.inf.ethz.ch"
+KEY_OU="NetSec"
+
+# X509 Subject Field
+KEY_NAME="SCIONVPN"
+KEY_ALTNAMES="SCIONVPN"
