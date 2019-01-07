@@ -20,7 +20,7 @@ import tarfile
 from nacl.signing import SigningKey
 from django.conf import settings
 
-from scionlab.models import AS, ISD, Service, Interface
+from scionlab.models import AS, Service, Interface
 import scionlab.util.local_config_util as generator
 
 
@@ -84,10 +84,7 @@ def generate_instance_dir(as_, directory, stype, tp, instance_name):
     :param str instance_name: instance name
     :return:
     """
-    as_base_dir = path.join(directory, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
-    os.makedirs(as_base_dir, mode=0o755, exist_ok=True)
-
-    instance_path = path.join(as_base_dir, instance_name)
+    instance_path = generator.get_elem_dir(directory, as_, instance_name)
     os.makedirs(instance_path, mode=0o755, exist_ok=True)
 
     # Generate service configuration to directory, with certs and keys
@@ -207,8 +204,8 @@ class AScrypto:
         :return:
         """
         inst = cls()
-        inst.certificate = as_.certificates
-        inst.trc = ISD.objects.get(id=as_.isd.id).trc
+        inst.certificate = as_.certificate_chain
+        inst.trc = as_.isd.trc
         inst.keys = {
             'sig_key': as_.sig_priv_key,
             'sig_key_raw': as_.enc_priv_key,
