@@ -15,7 +15,7 @@
 import json
 from django.test import TestCase
 from scionlab.models import ISD
-from scionlab.util.certificates import create_trc
+from scionlab.util.certificates import generate_trc
 from scionlab.tests import utils
 
 from lib.crypto.trc import TRC
@@ -31,7 +31,7 @@ class CreateTRCTests(TestCase):
 
     def test_create_empty(self):
         isd = ISD.objects.create(isd_id=1, label='empty')
-        trc, trc_priv_keys = create_trc(isd)
+        trc, trc_priv_keys = generate_trc(isd)
         self.assertEqual(trc['CoreASes'], {})
         self.assertEqual(trc['Signatures'], {})
         self.assertEqual(trc_priv_keys, {})

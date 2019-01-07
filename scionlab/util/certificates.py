@@ -28,7 +28,7 @@ CORE_AS_VALIDITY_PERIOD = _YEAR_SECONDS
 KEYGEN_ALG = 'ed25519'
 
 
-def create_trc(isd):
+def generate_trc(isd):
     """
     Create or update the TRC for the given ISD.
     Returns the TRC as a dict and a dict containing the private keys needed to sign the next
@@ -60,7 +60,7 @@ def create_trc(isd):
                           rains={},
                           quorum_trc=len(core_ases),
                           quorum_cas=0,
-                          grace_period=0,  # XXX(matzf): copied but seems wrong!
+                          grace_period=0,
                           quarantine=False,
                           signatures={},
                           validity_period=TRC_VALIDITY_PERIOD)
@@ -79,7 +79,7 @@ def create_trc(isd):
     return _base64encode_dict(trc.dict(with_signatures=True)), core_ases_online_priv_keys
 
 
-def create_core_certificate(as_):
+def generate_core_certificate(as_):
     """
     Create or update the Core AS Certificate for `as_`.
     If the AS already has a Core AS Certificate, the version number is incremented for the
@@ -114,7 +114,7 @@ def create_core_certificate(as_):
     return cert.dict()
 
 
-def create_as_certificate_chain(subject_as, issuing_as):
+def generate_as_certificate_chain(subject_as, issuing_as):
     """
     Create or update the AS Certificate for `subject_as`, issued by `issuing_as`.
     If the AS already has an AS Certificate, the version number is incremented for the
