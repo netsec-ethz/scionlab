@@ -22,8 +22,8 @@ jobs:
     docker:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      #- image: circleci/python:3.6.1
-      - image: scionproto/scion_base@sha256:975646f75df9db5a0dd882a4bc6bac36dd63201e0aff920f7ee711053b1ca48e
+      - image: circleci/python:3.6.1
+      #- image: scionproto/scion_base@sha256:975646f75df9db5a0dd882a4bc6bac36dd63201e0aff920f7ee711053b1ca48e
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -38,30 +38,26 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v2-dependencies-{{ checksum "requirements.txt" }}
+          - v3-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
           # fallback to using the latest cache if no exact match is found
-          - v2-dependencies-
+          - v3-dependencies-
 
       - run:
           name: install dependencies
           command: |
-            sudo DEBIAN_FRONTEND=noninteractive apt-get update
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq apt-utils
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq git
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq python3-venv
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq python3-nacl  # python3-lz4 python3-openssl python3-pygments python3-sphinx python3-yaml python3-wheel
-            /usr/bin/python3 -m venv /tmp/venv 2>&1
+            python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
-            mkdir -p /home/scion/go/src/github.com/scionproto/
-            cd /home/scion/go/src/github.com/scionproto/
-            git clone https://github.com/netsec-ethz/netsec-scion.git scion
-            #pip install --require-hashes -r /home/scion/go/src/github.com/scionproto/scion/env/pip3/requirements.txt
+
+            [ -d /tmp/scion ] || git clone https://github.com/netsec-ethz/netsec-scion.git /tmp/scion
+            cd /tmp/scion
+            git fetch && git checkout scionlab && git reset --hard origin/scionlab
 
       - save_cache:
           paths:
             - /tmp/venv
-          key: v2-dependencies-{{ checksum "requirements.txt" }}
+            - /tmp/scion
+          key: v3-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
 
       # run flake8
       - run:
@@ -79,8 +75,8 @@ jobs:
             mkdir -p test-reports/django/
             # Create migrations, otherwise test DB will not be initialised properly
             # TODO: remove once migrations are checked in!
-            PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages:/home/scion/go/src/github.com/scionproto/scion/python python manage.py makemigrations scionlab
-            PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages:/home/scion/go/src/github.com/scionproto/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
+            PYTHONPATH=/tmp/scion/python python manage.py makemigrations scionlab
+            PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
       - store_test_results:
