@@ -144,8 +144,8 @@ class ISD(models.Model):
             return 'ISD %d' % self.isd_id
 
     def update_trc(self):
-        from scionlab.util.certificates import create_trc
-        self.trc, self.trc_priv_keys = create_trc(self)
+        from scionlab.util.certificates import generate_trc
+        self.trc, self.trc_priv_keys = generate_trc(self)
         self.trc_needs_update = False
 
 
@@ -369,7 +369,7 @@ class AS(models.Model):
         for core ASes, `update_core_certificate` needs to be called first.
         See ASManager.update_certificates, which creates the certificates in the correct order.
         """
-        from scionlab.util.certificates import create_as_certificate_chain
+        from scionlab.util.certificates import generate_as_certificate_chain
         if self.is_core:
             issuer = self
         else:
@@ -378,7 +378,7 @@ class AS(models.Model):
             issuer = candidates.first()
 
         if issuer:  # Skip if failed to find a core AS as issuer
-            self.certificate_chain = create_as_certificate_chain(self, issuer)
+            self.certificate_chain = generate_as_certificate_chain(self, issuer)
             self.certificate_chain_needs_update = False
 
     def update_core_certificate(self):
@@ -387,8 +387,8 @@ class AS(models.Model):
 
         Requires that the TRC in this ISD exists/is up to date.
         """
-        from scionlab.util.certificates import create_core_certificate
-        self.core_certificate = create_core_certificate(self)
+        from scionlab.util.certificates import generate_core_certificate
+        self.core_certificate = generate_core_certificate(self)
         self.core_certificate_needs_update = False
 
     def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):
