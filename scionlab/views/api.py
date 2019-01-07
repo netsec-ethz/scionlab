@@ -32,15 +32,12 @@ class GetHostConfig(SingleObjectMixin, View):
 
     def get(self, request, *args, **kwargs):
         host = self.get_object()
-        if 'secret' not in request.GET \
-                or not hmac.compare_digest(request.GET['secret'], host.secret):
-            return HttpResponseForbidden()
+        err = _check_host_request(host, request.GET)
+        if err:
+            return err
+
         if 'version' in request.GET:
-            version_str = request.GET['version']
-            if not version_str.isnumeric():
-                return HttpResponseBadRequest()
-            version = int(version_str)
-            if version >= host.config_version:
+            if int(request.GET['version']) >= host.config_version:
                 return HttpResponseNotModified()
 
         if config_tar.is_empty_config(host):
@@ -54,3 +51,32 @@ class GetHostConfig(SingleObjectMixin, View):
         resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
         config_tar.generate_host_config_tar(host, resp)
         return resp
+
+
+class PostHostConfigVersion(SingleObjectMixin, View):
+    model = Host
+
+    def post(self, request, *args, **kwargs):
+        host = self.get_object()
+        err = _check_host_request(host, request.GET)
+        if err:
+            return err
+
+        if 'version' not in request.POST:
+            return HttpResponseBadRequest()
+        version = int(request.POST['version'])
+        if version > host.config_version \
+                or version < host.deployed_config_version:
+            return HttpResponseNotModified()
+
+        host.deployed_config_version = version
+        host.save()
+
+
+def _check_host_request(host, request_params):
+    if 'secret' not in request_params \
+            or not hmac.compare_digest(request_params['secret'], host.secret):
+        return HttpResponseForbidden()
+    if 'version' in request_params and not request_params['version'].isnumeric():
+        return HttpResponseBadRequest()
+    return None

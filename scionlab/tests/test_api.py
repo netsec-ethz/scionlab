@@ -65,3 +65,12 @@ class GetHostConfigTests(TestCase):
 
         ret = self.client.head(self.host_config_url, request_data)
         self.assertEqual(ret.status_code, 204)
+
+
+class PostHostConfigVersionTests(TestCase):
+    fixtures = ['testtopo-ases-links']
+
+    def setUp(self):
+        # Avoid duplication, get this info here:
+        self.host = Host.objects.last()
+        self.host_config_url = '/api/host/%i' % self.host.pk
