@@ -4,4 +4,3 @@ django-nose
 parameterized
 flake8
 flake8-formatter-junit-xml
-pyyaml>=4.2b1  # for test fixtures; high severity vulnerability before 4.1 (CVE-2017-18342)
