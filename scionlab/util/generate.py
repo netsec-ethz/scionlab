@@ -90,6 +90,7 @@ def generate_instance_dir(as_, directory, stype, tp, instance_name):
     :return:
     """
     instance_path = generator.get_elem_dir(directory, as_, instance_name)
+    os.makedirs(instance_path, mode=0o755, exist_ok=True)
 
     # Generate service configuration to directory, with certs and keys
     as_crypto_obj = AScrypto.from_AS(as_)
@@ -208,7 +209,7 @@ class AScrypto:
         :return:
         """
         inst = cls()
-        inst.certificate = as_.certificates
+        inst.certificate = as_.certificate_chain
         inst.trc = as_.isd.trc
         inst.keys = {
             'sig_key': as_.sig_priv_key,
