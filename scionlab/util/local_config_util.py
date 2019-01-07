@@ -185,7 +185,6 @@ def _trc_filename(isd, version):
 
 
 def _write_certs_trc(archive, elem_dir, as_):
-    return  # XXX
     trc_version = as_.isd.trc['Version']
     archive.write_json((elem_dir, CERT_DIR, _trc_filename(as_.isd, trc_version)),
                        as_.isd.trc)
