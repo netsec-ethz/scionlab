@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import string
 import tarfile
@@ -95,6 +96,18 @@ def _add_vagrantfiles(host, tar):
     Add the Vagrantfiles and additional required files to the tar.
     Expands the 'Vagrantfile.tmpl'-template.
     """
+    tar_add_textfile(tar, "Vagrantfile", _expand_vagrantfile_template(host))
+
+    # Add services and scripts:
+    # Note: in the future, some of these may be included in the "box".
+    service_files = ["scion.service", "scionupgrade.service",
+                     "scion-viz.service", "scionupgrade.timer"]
+    script_files = ["run.sh", "scionupgrade.sh"]
+    for f in service_files + script_files:
+        tar.add(_hostfiles_path(f), arcname=f)
+
+
+def _expand_vagrantfile_template(host):
     if not host.vpn_clients.filter(active=True).exists():
         forwarding_string = 'config.vm.network "forwarded_port",' \
                             ' guest: {0}, host: {0}, protocol: "udp"'. \
@@ -104,19 +117,30 @@ def _add_vagrantfiles(host, tar):
 
     with open(_hostfiles_path("Vagrantfile.tmpl")) as f:
         vagrant_tmpl = f.read()
-    vagrant_file_content = string.Template(vagrant_tmpl).substitute(
+    return string.Template(vagrant_tmpl).substitute(
         PortForwarding=forwarding_string,
         ASID=host.AS.as_id,
     )
-    tar_add_textfile(tar, "Vagrantfile", vagrant_file_content)
 
-    # Add services and scripts:
-    # Note: in the future, some of these may be included in the "box".
-    service_files = ["scion.service", "scionupgrade.service",
-                     "scion-viz.service", "scionupgrade.timer"]
-    script_files = ["run.sh", "scionupgrade.sh"]
-    for f in service_files + script_files:
-        tar.add(_hostfiles_path(f), arcname=f)
+
+def _add_host_info(host, tar):
+    tar_add_textfile(tar, "scionlab-host.json", _generate_host_info_json(host))
+
+
+def _generate_host_info_json(host):
+    """
+    Return a JSON-formatted string; a dict containing the authentication parameters for the host
+    and the current configuration version number.
+    :param Host host:
+    :returns: json string
+    """
+    host_info = {
+        'id': host.pk,
+        'secret': host.secret,
+        'version': host.config_version,
+        # 'ia': host.AS.isd_as_str() # XXX: what for?
+    }
+    return json.dumps(host_info)
 
 
 def _hostfiles_path(filename):
