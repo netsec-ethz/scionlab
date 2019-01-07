@@ -486,8 +486,7 @@ class UpdateUserASTests(TestCase):
 
         ap_old = user_as.attachment_point
 
-        # pretend to have generated the certificates before to check
-        # that this will be bumped if necessary.
+        # reset certificates_needs_update so we can check that this will be set when necessary.
         user_as.certificates_needs_update = False
         user_as.save()
 
