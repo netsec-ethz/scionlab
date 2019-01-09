@@ -30,9 +30,11 @@ from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
 
 import lib.crypto.asymcrypto
+
 from scionlab.util import as_ids
 
-from scionlab.util.openvpn_config import generate_vpn_client_key_material
+from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
+    generate_vpn_server_key_material
 
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether
@@ -1471,6 +1473,18 @@ class Service(models.Model):
             host.bump_config()
 
 
+class VPNManager(models.Manager):
+    def create(self, server, server_port, subnet):
+        vpn = VPN(
+            server=server,
+            server_port=server_port,
+            subnet=subnet,
+        )
+        vpn.init_key()
+        vpn.save()
+        return vpn
+
+
 class VPN(models.Model):
     server = models.ForeignKey(
         Host,
@@ -1480,21 +1494,64 @@ class VPN(models.Model):
     server_port = models.PositiveSmallIntegerField()
 
     subnet = models.CharField(max_length=15)
-    key = models.TextField(null=True, blank=True)
+    private_key = models.TextField(null=True, blank=True)
     cert = models.TextField(null=True, blank=True)
     dh_params = models.TextField(null=True, blank=True)
 
-    def create_client(self, host):
+    objects = VPNManager()
+
+    def init_key(self):
+        key, dh_params, cert = generate_vpn_server_key_material(self.server)
+        self.private_key = key
+        self.dh_params = dh_params
+        self.cert = cert
+
+    def create_client(self, host, active):
         client_ip = self._find_client_ip()
-        key, cert = generate_vpn_client_key_material(host.AS)
-        return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, key=key, cert=cert)
+        return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, active=active)
 
     def server_vpn_ip(self):
-        return '10.0.1.1'
+        subnet = ipaddress.ip_network(self.subnet)
+        # Use first address in the VPN subnet for the VPN server IP
+        return subnet[1]
+
+    def vpn_subnet(self):
+        return ipaddress.ip_network(self.subnet)
+
+    def vpn_subnet_min_max_ips(self):
+        subnet = self.vpn_subnet()
+        # First address in the VPN subnet is server IP, last is broadcast
+        # return first and last host IP in subnet
+        return subnet[2], subnet[-2]
 
     def _find_client_ip(self):
-        # TODO(matzf)
-        return '10.0.1.25'
+        client_count = len(VPNClient.objects.filter(vpn=self))
+        subnet = ipaddress.ip_network(self.subnet)
+        try:
+            # assign consecutive IPs to clients in the same VPN
+            client_ip = subnet[client_count+2]
+            return client_ip
+        except IndexError:
+            # try to find an unused IP from a removed client
+            used_ips = self.server_vpn_ip() | _value_set(VPNClient.objects.filter(vpn=self), 'ip')
+            subnet = ipaddress.ip_network(self.subnet)
+            for ip in subnet:
+                if ip not in used_ips:
+                    return ip
+            raise RuntimeError('No free client IP available')
+
+
+class VPNClientManager(models.Manager):
+    def create(self, vpn, host, ip, active):
+        client = VPNClient(
+            vpn=vpn,
+            host=host,
+            ip=ip,
+            active=active
+        )
+        client.init_key()
+        client.save()
+        return client
 
 
 class VPNClient(models.Model):
@@ -1510,7 +1567,15 @@ class VPNClient(models.Model):
     )
     ip = models.GenericIPAddressField()
     active = models.BooleanField(default=True)
-    keys = models.TextField(null=True, blank=True)
+    private_key = models.TextField(null=True, blank=True)
+    cert = models.TextField(null=True, blank=True)
+
+    objects = VPNClientManager()
+
+    def init_key(self):
+        key, cert = generate_vpn_client_key_material(self.host.AS)
+        self.private_key = key
+        self.cert = cert
 
 
 @receiver(pre_delete, sender=AS, dispatch_uid='as_delete_callback')

@@ -14,6 +14,7 @@
 
 import configparser
 import datetime
+import ipaddress
 import os
 
 from django.conf import settings
@@ -108,7 +109,7 @@ def write_vpn_ca_config():
     return
 
 
-def generate_vpn_server_key_material(as_, host):
+def generate_vpn_server_key_material(host):
     x509_config = load_x509_defaults()
 
     # generate server private key
@@ -149,7 +150,7 @@ def generate_vpn_server_key_material(as_, host):
         x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
                            x509_config['x509_config'].getstring('KEY_OU')),
         x509.NameAttribute(NameOID.COMMON_NAME,
-                               as_.isd_as_path_str()+"__"+host.public_ip.replace(":", "_")),
+                           host.AS.isd_as_path_str()+"__"+host.public_ip.replace(":", "_")),
         x509.NameAttribute(x509.ObjectIdentifier("2.5.4.41"),  # Name
                            x509_config['x509_config'].getstring('KEY_NAME')),
         x509.NameAttribute(NameOID.EMAIL_ADDRESS,
@@ -168,7 +169,7 @@ def generate_vpn_server_key_material(as_, host):
         datetime.timedelta(days=x509_config['x509_config'].getint('KEY_EXPIRE'))
     ).add_extension(
         x509.SubjectAlternativeName(
-            [x509.DNSName(as_.owner.email + "__" + as_.isd_as_path_str())]),
+            [x509.DNSName(host.AS.owner.email + "__" + host.AS.isd_as_path_str())]),
         critical=False,
     ).add_extension(
         x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()),
@@ -303,8 +304,8 @@ def generate_vpn_client_config(as_, client_key, client_cert, ca_cert):
                                           "hostfiles", "client.conf.tmpl")
     with open(client_config_template, 'r', encoding='utf-8') as f:
         client_config = f.read()
-        server_vpn_ip = as_.attachment_point_info.vpn.server_vpn_ip()
-        client_config = client_config.replace("{{.ServerIP}}", str(server_vpn_ip))
+        server_public_ip = as_.attachment_point_info.vpn.server.public_ip
+        client_config = client_config.replace("{{.ServerIP}}", str(server_public_ip))
         server_vpn_port = as_.attachment_point_info.vpn.server_port
         client_config = client_config.replace("{{.ServerPort}}", str(server_vpn_port))
         client_config = client_config.replace("{{.CACert}}", ca_cert.public_bytes(
@@ -317,3 +318,23 @@ def generate_vpn_client_config(as_, client_key, client_cert, ca_cert):
             encryption_algorithm=serialization.NoEncryption()
         ).decode())
     return client_config
+
+
+def generate_vpn_server_config(vpn):
+    server_config_template = os.path.join(settings.BASE_DIR, "scionlab",
+                                          "hostfiles", "server.conf.tmpl")
+    with open(server_config_template, 'r', encoding='utf-8') as f:
+        server_config = f.read()
+        server_vpn_as = vpn.server.AS
+        server_config = server_config.replace("{{.AS}}", str(server_vpn_as))
+        server_vpn_ip = vpn.server_vpn_ip()
+        server_config = server_config.replace("{{.ServerIP}}", str(server_vpn_ip))
+        server_vpn_port = vpn.server_port
+        server_config = server_config.replace("{{.ServerPort}}", str(server_vpn_port))
+        server_vpn_subnet = vpn.vpn_subnet()
+        server_config = server_config.replace("{{.Netmask}}", str(server_vpn_subnet.netmask))
+        server_vpn_start_ip, server_vpn_end_ip = vpn.vpn_subnet_min_max_ips()
+        server_config = server_config.replace("{{.Subnet}}", str(server_vpn_subnet))
+        server_config = server_config.replace("{{.SubnetStart}}", str(server_vpn_start_ip))
+        server_config = server_config.replace("{{.SubnetEnd}}", str(server_vpn_end_ip))
+    return server_config
