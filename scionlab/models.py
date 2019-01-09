@@ -14,6 +14,7 @@
 
 import base64
 import ipaddress
+
 import jsonfield
 import operator
 import os
@@ -28,9 +29,12 @@ from django.db import models
 from django.db.models import F, Max
 from django.db.models.signals import pre_delete, post_delete
 
-
 import lib.crypto.asymcrypto
+
 from scionlab.util import as_ids
+
+from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
+    generate_vpn_server_key_material
 
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether
@@ -253,6 +257,9 @@ class AS(models.Model):
         else:
             self.hosts.bump_config()
 
+    def is_infrastructure_AS(self):
+        return self.owner is None
+
     def isd_as_str(self):
         """
         :return: the ISD-AS string representation
@@ -365,11 +372,12 @@ class AS(models.Model):
         # TODO(matzf): untested
         self.isd.trc_needs_update = True
         self.certificates_needs_update = True
-        self.isd \
-            .ases \
-            .filter(is_core=True) \
-            .hosts \
-            .bump_config()
+        core_ases = self.isd.ases.filter(is_core=True)
+        for core_as in core_ases:
+            if core_as.hosts:
+                core_as \
+                    .hosts \
+                    .bump_config()
 
         # TODO(matzf): add issuer/subject relation, reset certificates for all signed_by
 
@@ -447,7 +455,8 @@ class UserASManager(models.Manager):
         host = user_as.hosts.get()
 
         if use_vpn:
-            vpn_client = attachment_point.vpn.create_client(host)
+            vpn_client = attachment_point.vpn.create_client(host=host,
+                                                            active=True)
 
             interface_client = Interface.objects.create(
                 host=host,
@@ -638,7 +647,7 @@ class UserAS(AS):
                 vpn_client.save()
             return vpn_client
         else:
-            return vpn.create_client(host)
+            return vpn.create_client(host, True)
 
 
 class AttachmentPoint(models.Model):
@@ -1486,6 +1495,18 @@ class Service(models.Model):
             host.bump_config()
 
 
+class VPNManager(models.Manager):
+    def create(self, server, server_port, subnet):
+        vpn = VPN(
+            server=server,
+            server_port=server_port,
+            subnet=subnet,
+        )
+        vpn.init_key()
+        vpn.save()
+        return vpn
+
+
 class VPN(models.Model):
     server = models.ForeignKey(
         Host,
@@ -1495,17 +1516,70 @@ class VPN(models.Model):
     server_port = models.PositiveSmallIntegerField()
 
     subnet = models.CharField(max_length=15)
-    keys = models.TextField(null=True, blank=True)
+    private_key = models.TextField(null=True, blank=True)
+    cert = models.TextField(null=True, blank=True)
+    dh_params = models.TextField(null=True, blank=True)
 
-    def create_client(self, host):
-        return VPNClient.objects.create(vpn=self, host=host, ip=self._find_client_ip())
+    objects = VPNManager()
+
+    def init_key(self):
+        key, dh_params, cert = generate_vpn_server_key_material(self.server)
+        self.private_key = key
+        self.dh_params = dh_params
+        self.cert = cert
+
+    def create_client(self, host, active):
+        client_ip = str(self._find_client_ip())
+        return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, active=active)
 
     def server_vpn_ip(self):
-        return '10.0.1.1'
+        """
+        :return: str: VPN server IP
+        """
+        subnet = ipaddress.ip_network(self.subnet)
+        # Use first address in the VPN subnet for the VPN server IP
+        return str(next(subnet.hosts()))
+
+    def vpn_subnet(self):
+        return ipaddress.ip_network(self.subnet)
+
+    def vpn_subnet_min_max_client_ips(self):
+        subnet = self.vpn_subnet()
+        # First host IP in the VPN subnet is the server IP
+        # return first and last client IP in the subnet
+        _, min_ip, *_, max_ip = subnet.hosts()
+        return min_ip, max_ip
 
     def _find_client_ip(self):
-        # TODO(matzf)
-        return '10.0.1.25'
+        last_client = self.clients.last()
+        used_ips = {self.server_vpn_ip()} | \
+            _value_set(VPNClient.objects.filter(vpn=self), 'ip')
+        if last_client:
+            last_assigned_ip = ipaddress.ip_address(last_client.ip)
+            # assign consecutive IPs to clients in the same VPN
+            candidate_ip = last_assigned_ip + 1
+            _, max_ip = self.vpn_subnet_min_max_client_ips()
+            if candidate_ip <= max_ip and str(candidate_ip) not in used_ips:
+                return candidate_ip
+        # try to find an unused IP from a removed client
+        subnet = ipaddress.ip_network(self.subnet)
+        for ip in subnet.hosts():
+            if str(ip) not in used_ips:
+                return ip
+        raise RuntimeError('No free client IP available')
+
+
+class VPNClientManager(models.Manager):
+    def create(self, vpn, host, ip, active):
+        client = VPNClient(
+            vpn=vpn,
+            host=host,
+            ip=ip,
+            active=active
+        )
+        client.init_key()
+        client.save()
+        return client
 
 
 class VPNClient(models.Model):
@@ -1521,7 +1595,15 @@ class VPNClient(models.Model):
     )
     ip = models.GenericIPAddressField()
     active = models.BooleanField(default=True)
-    keys = models.TextField(null=True, blank=True)
+    private_key = models.TextField(null=True, blank=True)
+    cert = models.TextField(null=True, blank=True)
+
+    objects = VPNClientManager()
+
+    def init_key(self):
+        key, cert = generate_vpn_client_key_material(self.host.AS)
+        self.private_key = key
+        self.cert = cert
 
 
 @receiver(pre_delete, sender=AS, dispatch_uid='as_delete_callback')

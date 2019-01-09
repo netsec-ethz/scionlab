@@ -1,0 +1,40 @@
+# Specify that we are a client
+client
+
+# We use a TUN device, a virtual point-to-point IP link
+dev tun
+
+# Set cipher
+cipher AES-128-CBC
+
+# Connecting to a UDP server
+proto udp
+
+# IP and port of the server
+remote ${ServerIP} ${ServerPort}
+
+# Keep trying indefinitely to resolve the
+# host name of the OpenVPN server.
+resolv-retry infinite
+
+# Do not bind to a specific local port number
+nobind
+
+# Preserve state accross restarts
+persist-key
+persist-tun
+
+# Enable compression on the VPN link.
+comp-lzo
+
+# Log verbosity
+verb 3
+
+# Silence repeating messages
+mute 10
+<ca>
+${CACert}</ca>
+<cert>
+${ClientCert}</cert>
+<key>
+${ClientKey}</key>
