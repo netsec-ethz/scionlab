@@ -13,9 +13,6 @@
 # limitations under the License.
 
 import hmac
-import shutil
-import tarfile
-import tempfile
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
 from django.http import (
@@ -26,30 +23,8 @@ from django.http import (
 )
 
 from scionlab.models import Host
-
-
-def _create_config(host, tarfileobj):
-    from scionlab.util import generate
-
-    gen_dir = tempfile.mkdtemp()
-    generate.create_gen(host, gen_dir)
-
-    tar = tarfile.open(mode='w:gz', fileobj=tarfileobj)
-    tar.add(gen_dir, arcname="gen")
-    # TODO(matzf):
-    # - VPN config
-    # - README, Vagrantfile,
-    # - etc.
-    tar.close()
-
-    shutil.rmtree(gen_dir)
-
-
-def _is_empty_config(host):
-    return (not host.services.exists()
-            and not host.interfaces.exists()
-            and not host.vpn_clients.exists()
-            and not host.vpn_servers.exists())
+from scionlab.util.http import HttpResponseAttachment
+from scionlab.util import config_tar
 
 
 class GetHostConfig(SingleObjectMixin, View):
@@ -68,16 +43,14 @@ class GetHostConfig(SingleObjectMixin, View):
             if version >= host.config_version:
                 return HttpResponseNotModified()
 
-        if _is_empty_config(host):
+        if config_tar.is_empty_config(host):
             return HttpResponse(status=204)
 
         # All good, return generate and return the config
-        filename = "%s_v%i.tar.gz" % (host.path_str(), host.config_version)
-
-        # Note: not using FileResponse as streaming is not expected to be beneficial for small file
-        # size
-        response = HttpResponse()
-        response['Content-Disposition'] = 'attachment; filename="%s"' % filename
-        response['Content-Type'] = 'application/gzip'
-        _create_config(host, response)  # Use the response as file-like object to write the tar
-        return response
+        # Use the response as file-like object to write the tar
+        filename = '{host}_v{version}.tar.gz'.format(
+                        host=host.path_str(),
+                        version=host.config_version)
+        resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
+        config_tar.generate_host_config_tar(host, resp)
+        return resp
