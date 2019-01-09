@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
 import os
 import shutil
 import tarfile
@@ -44,7 +45,7 @@ def generate_user_as_config_tar(user_as, fileobj):
         _add_vpn_config(host, tar)
         if user_as.installation_type == UserAS.VM:
             tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
-            _add_vagrantfiles(user_as, tar)
+            _add_vagrantfiles(host, tar)
         else:
             tar.add(_hostfiles_path("README_dedicated.md"), arcname="README.md")
 

@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
-import re
-import tarfile
-import pathlib
 from django.test import TestCase
 from scionlab.models import Host
+from scionlab.tests import utils
 
 
 class GetHostConfigTests(TestCase):
@@ -52,7 +49,7 @@ class GetHostConfigTests(TestCase):
 
         ret_get = self.client.get(self.host_config_url, request_data)
         self.assertEqual(ret_get.status_code, 200)
-        self._check_tarball(ret_get, self.host)
+        utils.check_tarball_host(self, ret_get, self.host)
 
         ret_head = self.client.head(self.host_config_url, request_data)
         self.assertEqual(ret_head.status_code, 200)
@@ -68,26 +65,3 @@ class GetHostConfigTests(TestCase):
 
         ret = self.client.head(self.host_config_url, request_data)
         self.assertEqual(ret.status_code, 204)
-
-    def _check_tarball(self, response, host):
-        self.assertTrue(re.search(r'attachment;\s*filename="[^"]*.tar.gz"',
-                                  response['Content-Disposition']))
-        self.assertEqual(response['Content-Type'], 'application/gzip')
-        self.assertEqual(int(response['Content-Length']), len(response.content))
-
-        # Simple sanity checks:
-        # The tarfile can be opened:
-        tar = tarfile.open(mode='r:gz', fileobj=io.BytesIO(response.content))
-        filenames = tar.getnames()
-
-        # Check first level listing:
-        subfolders = [f for f in filenames if '/' not in f]
-        self.assertEqual(subfolders, ['gen'])
-
-        # The gen/-folder looks roughly like expected:
-        as_gen_dir = 'gen/ISD%i/AS%s' % (host.AS.isd.isd_id, host.AS.as_path_str())
-        gen_subfolders = [f for f in filenames if pathlib.PurePath(f).match('gen/*/*')]
-        self.assertEqual([as_gen_dir], gen_subfolders)
-        topofiles = [f for f in filenames if
-                     pathlib.PurePath(f).match(as_gen_dir + "/*/topology.json")]
-        self.assertTrue(topofiles)

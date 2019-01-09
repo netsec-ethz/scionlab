@@ -187,11 +187,12 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
     """
 
     def get(self, request, *args, **kwargs):
+        user_as = self.get_object()
         filename = 'scion_lab_{user}_{ia}.tar.gz'.format(
-                        user=self.object.owner.username,
-                        ia=self.object.isd_as_path_str())
+                        user=user_as.owner.username,
+                        ia=user_as.isd_as_path_str())
         resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
-        config_tar.generate_user_as_config(self.object, resp)
+        config_tar.generate_user_as_config_tar(user_as, resp)
         return resp
 
 
