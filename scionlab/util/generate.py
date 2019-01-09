@@ -18,7 +18,6 @@ import os.path as path
 import tarfile
 
 from nacl.signing import SigningKey
-from topology.generator import TopoID
 from django.conf import settings
 
 from scionlab.models import AS, ISD, Service, Interface
@@ -31,7 +30,7 @@ def create_gen_AS(AS_id):
     :param str AS_id: AS identifier string
     :return:
     """
-    if not os.path.exists(settings.GEN_ROOT):
+    if not path.exists(settings.GEN_ROOT):
         raise ValueError("GEN_ROOT %s does not exist" % settings.GEN_ROOT)
     as_ = AS.objects.get(as_id=AS_id)
     hosts = as_.hosts.all()
@@ -54,7 +53,7 @@ def create_gen(host, host_gen_dir, tp, service_name_map):
     :param service_name_map: map from Service object to instance name
     :return:
     """
-    if not os.path.exists(host_gen_dir):
+    if not path.exists(host_gen_dir):
         raise ValueError("host_gen_dir %s output directory does not exist" % host_gen_dir)
 
     services = Service.objects.filter(host=host)
@@ -85,8 +84,7 @@ def generate_instance_dir(as_, directory, stype, tp, instance_name):
     :param str instance_name: instance name
     :return:
     """
-    topo_id = TopoID(as_.isd_as_str())
-    as_base_dir = topo_id.base_dir(directory)
+    as_base_dir = path.join(directory, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
     os.makedirs(as_base_dir, mode=0o755, exist_ok=True)
 
     instance_path = path.join(as_base_dir, instance_name)
