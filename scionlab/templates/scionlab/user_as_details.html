@@ -16,13 +16,17 @@
 {% if object.is_active %}
 <form id="id_deactivate_form" method="post" action="{% url 'user_as_deactivate' pk=object.pk %}">{% csrf_token %}
 </form>
+<form id="id_get_tar_form" method="get" action="{% url 'user_as_config' pk=object.pk %}">{% csrf_token %}
+</form>
 <button type="submit" form="id_user_as_form" class="btn btn-primary">Save Changes</button>
 <button type="submit" form="id_deactivate_form" class="btn btn-outline-danger">Deactivate this AS</button>
+<button type="submit" form="id_get_tar_form" class="btn btn-success">Download configuration</button>
 {% else %}
 <form id="id_activate_form" method="post" action="{% url 'user_as_activate' pk=object.pk %}">{% csrf_token %}
 </form>
 <button type="submit" form="id_user_as_form" class="btn btn-primary">Save Changes</button>
 <button type="submit" form="id_activate_form" class="btn btn-success">Activate this AS</button>
+
 {% endif %}
 
 

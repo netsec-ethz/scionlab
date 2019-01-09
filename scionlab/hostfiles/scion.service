@@ -1,0 +1,16 @@
+[Unit]
+Description=SCION infrastructure
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=_USER_
+WorkingDirectory=/home/_USER_/go/src/github.com/scionproto/scion
+Environment="PATH=/home/_USER_/.local/bin:/home/_USER_/go/bin:/usr/local/go/bin:/home/_USER_/bin:/home/_USER_/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin" "GOPATH=/home/_USER_/go"
+ExecStart=/home/_USER_/go/src/github.com/scionproto/scion/scion.sh run
+ExecStop=/home/_USER_/go/src/github.com/scionproto/scion/scion.sh stop
+
+[Install]
+WantedBy=multi-user.target
