@@ -126,9 +126,8 @@ try:
     SECRET_KEY = open(SECRET_FILE).read().strip()
 except IOError:
     try:
-        from django.utils.crypto import get_random_string
-        chars = 'abcdefghijklmnopqrstuvwxyz0123456789!$%&()=+-_'
-        SECRET_KEY = get_random_string(50, chars)
+        from django.core.management.utils import get_random_secret_key
+        SECRET_KEY = get_random_secret_key()
         with open(SECRET_FILE, 'w') as f:
             f.write(SECRET_KEY)
     except IOError:

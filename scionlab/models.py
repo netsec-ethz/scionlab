@@ -32,6 +32,8 @@ from django.db.models.signals import pre_delete, post_delete
 import lib.crypto.asymcrypto
 from scionlab.util import as_ids
 
+from scionlab.util.openvpn_config import generate_vpn_client_key_material
+
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether
 # we can make better use of e.g. changed_data information of the forms.
@@ -1478,10 +1480,14 @@ class VPN(models.Model):
     server_port = models.PositiveSmallIntegerField()
 
     subnet = models.CharField(max_length=15)
-    keys = models.TextField(null=True, blank=True)
+    key = models.TextField(null=True, blank=True)
+    cert = models.TextField(null=True, blank=True)
+    dh_params = models.TextField(null=True, blank=True)
 
     def create_client(self, host):
-        return VPNClient.objects.create(vpn=self, host=host, ip=self._find_client_ip())
+        client_ip = self._find_client_ip()
+        key, cert = generate_vpn_client_key_material(host.AS)
+        return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, key=key, cert=cert)
 
     def server_vpn_ip(self):
         return '10.0.1.1'
