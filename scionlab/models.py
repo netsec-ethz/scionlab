@@ -257,6 +257,9 @@ class AS(models.Model):
         else:
             self.hosts.bump_config()
 
+    def is_infrastructure_AS(self):
+        return self.owner is None
+
     def isd_as_str(self):
         """
         :return: the ISD-AS string representation
@@ -369,11 +372,12 @@ class AS(models.Model):
         # TODO(matzf): untested
         self.isd.trc_needs_update = True
         self.certificates_needs_update = True
-        self.isd \
-            .ases \
-            .filter(is_core=True) \
-            .hosts \
-            .bump_config()
+        core_ases = self.isd.ases.filter(is_core=True)
+        for core_as in core_ases:
+            if core_as.hosts:
+                core_as \
+                    .hosts \
+                    .bump_config()
 
         # TODO(matzf): add issuer/subject relation, reset certificates for all signed_by
 
@@ -451,7 +455,8 @@ class UserASManager(models.Manager):
         host = user_as.hosts.get()
 
         if use_vpn:
-            vpn_client = attachment_point.vpn.create_client(host)
+            vpn_client = attachment_point.vpn.create_client(host,
+                                                            True)  # Create active VPN client
 
             interface_client = Interface.objects.create(
                 host=host,
@@ -460,7 +465,7 @@ class UserASManager(models.Manager):
             )
             interface_ap = Interface.objects.create(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip()
+                public_ip=str(attachment_point.vpn.server_vpn_ip())
             )
         else:
             interface_client = Interface.objects.create(
@@ -575,7 +580,7 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip(),
+                public_ip=str(attachment_point.vpn.server_vpn_ip()),
                 public_port=None,
                 internal_port=None
             )
@@ -642,7 +647,7 @@ class UserAS(AS):
                 vpn_client.save()
             return vpn_client
         else:
-            return vpn.create_client(host)
+            return vpn.create_client(host, True)
 
 
 class AttachmentPoint(models.Model):
@@ -1507,7 +1512,7 @@ class VPN(models.Model):
         self.cert = cert
 
     def create_client(self, host, active):
-        client_ip = self._find_client_ip()
+        client_ip = str(self._find_client_ip())
         return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, active=active)
 
     def server_vpn_ip(self):
@@ -1533,7 +1538,8 @@ class VPN(models.Model):
             return client_ip
         except IndexError:
             # try to find an unused IP from a removed client
-            used_ips = self.server_vpn_ip() | _value_set(VPNClient.objects.filter(vpn=self), 'ip')
+            used_ips = str(self.server_vpn_ip()) | \
+                       _value_set(VPNClient.objects.filter(vpn=self), 'ip')
             subnet = ipaddress.ip_network(self.subnet)
             for ip in subnet:
                 if ip not in used_ips:

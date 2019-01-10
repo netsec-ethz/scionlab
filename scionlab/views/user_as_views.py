@@ -209,7 +209,7 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
             vpn_client = as_.hosts.first().vpn_clients.first()
             client_config = generate_vpn_client_config(as_, vpn_client.private_key, vpn_client.cert)
             client_config_file = io.BytesIO()
-            f_size = client_config_file.write(client_config)
+            f_size = client_config_file.write(client_config.encode())
             client_config_file.seek(0)
             t_info = tarfile.TarInfo("client.conf")
             t_info.size = f_size

@@ -137,6 +137,7 @@ def generate_vpn_server_key_material(host):
 
     # create server certificate
     # set subject attributes
+    owner_email = get_owner_email(host.AS)
     subject = x509.Name([
         x509.NameAttribute(NameOID.COUNTRY_NAME,
                            x509_config['x509_config'].getstring('KEY_COUNTRY')),
@@ -168,7 +169,7 @@ def generate_vpn_server_key_material(host):
         datetime.timedelta(days=x509_config['x509_config'].getint('KEY_EXPIRE'))
     ).add_extension(
         x509.SubjectAlternativeName(
-            [x509.DNSName(host.AS.owner.email + "__" + host.AS.isd_as_path_str())]),
+            [x509.DNSName(owner_email + "__" + host.AS.isd_as_path_str())]),
         critical=False,
     ).add_extension(
         x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()),
@@ -207,6 +208,7 @@ def generate_vpn_client_key_material(as_):
 
     # create a certificate signed by the ca
     # set subject attributes
+    owner_email = get_owner_email(as_)
     subject = x509.Name([
         x509.NameAttribute(NameOID.COUNTRY_NAME,
                            x509_config['x509_config'].getstring('KEY_COUNTRY')),
@@ -219,7 +221,7 @@ def generate_vpn_client_key_material(as_):
         x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
                            x509_config['x509_config'].getstring('KEY_OU')),
         x509.NameAttribute(NameOID.COMMON_NAME,
-                           as_.owner.email+"__"+as_.isd_as_path_str()),
+                           owner_email+"__"+as_.isd_as_path_str()),
         x509.NameAttribute(x509.ObjectIdentifier("2.5.4.41"),  # Name
                            x509_config['x509_config'].getstring('KEY_NAME')),
         x509.NameAttribute(NameOID.EMAIL_ADDRESS,
@@ -239,7 +241,7 @@ def generate_vpn_client_key_material(as_):
         datetime.timedelta(days=x509_config['x509_config'].getint('KEY_EXPIRE'))
     ).add_extension(
         x509.SubjectAlternativeName(
-            [x509.DNSName(as_.owner.email + "__" + as_.isd_as_path_str())]),
+            [x509.DNSName(owner_email + "__" + as_.isd_as_path_str())]),
         critical=False,
     ).add_extension(
         x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()),
@@ -294,6 +296,15 @@ def get_ca_cert():
     return ca_cert
 
 
+def get_owner_email(as_):
+    if as_.is_infrastructure_AS():
+        x509_config = load_x509_defaults()
+        owner_email = x509_config['x509_config'].getstring('KEY_EMAIL')
+    else:
+        owner_email = as_.owner.email
+    return owner_email
+
+
 def load_x509_defaults():
     x509_config_file = os.path.join(BASE_DIR, 'scionlab', 'settings', 'x509_cert.default')
     x509_config = configparser.ConfigParser(
@@ -315,13 +326,8 @@ def generate_vpn_client_config(as_, client_key, client_cert):
         client_config = client_config.replace("{{.ServerPort}}", str(server_vpn_port))
         client_config = client_config.replace("{{.CACert}}", ca_cert.public_bytes(
             encoding=serialization.Encoding.PEM).decode())
-        client_config = client_config.replace("{{.ClientCert}}", client_cert.public_bytes(
-            encoding=serialization.Encoding.PEM).decode())
-        client_config = client_config.replace("{{.ClientKey}}", client_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption()
-        ).decode())
+        client_config = client_config.replace("{{.ClientCert}}", client_cert)
+        client_config = client_config.replace("{{.ClientKey}}", client_key)
     return client_config
 
 
