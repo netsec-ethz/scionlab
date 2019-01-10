@@ -352,7 +352,9 @@ def _tar_ls(tar, path):
     :param str path: the subdirectory which should be listed. Empty refers to the root of the tar.
     :returns: sorted list of file-names/subdirectory-names
     """
-    filenames = tar.getnames()  # Note: intermediate dirs may or may not be included in this list!
+    # Note: intermediate dirs are only included in `getnames` when they explicitly are a member of
+    # the tar -- depending on how the tar was created, this may or may not be the case.
+    filenames = tar.getnames()
     re_path = re.compile(re.escape(os.path.join(path, '')) + r'([^/]+)')
     s = set()
     for f in filenames:
