@@ -14,7 +14,6 @@
 
 import configparser
 import datetime
-import ipaddress
 import os
 
 from django.conf import settings
@@ -75,7 +74,7 @@ def write_vpn_ca_config():
             x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
                                x509_config['x509_config'].getstring('KEY_OU')),
             x509.NameAttribute(NameOID.COMMON_NAME,
-                                   x509_config['x509_config'].getstring('KEY_ORG')+" CA"),
+                               x509_config['x509_config'].getstring('KEY_ORG')+" CA"),
             x509.NameAttribute(x509.ObjectIdentifier("2.5.4.41"),  # Name
                                x509_config['x509_config'].getstring('KEY_NAME')),
             x509.NameAttribute(NameOID.EMAIL_ADDRESS,
@@ -220,7 +219,7 @@ def generate_vpn_client_key_material(as_):
         x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
                            x509_config['x509_config'].getstring('KEY_OU')),
         x509.NameAttribute(NameOID.COMMON_NAME,
-                               as_.owner.email+"__"+as_.isd_as_path_str()),
+                           as_.owner.email+"__"+as_.isd_as_path_str()),
         x509.NameAttribute(x509.ObjectIdentifier("2.5.4.41"),  # Name
                            x509_config['x509_config'].getstring('KEY_NAME')),
         x509.NameAttribute(NameOID.EMAIL_ADDRESS,
