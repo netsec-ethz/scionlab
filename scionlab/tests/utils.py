@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
 import base64
+import io
+import os
+import pathlib
+import re
+import tarfile
 import lib.crypto.asymcrypto
 from collections import namedtuple, Counter, OrderedDict
-from scionlab.models import AS, Service, Interface, Link, MAX_PORT
+from scionlab.models import AS, Service, Interface, Link, UserAS, MAX_PORT
 
 
 def check_topology(testcase):
@@ -274,3 +278,87 @@ def _sanity_check_base64(testcase, s):
         r"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
     )
     testcase.assertTrue(base64_pattern.match(s))
+
+
+def check_tarball_user_as(testcase, response, user_as):
+    """
+    Check the http-response for downloading a UserAS-config tar-ball.
+    """
+    tar = _check_open_tarball(testcase, response)
+    files = ['README.md']
+    if user_as.installation_type == UserAS.VM:
+        files += ["Vagrantfile", "scion-viz.service", "scion.service", "scionupgrade.service",
+                  "scionupgrade.timer", "run.sh", "scionupgrade.sh"]
+    testcase.assertTrue(sorted(['gen'] + files), _tar_ls(tar, ''))
+    _check_tarball_gen(testcase, tar, user_as.hosts.get())
+
+    if user_as.installation_type == UserAS.VM:
+        # appropriate README?
+        readme = tar.extractfile('README.md').read().decode()
+        testcase.assertTrue(readme.startswith('# SCIONLabVM'))
+
+        # Vagrantfile template expanded correctly?
+        vagrantfile = tar.extractfile('Vagrantfile')
+        lines = [l.decode() for l in vagrantfile]
+        name_lines = [l.strip() for l in lines if l.strip().startswith('vb.name')]
+        testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_id])
+    else:
+        readme = tar.extractfile('README.md').read().decode()
+        testcase.assertTrue(readme.startswith('# SCIONLab Dedicated'))
+
+
+def check_tarball_host(testcase, response, host):
+    """
+    Check the http-response for downloading a host-config tar-ball.
+    """
+    tar = _check_open_tarball(testcase, response)
+    testcase.assertTrue(['gen'], _tar_ls(tar, ''))
+    _check_tarball_gen(testcase, tar, host)
+
+
+def _check_open_tarball(testcase, response):
+    """
+    Check http-response headers and open tar ball from content.
+    """
+    testcase.assertTrue(re.search(r'attachment;\s*filename="[^"]*.tar.gz"',
+                        response['Content-Disposition']))
+    testcase.assertEqual(response['Content-Type'], 'application/gzip')
+    testcase.assertEqual(int(response['Content-Length']), len(response.content))
+
+    tar = tarfile.open(mode='r:gz', fileobj=io.BytesIO(response.content))
+    return tar
+
+
+def _check_tarball_gen(testcase, tar, host):
+    """
+    Basic sanity checks for the gen/ folder contained in the tar.
+    """
+    isd_str = 'ISD%i' % host.AS.isd.isd_id
+    as_str = 'AS%s' % host.AS.as_path_str()
+
+    testcase.assertEqual([isd_str], _tar_ls(tar, 'gen'))
+    testcase.assertEqual([as_str], _tar_ls(tar, os.path.join('gen', isd_str)))
+
+    as_gen_dir = os.path.join('gen', isd_str, as_str)
+    topofiles = [f for f in tar.getnames() if
+                 pathlib.PurePath(f).match(as_gen_dir + "/*/topology.json")]
+    testcase.assertTrue(topofiles)
+
+
+def _tar_ls(tar, path):
+    """
+    Helper function: "ls" the given path in the tar, i.e. list files/subdirectories
+    contained in the given path.
+    :param str path: the subdirectory which should be listed. Empty refers to the root of the tar.
+    :returns: sorted list of file-names/subdirectory-names
+    """
+    # Note: intermediate dirs are only included in `getnames` when they explicitly are a member of
+    # the tar -- depending on how the tar was created, this may or may not be the case.
+    filenames = tar.getnames()
+    re_path = re.compile(re.escape(os.path.join(path, '')) + r'([^/]+)')
+    s = set()
+    for f in filenames:
+        m = re_path.match(f)
+        if m:
+            s.add(m.group(1))
+    return list(sorted(s))

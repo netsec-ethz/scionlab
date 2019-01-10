@@ -15,12 +15,11 @@
 import base64
 import os
 import os.path as path
-import tarfile
 
 from nacl.signing import SigningKey
 from django.conf import settings
 
-from scionlab.models import AS, ISD, Service, Interface
+from scionlab.models import AS, Service, Interface
 import scionlab.util.local_config_util as generator
 
 
@@ -40,11 +39,20 @@ def create_gen_AS(AS_id):
     for host in hosts:
         host_gen_dir = path.join(settings.GEN_ROOT, host.path_str())
         os.makedirs(host_gen_dir, mode=0o755, exist_ok=True)
-        create_gen(host, host_gen_dir, tp, service_name_map)
-    return
+        _create_gen(host, host_gen_dir, tp, service_name_map)
 
 
-def create_gen(host, host_gen_dir, tp, service_name_map):
+def create_gen(host, host_gen_dir):
+    """
+    Generate the gen folder for the :host: in the :directory:
+    :param host: Host object
+    :param host_gen_dir: output directory string, as an absolute path to an existing directory
+    """
+    tp, service_name_map = generate_topology_from_DB(host.AS)  # topology file
+    _create_gen(host, host_gen_dir, tp, service_name_map)
+
+
+def _create_gen(host, host_gen_dir, tp, service_name_map):
     """
     Generate the gen folder for the :host: in the :directory:
     :param host: Host object
@@ -56,8 +64,7 @@ def create_gen(host, host_gen_dir, tp, service_name_map):
     if not path.exists(host_gen_dir):
         raise ValueError("host_gen_dir %s output directory does not exist" % host_gen_dir)
 
-    services = Service.objects.filter(host=host)
-    for service in services:
+    for service in host.services.iterator():
         service_nick = service.type
         if service_nick not in generator.JOB_NAMES.values():
             continue
@@ -71,8 +78,6 @@ def create_gen(host, host_gen_dir, tp, service_name_map):
         service_type = generator.NICKS_TO_TYPES[border_router_nick]
         generate_instance_dir(host.AS, host_gen_dir, service_type, tp, border_router)
 
-    return
-
 
 def generate_instance_dir(as_, directory, stype, tp, instance_name):
     """
@@ -84,11 +89,7 @@ def generate_instance_dir(as_, directory, stype, tp, instance_name):
     :param str instance_name: instance name
     :return:
     """
-    as_base_dir = path.join(directory, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
-    os.makedirs(as_base_dir, mode=0o755, exist_ok=True)
-
-    instance_path = path.join(as_base_dir, instance_name)
-    os.makedirs(instance_path, mode=0o755, exist_ok=True)
+    instance_path = generator.get_elem_dir(directory, as_, instance_name)
 
     # Generate service configuration to directory, with certs and keys
     as_crypto_obj = AScrypto.from_AS(as_)
@@ -208,7 +209,7 @@ class AScrypto:
         """
         inst = cls()
         inst.certificate = as_.certificates
-        inst.trc = ISD.objects.get(id=as_.isd.id).trc
+        inst.trc = as_.isd.trc
         inst.keys = {
             'sig_key': as_.sig_priv_key,
             'sig_key_raw': as_.enc_priv_key,
@@ -237,16 +238,3 @@ def generate_raw_key(key_seed):
     """
     # FIXME(FR4NK-W): do not access protected member _signing_key
     return base64.b64encode(SigningKey(base64.b64decode(key_seed))._signing_key).decode()
-
-
-def tar_gen(directory, output):
-    """
-    Create gzipped tar file at :output: with the content of :directory:
-    :param str directory: input directory
-    :param str output: output file
-    :return:
-    """
-    tar = tarfile.open(output, 'w:gz')
-    tar.add(directory, arcname="gen")
-    tar.close()
-    return

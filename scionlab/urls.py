@@ -25,8 +25,9 @@ from scionlab.views.user_as_views import (
     UserASActivateView,
     UserASDetailView,
     UserASGetConfigView)
-from scionlab.views.placehoder_view import PlaceholderView, PlaceholderUserView
+from scionlab.views.placehoder_view import PlaceholderView
 from scionlab.views.registration_view import UserRegistrationView
+from scionlab.views.api import GetHostConfig
 
 urlpatterns = [
     # TODO(matzf): implement actual home page
@@ -62,8 +63,9 @@ urlpatterns = [
     path('user/as/<int:pk>',
          login_required(UserASDetailView.as_view()),
          name='user_as_detail'),
-    # TODO(matzf): remove this
-    path('user/test/', PlaceholderUserView.as_view(), name='userpage'),
+
+    # API:
+    path('api/host/<int:pk>/config', GetHostConfig.as_view()),
 
     # django-registration patterns
     path('registration/register/',

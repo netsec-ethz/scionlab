@@ -21,6 +21,7 @@ from scionlab.models import User, UserAS, AttachmentPoint, VPN, DEFAULT_PUBLIC_P
 from scionlab.fixtures.testuser import get_testuser, TESTUSER_EMAIL
 from scionlab.fixtures import testtopo
 from scionlab.views.user_as_views import UserASForm
+from scionlab.tests import utils
 
 
 _QUOTA_EXCEEDED_MESSAGE = ('You have reached the maximum number of ASes '
@@ -351,3 +352,18 @@ class UserASActivateTests(_WebTestHack):
 
         edit_page = edit_page.forms['id_activate_form'].submit().maybe_follow()
         check_active(True, user_as, edit_page)
+
+
+class UserASGetConfigTests(TestCase):
+    fixtures = ['testuser', 'testtopo-ases-links']
+
+    def test_get_config(self):
+        _create_ases_for_testuser(get_testuser().max_num_ases())
+
+        self.client.force_login(get_testuser())
+        user_as_pks = [user_as.pk for user_as
+                       in UserAS.objects.filter(owner=get_testuser()).iterator()]
+        for pk in user_as_pks:
+            response = self.client.get(reverse('user_as_config', kwargs={'pk': pk}))
+            self.assertEqual(response.status_code, 200)
+            utils.check_tarball_user_as(self, response, UserAS.objects.get(pk=pk))

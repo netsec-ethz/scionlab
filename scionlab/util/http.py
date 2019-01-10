@@ -13,15 +13,13 @@
 # limitations under the License.
 
 from django.http import HttpResponse
-from django.views import View
 
 
-class PlaceholderView(View):
-    def get(self, request, *args, **kwargs):
-        if request.user.id:
-            return HttpResponse(
-                'Hello, this is a placeholder. You are logged in as %s.'
-                % request.user.username
-            )
-        else:
-            return HttpResponse('Hello, this is a placeholder. You are not logged in.')
+class HttpResponseAttachment(HttpResponse):
+    """
+    Simple HttpResponse to send content with Content-Disposition "attachment".
+    In contrast to django.http.FileResponse, this is non-streaming.
+    """
+    def __init__(self, filename, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
