@@ -27,6 +27,7 @@ from django import forms
 from django.conf import settings
 from scionlab.models import UserAS, MAX_PORT
 from scionlab.util.generate import create_gen_AS
+from scionlab.util.openvpn_config import generate_vpn_client_config
 
 
 class UserASForm(forms.ModelForm):
@@ -205,10 +206,14 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
         tar.add(host_gen_dir, arcname="gen")
 
         if as_.is_use_vpn():
-            # Get file from issue #10
-            # client_file = path.join(first_host.path_str(), "client.conf")
-            # tar.add(client_file, arcname="client.conf")
-            raise NotImplementedError('Missing OpenVPN client.conf generation.')
+            vpn_client = as_.hosts.first().vpn_clients.first()
+            client_config = generate_vpn_client_config(as_, vpn_client.private_key, vpn_client.cert)
+            client_config_file = io.BytesIO()
+            f_size = client_config_file.write(client_config)
+            client_config_file.seek(0)
+            t_info = tarfile.TarInfo("client.conf")
+            t_info.size = f_size
+            tar.addfile(t_info, client_config_file)
 
         hostfiles_dir = path.join(settings.BASE_DIR, "scionlab", "hostfiles")
         if as_.installation_type == UserAS.VM:

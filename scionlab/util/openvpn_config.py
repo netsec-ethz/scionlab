@@ -272,11 +272,7 @@ def generate_vpn_client_key_material(as_):
 
 def get_ca_key_material():
     # get ca material
-    ca_cert_file = "root_ca_cert.pem"
-    ca_cert_path = os.path.join(BASE_DIR, 'run', ca_cert_file)
-    with open(ca_cert_path, 'rb') as f:
-        ca_cert_data = f.read()
-        ca_cert = x509.load_pem_x509_certificate(ca_cert_data, backend=default_backend())
+    ca_cert = get_ca_cert()
 
     ca_key_file = "root_ca_key.pem"
     ca_key_path = os.path.join(BASE_DIR, 'run', ca_key_file)
@@ -290,6 +286,15 @@ def get_ca_key_material():
     return ca_key, ca_cert
 
 
+def get_ca_cert():
+    ca_cert_file = "root_ca_cert.pem"
+    ca_cert_path = os.path.join(BASE_DIR, 'run', ca_cert_file)
+    with open(ca_cert_path, 'rb') as f:
+        ca_cert_data = f.read()
+        ca_cert = x509.load_pem_x509_certificate(ca_cert_data, backend=default_backend())
+    return ca_cert
+
+
 def load_x509_defaults():
     x509_config_file = os.path.join(BASE_DIR, 'scionlab', 'settings', 'x509_cert.default')
     x509_config = configparser.ConfigParser(
@@ -299,7 +304,8 @@ def load_x509_defaults():
     return x509_config
 
 
-def generate_vpn_client_config(as_, client_key, client_cert, ca_cert):
+def generate_vpn_client_config(as_, client_key, client_cert):
+    ca_cert = get_ca_cert()
     client_config_template = os.path.join(settings.BASE_DIR, "scionlab",
                                           "hostfiles", "client.conf.tmpl")
     with open(client_config_template, 'r', encoding='utf-8') as f:
