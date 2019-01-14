@@ -502,12 +502,8 @@ class UpdateUserASTests(TestCase):
     def _change_ap(self, user_as, attachment_point):
         """ Helper: update UserAS, changing only the attachment point. """
 
-        ap_old = user_as.attachment_point
-
-        # reset certificates_needs_update so we can check that this will be set when necessary.
-        user_as.certificate_chain_needs_update = False
-        user_as.save()
-
+        prev_ap = user_as.attachment_point
+        prev_certificate_chain = user_as.certificate_chain
         hosts_pending_before = set(Host.objects.needs_config_deployment())
 
         update_useras(user_as, attachment_point=attachment_point)
@@ -516,22 +512,24 @@ class UpdateUserASTests(TestCase):
         self.assertSetEqual(
             hosts_pending_before | set(
                 user_as.hosts.all() |
-                ap_old.AS.hosts.all() |
+                prev_ap.AS.hosts.all() |
                 attachment_point.AS.hosts.all()
             ),
             set(Host.objects.needs_config_deployment())
         )
 
         # Check certificates reset if ISD changed
-        self.assertEqual(
-            user_as.certificate_chain_needs_update,
-            ap_old.AS.isd != attachment_point.AS.isd,
-            "certificate_chain_needs_update %s, ISD before: %s, ISD after:%s" % (
-                user_as.certificate_chain_needs_update,
-                ap_old.AS.isd,
-                attachment_point.AS.isd
+        if prev_ap.AS.isd != attachment_point.AS.isd:
+            prev_version = prev_certificate_chain['0']['Version']
+            curr_version = user_as.certificate_chain['0']['Version']
+            self.assertEqual(
+                curr_version,
+                prev_version + 1,
+                ("Certificate needs to be recreated on ISD change: "
+                 "ISD before: %s, ISD after:%s" % (prev_ap.AS.isd, attachment_point.AS.isd))
             )
-        )
+        else:
+            self.assertEqual(prev_certificate_chain, user_as.certificate_chain)
 
         utils.check_topology(self)
 
