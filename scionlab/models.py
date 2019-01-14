@@ -34,7 +34,7 @@ import lib.crypto.asymcrypto
 from scionlab.util import as_ids
 
 from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
-    generate_vpn_server_key_material
+    generate_vpn_server_key_material, write_vpn_ca_config, get_cert_common_name
 
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether
@@ -1506,6 +1506,8 @@ class VPN(models.Model):
     objects = VPNManager()
 
     def init_key(self):
+        if VPN.objects.count() == 0:
+            write_vpn_ca_config()
         key, dh_params, cert = generate_vpn_server_key_material(self.server)
         self.private_key = key
         self.dh_params = dh_params
@@ -1582,6 +1584,12 @@ class VPNClient(models.Model):
         key, cert = generate_vpn_client_key_material(self.host.AS)
         self.private_key = key
         self.cert = cert
+        self.ccd_config()
+
+    def ccd_config(self):
+        common_name = get_cert_common_name(self.cert.encode())
+        config_string = "ifconfig-push %s %s" % (self.ip, self.vpn.vpn_subnet())
+        return common_name, config_string
 
 
 @receiver(pre_delete, sender=AS, dispatch_uid='as_delete_callback')

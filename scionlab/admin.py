@@ -19,7 +19,6 @@ from django.contrib import admin
 from django import forms
 from django.urls import resolve
 
-from scionlab.util.openvpn_config import write_vpn_ca_config
 from .models import (
     ISD,
     AS,
@@ -407,8 +406,6 @@ class VPNCreationForm(_CreateUpdateModelForm):
         Create the VPN, initialise key
         Initialize Certificate Authority when first VPN instance is created
         """
-        if VPN.objects.count() == 0:
-            write_vpn_ca_config()
         return VPN.objects.create(
             server=self.cleaned_data['server'],
             server_port=self.cleaned_data['server_port'],

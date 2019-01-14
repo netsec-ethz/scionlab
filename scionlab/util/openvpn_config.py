@@ -15,6 +15,7 @@
 import configparser
 import datetime
 import os
+import string
 
 from django.conf import settings
 
@@ -305,6 +306,15 @@ def get_owner_email(as_):
     return owner_email
 
 
+def get_cert_common_name(cert_data):
+    cert = x509.load_pem_x509_certificate(cert_data, backend=default_backend())
+    cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
+    if len(cn) != 1:
+        raise ValueError("Certificate Common Name field is not unequivocal.")
+    common_name = cn[0].value
+    return common_name
+
+
 def load_x509_defaults():
     x509_config_file = os.path.join(BASE_DIR, 'scionlab', 'settings', 'x509_cert.default')
     x509_config = configparser.ConfigParser(
@@ -315,19 +325,21 @@ def load_x509_defaults():
 
 
 def generate_vpn_client_config(as_, client_key, client_cert):
-    ca_cert = get_ca_cert()
+    ca_cert = get_ca_cert().public_bytes(
+        encoding=serialization.Encoding.PEM).decode()
     client_config_template = os.path.join(settings.BASE_DIR, "scionlab",
                                           "hostfiles", "client.conf.tmpl")
     with open(client_config_template, 'r', encoding='utf-8') as f:
-        client_config = f.read()
+        client_config_tmpl = f.read()
         server_public_ip = as_.attachment_point_info.vpn.server.public_ip
-        client_config = client_config.replace("{{.ServerIP}}", str(server_public_ip))
         server_vpn_port = as_.attachment_point_info.vpn.server_port
-        client_config = client_config.replace("{{.ServerPort}}", str(server_vpn_port))
-        client_config = client_config.replace("{{.CACert}}", ca_cert.public_bytes(
-            encoding=serialization.Encoding.PEM).decode())
-        client_config = client_config.replace("{{.ClientCert}}", client_cert)
-        client_config = client_config.replace("{{.ClientKey}}", client_key)
+        client_config = string.Template(client_config_tmpl).substitute(
+            ServerIP=server_public_ip,
+            ServerPort=server_vpn_port,
+            CACert=ca_cert,
+            ClientCert=client_cert,
+            ClientKey=client_key,
+        )
     return client_config
 
 
@@ -335,17 +347,20 @@ def generate_vpn_server_config(vpn):
     server_config_template = os.path.join(settings.BASE_DIR, "scionlab",
                                           "hostfiles", "server.conf.tmpl")
     with open(server_config_template, 'r', encoding='utf-8') as f:
-        server_config = f.read()
+        server_config_tmpl = f.read()
         server_vpn_as = vpn.server.AS
-        server_config = server_config.replace("{{.AS}}", str(server_vpn_as))
         server_vpn_ip = vpn.server_vpn_ip()
-        server_config = server_config.replace("{{.ServerIP}}", str(server_vpn_ip))
         server_vpn_port = vpn.server_port
-        server_config = server_config.replace("{{.ServerPort}}", str(server_vpn_port))
         server_vpn_subnet = vpn.vpn_subnet()
-        server_config = server_config.replace("{{.Netmask}}", str(server_vpn_subnet.netmask))
         server_vpn_start_ip, server_vpn_end_ip = vpn.vpn_subnet_min_max_ips()
-        server_config = server_config.replace("{{.Subnet}}", str(server_vpn_subnet))
-        server_config = server_config.replace("{{.SubnetStart}}", str(server_vpn_start_ip))
-        server_config = server_config.replace("{{.SubnetEnd}}", str(server_vpn_end_ip))
+
+        server_config = string.Template(server_config_tmpl).substitute(
+            AS=server_vpn_as,
+            ServerIP=server_vpn_ip,
+            ServerPort=server_vpn_port,
+            Netmask=server_vpn_subnet.netmask,
+            Subnet=server_vpn_subnet,
+            SubnetStart=server_vpn_start_ip,
+            SubnetEnd=server_vpn_end_ip,
+        )
     return server_config

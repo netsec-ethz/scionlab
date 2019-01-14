@@ -2,21 +2,21 @@ mode server
 tls-server
 
 dev tun
-port {{.ServerPort}}
+port ${ServerPort}
 proto udp
 
 # certificates and keys
 ca   root_ca_cert.crt
-cert AS{{.AS}}_AP_cert.crt
-key  AS{{.AS}}_AP_key.key  # This file should be kept secret
-dh   AS{{.AS}}_AP_dh4096.pem
+cert AS${AS}_AP_cert.crt
+key  AS${AS}_AP_key.key  # This file should be kept secret
+dh   AS${AS}_AP_dh4096.pem
 
 topology subnet
 push "topology subnet"
-ifconfig {{.ServerIP}} {{.Netmask}}
-ifconfig-pool {{.SubnetStart}} {{.SubnetEnd}} {{.Netmask}}
-route {{.Subnet}} {{.Netmask}}
-push "route {{.ServerIP}}"
+ifconfig ${ServerIP} ${Netmask}
+ifconfig-pool ${SubnetStart} ${SubnetEnd} ${Netmask}
+route ${Subnet} ${Netmask}
+push "route ${ServerIP}"
 
 ifconfig-pool-persist ipp.txt
 client-config-dir /etc/openvpn/openvpn_ccd

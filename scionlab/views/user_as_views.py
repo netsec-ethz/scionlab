@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import string
 from os import path
 import tarfile
 
@@ -227,9 +228,10 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
                 forwarding_string = ''
             with open(path.join(hostfiles_dir, "Vagrantfile.tmpl")) as f:
                 vagrant_tmpl = f.read()
-                vagrant_file_content = vagrant_tmpl.\
-                    replace("{{.PortForwarding}}", forwarding_string).\
-                    replace("{{.ASID}}", as_.as_id).encode('utf-8')
+                vagrant_file_content = string.Template(vagrant_tmpl).substitute(
+                    PortForwarding=forwarding_string,
+                    ASID=as_.as_id,
+                )
                 vagrant_file = io.BytesIO()
                 f_size = vagrant_file.write(vagrant_file_content)
                 vagrant_file.seek(0)
