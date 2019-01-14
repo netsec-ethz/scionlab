@@ -34,7 +34,7 @@ import lib.crypto.asymcrypto
 from scionlab.util import as_ids
 
 from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
-    generate_vpn_server_key_material, write_vpn_ca_config, get_cert_common_name
+    generate_vpn_server_key_material, get_cert_common_name
 
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether
@@ -1506,8 +1506,6 @@ class VPN(models.Model):
     objects = VPNManager()
 
     def init_key(self):
-        if VPN.objects.count() == 0:
-            write_vpn_ca_config()
         key, dh_params, cert = generate_vpn_server_key_material(self.server)
         self.private_key = key
         self.dh_params = dh_params
@@ -1520,7 +1518,7 @@ class VPN(models.Model):
     def server_vpn_ip(self):
         subnet = ipaddress.ip_network(self.subnet)
         # Use first address in the VPN subnet for the VPN server IP
-        return subnet[1]
+        return next(subnet.hosts())
 
     def vpn_subnet(self):
         return ipaddress.ip_network(self.subnet)
@@ -1529,24 +1527,25 @@ class VPN(models.Model):
         subnet = self.vpn_subnet()
         # First address in the VPN subnet is server IP, last is broadcast
         # return first and last host IP in subnet
-        return subnet[2], subnet[-2]
+        _, min_ip, *_, max_ip = subnet.hosts()
+        return min_ip, max_ip
 
     def _find_client_ip(self):
-        client_count = len(VPNClient.objects.filter(vpn=self))
-        subnet = ipaddress.ip_network(self.subnet)
-        try:
+        last_client = self.clients.last()
+        used_ips = {str(self.server_vpn_ip())} | \
+            _value_set(VPNClient.objects.filter(vpn=self), 'ip')
+        if last_client:
+            last_assigned_ip = ipaddress.ip_address(last_client.ip)
             # assign consecutive IPs to clients in the same VPN
-            client_ip = subnet[client_count+2]
-            return client_ip
-        except IndexError:
-            # try to find an unused IP from a removed client
-            used_ips = str(self.server_vpn_ip()) | \
-                       _value_set(VPNClient.objects.filter(vpn=self), 'ip')
-            subnet = ipaddress.ip_network(self.subnet)
-            for ip in subnet:
-                if ip not in used_ips:
-                    return ip
-            raise RuntimeError('No free client IP available')
+            candidate_ip = last_assigned_ip + 1
+            if str(candidate_ip) not in used_ips:
+                return candidate_ip
+        # try to find an unused IP from a removed client
+        subnet = ipaddress.ip_network(self.subnet)
+        for ip in subnet.hosts():
+            if str(ip) not in used_ips:
+                return ip
+        raise RuntimeError('No free client IP available')
 
 
 class VPNClientManager(models.Manager):
@@ -1584,7 +1583,6 @@ class VPNClient(models.Model):
         key, cert = generate_vpn_client_key_material(self.host.AS)
         self.private_key = key
         self.cert = cert
-        self.ccd_config()
 
     def ccd_config(self):
         common_name = get_cert_common_name(self.cert.encode())

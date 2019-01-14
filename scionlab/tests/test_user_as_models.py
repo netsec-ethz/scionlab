@@ -36,6 +36,8 @@ from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
 
 # dh_params = dh.generate_parameters(generator=2, key_size=4096,
+from scionlab.util.openvpn_config import write_vpn_ca_config
+
 dh_params = dh.generate_parameters(generator=2, key_size=2048,
                                    backend=default_backend())
 
@@ -55,6 +57,8 @@ test_bind_port = 6666
 
 def setup_vpn_attachment_point(ap):
     """ Setup a VPN server config for the given attachment point """
+    if VPN.objects.count() == 0:
+        write_vpn_ca_config()
     # TODO(matzf): move to a fixture once the VPN stuff is somewhat stable
     with patch('cryptography.hazmat.primitives.asymmetric.dh.generate_parameters',
                side_effect=constant_dh_params):

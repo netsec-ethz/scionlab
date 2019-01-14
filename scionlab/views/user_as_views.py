@@ -233,7 +233,7 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
                     ASID=as_.as_id,
                 )
                 vagrant_file = io.BytesIO()
-                f_size = vagrant_file.write(vagrant_file_content)
+                f_size = vagrant_file.write(vagrant_file_content.encode())
                 vagrant_file.seek(0)
                 t_info = tarfile.TarInfo("Vagrantfile")
                 t_info.size = f_size

@@ -28,20 +28,20 @@ from cryptography.hazmat.primitives.asymmetric import dh, rsa
 
 from scionlab.settings.common import BASE_DIR, SECRET_KEY
 
+CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_key.pem')
+CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_cert.pem')
+X509_CONFIG_TEMPLATE_PATH = os.path.join(BASE_DIR, 'scionlab', 'settings', 'x509_cert.default')
+CLIENT_CONFIG_TEMPLATE_PATH = os.path.join(settings.BASE_DIR, "scionlab",
+                                           "hostfiles", "client.conf.tmpl")
+SERVER_CONFIG_TEMPLATE_PATH = os.path.join(settings.BASE_DIR, "scionlab",
+                                           "hostfiles", "server.conf.tmpl")
+
 
 def write_vpn_ca_config():
-    x509_config = load_x509_defaults()
-
-    ca_key_file = "root_ca_key.pem"
-    ca_key_path = os.path.join(BASE_DIR, 'run', ca_key_file)
-    if not os.path.exists(ca_key_path):
+    if not os.path.exists(CA_KEY_PATH):
         # generate ca private key
-        key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=x509_config['x509_config'].getint('KEY_SIZE'),
-            backend=default_backend()
-        )
-        with open(ca_key_path, "wb") as f:
+        key = _generate_root_ca_key()
+        with open(CA_KEY_PATH, "wb") as f:
             f.write(key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -49,64 +49,107 @@ def write_vpn_ca_config():
                     SECRET_KEY.encode('utf-8'))
             ))
     else:
-        with open(ca_key_path, "rb") as f:
-            key_data = f.read()
-            key = serialization.load_pem_private_key(key_data,
-                                                     password=SECRET_KEY.encode('utf-8'),
-                                                     backend=default_backend())
-            if not isinstance(key, rsa.RSAPrivateKey):
-                raise TypeError
+        key = load_ca_key()
 
     # Generate ca certificate
-    ca_cert_file = "root_ca_cert.pem"
-    ca_cert_path = os.path.join(BASE_DIR, 'run', ca_cert_file)
-    if not os.path.exists(ca_cert_path):
+    if not os.path.exists(CA_CERT_PATH):
         # create self-signed certificate
         # set issuer and subject attributes
-        subject = issuer = x509.Name([
-            x509.NameAttribute(NameOID.COUNTRY_NAME,
-                               x509_config['x509_config'].getstring('KEY_COUNTRY')),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME,
-                               x509_config['x509_config'].getstring('KEY_PROVINCE')),
-            x509.NameAttribute(NameOID.LOCALITY_NAME,
-                               x509_config['x509_config'].getstring('KEY_CITY')),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME,
-                               x509_config['x509_config'].getstring('KEY_ORG')),
-            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                               x509_config['x509_config'].getstring('KEY_OU')),
-            x509.NameAttribute(NameOID.COMMON_NAME,
-                               x509_config['x509_config'].getstring('KEY_ORG')+" CA"),
-            x509.NameAttribute(x509.ObjectIdentifier("2.5.4.41"),  # Name
-                               x509_config['x509_config'].getstring('KEY_NAME')),
-            x509.NameAttribute(NameOID.EMAIL_ADDRESS,
-                               x509_config['x509_config'].getstring('KEY_EMAIL'))
-        ])
-
-        # create and sign the certificate
-        cert = x509.CertificateBuilder().subject_name(subject).issuer_name(issuer).public_key(
-            key.public_key()
-        ).serial_number(
-            x509.random_serial_number()
-        ).not_valid_before(
-            datetime.datetime.utcnow()
-        ).not_valid_after(
-            datetime.datetime.utcnow() +
-            datetime.timedelta(days=x509_config['x509_config'].getint('CA_EXPIRE'))
-        ).add_extension(
-            x509.AuthorityKeyIdentifier.from_issuer_public_key(key.public_key()),
-            critical=False,
-        ).add_extension(
-            x509.SubjectKeyIdentifier.from_public_key(key.public_key()),
-            critical=False,
-        ).add_extension(
-            x509.BasicConstraints(ca=True, path_length=0),
-            critical=True,
-        ).sign(key, hashes.SHA256(), default_backend())
-
+        cert = _generate_root_ca_cert(key)
         # store the ca certificate
-        with open(ca_cert_path, "wb") as f:
+        with open(CA_CERT_PATH, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.PEM))
     return
+
+
+def load_ca_key_material():
+    # get ca material
+    ca_cert = load_ca_cert()
+    ca_key = load_ca_key()
+
+    return ca_key, ca_cert
+
+
+def load_ca_cert():
+    try:
+        with open(CA_CERT_PATH, 'rb') as f:
+            ca_cert_data = f.read()
+            ca_cert = x509.load_pem_x509_certificate(ca_cert_data, backend=default_backend())
+    except FileNotFoundError as e:
+        raise RuntimeError("Missing CA root configuration. "
+                           "Please run the admin command `python3 ./manage.py initialize_root_ca` "
+                           "or import an existing root CA configuration.", e)
+    return ca_cert
+
+
+def load_ca_key():
+    try:
+        with open(CA_KEY_PATH, "rb") as f:
+            ca_key_data = f.read()
+            ca_key = serialization.load_pem_private_key(ca_key_data,
+                                                        password=SECRET_KEY.encode('utf-8'),
+                                                        backend=default_backend())
+            if not isinstance(ca_key, rsa.RSAPrivateKey):
+                raise TypeError
+    except FileNotFoundError as e:
+        raise RuntimeError("Missing CA root configuration."
+                           "Please run the admin command `python3 ./manage.py initialize_root_ca`"
+                           "or import an existing root CA configuration.", e)
+    return ca_key
+
+
+def _generate_root_ca_key():
+    x509_config = load_x509_defaults()
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=x509_config.getint('KEY_SIZE'),
+        backend=default_backend()
+    )
+    return key
+
+
+def _generate_root_ca_cert(key):
+    x509_config = load_x509_defaults()
+    subject = issuer = x509.Name([
+        x509.NameAttribute(NameOID.COUNTRY_NAME,
+                           x509_config.getstring('KEY_COUNTRY')),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME,
+                           x509_config.getstring('KEY_PROVINCE')),
+        x509.NameAttribute(NameOID.LOCALITY_NAME,
+                           x509_config.getstring('KEY_CITY')),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME,
+                           x509_config.getstring('KEY_ORG')),
+        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
+                           x509_config.getstring('KEY_OU')),
+        x509.NameAttribute(NameOID.COMMON_NAME,
+                           x509_config.getstring('KEY_ORG') + " CA"),
+        x509.NameAttribute(x509.ObjectIdentifier("2.5.4.41"),  # Name
+                           x509_config.getstring('KEY_NAME')),
+        x509.NameAttribute(NameOID.EMAIL_ADDRESS,
+                           x509_config.getstring('KEY_EMAIL'))
+    ])
+
+    # create and sign the certificate
+    cert = x509.CertificateBuilder().subject_name(subject).issuer_name(issuer).public_key(
+        key.public_key()
+    ).serial_number(
+        x509.random_serial_number()
+    ).not_valid_before(
+        datetime.datetime.utcnow()
+    ).not_valid_after(
+        datetime.datetime.utcnow() +
+        datetime.timedelta(days=x509_config.getint('CA_EXPIRE'))
+    ).add_extension(
+        x509.AuthorityKeyIdentifier.from_issuer_public_key(key.public_key()),
+        critical=False,
+    ).add_extension(
+        x509.SubjectKeyIdentifier.from_public_key(key.public_key()),
+        critical=False,
+    ).add_extension(
+        x509.BasicConstraints(ca=True, path_length=0),
+        critical=True,
+    ).sign(key, hashes.SHA256(), default_backend())
+    return cert
 
 
 def generate_vpn_server_key_material(host):
@@ -115,7 +158,7 @@ def generate_vpn_server_key_material(host):
     # generate server private key
     key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=x509_config['x509_config'].getint('KEY_SIZE'),
+        key_size=x509_config.getint('KEY_SIZE'),
         backend=default_backend()
     )
 
@@ -133,7 +176,7 @@ def generate_vpn_server_key_material(host):
 
     # Generate server certificate
     # get ca material
-    ca_key, ca_cert = get_ca_key_material()
+    ca_key, ca_cert = load_ca_key_material()
     issuer = ca_cert.issuer
 
     # create server certificate
@@ -141,21 +184,21 @@ def generate_vpn_server_key_material(host):
     owner_email = get_owner_email(host.AS)
     subject = x509.Name([
         x509.NameAttribute(NameOID.COUNTRY_NAME,
-                           x509_config['x509_config'].getstring('KEY_COUNTRY')),
+                           x509_config.getstring('KEY_COUNTRY')),
         x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME,
-                           x509_config['x509_config'].getstring('KEY_PROVINCE')),
+                           x509_config.getstring('KEY_PROVINCE')),
         x509.NameAttribute(NameOID.LOCALITY_NAME,
-                           x509_config['x509_config'].getstring('KEY_CITY')),
+                           x509_config.getstring('KEY_CITY')),
         x509.NameAttribute(NameOID.ORGANIZATION_NAME,
-                           x509_config['x509_config'].getstring('KEY_ORG')),
+                           x509_config.getstring('KEY_ORG')),
         x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                           x509_config['x509_config'].getstring('KEY_OU')),
+                           x509_config.getstring('KEY_OU')),
         x509.NameAttribute(NameOID.COMMON_NAME,
                            host.AS.isd_as_path_str()+"__"+host.public_ip.replace(":", "_")),
         x509.NameAttribute(x509.ObjectIdentifier("2.5.4.41"),  # Name
-                           x509_config['x509_config'].getstring('KEY_NAME')),
+                           x509_config.getstring('KEY_NAME')),
         x509.NameAttribute(NameOID.EMAIL_ADDRESS,
-                           x509_config['x509_config'].getstring('KEY_EMAIL'))
+                           x509_config.getstring('KEY_EMAIL'))
     ])
 
     # create and sign the certificate
@@ -167,7 +210,7 @@ def generate_vpn_server_key_material(host):
         datetime.datetime.utcnow()
     ).not_valid_after(
         datetime.datetime.utcnow() +
-        datetime.timedelta(days=x509_config['x509_config'].getint('KEY_EXPIRE'))
+        datetime.timedelta(days=x509_config.getint('KEY_EXPIRE'))
     ).add_extension(
         x509.SubjectAlternativeName(
             [x509.DNSName(owner_email + "__" + host.AS.isd_as_path_str())]),
@@ -197,13 +240,13 @@ def generate_vpn_server_key_material(host):
 def generate_vpn_client_key_material(as_):
     x509_config = load_x509_defaults()
 
-    ca_key, ca_cert = get_ca_key_material()
+    ca_key, ca_cert = load_ca_key_material()
     issuer = ca_cert.issuer
 
     # generate client key
     client_key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=x509_config['x509_config'].getint('KEY_SIZE'),
+        key_size=x509_config.getint('KEY_SIZE'),
         backend=default_backend()
     )
 
@@ -212,21 +255,21 @@ def generate_vpn_client_key_material(as_):
     owner_email = get_owner_email(as_)
     subject = x509.Name([
         x509.NameAttribute(NameOID.COUNTRY_NAME,
-                           x509_config['x509_config'].getstring('KEY_COUNTRY')),
+                           x509_config.getstring('KEY_COUNTRY')),
         x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME,
-                           x509_config['x509_config'].getstring('KEY_PROVINCE')),
+                           x509_config.getstring('KEY_PROVINCE')),
         x509.NameAttribute(NameOID.LOCALITY_NAME,
-                           x509_config['x509_config'].getstring('KEY_CITY')),
+                           x509_config.getstring('KEY_CITY')),
         x509.NameAttribute(NameOID.ORGANIZATION_NAME,
-                           x509_config['x509_config'].getstring('KEY_ORG')),
+                           x509_config.getstring('KEY_ORG')),
         x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                           x509_config['x509_config'].getstring('KEY_OU')),
+                           x509_config.getstring('KEY_OU')),
         x509.NameAttribute(NameOID.COMMON_NAME,
                            owner_email+"__"+as_.isd_as_path_str()),
         x509.NameAttribute(x509.ObjectIdentifier("2.5.4.41"),  # Name
-                           x509_config['x509_config'].getstring('KEY_NAME')),
+                           x509_config.getstring('KEY_NAME')),
         x509.NameAttribute(NameOID.EMAIL_ADDRESS,
-                           x509_config['x509_config'].getstring('KEY_EMAIL'))
+                           x509_config.getstring('KEY_EMAIL'))
     ])
 
     # create and sign the client certificate
@@ -239,7 +282,7 @@ def generate_vpn_client_key_material(as_):
         datetime.datetime.utcnow()
     ).not_valid_after(
         datetime.datetime.utcnow() +
-        datetime.timedelta(days=x509_config['x509_config'].getint('KEY_EXPIRE'))
+        datetime.timedelta(days=x509_config.getint('KEY_EXPIRE'))
     ).add_extension(
         x509.SubjectAlternativeName(
             [x509.DNSName(owner_email + "__" + as_.isd_as_path_str())]),
@@ -272,35 +315,10 @@ def generate_vpn_client_key_material(as_):
     return client_key_decoded, client_cert_decoded
 
 
-def get_ca_key_material():
-    # get ca material
-    ca_cert = get_ca_cert()
-
-    ca_key_file = "root_ca_key.pem"
-    ca_key_path = os.path.join(BASE_DIR, 'run', ca_key_file)
-    with open(ca_key_path, "rb") as f:
-        ca_key_data = f.read()
-        ca_key = serialization.load_pem_private_key(ca_key_data,
-                                                    password=SECRET_KEY.encode('utf-8'),
-                                                    backend=default_backend())
-        if not isinstance(ca_key, rsa.RSAPrivateKey):
-            raise TypeError
-    return ca_key, ca_cert
-
-
-def get_ca_cert():
-    ca_cert_file = "root_ca_cert.pem"
-    ca_cert_path = os.path.join(BASE_DIR, 'run', ca_cert_file)
-    with open(ca_cert_path, 'rb') as f:
-        ca_cert_data = f.read()
-        ca_cert = x509.load_pem_x509_certificate(ca_cert_data, backend=default_backend())
-    return ca_cert
-
-
 def get_owner_email(as_):
     if as_.is_infrastructure_AS():
         x509_config = load_x509_defaults()
-        owner_email = x509_config['x509_config'].getstring('KEY_EMAIL')
+        owner_email = x509_config.getstring('KEY_EMAIL')
     else:
         owner_email = as_.owner.email
     return owner_email
@@ -316,20 +334,17 @@ def get_cert_common_name(cert_data):
 
 
 def load_x509_defaults():
-    x509_config_file = os.path.join(BASE_DIR, 'scionlab', 'settings', 'x509_cert.default')
     x509_config = configparser.ConfigParser(
         converters={'string': lambda e: str(e).replace('"', '')}
     )
-    x509_config.read(x509_config_file)
-    return x509_config
+    x509_config.read(X509_CONFIG_TEMPLATE_PATH)
+    return x509_config['x509_config']
 
 
 def generate_vpn_client_config(as_, client_key, client_cert):
-    ca_cert = get_ca_cert().public_bytes(
+    ca_cert = load_ca_cert().public_bytes(
         encoding=serialization.Encoding.PEM).decode()
-    client_config_template = os.path.join(settings.BASE_DIR, "scionlab",
-                                          "hostfiles", "client.conf.tmpl")
-    with open(client_config_template, 'r', encoding='utf-8') as f:
+    with open(CLIENT_CONFIG_TEMPLATE_PATH, 'r', encoding='utf-8') as f:
         client_config_tmpl = f.read()
         server_public_ip = as_.attachment_point_info.vpn.server.public_ip
         server_vpn_port = as_.attachment_point_info.vpn.server_port
@@ -344,9 +359,7 @@ def generate_vpn_client_config(as_, client_key, client_cert):
 
 
 def generate_vpn_server_config(vpn):
-    server_config_template = os.path.join(settings.BASE_DIR, "scionlab",
-                                          "hostfiles", "server.conf.tmpl")
-    with open(server_config_template, 'r', encoding='utf-8') as f:
+    with open(SERVER_CONFIG_TEMPLATE_PATH, 'r', encoding='utf-8') as f:
         server_config_tmpl = f.read()
         server_vpn_as = vpn.server.AS
         server_vpn_ip = vpn.server_vpn_ip()
