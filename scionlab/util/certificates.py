@@ -91,7 +91,7 @@ def generate_core_certificate(as_):
     :returns: the Core AS Certificate as a dict
     """
     isd = as_.isd
-    assert not isd.trc_needs_update
+    assert isd.trc
     trc_version = isd.trc['Version']
 
     if as_.core_certificate:
@@ -128,11 +128,10 @@ def generate_as_certificate_chain(subject_as, issuing_as):
     :returns: the AS Certificate chain as a dict
     """
     assert issuing_as.is_core
-    assert not issuing_as.core_certificate_needs_update
     assert issuing_as.core_certificate
     assert issuing_as.isd == subject_as.isd
     isd = issuing_as.isd
-    assert not isd.trc_needs_update
+    assert isd.trc
 
     trc_version = isd.trc['Version']
 

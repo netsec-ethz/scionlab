@@ -47,6 +47,10 @@ def check_as(testcase, as_):
     if as_.is_core:
         check_as_core_keys(testcase, as_)
 
+    testcase.assertIsNotNone(as_.certificate_chain)
+    if as_.is_core:
+        testcase.assertIsNotNone(as_.core_certificate)
+
     for host in as_.hosts.iterator():
         check_host_ports(testcase, host)
 

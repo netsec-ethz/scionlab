@@ -117,6 +117,10 @@ def create_testtopo_ases():
         for as_def in ases:
             _create_as(**as_def._asdict())
 
+    # Initialise TRCs and certificates. Deferred in AS creation to start with TRC/cert versions 1.
+    for isd in ISD.objects.iterator():
+        isd.init_trc_and_certificates()
+
 
 def create_testtopo_links():
     for link_def in links:
@@ -131,6 +135,7 @@ def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
         label=label,
         is_core=is_core,
         public_ip=public_ip,
+        init_certificates=False  # Defer certificates generation
     )
 
     if is_ap:

@@ -38,8 +38,6 @@ def generate_user_as_config_tar(user_as, fileobj):
     :param Host host: the Host for which config should be generated
     :param fileobj: writable, file-like object for output
     """
-    _ensure_certificates(user_as)
-
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
         generate.create_gen(host, TarWriter(tar))
@@ -58,8 +56,6 @@ def generate_host_config_tar(host, fileobj):
     :param Host host: the Host for which config should be generated
     :param fileobj: writable, file-like object for output
     """
-    _ensure_certificates(host.AS)
-
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
         generate.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
@@ -73,33 +69,6 @@ def is_empty_config(host):
             and not host.interfaces.exists()
             and not host.vpn_clients.filter(active=True).exists()
             and not host.vpn_servers.exists())
-
-
-def _ensure_certificates(as_):
-    """
-    Create/update TRC and AS certificates if necessary.
-    """
-    # XXX(matzf): this is a bad design flaw. The idea was to generate trc and certs "asynchronously"
-    # and "on demand" during the actual config file generation, to allow for multiple updates to
-    # be included in one TRC/cert version update.
-    # But now i notice this is bad; lets say an admin is making some changes to the ISD core that
-    # should be "bundled" in one TRC/certificate update; e.g. renew keys for multiple ASes, add and
-    # remove core ASes. If any user as in the ISD downloads its configuration during this process,
-    # the TRC will be regenerated.
-    # The time at which the TRC will be created now just seems random.
-    # Also, we cannot update the TRC arbitrarily often; can NOT skip versions (might need an
-    # additional mechanism to keep track of this btw.)
-    #
-    # Planning to remove this `needs_update` in favour of explicit, "synchronous" cert/TRC
-    # generation. Will make it impossible to "simply" bundle changes, but still seems better. If we
-    # want to be able to bundle changes, we can maybe later introduce this explicitly...
-
-    isd = as_.isd
-    if isd.trc_needs_update:
-        isd.update_trc()
-        isd.save()
-    isd.ases.update_certificates()
-    as_.refresh_from_db()
 
 
 def _add_vpn_config(host, tar):

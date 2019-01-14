@@ -100,13 +100,6 @@ class User(auth_User):
                                   code='user_as_quota_exceeded')
 
 
-class ISDManager(models.Manager):
-    def update_trcs(self):
-        for isd in self.filter(trc_needs_update=True).iterator():
-            isd.update_trc()
-            isd.save()
-
-
 class ISD(models.Model):
     isd_id = models.PositiveIntegerField()
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
@@ -123,15 +116,6 @@ class ISD(models.Model):
             the current TRC. These keys will be used to sign the next version
             of the TRC."""
     )
-    trc_needs_update = models.BooleanField(
-        default=True,
-        help_text="""The TRC will be updated before the next deployment of
-            the configuration of the core ASes.
-            This flag is set by operations affecting the set of Core-ASes or
-            their keys."""
-    )
-
-    objects = ISDManager()
 
     class Meta:
         verbose_name = 'ISD'
@@ -143,14 +127,61 @@ class ISD(models.Model):
         else:
             return 'ISD %d' % self.isd_id
 
-    def update_trc(self):
+    def init_trc_and_certificates(self):
+        """
+        Generate the TRC and all AS and Core AS Certificates and for all ASes in this ISD.
+        Ensures that the certificates are updated in the correct order, i.e. Core AS certificates
+        first.
+        All updated objects are saved.
+        """
+        self._generate_trc()
+        for as_ in self.ases.filter(is_core=True).iterator():
+            self._update_coreas_certificates(as_)
+            as_.save()
+
+        for as_ in self.ases.filter(is_core=False).iterator():
+            self._update_as_certificates(as_)
+            as_.save()
+
+    def update_trc_and_core_certificates(self, cached_ases=[]):
+        """
+        Update the TRC and the Core AS Certificates for all the (core-)ASes in this ISD.
+
+        All AS objects not in `cached_ases` are saved. The ISD object is saved.
+
+        :param iterable[AS] cached_ases: AS objects previously retrieved from the DB. Updated but
+                                         not saved by this function.
+        """
+        self._generate_trc()
+
+        cached_as_pks = [as_.pk for as_ in cached_ases]
+        for as_ in self.ases.exclude(pk__in=cached_as_pks).filter(is_core=True).iterator():
+            self._update_coreas_certificates(as_)
+            as_.save()
+        for as_ in cached_ases:
+            if as_.isd_id == self.pk and as_.is_core:
+                self._update_coreas_certificates(as_)
+
+    def _generate_trc(self):
         from scionlab.util.certificates import generate_trc
         self.trc, self.trc_priv_keys = generate_trc(self)
-        self.trc_needs_update = False
+        self.save()
+
+    @staticmethod
+    def _update_as_certificates(as_):
+        as_.update_certificate_chain()
+        as_.hosts.bump_config()
+
+    @staticmethod
+    def _update_coreas_certificates(as_):
+        as_.update_core_certificate()
+        as_.update_certificate_chain()
+        as_.hosts.bump_config()
 
 
 class ASManager(models.Manager):
-    def create(self, isd, as_id, is_core=False, label=None, mtu=None, owner=None):
+    def create(self, isd, as_id, is_core=False, label=None, mtu=None, owner=None,
+               init_certificates=True):
         """
         Create the AS and initialise the required keys
         :param ISD isd:
@@ -171,12 +202,15 @@ class ASManager(models.Manager):
             owner=owner,
         )
         as_.init_keys()
+        if init_certificates:
+            as_.init_certificates()
         as_.save()
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
                                      is_core=False, label=None, mtu=None, owner=None,
-                                     bind_ip=None, internal_ip=None):
+                                     bind_ip=None, internal_ip=None,
+                                     init_certificates=True):
         """
         Create the AS, initialise the required keys and create a default Host object
         with default services.
@@ -198,6 +232,7 @@ class ASManager(models.Manager):
             label=label,
             mtu=mtu,
             owner=owner,
+            init_certificates=init_certificates
         )
         as_.init_default_services(
             public_ip=public_ip,
@@ -205,25 +240,6 @@ class ASManager(models.Manager):
             internal_ip=internal_ip
         )
         return as_
-
-    def update_certificates(self):
-        """
-        Update AS Certificates and Core AS Certificates for all ASes where required.
-        Ensures that the certificates are updated in the correct order, i.e. Core AS certificates
-        first.
-        """
-        core_ases = (self.filter(is_core=True, core_certificate_needs_update=True)
-                     | self.filter(is_core=True, certificate_chain_needs_update=True))
-        for core_as in core_ases.iterator():
-            if core_as.core_certificate_needs_update:
-                core_as.update_core_certificate()
-            if core_as.certificate_chain_needs_update:
-                core_as.update_certificate_chain()
-            core_as.save()
-
-        for as_ in self.filter(is_core=False, certificate_chain_needs_update=True).iterator():
-            as_.update_certificate_chain()
-            as_.save()
 
 
 class AS(models.Model):
@@ -269,9 +285,7 @@ class AS(models.Model):
     core_offline_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
 
     certificate_chain = jsonfield.JSONField(null=True, blank=True)
-    certificate_chain_needs_update = models.BooleanField(default=True)
     core_certificate = jsonfield.JSONField(null=True, blank=True)
-    core_certificate_needs_update = models.BooleanField(default=True)
 
     objects = ASManager()
 
@@ -293,9 +307,9 @@ class AS(models.Model):
         also for bulk deletion, while this `delete()` method is not.
         """
         if self.is_core:
-            self._bump_hosts_config_core_change()
-        else:
-            self.hosts.bump_config()
+            self.is_core = False
+            self.isd.update_trc_and_core_certificates(cached_ases=[self])
+        self.hosts.bump_config()
 
     def is_infrastructure_AS(self):
         return self.owner is None
@@ -330,34 +344,37 @@ class AS(models.Model):
         self._gen_keys()
         self._gen_master_as_key()
         if self.is_core:
-            self.init_core_keys()
+            self._gen_core_keys()
 
-    def init_core_keys(self):
+    def init_certificates(self):
         """
-        Initialise the core AS signing key pairs.
+        Generate certificates for the current set of AS keys.
+        If this is a core AS, also update the TRC and core AS certificates.
         """
-        self._gen_core_keys()
+        if self.is_core:
+            self.isd.update_trc_and_core_certificates(cached_ases=[self])
+        else:
+            self.update_certificate_chain()
 
     def update_keys(self):
         """
-        Generate new signing and encryption key pairs.
-        Bump the corresponding indicators, so that certificates will be renewed
-        and the configuration will updated on all affected hosts.
+        Generate new signing and encryption key pairs. Update the certificate.
+        Bumps the configuration version on all affected hosts.
         """
         # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
-        self.certificate_chain_needs_update = True
+        self.update_certificate_chain()
         self.hosts.bump_config()
 
     def update_core_keys(self):
         """
-        Generate new core AS signing key pairs.
-        Bump the corresponding indicators, so that certificates will be renewed
-        and the configuration will updated on all affected hosts.
+        Generate new core AS signing key pairs. Update the TRC and subsequently all core
+        certificates.
+        Bumps the configuration version on all affected hosts.
         """
         self._gen_core_keys()
         if self.is_core:
-            self._bump_hosts_config_core_change()
+            self.isd.update_trc_and_core_certificates(cached_ases=[self])
 
     def update_certificate_chain(self):
         """
@@ -374,12 +391,11 @@ class AS(models.Model):
             issuer = self
         else:
             # Find an issuer:
-            candidates = self.isd.ases.filter(is_core=True, core_certificate_needs_update=False)
+            candidates = self.isd.ases.filter(is_core=True)
             issuer = candidates.first()
 
         if issuer:  # Skip if failed to find a core AS as issuer
             self.certificate_chain = generate_as_certificate_chain(self, issuer)
-            self.certificate_chain_needs_update = False
 
     def update_core_certificate(self):
         """
@@ -389,7 +405,6 @@ class AS(models.Model):
         """
         from scionlab.util.certificates import generate_core_certificate
         self.core_certificate = generate_core_certificate(self)
-        self.core_certificate_needs_update = False
 
     def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):
         """
@@ -427,21 +442,8 @@ class AS(models.Model):
             raise NotImplementedError
 
         self.isd = isd
-        self.certificate_chain_needs_update = True
+        self.update_certificate_chain()
         self.hosts.bump_config()
-
-    def _bump_hosts_config_core_change(self):
-        # TODO(matzf): untested
-        self.isd.trc_needs_update = True
-        self.certificate_chain_needs_update = True
-        core_ases = self.isd.ases.filter(is_core=True)
-        for core_as in core_ases:
-            if core_as.hosts:
-                core_as \
-                    .hosts \
-                    .bump_config()
-
-        # TODO(matzf): add issuer/subject relation, reset certificates for all signed_by
 
     def _gen_keys(self):
         """
@@ -508,6 +510,7 @@ class UserASManager(models.Manager):
         )
 
         user_as.init_keys()
+        user_as.init_certificates()
         user_as.save()
         user_as.init_default_services(
             public_ip=public_ip,
@@ -1309,7 +1312,7 @@ class Link(models.Model):
 
     def _post_delete(self):
         """
-        Called by the post_delete signal handler `_link_post_delete`.
+        Called by the post_delete signal handler `_link_spost_delete`.
         Note: this is triggered by _post_delete to allow checking whether the
         related interfaces have already been deleted, and avoid recursion.
         Note: the deletion-signals have the advantage that they are triggerd
