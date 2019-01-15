@@ -17,6 +17,7 @@ import datetime
 import os
 import string
 
+import pathlib
 from django.conf import settings
 
 from cryptography import x509
@@ -41,13 +42,14 @@ def write_vpn_ca_config():
     if not os.path.exists(CA_KEY_PATH):
         # generate ca private key
         key = _generate_root_ca_key()
-        with open(CA_KEY_PATH, "wb") as f:
-            f.write(key.private_bytes(
+        pathlib.Path(CA_KEY_PATH).write_bytes(
+            key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
                 encryption_algorithm=serialization.BestAvailableEncryption(
                     SECRET_KEY.encode('utf-8'))
-            ))
+            )
+        )
     else:
         key = load_ca_key()
 
@@ -57,8 +59,9 @@ def write_vpn_ca_config():
         # set issuer and subject attributes
         cert = _generate_root_ca_cert(key)
         # store the ca certificate
-        with open(CA_CERT_PATH, "wb") as f:
-            f.write(cert.public_bytes(serialization.Encoding.PEM))
+        pathlib.Path(CA_CERT_PATH).write_bytes(
+            cert.public_bytes(serialization.Encoding.PEM)
+        )
     return
 
 
@@ -72,9 +75,8 @@ def load_ca_key_material():
 
 def load_ca_cert():
     try:
-        with open(CA_CERT_PATH, 'rb') as f:
-            ca_cert_data = f.read()
-            ca_cert = x509.load_pem_x509_certificate(ca_cert_data, backend=default_backend())
+        ca_cert_data = pathlib.Path(CA_CERT_PATH).read_bytes()
+        ca_cert = x509.load_pem_x509_certificate(ca_cert_data, backend=default_backend())
     except FileNotFoundError as e:
         raise RuntimeError("Missing CA root configuration. "
                            "Please run the admin command `python3 ./manage.py initialize_root_ca` "
@@ -84,13 +86,12 @@ def load_ca_cert():
 
 def load_ca_key():
     try:
-        with open(CA_KEY_PATH, "rb") as f:
-            ca_key_data = f.read()
-            ca_key = serialization.load_pem_private_key(ca_key_data,
-                                                        password=SECRET_KEY.encode('utf-8'),
-                                                        backend=default_backend())
-            if not isinstance(ca_key, rsa.RSAPrivateKey):
-                raise TypeError
+        ca_key_data = pathlib.Path(CA_KEY_PATH).read_bytes()
+        ca_key = serialization.load_pem_private_key(ca_key_data,
+                                                    password=SECRET_KEY.encode('utf-8'),
+                                                    backend=default_backend())
+        if not isinstance(ca_key, rsa.RSAPrivateKey):
+            raise TypeError
     except FileNotFoundError as e:
         raise RuntimeError("Missing CA root configuration."
                            "Please run the admin command `python3 ./manage.py initialize_root_ca`"
@@ -344,36 +345,40 @@ def load_x509_defaults():
 def generate_vpn_client_config(as_, client_key, client_cert):
     ca_cert = load_ca_cert().public_bytes(
         encoding=serialization.Encoding.PEM).decode()
-    with open(CLIENT_CONFIG_TEMPLATE_PATH, 'r', encoding='utf-8') as f:
-        client_config_tmpl = f.read()
-        server_public_ip = as_.attachment_point_info.vpn.server.public_ip
-        server_vpn_port = as_.attachment_point_info.vpn.server_port
-        client_config = string.Template(client_config_tmpl).substitute(
-            ServerIP=server_public_ip,
-            ServerPort=server_vpn_port,
-            CACert=ca_cert,
-            ClientCert=client_cert,
-            ClientKey=client_key,
-        )
+    client_config_tmpl = pathlib.Path(CLIENT_CONFIG_TEMPLATE_PATH).read_text(encoding='utf-8')
+    server_public_ip = as_.attachment_point_info.vpn.server.public_ip
+    server_vpn_port = as_.attachment_point_info.vpn.server_port
+    client_config = string.Template(client_config_tmpl).substitute(
+        ServerIP=server_public_ip,
+        ServerPort=server_vpn_port,
+        CACert=ca_cert,
+        ClientCert=client_cert,
+        ClientKey=client_key,
+    )
     return client_config
 
 
-def generate_vpn_server_config(vpn):
-    with open(SERVER_CONFIG_TEMPLATE_PATH, 'r', encoding='utf-8') as f:
-        server_config_tmpl = f.read()
-        server_vpn_as = vpn.server.AS
-        server_vpn_ip = vpn.server_vpn_ip()
-        server_vpn_port = vpn.server_port
-        server_vpn_subnet = vpn.vpn_subnet()
-        server_vpn_start_ip, server_vpn_end_ip = vpn.vpn_subnet_min_max_ips()
+def ccd_config(vpn_client):
+    common_name = get_cert_common_name(vpn_client.cert.encode())
+    config_string = "ifconfig-push %s %s" % (vpn_client.ip, vpn_client.vpn.vpn_subnet())
+    return common_name, config_string
 
-        server_config = string.Template(server_config_tmpl).substitute(
-            AS=server_vpn_as,
-            ServerIP=server_vpn_ip,
-            ServerPort=server_vpn_port,
-            Netmask=server_vpn_subnet.netmask,
-            Subnet=server_vpn_subnet,
-            SubnetStart=server_vpn_start_ip,
-            SubnetEnd=server_vpn_end_ip,
-        )
+
+def generate_vpn_server_config(vpn):
+    server_config_tmpl = pathlib.Path(SERVER_CONFIG_TEMPLATE_PATH).read_text(encoding='utf-8')
+    server_vpn_as = vpn.server.AS
+    server_vpn_ip = vpn.server_vpn_ip()
+    server_vpn_port = vpn.server_port
+    server_vpn_subnet = vpn.vpn_subnet()
+    server_vpn_start_ip, server_vpn_end_ip = vpn.vpn_subnet_min_max_client_ips()
+
+    server_config = string.Template(server_config_tmpl).substitute(
+        AS=server_vpn_as,
+        ServerIP=server_vpn_ip,
+        ServerPort=server_vpn_port,
+        Netmask=server_vpn_subnet.netmask,
+        Subnet=server_vpn_subnet,
+        SubnetStart=server_vpn_start_ip,
+        SubnetEnd=server_vpn_end_ip,
+    )
     return server_config

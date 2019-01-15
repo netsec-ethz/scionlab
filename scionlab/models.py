@@ -455,8 +455,8 @@ class UserASManager(models.Manager):
         host = user_as.hosts.get()
 
         if use_vpn:
-            vpn_client = attachment_point.vpn.create_client(host,
-                                                            True)  # Create active VPN client
+            vpn_client = attachment_point.vpn.create_client(host=host,
+                                                            active=True)
 
             interface_client = Interface.objects.create(
                 host=host,
@@ -465,7 +465,7 @@ class UserASManager(models.Manager):
             )
             interface_ap = Interface.objects.create(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=str(attachment_point.vpn.server_vpn_ip())
+                public_ip=attachment_point.vpn.server_vpn_ip()
             )
         else:
             interface_client = Interface.objects.create(
@@ -580,7 +580,7 @@ class UserAS(AS):
             )
             interface_ap.update(
                 host=attachment_point.get_host_for_useras_interface(),
-                public_ip=str(attachment_point.vpn.server_vpn_ip()),
+                public_ip=attachment_point.vpn.server_vpn_ip(),
                 public_port=None,
                 internal_port=None
             )
@@ -1516,29 +1516,33 @@ class VPN(models.Model):
         return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, active=active)
 
     def server_vpn_ip(self):
+        """
+        :return: str: VPN server IP
+        """
         subnet = ipaddress.ip_network(self.subnet)
         # Use first address in the VPN subnet for the VPN server IP
-        return next(subnet.hosts())
+        return str(next(subnet.hosts()))
 
     def vpn_subnet(self):
         return ipaddress.ip_network(self.subnet)
 
-    def vpn_subnet_min_max_ips(self):
+    def vpn_subnet_min_max_client_ips(self):
         subnet = self.vpn_subnet()
-        # First address in the VPN subnet is server IP, last is broadcast
-        # return first and last host IP in subnet
+        # First host IP in the VPN subnet is the server IP
+        # return first and last client IP in the subnet
         _, min_ip, *_, max_ip = subnet.hosts()
         return min_ip, max_ip
 
     def _find_client_ip(self):
         last_client = self.clients.last()
-        used_ips = {str(self.server_vpn_ip())} | \
+        used_ips = {self.server_vpn_ip()} | \
             _value_set(VPNClient.objects.filter(vpn=self), 'ip')
         if last_client:
             last_assigned_ip = ipaddress.ip_address(last_client.ip)
             # assign consecutive IPs to clients in the same VPN
             candidate_ip = last_assigned_ip + 1
-            if str(candidate_ip) not in used_ips:
+            _, max_ip = self.vpn_subnet_min_max_client_ips()
+            if candidate_ip <= max_ip and str(candidate_ip) not in used_ips:
                 return candidate_ip
         # try to find an unused IP from a removed client
         subnet = ipaddress.ip_network(self.subnet)
@@ -1583,11 +1587,6 @@ class VPNClient(models.Model):
         key, cert = generate_vpn_client_key_material(self.host.AS)
         self.private_key = key
         self.cert = cert
-
-    def ccd_config(self):
-        common_name = get_cert_common_name(self.cert.encode())
-        config_string = "ifconfig-push %s %s" % (self.ip, self.vpn.vpn_subnet())
-        return common_name, config_string
 
 
 @receiver(pre_delete, sender=AS, dispatch_uid='as_delete_callback')
