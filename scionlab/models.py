@@ -34,7 +34,7 @@ import lib.crypto.asymcrypto
 from scionlab.util import as_ids
 
 from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
-    generate_vpn_server_key_material, get_cert_common_name
+    generate_vpn_server_key_material
 
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether

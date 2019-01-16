@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if os.path.exists(CA_KEY_PATH) and os.path.exists(CA_CERT_PATH):
-            raise CommandError('Root CA files already generated.'
+            raise CommandError('Root CA files already generated. '
                                'To generate a new root CA configuration, remove the '
                                'key (%s) and certificate (%s) files first.' % (CA_KEY_PATH,
                                                                                CA_CERT_PATH))

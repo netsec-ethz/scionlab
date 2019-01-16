@@ -342,12 +342,12 @@ def load_x509_defaults():
     return x509_config['x509_config']
 
 
-def generate_vpn_client_config(as_, client_key, client_cert):
+def generate_vpn_client_config(ap_as_, client_key, client_cert):
     ca_cert = load_ca_cert().public_bytes(
         encoding=serialization.Encoding.PEM).decode()
     client_config_tmpl = pathlib.Path(CLIENT_CONFIG_TEMPLATE_PATH).read_text(encoding='utf-8')
-    server_public_ip = as_.attachment_point_info.vpn.server.public_ip
-    server_vpn_port = as_.attachment_point_info.vpn.server_port
+    server_public_ip = ap_as_.attachment_point_info.vpn.server.public_ip
+    server_vpn_port = ap_as_.attachment_point_info.vpn.server_port
     client_config = string.Template(client_config_tmpl).substitute(
         ServerIP=server_public_ip,
         ServerPort=server_vpn_port,
@@ -360,13 +360,13 @@ def generate_vpn_client_config(as_, client_key, client_cert):
 
 def ccd_config(vpn_client):
     common_name = get_cert_common_name(vpn_client.cert.encode())
-    config_string = "ifconfig-push %s %s" % (vpn_client.ip, vpn_client.vpn.vpn_subnet())
+    config_string = "ifconfig-push %s %s" % (vpn_client.ip, vpn_client.vpn.vpn_subnet().netmask)
     return common_name, config_string
 
 
 def generate_vpn_server_config(vpn):
     server_config_tmpl = pathlib.Path(SERVER_CONFIG_TEMPLATE_PATH).read_text(encoding='utf-8')
-    server_vpn_as = vpn.server.AS
+    server_vpn_as = vpn.server.AS.as_path_str()
     server_vpn_ip = vpn.server_vpn_ip()
     server_vpn_port = vpn.server_port
     server_vpn_subnet = vpn.vpn_subnet()

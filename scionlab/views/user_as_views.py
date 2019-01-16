@@ -208,7 +208,9 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
 
         if as_.is_use_vpn():
             vpn_client = as_.hosts.first().vpn_clients.first()
-            client_config = generate_vpn_client_config(as_, vpn_client.private_key, vpn_client.cert)
+            client_config = generate_vpn_client_config(as_.attachment_point.AS,
+                                                       vpn_client.private_key,
+                                                       vpn_client.cert)
             client_config_file = io.BytesIO()
             f_size = client_config_file.write(client_config.encode())
             client_config_file.seek(0)
