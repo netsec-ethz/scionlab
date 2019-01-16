@@ -118,3 +118,6 @@ class PostHostConfigVersionTests(TestCase):
         ret = self.client.post(self.url, {'secret': self.host.secret,
                                           'version': self.host.config_version})
         self.assertEqual(ret.status_code, 200)
+
+        self.host.refresh_from_db()
+        self.assertEqual(self.host.config_version_deployed, self.host.config_version)
