@@ -17,7 +17,6 @@ import pathlib
 import re
 from io import StringIO
 from unittest.mock import patch
-from xml.etree import ElementTree
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -41,8 +40,8 @@ test_public_port = 54321
 dh_params = dh.generate_parameters(generator=2, key_size=2048,
                                    backend=default_backend())
 
-TEST_CA_KEY_PATH = 'test_root_ca_key.pem'
-TEST_CA_CERT_PATH = 'test_root_ca_cert.pem'
+TEST_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'test_root_ca_key.pem')
+TEST_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'test_root_ca_cert.pem')
 
 
 def constant_dh_params(**kwargs):
@@ -74,16 +73,29 @@ def create_user_as(ap, label='Some label'):
         )
 
 
-class RootCASetupTests(TestCase):
+class _PatchedCAPathTestCase(TestCase):
+    ca_path_patches = [patch('scionlab.util.openvpn_config.CA_KEY_PATH', new=TEST_CA_KEY_PATH),
+                       patch('scionlab.util.openvpn_config.CA_CERT_PATH', new=TEST_CA_CERT_PATH)]
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        for patcher in cls.ca_path_patches:
+            patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        for patcher in cls.ca_path_patches:
+            patcher.stop()
+        super().tearDownClass()
+
+
+class RootCASetupTests(_PatchedCAPathTestCase):
     def tearDown(self):
         # cleanup test files
-        os.remove(os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH))
-        os.remove(os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
+        os.remove(TEST_CA_KEY_PATH)
+        os.remove(TEST_CA_CERT_PATH)
 
-    @patch('scionlab.util.openvpn_config.CA_KEY_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH))
-    @patch('scionlab.util.openvpn_config.CA_CERT_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
     def test_initialization(self):
         out = StringIO()
         call_command('initialize_root_ca', stderr=out)
@@ -93,16 +105,12 @@ class RootCASetupTests(TestCase):
             call_command('initialize_root_ca', stderr=out)
         self.assertIn('Root CA files already generated.', str(rcm.exception))
 
-    @patch('scionlab.util.openvpn_config.CA_KEY_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH))
-    @patch('scionlab.util.openvpn_config.CA_CERT_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
     def test_generating_ca_cert__existing_key(self):
         call_command('initialize_root_ca')
 
         # remove cert
         stored_ca_cert = load_ca_cert()
-        os.remove(os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
+        os.remove(TEST_CA_CERT_PATH)
 
         # call command again with existing key
         call_command('initialize_root_ca')
@@ -114,10 +122,6 @@ class RootCASetupTests(TestCase):
                              encoding=serialization.Encoding.PEM,
                              format=serialization.PublicFormat.PKCS1).decode())
 
-    @patch('scionlab.util.openvpn_config.CA_KEY_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH))
-    @patch('scionlab.util.openvpn_config.CA_CERT_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
     def test_loading_ca_key(self):
         ca_key = _generate_root_ca_key()
         with patch('scionlab.util.openvpn_config._generate_root_ca_key', return_value=ca_key):
@@ -138,7 +142,7 @@ class RootCASetupTests(TestCase):
             backend=default_backend()
         )
 
-        pathlib.Path(os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH)).write_bytes(
+        pathlib.Path(TEST_CA_KEY_PATH).write_bytes(
             wrong_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -151,10 +155,6 @@ class RootCASetupTests(TestCase):
         with self.assertRaises(TypeError):
             load_ca_key()
 
-    @patch('scionlab.util.openvpn_config.CA_KEY_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH))
-    @patch('scionlab.util.openvpn_config.CA_CERT_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
     def test_loading_ca_cert(self):
         ca_key = _generate_root_ca_key()
         ca_cert = _generate_root_ca_cert(ca_key)
@@ -165,12 +165,17 @@ class RootCASetupTests(TestCase):
                          stored_ca_cert.public_bytes(serialization.Encoding.PEM).decode())
 
 
-class VPNCertsTests(TestCase):
+class VPNCertsTests(_PatchedCAPathTestCase):
     fixtures = ['testuser', 'testtopo-ases']
 
     def setUp(self):
         write_vpn_ca_config()
         _setup_vpn_attachment_point()
+
+    def tearDown(self):
+        # cleanup test files
+        os.remove(TEST_CA_KEY_PATH)
+        os.remove(TEST_CA_CERT_PATH)
 
     def test_generate_certs(self):
         attachment_point = AttachmentPoint.objects.first()
@@ -183,27 +188,27 @@ class VPNCertsTests(TestCase):
                                             vpn_client.cert)
 
         # check ca cert
-        ca_cert_string_match = re.findall('<ca>[\s\S]*</ca>', config)
+        ca_cert_string_match = re.findall('<ca>\n(.*?)\n</ca>', config, flags=re.DOTALL)
         self.assertTrue(len(ca_cert_string_match) == 1)
-        ca_cert = ElementTree.XML(ca_cert_string_match[0]).text
+        ca_cert = ca_cert_string_match[0]
         config_ca_cert = x509.load_pem_x509_certificate(ca_cert.encode(),
                                                         backend=default_backend())
         self.assertEqual(load_ca_cert().public_bytes(serialization.Encoding.PEM).decode(),
                          config_ca_cert.public_bytes(serialization.Encoding.PEM).decode())
 
         # check client cert
-        client_cert_string_match = re.findall('<cert>[\s\S]*</cert>', config)
+        client_cert_string_match = re.findall('<cert>\n(.*?)\n</cert>', config, flags=re.DOTALL)
         self.assertTrue(len(client_cert_string_match) == 1)
-        client_cert = ElementTree.XML(client_cert_string_match[0]).text
+        client_cert = client_cert_string_match[0]
         config_client_cert = x509.load_pem_x509_certificate(client_cert.encode(),
                                                             backend=default_backend())
         self.assertEqual(vpn_client.cert,
                          config_client_cert.public_bytes(serialization.Encoding.PEM).decode())
 
         # check client key
-        client_key_string_match = re.findall('<key>[\s\S]*</key>', config)
+        client_key_string_match = re.findall('<key>\n(.*?)\n</key>', config, flags=re.DOTALL)
         self.assertTrue(len(client_key_string_match) == 1)
-        client_key = ElementTree.XML(client_key_string_match[0]).text
+        client_key = client_key_string_match[0]
         config_client_key = serialization.load_pem_private_key(client_key.encode(),
                                                                password=None,
                                                                backend=default_backend())
@@ -250,37 +255,31 @@ class VPNCertsTests(TestCase):
         self.assertEqual(str(vpn_network.netmask), netmask)
 
 
-class VPNCertsMissingCATests(TestCase):
+class VPNCertsMissingCATests(_PatchedCAPathTestCase):
     fixtures = ['testuser', 'testtopo-ases']
-
-    def setUp(self):
-        _setup_vpn_attachment_point()
 
     def tearDown(self):
         # cleanup test files
         try:
-            os.remove(os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH))
-            os.remove(os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
+            os.remove(TEST_CA_KEY_PATH)
+            os.remove(TEST_CA_CERT_PATH)
         except FileNotFoundError:
             pass
 
-    @patch('scionlab.util.openvpn_config.CA_KEY_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH))
-    @patch('scionlab.util.openvpn_config.CA_CERT_PATH',
-           new=os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
     def test_generate_client_cert(self):
         write_vpn_ca_config()
+        _setup_vpn_attachment_point()
         attachment_point = AttachmentPoint.objects.first()
 
         # remove CA key material
-        os.remove(os.path.join(BASE_DIR, 'run', TEST_CA_KEY_PATH))
+        os.remove(TEST_CA_KEY_PATH)
 
         with self.assertRaises(RuntimeError) as rcm:
             create_user_as(attachment_point, 'Some label2')
         self.assertIn('Missing CA root configuration.', str(rcm.exception))
 
         # remove CA cert material
-        os.remove(os.path.join(BASE_DIR, 'run', TEST_CA_CERT_PATH))
+        os.remove(TEST_CA_CERT_PATH)
 
         with self.assertRaises(RuntimeError) as rcm:
             create_user_as(attachment_point, 'Some label3')
