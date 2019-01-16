@@ -26,7 +26,7 @@ from scionlab.views.user_as_views import (
     UserASGetConfigView)
 # from scionlab.views.placehoder_view import PlaceholderView
 from scionlab.views.registration_view import UserRegistrationView
-from scionlab.views.api import GetHostConfig
+from scionlab.views.api import GetHostConfig, PostHostDeployedConfigVersion
 
 urlpatterns = [
     # TODO(matzf): implement actual home page
@@ -61,6 +61,7 @@ urlpatterns = [
 
     # API:
     path('api/host/<int:pk>/config', GetHostConfig.as_view()),
+    path('api/host/<int:pk>/deployed_config_version', PostHostDeployedConfigVersion.as_view()),
 
     # django-registration patterns
     path('registration/register/',
