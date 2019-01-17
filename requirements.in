@@ -7,3 +7,4 @@ django-widget-tweaks
 jsonfield2
 pyyaml>=4.2b1  # for fixtures and config generation; high severity vulnerability before 4.1 (CVE-2017-18342)
 toml
+huey
