@@ -62,9 +62,9 @@ django-registration==3.0 \
 django-widget-tweaks==1.4.3 \
     --hash=sha256:a69cba6c8a6b98f0cf6eef0535f8212d635e19044ee4533d4d78df700c2e233f \
     --hash=sha256:bc645ef88307bc4ac269ee8ee9e572be814cd4a125c2bb6edb59ffcdc194982d
-django==2.1.2 \
-    --hash=sha256:acdcc1f61fdb0a0c82a1d3bf1879a414e7732ea894a7632af7f6d66ec7ab5bb3 \
-    --hash=sha256:efbcad7ebb47daafbcead109b38a5bd519a3c3cd92c6ed0f691ff97fcdd16b45
+django==2.1.5 \
+    --hash=sha256:a32c22af23634e1d11425574dce756098e015a165be02e4690179889b207c7a8 \
+    --hash=sha256:d6393918da830530a9516bbbcbf7f1214c3d733738779f06b0f649f49cc698c3
 idna==2.7 \
     --hash=sha256:156a6814fb5ac1fc6850fb002e0852d56c0c8d2531923a51032d1b70760e186e \
     --hash=sha256:684a38a6f903c1d71d6d5fac066b58d7768af4de2b832e426ec79c30daa94a16 \
