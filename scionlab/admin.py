@@ -18,6 +18,7 @@ from django.core.exceptions import ValidationError
 from django.contrib import admin
 from django import forms
 from django.urls import resolve
+
 from .models import (
     ISD,
     AS,
@@ -36,8 +37,6 @@ from .models import (
 admin.site.register([
     AttachmentPoint,
     Host,
-    VPN,
-    VPNClient,
 ])
 
 
@@ -395,6 +394,63 @@ class ASAdmin(admin.ModelAdmin):
         """
         for as_ in queryset.iterator():
             as_.update_keys()
+
+
+class VPNCreationForm(_CreateUpdateModelForm):
+    """
+    Specialised ModelForm for VPN creation which will initialise key and cert
+    """
+    class Meta:
+        fields = ('server', 'server_port', 'subnet')
+
+    def create(self):
+        """
+        Create the VPN, initialise key
+        Initialize Certificate Authority when first VPN instance is created
+        """
+        return VPN.objects.create(
+            server=self.cleaned_data['server'],
+            server_port=self.cleaned_data['server_port'],
+            subnet=self.cleaned_data['subnet'],
+        )
+
+
+@admin.register(VPNClient)
+class VPNClientAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Use custom form during AS creation
+        """
+        if not obj:
+            kwargs['form'] = VPNClientCreationForm
+        return super().get_form(request, obj, **kwargs)
+
+
+class VPNClientCreationForm(_CreateUpdateModelForm):
+    """
+    Specialised ModelForm for VPN creation which will initialise key and cert
+    """
+    class Meta:
+        fields = ('vpn', 'host', 'active')
+
+    def create(self):
+        """
+        Create the VPN client instance, initialise key and cert
+        """
+        vpn = self.cleaned_data['vpn']
+        return vpn.create_client(self.cleaned_data['host'],
+                                 self.cleaned_data['active'])
+
+
+@admin.register(VPN)
+class VPNAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Use custom form during AS creation
+        """
+        if not obj:
+            kwargs['form'] = VPNCreationForm
+        return super().get_form(request, obj, **kwargs)
 
 
 class LinkAdminForm(_CreateUpdateModelForm):
