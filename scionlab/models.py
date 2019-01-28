@@ -280,16 +280,6 @@ class AS(models.Model):
         """
         return self.isd_as_str().replace(":", "_")
 
-    def AS_internal_overlay(self):
-        hosts = Host.objects.filter(AS=self)
-        AS_internal_overlay = "UDP/IPv6"  # FIXME(FR4NK-W): should the AS overlay be explicit?
-        for host in hosts:
-            ip = ipaddress.ip_address(host.internal_ip)
-            if isinstance(ip, ipaddress.IPv4Address):
-                AS_internal_overlay = "UDP/IPv4"
-                break
-        return AS_internal_overlay
-
     def init_keys(self):
         """
         Initialise signing and encryption key pairs, the MasterASKey (used for

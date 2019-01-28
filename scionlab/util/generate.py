@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import base64
+import ipaddress
 import os
 import os.path as path
 
-from nacl.signing import SigningKey
 from django.conf import settings
 
 from scionlab.models import AS, Service, Interface
@@ -105,6 +104,15 @@ def generate_instance_dir(as_, directory, stype, tp, instance_name):
     generator.write_zlog_file(stype, instance_name, instance_path)
 
 
+def _get_internal_address_type_str(as_):
+    host = as_.hosts.first()
+    ip = ipaddress.ip_address(host.internal_ip)
+    if isinstance(ip, ipaddress.IPv6Address):
+        return "IPv6"
+    else:
+        return "IPv4"
+
+
 def generate_topology_from_DB(as_):
     """
     Generate the topology.conf from the database values
@@ -114,14 +122,15 @@ def generate_topology_from_DB(as_):
     topo_dict = {}
     service_name_map = {}
 
+    # get overlay type inside AS from IPs used by hosts
+    address_type = _get_internal_address_type_str(as_)
+    overlay_type = "UDP/" + address_type
+
     # AS wide entries
     topo_dict["ISD_AS"] = as_.isd_as_str()
     topo_dict["MTU"] = as_.mtu
     topo_dict["Core"] = as_.is_core
-
-    # get overlay type inside AS from IPs used by hosts
-    AS_internal_overlay = as_.AS_internal_overlay()
-    topo_dict["Overlay"] = AS_internal_overlay
+    topo_dict["Overlay"] = overlay_type
 
     topo_dict[generator.TYPES_TO_KEYS['router']] = {}
     interface_enumerator = Interface.get_interface_router_instance_ids(as_)
@@ -129,49 +138,54 @@ def generate_topology_from_DB(as_):
         if not interface.link().active:
             continue
         router_instance_name = "%s%s-%s" % ("br", as_.isd_as_path_str(), router_instance_id)
-        if router_instance_name not in topo_dict[generator.TYPES_TO_KEYS['router']].keys():
-            topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_name] = {}
-        router_instance_entry = topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_name]
-        if "Interfaces" not in router_instance_entry.keys():
-            router_instance_entry = {"Interfaces": {},
-                                     "InternalAddrs": [],
-                                     }
-        router_instance_entry["InternalAddrs"].append({
-            "Public": [
-                {
-                    "Addr": interface.host.internal_ip,
-                    "L4Port": interface.internal_port
-                }
-            ]
-        })
+        router_instance_entry = topo_dict['BorderRouters'].setdefault(router_instance_name, {})
+        if router_instance_entry == {}:
+            router_instance_entry.update({
+                "InternalAddrs": {
+                    address_type: {
+                        "PublicOverlay": {
+                            "Addr": interface.host.internal_ip,
+                            "OverlayPort": interface.internal_port  # FIXME(matzf)
+                        }
+                    }
+                },
+                "CtrlAddr": {
+                    address_type: {
+                        "Public": {
+                            "Addr": interface.host.internal_ip,
+                            "L4Port": interface.internal_port + 1000  # FIXME(matzf)
+                        }
+                    }
+                },
+                "Interfaces": {}
+            })
 
         remote_if_obj = interface.remote_interface()
         remote_AS_obj = interface.remote_as()
 
         link_overlay = interface.link().overlay()
 
-        router_instance_entry["Interfaces"][interface.interface_id] = {
-            "InternalAddrIdx": 0,
+        interface_entry = {
             "ISD_AS": remote_AS_obj.isd_as_str(),
             "LinkTo": str(interface.link_relation()),
             "Bandwidth": interface.link().bandwidth,
-            "Public": [{
-                "L4Port": interface.public_port,
-                "Addr": interface.get_public_ip()
+            "PublicOverlay": [{
+                "Addr": interface.get_public_ip(),
+                "OverlayPort": interface.public_port
             }],
             "MTU": interface.link().bandwidth,
-            "Remote": {
-                "L4Port": remote_if_obj.public_port,
-                "Addr": remote_if_obj.get_public_ip()
+            "RemoteOverlay": {
+                "Addr": remote_if_obj.get_public_ip(),
+                "OverlayPort": remote_if_obj.public_port
             },
             "Overlay": link_overlay
         }
         if interface.get_bind_ip():
-            router_instance_entry["Interfaces"][interface.interface_id]["Bind"] = {
-                "L4Port": interface.bind_port,
-                "Addr": interface.get_bind_ip()
+            interface_entry["BindOverlay"] = {
+                "Addr": interface.get_bind_ip(),
+                "L4Port": interface.bind_port
             }
-        topo_dict[generator.TYPES_TO_KEYS['router']][router_instance_name] = router_instance_entry
+        router_instance_entry["Interfaces"][interface.interface_id] = interface_entry
 
     for stype, _ in Service.SERVICE_TYPES:
         if stype not in generator.JOB_NAMES.values():
@@ -185,8 +199,14 @@ def generate_topology_from_DB(as_):
             if service_key not in topo_dict.keys():
                 topo_dict[service_key] = {}
             topo_dict[service_key][service_instance_name] = {
-                "Public": [{"L4Port": service.port,
-                            "Addr": service.host.internal_ip}]
+                "Addrs": {
+                    address_type: {
+                        "Public": {
+                            "Addr": service.host.internal_ip,
+                            "L4Port": service.port
+                        }
+                    }
+                }
             }
     return topo_dict, service_name_map
 
@@ -215,26 +235,13 @@ class AScrypto:
             'sig_key_raw': as_.enc_priv_key,
 
             'enc_key': as_.master_as_key,
-            'master_as_key': as_.master_as_key,
+            'master0_as_key': as_.master_as_key,
+            'master1_as_key': as_.master_as_key,  # TODO(matzf)
         }
         if as_.is_core:
             inst.core_keys = {
                 'core_sig_key': as_.core_sig_priv_key,
                 'online_key': as_.core_online_priv_key,
                 'offline_key': as_.core_offline_priv_key,
-
-                'core_sig_key_raw': generate_raw_key(as_.core_sig_priv_key),
-                'online_key_raw': generate_raw_key(as_.core_online_priv_key),
-                'offline_key_raw': generate_raw_key(as_.core_offline_priv_key),
             }
         return inst
-
-
-def generate_raw_key(key_seed):
-    """
-    Generate raw key from input seed
-    :param str key_seed: base64 encoded key seed
-    :return: str base64 encoded raw key derived from the seed
-    """
-    # FIXME(FR4NK-W): do not access protected member _signing_key
-    return base64.b64encode(SigningKey(base64.b64decode(key_seed))._signing_key).decode()
