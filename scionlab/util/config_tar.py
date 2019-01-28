@@ -41,8 +41,10 @@ def generate_user_as_config_tar(user_as, fileobj):
     """
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
+        _add_config_info(host, tar)
         generate.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
+
         if user_as.installation_type == UserAS.VM:
             tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
             _add_vagrantfiles(host, tar)
@@ -58,6 +60,7 @@ def generate_host_config_tar(host, fileobj):
     :param fileobj: writable, file-like object for output
     """
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
+        _add_config_info(host, tar)
         generate.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
 
@@ -123,24 +126,25 @@ def _expand_vagrantfile_template(host):
     )
 
 
-def _add_host_info(host, tar):
-    tar_add_textfile(tar, "scionlab-host.json", _generate_host_info_json(host))
+def _add_config_info(host, tar):
+    tar_add_textfile(tar, "scionlab-config.json", _generate_config_info_json(host))
 
 
-def _generate_host_info_json(host):
+def _generate_config_info_json(host):
     """
     Return a JSON-formatted string; a dict containing the authentication parameters for the host
     and the current configuration version number.
     :param Host host:
     :returns: json string
     """
-    host_info = {
-        'id': host.pk,
-        'secret': host.secret,
+    config_info = {
+        'host_id': host.pk,
+        'host_secret': host.secret,
         'version': host.config_version,
         # 'ia': host.AS.isd_as_str() # XXX: what for?
+        'url': 'locahost:8080'  # TODO(matzf): how to get this? put into settings? Or get from request and pass in?
     }
-    return json.dumps(host_info)
+    return json.dumps(config_info)
 
 
 def _hostfiles_path(filename):
