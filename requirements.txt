@@ -95,6 +95,8 @@ idna==2.7 \
     # via cryptography, requests
 jsonfield2==3.0.1 \
     --hash=sha256:dcc7757202218f198c9152fd68184acb2a176df8c81115ed2687ee35eaa27f41
+pycapnp==0.6.4 \
+    --hash=sha256:44e14a5ace399cf1753acb8bbce558b8c895c48fd2102d266c34eaff286824cf
 pycparser==2.19 \
     --hash=sha256:a988718abfad80b6b157acce7bf130a30876d27603738ac39f140993246b25b3 \
     # via cffi
@@ -139,6 +141,9 @@ six==1.11.0 \
     --hash=sha256:70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9 \
     --hash=sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb \
     # via cryptography, django-extensions, pynacl
+toml==0.10.0 \
+    --hash=sha256:229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c \
+    --hash=sha256:235682dd292d5899d361a811df37e04a8828a5b1da3115886b73cf81ebc9100e
 urllib3==1.24 \
     --hash=sha256:41c3db2fc01e5b907288010dec72f9d0a74e37d6994e6eb56849f59fea2265ae \
     --hash=sha256:8819bba37a02d143296a4d032373c4dd4aca11f6d4c9973335ca75f9c8475f59 \

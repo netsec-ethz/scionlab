@@ -51,17 +51,17 @@ def create_gen(host, host_gen_dir):
     _create_gen(host, host_gen_dir, tp, service_name_map)
 
 
-def _create_gen(host, host_gen_dir, tp, service_name_map):
+def _create_gen(host, gen_dir, tp, service_name_map):
     """
     Generate the gen folder for the :host: in the :directory:
     :param host: Host object
-    :param host_gen_dir: output directory string, as an absolute path to an existing directory
+    :param gen_dir: output directory string, as an absolute path to an existing directory
     :param tp: topology dict
     :param service_name_map: map from Service object to instance name
     :return:
     """
-    if not path.exists(host_gen_dir):
-        raise ValueError("host_gen_dir %s output directory does not exist" % host_gen_dir)
+    if not path.exists(gen_dir):
+        raise ValueError("gen_dir %s output directory does not exist" % gen_dir)
 
     for service in host.services.iterator():
         service_nick = service.type
@@ -69,39 +69,17 @@ def _create_gen(host, host_gen_dir, tp, service_name_map):
             continue
         service_type = generator.NICKS_TO_TYPES[service_nick]
         instance_name = service_name_map[service]
-        generate_instance_dir(service.AS, host_gen_dir, service_type, tp, instance_name)
+        generator.generate_instance_dir(service.AS, gen_dir, service_type, tp, instance_name)
 
     border_router_nick = 'BR'
     border_router_names = tp[generator.NICKS_TO_KEYS[border_router_nick]].keys()
     for border_router in border_router_names:
         service_type = generator.NICKS_TO_TYPES[border_router_nick]
-        generate_instance_dir(host.AS, host_gen_dir, service_type, tp, border_router)
+        generator.generate_instance_dir(host.AS, gen_dir, service_type, tp, border_router)
 
-
-def generate_instance_dir(as_, directory, stype, tp, instance_name):
-    """
-    Generate the service instance directory for the gen folder
-    :param AS as_: AS in which the instance runs
-    :param str directory: base directory of the gen folder
-    :param str stype: service type
-    :param tp: topology dict
-    :param str instance_name: instance name
-    :return:
-    """
-    instance_path = generator.get_elem_dir(directory, as_, instance_name)
-
-    # Generate service configuration to directory, with certs and keys
-    as_crypto_obj = AScrypto.from_AS(as_)
-    generator.write_certs_trc_keys(as_, as_crypto_obj, instance_path)
-    generator.write_as_conf_and_path_policy(as_, as_crypto_obj, instance_path)
-    executable_name = generator.TYPES_TO_EXECUTABLES[stype]
-    type_key = generator.TYPES_TO_KEYS[stype]
-
-    config = generator.prep_supervisord_conf(tp[type_key][instance_name], executable_name,
-                                             stype, str(instance_name), as_)
-    generator.write_supervisord_config(config, instance_path)
-    generator.write_topology_file(tp, stype, instance_path)
-    generator.write_zlog_file(stype, instance_name, instance_path)
+    generator.generate_sciond_config(host.AS, tp, gen_dir)
+    generator.write_dispatcher_config(gen_dir)
+    generator.write_overlay_config(gen_dir)
 
 
 def _get_internal_address_type_str(as_):
@@ -209,39 +187,3 @@ def generate_topology_from_DB(as_):
                 }
             }
     return topo_dict, service_name_map
-
-
-class AScrypto:
-    """
-    Class representing an AS with the crypto information required to generate the gen folder
-    """
-    certificate = None
-    trc = None
-    keys = {}
-    core_keys = {}
-
-    @classmethod
-    def from_AS(cls, as_):
-        """
-        Build AS_crypto from a model.AS object
-        :param AS as_: AS object of the target AS
-        :return:
-        """
-        inst = cls()
-        inst.certificate = as_.certificates
-        inst.trc = as_.isd.trc
-        inst.keys = {
-            'sig_key': as_.sig_priv_key,
-            'sig_key_raw': as_.enc_priv_key,
-
-            'enc_key': as_.master_as_key,
-            'master0_as_key': as_.master_as_key,
-            'master1_as_key': as_.master_as_key,  # TODO(matzf)
-        }
-        if as_.is_core:
-            inst.core_keys = {
-                'core_sig_key': as_.core_sig_priv_key,
-                'online_key': as_.core_online_priv_key,
-                'offline_key': as_.core_offline_priv_key,
-            }
-        return inst

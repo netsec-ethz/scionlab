@@ -49,17 +49,15 @@ from lib.defines import (
     PROJECT_ROOT,
     PROM_FILE,
     SCIOND_API_SOCKDIR,
+    PATH_POLICY_FILE,
 )
 from lib.util import (
     copy_file,
     read_file,
     write_file,
 )
-from topology.go import GoGenerator, GoGenArgs
-
 
 DEFAULT_PATH_POLICY_FILE = "topology/PathPolicy.yml"
-PATH_POLICY_FILE = "topology/PathPolicy.yml"
 INITIAL_CERT_VERSION = 1
 INITIAL_TRC_VERSION = 1
 
@@ -111,36 +109,6 @@ JOB_NAMES = {
 PROM_PORT_OFFSET = 1000
 
 
-class dict_to_namedtuple:
-    """Similarly to namedtuple, but initialized directly with the dictionary"""
-    def __init__(self, d=None):
-        if d:
-            for k, v in d.items():
-                setattr(self, k, v)
-
-
-def nested_dicts_update(source, replacement):
-    '''the result contains the union set of keys from source and replacement,
-       also in nested dicts'''
-    for k, v in replacement.items():
-        if isinstance(v, dict):
-            source[k] = nested_dicts_update(source[k], v)
-        else:
-            source[k] = v
-    return source
-
-
-class ASCredential(object):
-    """
-    A class to keep the credentials of the SCION ASes.
-    """
-    def __init__(self, certificate, trc, keys, core_keys=None):
-        self.certificate = certificate
-        self.trc = trc
-        self.keys = keys
-        self.core_keys = core_keys
-
-
 def write_dispatcher_config(local_gen_path):
     """
     Creates the supervisord and zlog files for the dispatcher and writes
@@ -151,8 +119,8 @@ def write_dispatcher_config(local_gen_path):
     if not os.path.exists(disp_folder_path):
         os.makedirs(disp_folder_path)
     disp_supervisord_conf = prep_dispatcher_supervisord_conf()
-    write_supervisord_config(disp_supervisord_conf, disp_folder_path)
-    write_zlog_file('dispatcher', 'dispatcher', disp_folder_path)
+    _write_supervisord_config(disp_supervisord_conf, disp_folder_path)
+    _write_zlog_file('dispatcher', 'dispatcher', disp_folder_path)
 
 
 def write_overlay_config(local_gen_path):
@@ -161,7 +129,7 @@ def write_overlay_config(local_gen_path):
         write_file(overlay_file_path, 'UDP/IPv4')
 
 
-def prep_supervisord_conf(instance_dict, executable_name, service_type, instance_name, as_):
+def _prep_supervisord_conf(instance_dict, executable_name, service_type, instance_name, as_):
     """
     Prepares the supervisord configuration for the infrastructure elements
     and returns it as a ConfigParser object.
@@ -268,11 +236,10 @@ def prep_dispatcher_supervisord_conf():
     return config
 
 
-def write_topology_file(tp, type_key, instance_path):
+def _write_topology_file(tp, instance_path):
     """
     Writes the topology file into the instance's location.
     :param dict tp: the topology as a dict of dicts.
-    :param str type_key: key to describe service type.
     :param instance_path: the folder to write the file into.
     """
     path = os.path.join(instance_path, 'topology.json')
@@ -280,7 +247,7 @@ def write_topology_file(tp, type_key, instance_path):
         json.dump(tp, file, indent=2)
 
 
-def write_zlog_file(service_type, instance_name, instance_path):
+def _write_zlog_file(service_type, instance_name, instance_path):
     """
     Creates and writes the zlog configuration file for the given element.
     :param str service_type: the type of the service (e.g. beacon_server).
@@ -293,7 +260,7 @@ def write_zlog_file(service_type, instance_name, instance_path):
                                     elem=instance_name))
 
 
-def write_supervisord_config(config, instance_path):
+def _write_supervisord_config(config, instance_path):
     """
     Writes the given supervisord config into the provided location.
     :param ConfigParser config: supervisord configuration to write.
@@ -364,38 +331,45 @@ def write_as_conf_and_path_policy(as_, as_obj, instance_path):
     copy_file(path_policy_file, os.path.join(instance_path, PATH_POLICY_FILE))
 
 
-def write_toml_files(tp, ia):
-    def replace(filename, replacement):
-        '''Replace the toml dictionary in filename with the replacement dict'''
-        with open(filename, 'r') as f:
-            d = toml.load(f)
-        nested_dicts_update(d, replacement)
-        with open(filename, 'w') as f:
-            toml.dump(d, f)
+def generate_instance_dir(as_, directory, stype, tp, instance_name):
+    """
+    Generate the service instance directory for the gen folder
+    :param AS as_: AS in which the instance runs
+    :param str directory: base directory of the gen folder
+    :param str stype: service type
+    :param tp: topology dict
+    :param str instance_name: instance name
+    :return:
+    """
+    instance_path = get_elem_dir(directory, as_, instance_name)
 
-    args = GoGenArgs(dict_to_namedtuple({'docker': False, 'trace': False,
-                    'output_dir': GEN_PATH}), {ia: tp})
-    go_gen = GoGenerator(args)
+    # Generate service configuration to directory, with certs and keys
+    as_crypto_obj = AScrypto.from_AS(as_)
+    write_certs_trc_keys(as_, as_crypto_obj, instance_path)
+    write_as_conf_and_path_policy(as_, as_crypto_obj, instance_path)
+    executable_name = TYPES_TO_EXECUTABLES[stype]
+    type_key = TYPES_TO_KEYS[stype]
 
-    go_gen.generate_sciond()
-    filename = os.path.join(get_elem_dir(GEN_PATH, ia, 'endhost'), 'sciond.toml')
-    replace(filename, {'sd': {'Reliable': os.path.join(SCIOND_API_SOCKDIR, 'default.sock'),
-                                  'Unix': os.path.join(SCIOND_API_SOCKDIR, 'default.unix')}})
-    go_gen.generate_cs()
-    filename = os.path.join(get_elem_dir(GEN_PATH, ia, next(iter(tp['CertificateService'].keys()))), 'csconfig.toml')
-    replace(filename, {'sd_client': {'Path': os.path.join(SCIOND_API_SOCKDIR, 'default.sock')}})
+    config = _prep_supervisord_conf(tp[type_key][instance_name], executable_name,
+                                    stype, str(instance_name), as_)
+    _write_supervisord_config(config, instance_path)
+    _write_topology_file(tp, instance_path)
+    _write_zlog_file(stype, instance_name, instance_path)
 
-    go_gen.generate_ps()
+    if stype == 'path_server':
+        _write_ps_conf(instance_name, instance_path, as_.isd_as_str())
+    elif stype == 'certificate_server':
+        _write_cs_conf(instance_name, instance_path, as_.isd_as_str())
 
 
-def generate_sciond_config(as_, as_obj, topo_dicts, gen_path=GEN_PATH):
+def generate_sciond_config(as_, topo_dicts, gen_path=GEN_PATH):
     """
     Writes the endhost folder into the given location.
     :param AS as_: AS of the sciond instance
-    :param obj as_obj: An object that stores crypto information for AS
     :param dict topo_dicts: the topology as a dict of dicts.
     :param str gen_path: the target location for a gen folder.
     """
+    as_crypto = AScrypto.from_AS(as_)
     executable_name = "sciond"
     instance_name = "sd%s" % as_.isd_as_path_str()
     service_type = "endhost"
@@ -408,13 +382,142 @@ def generate_sciond_config(as_, as_obj, topo_dicts, gen_path=GEN_PATH):
         for elem_id, elem in topo_dicts[svc_type].items():
             processes.append(elem_id)
     processes.append(instance_name)
-    config = prep_supervisord_conf(None, executable_name, service_type, instance_name, as_)
+    config = _prep_supervisord_conf(None, executable_name, service_type, instance_name, as_)
     config['group:' + "as%s" % as_.isd_as_path_str()] = {'programs': ",".join(processes)}
-    write_certs_trc_keys(as_, as_obj, instance_path)
-    write_as_conf_and_path_policy(as_, as_obj, instance_path)
-    write_supervisord_config(config, os.path.join(gen_path, "ISD%s" % as_.isd.isd_id,
+    write_certs_trc_keys(as_, as_crypto, instance_path)
+    write_as_conf_and_path_policy(as_, as_crypto, instance_path)
+    _write_supervisord_config(config, os.path.join(gen_path, "ISD%s" % as_.isd.isd_id,
                                                   "AS%s" % as_.as_path_str()))
-    write_topology_file(topo_dicts, None, instance_path)
+    _write_topology_file(topo_dicts, instance_path)
+    _write_sciond_conf(instance_name, instance_path, as_.isd_as_str())
+
+
+def _write_ps_conf(instance_name, instance_path, ia):
+    filename = os.path.join(instance_path, 'psconfig.toml')
+    sciond_conf = _build_ps_conf(instance_name, instance_path, ia)
+    write_file(filename, toml.dumps(sciond_conf))
+
+
+def _build_ps_conf(instance_name, instance_path, ia):
+    log_dir = 'logs'
+    db_dir = 'gen-cache'
+    log_level = 'debug'
+    raw_entry = {
+        'general': {
+            'ID': instance_name,
+            'ConfigDir': instance_path,
+            'ReconnectToDispatcher': True,
+        },
+        'logging': {
+            'file': {
+                'Path': os.path.join(log_dir, "%s.log" % instance_name),
+                'Level': log_level,
+            },
+            'console': {
+                'Level': 'crit',
+            },
+        },
+        'TrustDB': {
+            'Backend': 'sqlite',
+            'Connection': os.path.join(db_dir, '%s.trust.db' % instance_name),
+        },
+        'infra': {
+            'Type': "PS"
+        },
+        'ps': {
+            'PathDB': {
+                'Backend': 'sqlite',
+                'Connection': os.path.join(db_dir, '%s.path.db' % instance_name),
+            },
+            'SegSync': True,
+        },
+    }
+    return raw_entry
+
+
+def _write_cs_conf(instance_name, instance_path, ia):
+    filename = os.path.join(instance_path, 'csconfig.toml')
+    sciond_conf = _build_sciond_conf(instance_name, instance_path, ia)
+    write_file(filename, toml.dumps(sciond_conf))
+
+
+def _build_cs_conf(instance_name, instance_path, ia):
+    log_dir = 'logs'
+    db_dir = 'gen-cache'
+    log_level = 'debug'
+    raw_entry = {
+        'general': {
+            'ID': instance_name,
+            'ConfigDir': instance_path,
+        },
+        'sd_client': {
+            'Path': os.path.join(SCIOND_API_SOCKDIR, 'default.sock')
+        },
+        'logging': {
+            'file': {
+                'Path': os.path.join(log_dir, "%s.log" % instance_name),
+                'Level': log_level,
+            },
+            'console': {
+                'Level': 'crit',
+            },
+        },
+        'TrustDB': {
+            'Backend': 'sqlite',
+            'Connection': os.path.join(db_dir, '%s.trust.db' % instance_name),
+        },
+        'infra': {
+            'Type': "CS"
+        },
+        'cs': {
+            'LeafReissueTime': "6h",
+            'IssuerReissueTime': "3d",
+            'ReissueRate': "10s",
+            'ReissueTimeout': "5s",
+        },
+    }
+    return raw_entry
+
+
+def _write_sciond_conf(instance_name, instance_path, ia):
+    filename = os.path.join(instance_path, 'sciond.toml')
+    sciond_conf = _build_sciond_conf(instance_name, instance_path, ia)
+    write_file(filename, toml.dumps(sciond_conf))
+
+
+def _build_sciond_conf(instance_name, instance_path, ia):
+    log_dir = 'logs'
+    db_dir = 'gen-cache'
+    log_level = 'debug'
+    raw_entry = {
+        'general': {
+            'ID': instance_name,
+            'ConfigDir': instance_path,
+            'ReconnectToDispatcher': True,
+        },
+        'logging': {
+            'file': {
+                'Path': os.path.join(log_dir, "%s.log" % instance_name),
+                'Level': log_level,
+            },
+            'console': {
+                'Level': 'crit',
+            },
+        },
+        'TrustDB': {
+            'Backend': 'sqlite',
+            'Connection': os.path.join(db_dir, '%s.trust.db' % instance_name),
+        },
+        'sd': {
+            'Reliable': os.path.join(SCIOND_API_SOCKDIR, "default.sock"),
+            'Unix': os.path.join(SCIOND_API_SOCKDIR, "default.unix"),
+            'Public': '%s,[127.0.0.1]:0' % ia,
+            'PathDB': {
+                'Connection': os.path.join(db_dir, '%s.path.db' % instance_name),
+            },
+        },
+    }
+    return raw_entry
 
 
 def generate_prom_config(as_, topo_dicts, gen_path=GEN_PATH):
@@ -472,3 +575,39 @@ def _prom_addr_of_element(element):
     IP = addrs[addr_type]['Addr']
     port = addrs[addr_type][port_keyword] + PROM_PORT_OFFSET
     return IP,port
+
+
+class AScrypto:
+    """
+    Class representing an AS with the crypto information required to generate the gen folder
+    """
+    certificate = None
+    trc = None
+    keys = {}
+    core_keys = {}
+
+    @classmethod
+    def from_AS(cls, as_):
+        """
+        Build AS_crypto from a model.AS object
+        :param AS as_: AS object of the target AS
+        :return:
+        """
+        inst = cls()
+        inst.certificate = as_.certificates
+        inst.trc = as_.isd.trc
+        inst.keys = {
+            'sig_key': as_.sig_priv_key,
+            'sig_key_raw': as_.enc_priv_key,
+
+            'enc_key': as_.master_as_key,
+            'master0_as_key': as_.master_as_key,
+            'master1_as_key': as_.master_as_key,  # TODO(matzf)
+        }
+        if as_.is_core:
+            inst.core_keys = {
+                'core_sig_key': as_.core_sig_priv_key,
+                'online_key': as_.core_online_priv_key,
+                'offline_key': as_.core_offline_priv_key,
+            }
+        return inst
