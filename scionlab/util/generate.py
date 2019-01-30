@@ -79,7 +79,6 @@ def _create_gen(host, gen_dir, tp, service_name_map):
 
     generator.generate_sciond_config(host.AS, tp, gen_dir)
     generator.write_dispatcher_config(gen_dir)
-    generator.write_overlay_config(gen_dir)
 
 
 def _get_internal_address_type_str(as_):

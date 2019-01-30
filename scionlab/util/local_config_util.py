@@ -123,12 +123,6 @@ def write_dispatcher_config(local_gen_path):
     _write_zlog_file('dispatcher', 'dispatcher', disp_folder_path)
 
 
-def write_overlay_config(local_gen_path):
-    overlay_file_path = os.path.join(local_gen_path, 'overlay')
-    if not os.path.exists(overlay_file_path):
-        write_file(overlay_file_path, 'UDP/IPv4')
-
-
 def _prep_supervisord_conf(instance_dict, executable_name, service_type, instance_name, as_):
     """
     Prepares the supervisord configuration for the infrastructure elements
