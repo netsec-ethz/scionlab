@@ -26,7 +26,6 @@ import json
 import os
 import yaml
 import toml
-from collections import defaultdict
 from string import Template
 
 # SCION
@@ -47,7 +46,6 @@ from lib.defines import (
     AS_CONF_FILE,
     GEN_PATH,
     PROJECT_ROOT,
-    PROM_FILE,
     SCIOND_API_SOCKDIR,
     PATH_POLICY_FILE,
 )
@@ -58,55 +56,22 @@ from lib.util import (
 )
 
 DEFAULT_PATH_POLICY_FILE = "topology/PathPolicy.yml"
-INITIAL_CERT_VERSION = 1
-INITIAL_TRC_VERSION = 1
+DEFAULT_ENV = ['TZ=UTC']
 
-TYPES_TO_EXECUTABLES = {
-    'router': 'border',
-    'beacon_server': 'beacon_server',
-    'path_server': 'path_server',
-    'certificate_server': 'cert_srv',
-}
+KEY_BR = 'BorderRouters'
+KEY_BS = 'BeaconService'
+KEY_CS = 'CertificateService'
+KEY_PS = 'PathService'
 
 TYPES_TO_KEYS = {
-    'beacon_server': 'BeaconService',
-    'certificate_server': 'CertificateService',
-    'router': 'BorderRouters',
-    'path_server': 'PathService',
+    "BR": KEY_BR,
+    "BS": KEY_BS,
+    "CS": KEY_CS,
+    "PS": KEY_PS,
 }
 
-NICKS_TO_KEYS = {
-    "BS": 'BeaconService',
-    "CS": 'CertificateService',
-    "BR": 'BorderRouters',
-    "PS": 'PathService',
-}
 
-NICKS_TO_TYPES = {
-    "BS": 'beacon_server',
-    "CS": 'certificate_server',
-    "BR": 'router',
-    "PS": 'path_server',
-}
-
-PROM_DIR = "prometheus"
-
-TARGET_FILES = {
-    "BorderRouters": "br.yml",
-    "BeaconService": "bs.yml",
-    "CertificateService": "cs.yml",
-    "PathService": "ps.yml",
-}
-
-JOB_NAMES = {
-    "BorderRouters": "BR",
-    "BeaconService": "BS",
-    "CertificateService": "CS",
-    "PathService": "PS",
-}
-
-#: Default SCION Prometheus port offset
-PROM_PORT_OFFSET = 1000
+PROM_PORT_OFFSET = 1000  # TODO(matzf) move to model for port assignment
 
 
 def write_dispatcher_config(local_gen_path):
@@ -120,62 +85,46 @@ def write_dispatcher_config(local_gen_path):
         os.makedirs(disp_folder_path)
     disp_supervisord_conf = prep_dispatcher_supervisord_conf()
     _write_supervisord_config(disp_supervisord_conf, disp_folder_path)
-    _write_zlog_file('dispatcher', 'dispatcher', disp_folder_path)
+    _write_dispatcher_zlog_file(disp_folder_path)
 
 
-def _prep_supervisord_conf(instance_dict, executable_name, service_type, instance_name, as_):
+def _write_dispatcher_zlog_file(path):
+    """
+    Creates and writes the zlog configuration file for the dispatcher from a template
+    in the scion code base.
+    """
+    tmpl = Template(read_file(os.path.join(PROJECT_ROOT, "topology/zlog.tmpl")))
+    cfg = os.path.join(path, "dispatcher.zlog.conf")
+    write_file(cfg, tmpl.substitute(name='dispatcher', elem='dispatcher'))
+
+
+def _prep_supervisord_conf(service_type, name, path):
     """
     Prepares the supervisord configuration for the infrastructure elements
     and returns it as a ConfigParser object.
-    :param dict instance_dict: topology information of the given instance.
-    :param str executable_name: the name of the executable.
     :param str service_type: the type of the service (e.g. beacon_server).
-    :param str instance_name: the instance of the service (e.g. br1-8-1).
-    :param AS as_: the AS the service belongs to.
+    :param str name: the instance of the service (e.g. br1-8-1).
+    :param str path: the directory containing the configuration of the instance
     :returns: supervisord configuration as a ConfigParser object
     :rtype: ConfigParser
     """
-    if not instance_dict:
-        cmd = 'bash -c \'exec bin/sciond -config "{elem_dir}/sciond.toml" &>logs/{instance}.OUT\'' \
-               .format(elem_dir=get_elem_dir(GEN_PATH, as_, "endhost"), instance=instance_name)
-        env = 'PYTHONPATH=python/:.,TZ=UTC'
-    else:
-        env_tmpl = 'PYTHONPATH=python/:.,TZ=UTC,ZLOG_CFG="%s/%s.zlog.conf"'
-        env = env_tmpl % (get_elem_dir(GEN_PATH, as_, instance_name), instance_name)
-        IP, port = _prom_addr_of_element(instance_dict)
-        prom_addr = "[%s]:%s" % (IP, port)
-        if service_type == 'router':  # go router
-            env += ',GODEBUG="cgocheck=0"'
-            cmd = ('bash -c \'exec "bin/%s" "-id=%s" "-confd=%s" "-log.age=2" "-prom=%s" &>logs/%s.OUT\'') % (
-                executable_name, instance_name, get_elem_dir(GEN_PATH, as_, instance_name),
-                prom_addr, instance_name)
-        elif service_type == 'certificate_server': # go certificate server
-            env += ',SCIOND_PATH="/run/shm/sciond/default.sock"'
-            cmd = 'bash -c \'exec "bin/{exe}" "-config" "{elem_dir}/csconfig.toml" &>logs/{instance}.OUT\'' \
-                    .format(exe=executable_name, elem_dir=get_elem_dir(GEN_PATH, as_, instance_name),
-                    instance=instance_name)
-        elif service_type == 'path_server': # go path server
-            cmd = 'bash -c \'exec "bin/{exe}" "-config" "{elem_dir}/psconfig.toml" &>logs/{instance}.OUT\'' \
-                .format(exe=executable_name, elem_dir=get_elem_dir(GEN_PATH, as_, instance_name),
-                instance=instance_name)
-        else:  # other infrastructure elements, python
-            cmd = ('bash -c \'exec "python/bin/{exe}" "--prom" "{prom}" "--sciond_path" '
-                '"/run/shm/sciond/default.sock" "{instance}" "{elem_dir}" &>logs/{instance}.OUT\'') \
-                .format(exe=executable_name,prom=prom_addr, instance=instance_name,
-                        elem_dir=get_elem_dir(GEN_PATH, as_, instance_name))
+
+def _make_supervisord_conf(name, cmd, envs, priority=100):
     config = configparser.ConfigParser()
-    config['program:' + instance_name] = {
+    config['program:' + name] = {
         'autostart': 'false',
         'autorestart': 'true',
-        'environment': env,
-        'stdout_logfile': 'NONE',
-        'stderr_logfile': 'NONE',
+        'environment': ','.join(envs),
+        'stdout_logfile': 'logs/%s.OUT' % name,
+        'stderr_logfile': 'logs/%s.ERR' % name,
         'startretries': '0',
         'startsecs': '5',
-        'priority': '100',
+        'priority': str(priority),
         'command':  cmd
     }
     return config
+
+
 
 
 def get_elem_dir(path, as_, elem_id):
@@ -213,21 +162,10 @@ def prep_dispatcher_supervisord_conf():
     :returns: supervisord configuration as a ConfigParser object
     :rtype: ConfigParser
     """
-    config = configparser.ConfigParser()
-    env = 'PYTHONPATH=python:.,ZLOG_CFG="gen/dispatcher/dispatcher.zlog.conf"'
-    cmd = """bash -c 'exec bin/dispatcher &>logs/dispatcher.OUT'"""
-    config['program:dispatcher'] = {
-        'autostart': 'false',
-        'autorestart': 'true',
-        'environment': env,
-        'stdout_logfile': 'NONE',
-        'stderr_logfile': 'NONE',
-        'startretries': '0',
-        'startsecs': '1',
-        'priority': '50',
-        'command':  cmd
-    }
-    return config
+    return _make_supervisord_conf('dispatcher',
+                                  'bin/dispatcher',
+                                  DEFAULT_ENV + ['ZLOG_CFG=gen/dispatcher/dispatcher.zlog.conf'],
+                                  priority=50)
 
 
 def _write_topology_file(tp, instance_path):
@@ -239,19 +177,6 @@ def _write_topology_file(tp, instance_path):
     path = os.path.join(instance_path, 'topology.json')
     with open(path, 'w') as file:
         json.dump(tp, file, indent=2)
-
-
-def _write_zlog_file(service_type, instance_name, instance_path):
-    """
-    Creates and writes the zlog configuration file for the given element.
-    :param str service_type: the type of the service (e.g. beacon_server).
-    :param str instance_name: the instance of the service (e.g. br1-8-1).
-    """
-    tmpl = Template(read_file(os.path.join(PROJECT_ROOT,
-                                           "topology/zlog.tmpl")))
-    cfg = os.path.join(instance_path, "%s.zlog.conf" % instance_name)
-    write_file(cfg, tmpl.substitute(name=service_type,
-                                    elem=instance_name))
 
 
 def _write_supervisord_config(config, instance_path):
@@ -325,35 +250,47 @@ def write_as_conf_and_path_policy(as_, as_obj, instance_path):
     copy_file(path_policy_file, os.path.join(instance_path, PATH_POLICY_FILE))
 
 
-def generate_instance_dir(as_, directory, stype, tp, instance_name):
+def generate_instance_dir(as_, directory, stype, tp, name):
     """
     Generate the service instance directory for the gen folder
     :param AS as_: AS in which the instance runs
     :param str directory: base directory of the gen folder
     :param str stype: service type
     :param tp: topology dict
-    :param str instance_name: instance name
+    :param str name: instance name
     :return:
     """
-    instance_path = get_elem_dir(directory, as_, instance_name)
+    path = get_elem_dir(directory, as_, name)
+
+    prom_port = 123456  # TODO(matzf) should be obtained from model
+    prom_addr = "127.0.0.1:%i" % prom_port
+    env = DEFAULT_ENV.copy()
+    if stype == 'BR':
+        env.append('GODEBUG="cgocheck=0"')
+        cmd = 'bin/border -id=%s -confd=%s -log.age=2 -prom=%s' % (name, path, prom_addr)
+    elif stype == 'CS':
+        cmd = 'bin/cert_srv -config "%s/csconfig.toml"' % path
+    elif stype == 'PS':
+        cmd = 'bin/path_server -config %s/psconfig.tom' % path
+    else:  # beacon server
+        assert stype == 'BS'
+        env.append('PYTHONPATH=python/')
+        cmd = ('python/bin/beacon_server --prom {prom} --sciond_path '
+               '/run/shm/sciond/default.sock "{instance}" "{elem_dir}"'
+               ).format(prom=prom_addr, instance=name, elem_dir=path)
+    config = _make_supervisord_conf(name, cmd, env)
+    _write_supervisord_config(config, path)
 
     # Generate service configuration to directory, with certs and keys
     as_crypto_obj = AScrypto.from_AS(as_)
-    write_certs_trc_keys(as_, as_crypto_obj, instance_path)
-    write_as_conf_and_path_policy(as_, as_crypto_obj, instance_path)
-    executable_name = TYPES_TO_EXECUTABLES[stype]
-    type_key = TYPES_TO_KEYS[stype]
+    write_certs_trc_keys(as_, as_crypto_obj, path)
+    write_as_conf_and_path_policy(as_, as_crypto_obj, path)
+    _write_topology_file(tp, path)
 
-    config = _prep_supervisord_conf(tp[type_key][instance_name], executable_name,
-                                    stype, str(instance_name), as_)
-    _write_supervisord_config(config, instance_path)
-    _write_topology_file(tp, instance_path)
-    _write_zlog_file(stype, instance_name, instance_path)
-
-    if stype == 'path_server':
-        _write_ps_conf(instance_name, instance_path, as_.isd_as_str())
-    elif stype == 'certificate_server':
-        _write_cs_conf(instance_name, instance_path, as_.isd_as_str())
+    if stype == 'PS':
+        _write_ps_conf(name, path, as_.isd_as_str())
+    elif stype == 'CS':
+        _write_cs_conf(name, path, as_.isd_as_str())
 
 
 def generate_sciond_config(as_, topo_dicts, gen_path=GEN_PATH):
@@ -363,11 +300,10 @@ def generate_sciond_config(as_, topo_dicts, gen_path=GEN_PATH):
     :param dict topo_dicts: the topology as a dict of dicts.
     :param str gen_path: the target location for a gen folder.
     """
-    as_crypto = AScrypto.from_AS(as_)
-    executable_name = "sciond"
-    instance_name = "sd%s" % as_.isd_as_path_str()
-    service_type = "endhost"
-    instance_path = get_elem_dir(gen_path, as_, service_type)
+    name = "sd%s" % as_.isd_as_path_str()
+    path = get_elem_dir(gen_path, as_, "endhost")
+
+    # TODO(matzf): broken, needs to filter for processes on this host. More than one place!
     processes = []
     for svc_type in ["BorderRouters", "BeaconService",
                      "CertificateService", "PathService"]:
@@ -375,15 +311,21 @@ def generate_sciond_config(as_, topo_dicts, gen_path=GEN_PATH):
             continue
         for elem_id, elem in topo_dicts[svc_type].items():
             processes.append(elem_id)
-    processes.append(instance_name)
-    config = _prep_supervisord_conf(None, executable_name, service_type, instance_name, as_)
+    processes.append(name)
+
+
+    config = _make_supervisord_conf(name,
+                                    'bin/sciond -config "%s/sciond.toml"' % path,
+                                    DEFAULT_ENV)
+
     config['group:' + "as%s" % as_.isd_as_path_str()] = {'programs': ",".join(processes)}
-    write_certs_trc_keys(as_, as_crypto, instance_path)
-    write_as_conf_and_path_policy(as_, as_crypto, instance_path)
-    _write_supervisord_config(config, os.path.join(gen_path, "ISD%s" % as_.isd.isd_id,
-                                                  "AS%s" % as_.as_path_str()))
-    _write_topology_file(topo_dicts, instance_path)
-    _write_sciond_conf(instance_name, instance_path, as_.isd_as_str())
+    _write_supervisord_config(config, os.path.join(gen_path, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str()))
+
+    as_crypto = AScrypto.from_AS(as_)
+    write_certs_trc_keys(as_, as_crypto, path)
+    write_as_conf_and_path_policy(as_, as_crypto, path)
+    _write_topology_file(topo_dicts, path)
+    _write_sciond_conf(name, path, as_.isd_as_str())
 
 
 def _write_ps_conf(instance_name, instance_path, ia):
@@ -505,70 +447,13 @@ def _build_sciond_conf(instance_name, instance_path, ia):
         'sd': {
             'Reliable': os.path.join(SCIOND_API_SOCKDIR, "default.sock"),
             'Unix': os.path.join(SCIOND_API_SOCKDIR, "default.unix"),
-            'Public': '%s,[127.0.0.1]:0' % ia,
+            'Public': '%s,[127.0.0.1]:0' % ia,  # TODO(matzf): IPv6!
             'PathDB': {
                 'Connection': os.path.join(db_dir, '%s.path.db' % instance_name),
             },
         },
     }
     return raw_entry
-
-
-def generate_prom_config(as_, topo_dicts, gen_path=GEN_PATH):
-    """
-    """
-    config_dict = defaultdict(list)
-    for svc_type in ["BeaconService", "CertificateService", "PathService", "BorderRouters"]:
-        if svc_type not in topo_dicts:
-            continue
-        for elem_id, elem in topo_dicts[svc_type].items():
-            config_dict[svc_type].append('[{}]:{}'.format(*_prom_addr_of_element(elem)))
-    _write_prom_files(as_, config_dict, gen_path)
-
-
-def _write_prom_files(as_, config_dict, gen_path=GEN_PATH):
-    base = os.path.join(gen_path, 'ISD%s' % as_.isd.isd_id, 'AS%s' % as_.as_path_str())
-    as_local_targets_path = {}
-    targets_paths = defaultdict(list)
-    for ele_type, target_list in config_dict.items():
-        targets_path = os.path.join(base, PROM_DIR, TARGET_FILES[ele_type])
-        target_config = [{'targets': target_list}]
-        write_file(targets_path, yaml.dump(target_config, default_flow_style=False))
-        targets_paths[JOB_NAMES[ele_type]].append(targets_path)
-        as_local_targets_path[JOB_NAMES[ele_type]] = [targets_path]
-    _write_prom_conf_file(os.path.join(base, PROM_FILE), as_local_targets_path)
-    _write_prom_conf_file(os.path.join(gen_path, PROM_FILE), targets_paths)
-
-
-def _write_prom_conf_file(config_path, job_dict):
-    scrape_configs = []
-    for job_name, file_paths in job_dict.items():
-        scrape_configs.append({
-            'job_name': job_name,
-            'file_sd_configs': [{'files': file_paths}],
-        })
-    config = {
-        'global': {
-            'scrape_interval': '5s',
-            'evaluation_interval': '15s',
-            'external_labels': {
-                'monitor': 'scion-monitor'
-            }
-        },
-        'scrape_configs': scrape_configs,
-    }
-    write_file(config_path, yaml.dump(config, default_flow_style=False))
-
-def _prom_addr_of_element(element):
-    """Get the prometheus address for a topology element."""
-    (addrs_selector, public_keyword, bind_keyword, port_keyword) =                                            \
-        ('InternalAddrs','PublicOverlay','BindOverlay', 'OverlayPort') if 'InternalAddrs' in element.keys()    \
-        else ('Addrs','Public','Bind', 'L4Port')
-    addrs = next(iter(element[addrs_selector].values()))
-    addr_type = bind_keyword if bind_keyword in addrs.keys() else public_keyword
-    IP = addrs[addr_type]['Addr']
-    port = addrs[addr_type][port_keyword] + PROM_PORT_OFFSET
-    return IP,port
 
 
 class AScrypto:

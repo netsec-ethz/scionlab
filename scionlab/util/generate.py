@@ -64,18 +64,13 @@ def _create_gen(host, gen_dir, tp, service_name_map):
         raise ValueError("gen_dir %s output directory does not exist" % gen_dir)
 
     for service in host.services.iterator():
-        service_nick = service.type
-        if service_nick not in generator.JOB_NAMES.values():
-            continue
-        service_type = generator.NICKS_TO_TYPES[service_nick]
-        instance_name = service_name_map[service]
-        generator.generate_instance_dir(service.AS, gen_dir, service_type, tp, instance_name)
+        instance_name = service_name_map.get(service)
+        if instance_name:
+            generator.generate_instance_dir(service.AS, gen_dir, service.type, tp, instance_name)
 
-    border_router_nick = 'BR'
-    border_router_names = tp[generator.NICKS_TO_KEYS[border_router_nick]].keys()
+    border_router_names = tp[generator.KEY_BR].keys()
     for border_router in border_router_names:
-        service_type = generator.NICKS_TO_TYPES[border_router_nick]
-        generator.generate_instance_dir(host.AS, gen_dir, service_type, tp, border_router)
+        generator.generate_instance_dir(host.AS, gen_dir, 'BR', tp, border_router)
 
     generator.generate_sciond_config(host.AS, tp, gen_dir)
     generator.write_dispatcher_config(gen_dir)
@@ -109,13 +104,13 @@ def generate_topology_from_DB(as_):
     topo_dict["Core"] = as_.is_core
     topo_dict["Overlay"] = overlay_type
 
-    topo_dict[generator.TYPES_TO_KEYS['router']] = {}
+    topo_dict[generator.KEY_BR] = {}
     interface_enumerator = Interface.get_interface_router_instance_ids(as_)
     for router_instance_id, interface in interface_enumerator:
         if not interface.link().active:
             continue
         router_instance_name = "%s%s-%s" % ("br", as_.isd_as_path_str(), router_instance_id)
-        router_instance_entry = topo_dict['BorderRouters'].setdefault(router_instance_name, {})
+        router_instance_entry = topo_dict[generator.KEY_BR].setdefault(router_instance_name, {})
         if router_instance_entry == {}:
             router_instance_entry.update({
                 "InternalAddrs": {
@@ -164,18 +159,15 @@ def generate_topology_from_DB(as_):
             }
         router_instance_entry["Interfaces"][interface.interface_id] = interface_entry
 
-    for stype, _ in Service.SERVICE_TYPES:
-        if stype not in generator.JOB_NAMES.values():
-            continue
-        service_key = generator.TYPES_TO_KEYS[generator.NICKS_TO_TYPES[stype]]
+    for stype, skey in generator.TYPES_TO_KEYS.items():
         service_enumerator = Service.get_service_type_ids(as_, stype)
         for service_instance_id, service in service_enumerator:
             service_instance_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(),
                                                  service_instance_id)
             service_name_map[service] = service_instance_name
-            if service_key not in topo_dict.keys():
-                topo_dict[service_key] = {}
-            topo_dict[service_key][service_instance_name] = {
+            if skey not in topo_dict.keys():
+                topo_dict[skey] = {}
+            topo_dict[skey][service_instance_name] = {
                 "Addrs": {
                     address_type: {
                         "Public": {
