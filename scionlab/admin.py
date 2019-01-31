@@ -19,7 +19,7 @@ from django.contrib import admin
 from django import forms
 from django.urls import resolve
 
-from .models import (
+from scionlab.models import (
     ISD,
     AS,
     UserAS,
@@ -33,10 +33,11 @@ from .models import (
     MAX_PORT,
     DEFAULT_HOST_INTERNAL_IP,
 )
+from scionlab.util.http import HttpResponseAttachment
+from scionlab.util import config_tar
 
 admin.site.register([
     AttachmentPoint,
-    Host,
 ])
 
 
@@ -562,3 +563,22 @@ class LinkAdmin(admin.ModelAdmin):
 
     def bind_port_b(self, obj):
         return obj.interfaceB.bind_port
+
+
+@admin.register(Host)
+class HostAdmin(admin.ModelAdmin):
+    form = HostAdminForm
+    actions = ['download_config']
+
+    def download_config(self, request, queryset):
+        """
+        Admin action: get configuration for the *single* selected host. This is a bit clunky, but
+        avoids having to configure additional URLs for this. Good enough for now.
+        """
+        host = queryset.get()  # Error if not exactly one
+        filename = '{host}_v{version}.tar.gz'.format(
+                        host=host.path_str(),
+                        version=host.config_version)
+        resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
+        config_tar.generate_host_config_tar(host, resp)
+        return resp

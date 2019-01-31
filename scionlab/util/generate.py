@@ -13,32 +13,10 @@
 # limitations under the License.
 
 import ipaddress
-import os
 import os.path as path
 
-from django.conf import settings
-
-from scionlab.models import AS, Service, Interface
+from scionlab.models import Service, Interface
 import scionlab.util.local_config_util as generator
-
-
-def create_gen_AS(AS_id):
-    """
-    Generate gen folders for all the hosts in the AS
-    :param str AS_id: AS identifier string
-    :return:
-    """
-    if not path.exists(settings.GEN_ROOT):
-        raise ValueError("GEN_ROOT %s does not exist" % settings.GEN_ROOT)
-    as_ = AS.objects.get(as_id=AS_id)
-    hosts = as_.hosts.all()
-
-    tp, service_name_map = generate_topology_from_DB(as_)  # topology file
-
-    for host in hosts:
-        host_gen_dir = path.join(settings.GEN_ROOT, host.path_str())
-        os.makedirs(host_gen_dir, mode=0o755, exist_ok=True)
-        _create_gen(host, host_gen_dir, tp, service_name_map)
 
 
 def create_gen(host, host_gen_dir):
@@ -83,6 +61,14 @@ def _get_internal_address_type_str(as_):
         return "IPv6"
     else:
         return "IPv4"
+
+
+def _get_link_overlay_type_str(interface):
+    ip = ipaddress.ip_address(interface.get_public_ip())
+    if isinstance(ip, ipaddress.IPv6Address):
+        return "UDP/IPv6"
+    else:
+        return "UDP/IPv4"
 
 
 def generate_topology_from_DB(as_):
@@ -135,16 +121,16 @@ def generate_topology_from_DB(as_):
         remote_if_obj = interface.remote_interface()
         remote_AS_obj = interface.remote_as()
 
-        link_overlay = interface.link().overlay()
+        link_overlay = _get_link_overlay_type_str(interface)
 
         interface_entry = {
             "ISD_AS": remote_AS_obj.isd_as_str(),
             "LinkTo": str(interface.link_relation()),
             "Bandwidth": interface.link().bandwidth,
-            "PublicOverlay": [{
+            "PublicOverlay": {
                 "Addr": interface.get_public_ip(),
                 "OverlayPort": interface.public_port
-            }],
+            },
             "MTU": interface.link().bandwidth,
             "RemoteOverlay": {
                 "Addr": remote_if_obj.get_public_ip(),

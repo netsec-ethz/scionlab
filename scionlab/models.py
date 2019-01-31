@@ -14,7 +14,6 @@
 
 import base64
 import ipaddress
-
 import jsonfield
 import operator
 import os
@@ -1323,16 +1322,6 @@ class Link(models.Model):
             self.save()
             self.interfaceA.AS.hosts.bump_config()
             self.interfaceB.AS.hosts.bump_config()
-
-    def overlay(self):
-        link_overlay = "UDP/IPv6"
-        if self.interfaceA.public_ip and self.interfaceB.public_ip and \
-                isinstance(ipaddress.ip_address(self.interfaceA.public_ip),
-                           ipaddress.IPv4Address) and \
-                isinstance(ipaddress.ip_address(self.interfaceB.public_ip),
-                           ipaddress.IPv4Address):
-            link_overlay = "UDP/IPv4"
-        return link_overlay
 
     def get_interface_a(self):
         if hasattr(self, 'interfaceA'):
