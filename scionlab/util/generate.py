@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import ipaddress
-import os.path as path
 
 from scionlab.models import Service, Interface
 import scionlab.util.local_config_util as generator
@@ -25,11 +24,12 @@ def create_gen(host, host_gen_dir):
     :param host: Host object
     :param host_gen_dir: output directory string, as an absolute path to an existing directory
     """
+    archive = generator.FileArchive(host_gen_dir)
     tp, service_name_map = generate_topology_from_DB(host.AS)  # topology file
-    _create_gen(host, host_gen_dir, tp, service_name_map)
+    _create_gen(host, archive, tp, service_name_map)
 
 
-def _create_gen(host, gen_dir, tp, service_name_map):
+def _create_gen(host, archive, tp, service_name_map):
     """
     Generate the gen folder for the :host: in the :directory:
     :param host: Host object
@@ -38,20 +38,20 @@ def _create_gen(host, gen_dir, tp, service_name_map):
     :param service_name_map: map from Service object to instance name
     :return:
     """
-    if not path.exists(gen_dir):
-        raise ValueError("gen_dir %s output directory does not exist" % gen_dir)
-
+    as_ = host.AS
     for service in host.services.iterator():
         instance_name = service_name_map.get(service)
         if instance_name:
-            generator.generate_instance_dir(service.AS, gen_dir, service.type, tp, instance_name)
+            generator.generate_instance_dir(archive, as_, service.type, tp, instance_name)
 
     border_router_names = tp[generator.KEY_BR].keys()
     for border_router in border_router_names:
-        generator.generate_instance_dir(host.AS, gen_dir, 'BR', tp, border_router)
+        generator.generate_instance_dir(archive, as_, 'BR', tp, border_router)
 
-    generator.generate_sciond_config(host.AS, tp, gen_dir)
-    generator.write_dispatcher_config(gen_dir)
+    generator.generate_sciond_config(archive, as_, tp)
+    generator.write_supervisord_group_config(archive, as_, tp)
+
+    generator.write_dispatcher_config(archive)
 
 
 def _get_internal_address_type_str(as_):

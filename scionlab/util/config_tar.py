@@ -92,7 +92,7 @@ def _add_gen_folder(host, tar):
     # Add the gen/-folder
     gen_dir = tempfile.mkdtemp()
     generate.create_gen(host, gen_dir)
-    tar.add(gen_dir, arcname="gen")
+    tar.add(gen_dir + '/gen', arcname="gen")
     shutil.rmtree(gen_dir)
 
 

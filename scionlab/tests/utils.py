@@ -321,7 +321,7 @@ def _check_open_tarball(testcase, response):
     Check http-response headers and open tar ball from content.
     """
     testcase.assertTrue(re.search(r'attachment;\s*filename="[^"]*.tar.gz"',
-                        response['Content-Disposition']))
+                                  response['Content-Disposition']))
     testcase.assertEqual(response['Content-Type'], 'application/gzip')
     testcase.assertEqual(int(response['Content-Length']), len(response.content))
 
@@ -336,7 +336,7 @@ def _check_tarball_gen(testcase, tar, host):
     isd_str = 'ISD%i' % host.AS.isd.isd_id
     as_str = 'AS%s' % host.AS.as_path_str()
 
-    testcase.assertEqual([isd_str], _tar_ls(tar, 'gen'))
+    testcase.assertEqual([isd_str, 'dispatcher'], _tar_ls(tar, 'gen'))
     testcase.assertEqual([as_str], _tar_ls(tar, os.path.join('gen', isd_str)))
 
     as_gen_dir = os.path.join('gen', isd_str, as_str)
