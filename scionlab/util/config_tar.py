@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
 import os
-import shutil
 import string
 import tarfile
-import tempfile
 from contextlib import closing
 
 from django.conf import settings
 from scionlab.util import generate
+from scionlab.util.archive import TarWriter, tar_add_textfile
 from scionlab.models import UserAS
 from scionlab.util.openvpn_config import generate_vpn_client_config, generate_vpn_server_config, \
     ccd_config
@@ -44,7 +42,7 @@ def generate_user_as_config_tar(user_as, fileobj):
 
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
-        _add_gen_folder(host, tar)
+        generate.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
         if user_as.installation_type == UserAS.VM:
             tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
@@ -63,7 +61,7 @@ def generate_host_config_tar(host, fileobj):
     _ensure_certificates(host.AS)
 
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
-        _add_gen_folder(host, tar)
+        generate.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
 
 
@@ -85,17 +83,6 @@ def _ensure_certificates(as_):
     pass
 
 
-def _add_gen_folder(host, tar):
-    """
-    Generate the gen/-folder config and it to the tar.
-    """
-    # Add the gen/-folder
-    gen_dir = tempfile.mkdtemp()
-    generate.create_gen(host, gen_dir)
-    tar.add(gen_dir + '/gen', arcname="gen")
-    shutil.rmtree(gen_dir)
-
-
 def _add_vpn_config(host, tar):
     """
     Generate the VPN config files and add them to the tar.
@@ -105,14 +92,14 @@ def _add_vpn_config(host, tar):
         client_config = generate_vpn_client_config(vpn_client.host.AS.attachment_point.AS,
                                                    vpn_client.private_key,
                                                    vpn_client.cert)
-        _tar_add_textfile(tar, "client.conf", client_config)
+        tar_add_textfile(tar, "client.conf", client_config)
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
-        _tar_add_textfile(tar, "server.conf", generate_vpn_server_config(vpn_server))
+        tar_add_textfile(tar, "server.conf", generate_vpn_server_config(vpn_server))
         for vpn_client in vpn_server.clients:
             common_name, config_string = ccd_config(vpn_client)
-            _tar_add_textfile(tar, common_name, config_string)
+            tar_add_textfile(tar, common_name, config_string)
 
 
 def _add_vagrantfiles(host, tar):
@@ -133,7 +120,7 @@ def _add_vagrantfiles(host, tar):
         PortForwarding=forwarding_string,
         ASID=host.AS.as_id,
     )
-    _tar_add_textfile(tar, "Vagrantfile", vagrant_file_content)
+    tar_add_textfile(tar, "Vagrantfile", vagrant_file_content)
 
     # Add services and scripts:
     # Note: in the future, some of these may be included in the "box".
@@ -149,17 +136,3 @@ def _hostfiles_path(filename):
     Shortcut to path join in `_HOSTFILES_DIR`
     """
     return os.path.join(_HOSTFILES_DIR, filename)
-
-
-def _tar_add_textfile(tar, name, content):
-    """
-    Helper for tarfile: add a text-file `name` with the given `content` to a tarfile `tar`.
-    :param TarFile tar: an open tarfile.TarFile
-    :param str name: name for the file in the tarfile
-    :param str content: file content
-    """
-    tarinfo = tarfile.TarInfo()
-    tarinfo.name = name
-    content_bytes = content.encode()
-    tarinfo.size = len(content_bytes)
-    tar.addfile(tarinfo, io.BytesIO(content_bytes))

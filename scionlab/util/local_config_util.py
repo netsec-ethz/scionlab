@@ -11,14 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-:mod:`local_config_util' --- library functions for SCION topology generator
-===========================================================================
-"""
-
-# This library file is created in order to use the functions from
-# services such as scion-coord, without having to run the whole
-# scion-web instance on that machine.
 
 # Stdlib
 import configparser
@@ -71,43 +63,6 @@ TYPES_TO_KEYS = {
 
 
 PROM_PORT_OFFSET = 1000  # TODO(matzf) move to model for port assignment
-
-
-class BaseArchive:
-    def write_text(self, path, content):
-        raise NotImplementedError()
-        # _tar_add_textfile(tar, path, content)
-        # self.files[path] = content.encode()
-
-    def write_json(self, path, content):
-        self.write_text(path, json.dumps(content, indent=2))
-
-    def write_toml(self, path, content):
-        self.write_text(path, toml.dumps(content))
-
-    def write_yaml(self, path, content):
-        self.write_text(path, yaml.dump(content, default_flow_style=False))
-
-    def write_config(self, path, config):
-        f = io.StringIO()
-        config.write(f)
-        self.write_text(path, f.getvalue())
-
-    def _normalize_path(self, path):
-        if isinstance(path, tuple):
-            return pathlib.Path(*path)
-        else:
-            return pathlib.Path(path)
-
-
-class FileArchive(BaseArchive):
-    def __init__(self, root):
-        self.root = root
-
-    def write_text(self, path, content):
-        filepath = pathlib.Path(self.root, self._normalize_path(path))
-        filepath.parent.mkdir(parents=True, exist_ok=True)
-        filepath.write_text(content)
 
 
 def generate_instance_dir(archive, as_, stype, tp, name):

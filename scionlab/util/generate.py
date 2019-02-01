@@ -18,14 +18,13 @@ from scionlab.models import Service, Interface
 import scionlab.util.local_config_util as generator
 
 
-def create_gen(host, host_gen_dir):
+def create_gen(host, archive):
     """
-    Generate the gen folder for the :host: in the :directory:
+    Generate the gen/ folder for the :host: in the given archive-writer
     :param host: Host object
-    :param host_gen_dir: output directory string, as an absolute path to an existing directory
+    :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
-    archive = generator.FileArchive(host_gen_dir)
-    tp, service_name_map = generate_topology_from_DB(host.AS)  # topology file
+    tp, service_name_map = _generate_topology_from_DB(host.AS)  # topology file
     _create_gen(host, archive, tp, service_name_map)
 
 
@@ -71,7 +70,7 @@ def _get_link_overlay_type_str(interface):
         return "UDP/IPv4"
 
 
-def generate_topology_from_DB(as_):
+def _generate_topology_from_DB(as_):
     """
     Generate the topology.conf from the database values
     :param AS as_: AS object
