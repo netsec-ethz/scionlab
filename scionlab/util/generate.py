@@ -39,7 +39,7 @@ def _create_gen(host, archive, tp, service_name_map):
     :return:
     """
     as_ = host.AS
-    for service in host.services.iterator():
+    for service in host.services.exclude(type=Service.ZK).iterator():
         instance_name = service_name_map.get(service)
         if instance_name:
             generator.generate_instance_dir(archive, as_, service.type, tp, instance_name)
@@ -141,19 +141,18 @@ def generate_topology_from_DB(as_):
         if interface.get_bind_ip():
             interface_entry["BindOverlay"] = {
                 "Addr": interface.get_bind_ip(),
-                "L4Port": interface.bind_port
+                "OverlayPort": interface.bind_port or interface.public_port
             }
         router_instance_entry["Interfaces"][interface.interface_id] = interface_entry
 
-    for stype, skey in generator.TYPES_TO_KEYS.items():
+    for stype in [Service.BS, Service.CS, Service.PS]:
         service_enumerator = Service.get_service_type_ids(as_, stype)
         for service_instance_id, service in service_enumerator:
             service_instance_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(),
                                                  service_instance_id)
             service_name_map[service] = service_instance_name
-            if skey not in topo_dict.keys():
-                topo_dict[skey] = {}
-            topo_dict[skey][service_instance_name] = {
+            service_dict = topo_dict.setdefault(generator.TYPES_TO_KEYS[stype], {})
+            service_dict[service_instance_name] = {
                 "Addrs": {
                     address_type: {
                         "Public": {
@@ -163,4 +162,12 @@ def generate_topology_from_DB(as_):
                     }
                 }
             }
+
+    for service_instance_id, service in Service.get_service_type_ids(as_, Service.ZK):
+        zookeeper_dict = topo_dict.setdefault(generator.KEY_ZK, {})
+        zookeeper_dict[str(service_instance_id)] = {
+            "Addr": service.host.internal_ip,
+            "L4Port": service.port
+        }
+
     return topo_dict, service_name_map

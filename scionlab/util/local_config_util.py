@@ -59,12 +59,14 @@ KEY_BR = 'BorderRouters'
 KEY_BS = 'BeaconService'
 KEY_CS = 'CertificateService'
 KEY_PS = 'PathService'
+KEY_ZK = 'ZookeeperService'
 
 TYPES_TO_KEYS = {
     "BR": KEY_BR,
     "BS": KEY_BS,
     "CS": KEY_CS,
     "PS": KEY_PS,
+    "ZK": KEY_ZK,
 }
 
 
@@ -120,7 +122,7 @@ def generate_instance_dir(archive, as_, stype, tp, name):
     """
     elem_dir = _elem_dir(as_, name)
 
-    prom_port = 123456  # TODO(matzf) should be obtained from model
+    prom_port = 31000 + (hash(name) % 1000)  # TODO(matzf) should be obtained from model
     prom_addr = "127.0.0.1:%i" % prom_port
     env = DEFAULT_ENV.copy()
     if stype == 'BR':
@@ -132,7 +134,7 @@ def generate_instance_dir(archive, as_, stype, tp, name):
         cmd = 'bin/path_server -config %s/psconfig.tom' % elem_dir
     else:  # beacon server
         assert stype == 'BS'
-        env.append('PYTHONPATH=python/')
+        env.append('PYTHONPATH=python/:.')
         cmd = ('python/bin/beacon_server --prom {prom} --sciond_path '
                '/run/shm/sciond/default.sock "{instance}" "{elem_dir}"'
                ).format(prom=prom_addr, instance=name, elem_dir=elem_dir)
@@ -259,14 +261,14 @@ def _write_certs_trc(archive, elem_dir, as_):
 
 
 def _write_keys(archive, elem_dir, as_):
-    archive.write_json(get_sig_key_file_path(elem_dir), as_.sig_priv_key)
-    archive.write_json(get_enc_key_file_path(elem_dir), as_.enc_priv_key)
-    archive.write_json(get_master_key_file_path(elem_dir, MASTER_KEY_0), as_.master_as_key)
-    archive.write_json(get_master_key_file_path(elem_dir, MASTER_KEY_1), as_.master_as_key)  # TODO
+    archive.write_text(get_sig_key_file_path(elem_dir), as_.sig_priv_key)
+    archive.write_text(get_enc_key_file_path(elem_dir), as_.enc_priv_key)
+    archive.write_text(get_master_key_file_path(elem_dir, MASTER_KEY_0), as_.master_as_key)
+    archive.write_text(get_master_key_file_path(elem_dir, MASTER_KEY_1), as_.master_as_key)  # TODO
     if as_.is_core:
-        archive.write_json(get_core_sig_key_file_path(elem_dir), as_.core_sig_priv_key)
-        archive.write_json(get_online_key_file_path(elem_dir), as_.core_online_priv_key)
-        archive.write_json(get_offline_key_file_path(elem_dir), as_.core_offline_priv_key)
+        archive.write_text(get_core_sig_key_file_path(elem_dir), as_.core_sig_priv_key)
+        archive.write_text(get_online_key_file_path(elem_dir), as_.core_online_priv_key)
+        archive.write_text(get_offline_key_file_path(elem_dir), as_.core_offline_priv_key)
 
 
 def _write_topo(archive, elem_dir, tp):
