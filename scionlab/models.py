@@ -448,22 +448,22 @@ class UserASManager(models.Manager):
                                                             active=True)
 
             interface_client = Interface.objects.create(
-                host=host,
+                border_router=BorderRouter.objects.first_or_create(host),
                 public_ip=vpn_client.ip,
                 public_port=public_port,
             )
             interface_ap = Interface.objects.create(
-                host=attachment_point.get_host_for_useras_interface(),
+                border_router=attachment_point.get_border_router_for_useras_interface(),
                 public_ip=attachment_point.vpn.server_vpn_ip()
             )
         else:
             interface_client = Interface.objects.create(
-                host=host,
+                border_router=BorderRouter.objects.first_or_create(host),
                 public_port=public_port,
                 bind_port=bind_port
             )
             interface_ap = Interface.objects.create(
-                host=attachment_point.get_host_for_useras_interface(),
+                border_router=attachment_point.get_border_router_for_useras_interface(),
             )
 
         Link.objects.create(
@@ -654,16 +654,17 @@ class AttachmentPoint(models.Model):
     def __str__(self):
         return str(self.AS)
 
-    def get_host_for_useras_interface(self):
+    def get_border_router_for_useras_interface(self):
         """
-        Selects the preferred host on which the Interfaces to UserASes should be configured.
-        :returns: a `Host` of the related `AS`
+        Selects the preferred border router on which the Interfaces to UserASes should be configured.
+        :returns: a `BorderRouter` of the related `AS`
         """
         if self.vpn is not None:
             assert(self.vpn.server.AS == self.AS)
-            return self.vpn.server
+            host = self.vpn.server
         else:
-            return self.AS.hosts.filter(public_ip__isnull=False)[0]
+            host = self.AS.hosts.filter(public_ip__isnull=False)[0]
+        return BorderRouter.objects.first_or_create(host)
 
     def check_vpn_available(self):
         """
@@ -1174,8 +1175,8 @@ class LinkManager(models.Manager):
         :returns: Link
         """
         self._check_link(type, host_a.AS, host_b.AS)
-        br_a = host_a.border_routers.first() or BorderRouter.objects.create(host=host_a)
-        br_b = host_b.border_routers.first() or BorderRouter.objects.create(host=host_b)
+        br_a = BorderRouter.objects.first_or_create(host_a)
+        br_b = BorderRouter.objects.first_or_create(host_b)
         interfaceA = Interface.objects.create(border_router=br_a)
         interfaceB = Interface.objects.create(border_router=br_b)
         return super().create(
@@ -1314,20 +1315,28 @@ class Link(models.Model):
 class BorderRouterManager(models.Manager):
     def create(self, host, internal_port=None, control_port=None):
         """
-        Create a Service object.
+        Create a BorderRouter object.
         :param Host host: the host, defines the AS
         :param int internal_port: optional, port, assigned automatically if not specified
         :param int control_port: optional, port, assigned automatically if not specified
-        :returns: Service
+        :returns: BorderRouter
         """
         host.AS.hosts.bump_config()
         return super().create(
             AS=host.AS,
             host=host,
-            type=type,
             internal_port=internal_port or BorderRouter._find_port(host),
             control_port=control_port or BorderRouter._find_port(host)
         )
+
+
+    def first_or_create(self, host):
+        """
+        Get the first border router related to this host, or create a new one with default settings.
+        :param Host host: the host, defines the AS
+        :returns: BorderRouter
+        """
+        return host.border_routers.first() or self.create(host=host)
 
 
 class BorderRouter(models.Model):

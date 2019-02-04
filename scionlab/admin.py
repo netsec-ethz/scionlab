@@ -27,6 +27,7 @@ from scionlab.models import (
     Host,
     Interface,
     Link,
+    BorderRouter,
     Service,
     VPN,
     VPNClient,
@@ -232,6 +233,44 @@ class ServiceInline(admin.TabularInline):
         return None
 
 
+class BorderRouterAdminForm(_CreateUpdateModelForm):
+    def create(self):
+        return BorderRouter.objects.create(
+            host=self.cleaned_data['host'],
+            internal_port=self.cleaned_data['internal_port'],
+            control_port=self.cleaned_data['control_port']
+        )
+
+    def update(self):
+        self.instance.update(
+            host=self.cleaned_data['host'],
+            internal_port=self.cleaned_data['internal_port'],
+            control_port=self.cleaned_data['control_port']
+        )
+
+
+class BorderRouterInline(admin.TabularInline):
+    model = BorderRouter
+    extra = 0
+    form = ServiceAdminForm
+    fields = ('host', 'internal_port', 'control_port')
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "host":
+            as_ = self.get_parent_object_from_request(request)
+            kwargs["queryset"] = as_.hosts.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_parent_object_from_request(self, request):
+        """
+        Returns the parent object from the request or None.
+        """
+        resolved = resolve(request.path_info)
+        if 'object_id' in resolved.kwargs:
+            return self.parent_model.objects.get(pk=resolved.kwargs['object_id'])
+        return None
+
+
 class InterfaceInline(admin.TabularInline):
     """
     Inline to show the interface and the associated link in the AS change page.
@@ -245,7 +284,7 @@ class InterfaceInline(admin.TabularInline):
 
     model = Interface
     extra = 0
-    fields = ('link', 'interface_id', 'host', 'internal_port', 'public_ip_', 'public_port',
+    fields = ('link', 'interface_id', 'host', 'border_router', 'public_ip_', 'public_port',
               'bind_ip_', 'bind_port', 'type', 'active', )
     readonly_fields = ('link', 'active', 'type', 'public_ip_', 'bind_ip_')
 
@@ -306,7 +345,7 @@ class ASCreationForm(_CreateUpdateModelForm):
 @admin.register(AS, UserAS)
 class ASAdmin(admin.ModelAdmin):
 
-    inlines = [InterfaceInline, ServiceInline, HostInline]
+    inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
     actions = ['update_keys']
     list_display = ('isd_as_str', 'label', 'is_core', 'is_ap', 'is_userAS')
     list_filter = ('isd', 'is_core',)
@@ -465,14 +504,12 @@ class LinkAdminForm(_CreateUpdateModelForm):
     from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     from_bind_ip = forms.GenericIPAddressField(required=False)
     from_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
-    from_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     to_host = forms.ModelChoiceField(queryset=Host.objects.all())
     to_public_ip = forms.GenericIPAddressField(required=False)
     to_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     to_bind_ip = forms.GenericIPAddressField(required=False)
     to_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
-    to_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     def __init__(self, data=None, files=None, initial=None, instance=None, **kwargs):
         initial = initial or {}
@@ -494,19 +531,17 @@ class LinkAdminForm(_CreateUpdateModelForm):
         initial[prefix+'public_port'] = interface.public_port
         initial[prefix+'bind_ip'] = interface.bind_ip
         initial[prefix+'bind_port'] = interface.bind_port
-        initial[prefix+'internal_port'] = interface.internal_port
 
     def _init_default_form_data(self, initial, prefix):
         pass
 
     def _get_interface_form_data(self, prefix):
         return dict(
-            host=self.cleaned_data[prefix+'host'],
+            border_router=BorderRouter.objects.first_or_create(self.cleaned_data[prefix+'host']),
             public_ip=self.cleaned_data[prefix+'public_ip'],
             public_port=self.cleaned_data[prefix+'public_port'],
             bind_ip=self.cleaned_data[prefix+'bind_ip'],
             bind_port=self.cleaned_data[prefix+'bind_port'],
-            internal_port=self.cleaned_data[prefix+'internal_port'],
         )
 
     def create(self):

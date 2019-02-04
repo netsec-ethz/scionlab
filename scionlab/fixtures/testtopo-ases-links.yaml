@@ -188,213 +188,213 @@
   pk: 1
   fields: {AS: 1, internal_ip: 127.0.0.1, public_ip: 192.0.2.11, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: 5a2W0_NrlEZzfqmk_7Pq-w==,
-    config_version: 8, config_version_deployed: 0}
+    config_version: 9, config_version_deployed: 0}
 - model: scionlab.host
   pk: 2
   fields: {AS: 2, internal_ip: 127.0.0.1, public_ip: 192.0.2.12, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: OBKlTVlvLg-AdwqYGbP8ZA==,
-    config_version: 7, config_version_deployed: 0}
+    config_version: 8, config_version_deployed: 0}
 - model: scionlab.host
   pk: 3
   fields: {AS: 3, internal_ip: 127.0.0.1, public_ip: 192.0.2.13, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: atSmFACYMbJVKD05o3JgtQ==,
-    config_version: 7, config_version_deployed: 0}
+    config_version: 8, config_version_deployed: 0}
 - model: scionlab.host
   pk: 4
   fields: {AS: 4, internal_ip: 127.0.0.1, public_ip: 192.0.2.17, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: R7D6Lhl52uxloBQFRulzzA==,
-    config_version: 6, config_version_deployed: 0}
+    config_version: 7, config_version_deployed: 0}
 - model: scionlab.host
   pk: 5
   fields: {AS: 5, internal_ip: 127.0.0.1, public_ip: 192.0.2.31, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: c8CtMx5_ZUE1pAr_8sw3nw==,
-    config_version: 9, config_version_deployed: 0}
+    config_version: 10, config_version_deployed: 0}
 - model: scionlab.host
   pk: 6
   fields: {AS: 6, internal_ip: 127.0.0.1, public_ip: 192.0.2.32, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: Js_8WmkJnHdidQwZeMcmBQ==,
-    config_version: 7, config_version_deployed: 0}
+    config_version: 8, config_version_deployed: 0}
 - model: scionlab.host
   pk: 7
   fields: {AS: 7, internal_ip: 127.0.0.1, public_ip: 192.0.2.33, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: kuA3OhfG0eLjoMeAsoZrgQ==,
-    config_version: 7, config_version_deployed: 0}
+    config_version: 8, config_version_deployed: 0}
 - model: scionlab.host
   pk: 8
   fields: {AS: 8, internal_ip: 127.0.0.1, public_ip: 192.0.2.34, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: 9UIhB_c1XFV59UpL7-D1jQ==,
-    config_version: 7, config_version_deployed: 0}
+    config_version: 8, config_version_deployed: 0}
 - model: scionlab.host
   pk: 9
   fields: {AS: 9, internal_ip: 127.0.0.1, public_ip: 192.0.2.35, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: jpuwJ8uzcu1mL8Rrbiw_9Q==,
-    config_version: 7, config_version_deployed: 0}
+    config_version: 8, config_version_deployed: 0}
 - model: scionlab.host
   pk: 10
   fields: {AS: 10, internal_ip: 127.0.0.1, public_ip: 192.0.2.41, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: Ch2eAP9F36OzSrrmOiTAkg==,
-    config_version: 8, config_version_deployed: 0}
+    config_version: 9, config_version_deployed: 0}
 - model: scionlab.host
   pk: 11
   fields: {AS: 11, internal_ip: 127.0.0.1, public_ip: 192.0.2.42, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: -n51cB4VFD0Z08MnaeLrNg==,
-    config_version: 8, config_version_deployed: 0}
+    config_version: 9, config_version_deployed: 0}
 - model: scionlab.host
   pk: 12
   fields: {AS: 12, internal_ip: 127.0.0.1, public_ip: 192.0.2.43, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: tIupSDi91OY9EIROrFM7Xw==,
-    config_version: 8, config_version_deployed: 0}
+    config_version: 9, config_version_deployed: 0}
 - model: scionlab.host
   pk: 13
   fields: {AS: 13, internal_ip: 127.0.0.1, public_ip: 192.0.2.44, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: QiOaZrQw0lHJSmLxDzUJUA==,
-    config_version: 7, config_version_deployed: 0}
+    config_version: 8, config_version_deployed: 0}
 - model: scionlab.host
   pk: 14
   fields: {AS: 14, internal_ip: 127.0.0.1, public_ip: 192.0.2.45, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: aPRjKwCAI5_eqYPXu7MlFA==,
-    config_version: 7, config_version_deployed: 0}
+    config_version: 8, config_version_deployed: 0}
 - model: scionlab.host
   pk: 15
   fields: {AS: 15, internal_ip: 127.0.0.1, public_ip: 192.0.2.46, bind_ip: null, label: null,
     managed: false, management_ip: null, ssh_port: 22, secret: rwl0ZbgeZ1h-DQVFvf4IQQ==,
-    config_version: 6, config_version_deployed: 0}
+    config_version: 7, config_version_deployed: 0}
 - model: scionlab.interface
   pk: 1
-  fields: {AS: 1, interface_id: 1, host: 1, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 1, interface_id: 1, host: 1, border_router: 1, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 2
-  fields: {AS: 3, interface_id: 1, host: 3, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 3, interface_id: 1, host: 3, border_router: 2, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 3
-  fields: {AS: 3, interface_id: 2, host: 3, public_ip: null, public_port: 50001, bind_ip: null,
-    bind_port: null, internal_port: 30004}
+  fields: {AS: 3, interface_id: 2, host: 3, border_router: 2, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 4
-  fields: {AS: 2, interface_id: 1, host: 2, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 2, interface_id: 1, host: 2, border_router: 3, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 5
-  fields: {AS: 2, interface_id: 2, host: 2, public_ip: null, public_port: 50001, bind_ip: null,
-    bind_port: null, internal_port: 30004}
+  fields: {AS: 2, interface_id: 2, host: 2, border_router: 3, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 6
-  fields: {AS: 4, interface_id: 1, host: 4, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 4, interface_id: 1, host: 4, border_router: 4, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 7
-  fields: {AS: 5, interface_id: 1, host: 5, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 5, interface_id: 1, host: 5, border_router: 5, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 8
-  fields: {AS: 6, interface_id: 1, host: 6, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 6, interface_id: 1, host: 6, border_router: 6, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 9
-  fields: {AS: 5, interface_id: 2, host: 5, public_ip: null, public_port: 50001, bind_ip: null,
-    bind_port: null, internal_port: 30004}
+  fields: {AS: 5, interface_id: 2, host: 5, border_router: 5, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 10
-  fields: {AS: 7, interface_id: 1, host: 7, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 7, interface_id: 1, host: 7, border_router: 7, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 11
-  fields: {AS: 5, interface_id: 3, host: 5, public_ip: null, public_port: 50002, bind_ip: null,
-    bind_port: null, internal_port: 30005}
+  fields: {AS: 5, interface_id: 3, host: 5, border_router: 5, public_ip: null, public_port: 50002,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 12
-  fields: {AS: 8, interface_id: 1, host: 8, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 8, interface_id: 1, host: 8, border_router: 8, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 13
-  fields: {AS: 7, interface_id: 2, host: 7, public_ip: null, public_port: 50001, bind_ip: null,
-    bind_port: null, internal_port: 30004}
+  fields: {AS: 7, interface_id: 2, host: 7, border_router: 7, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 14
-  fields: {AS: 9, interface_id: 1, host: 9, public_ip: null, public_port: 50000, bind_ip: null,
-    bind_port: null, internal_port: 30003}
+  fields: {AS: 9, interface_id: 1, host: 9, border_router: 9, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 15
-  fields: {AS: 8, interface_id: 2, host: 8, public_ip: null, public_port: 50001, bind_ip: null,
-    bind_port: null, internal_port: 30004}
+  fields: {AS: 8, interface_id: 2, host: 8, border_router: 8, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 16
-  fields: {AS: 9, interface_id: 2, host: 9, public_ip: null, public_port: 50001, bind_ip: null,
-    bind_port: null, internal_port: 30004}
+  fields: {AS: 9, interface_id: 2, host: 9, border_router: 9, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 17
-  fields: {AS: 1, interface_id: 2, host: 1, public_ip: null, public_port: 50001, bind_ip: null,
-    bind_port: null, internal_port: 30004}
+  fields: {AS: 1, interface_id: 2, host: 1, border_router: 1, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 18
-  fields: {AS: 5, interface_id: 4, host: 5, public_ip: null, public_port: 50003, bind_ip: null,
-    bind_port: null, internal_port: 30006}
+  fields: {AS: 5, interface_id: 4, host: 5, border_router: 5, public_ip: null, public_port: 50003,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 19
-  fields: {AS: 1, interface_id: 3, host: 1, public_ip: null, public_port: 50002, bind_ip: null,
-    bind_port: null, internal_port: 30005}
+  fields: {AS: 1, interface_id: 3, host: 1, border_router: 1, public_ip: null, public_port: 50002,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 20
-  fields: {AS: 6, interface_id: 2, host: 6, public_ip: null, public_port: 50001, bind_ip: null,
-    bind_port: null, internal_port: 30004}
+  fields: {AS: 6, interface_id: 2, host: 6, border_router: 6, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 21
-  fields: {AS: 10, interface_id: 1, host: 10, public_ip: null, public_port: 50000,
-    bind_ip: null, bind_port: null, internal_port: 30003}
+  fields: {AS: 10, interface_id: 1, host: 10, border_router: 10, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 22
-  fields: {AS: 11, interface_id: 1, host: 11, public_ip: null, public_port: 50000,
-    bind_ip: null, bind_port: null, internal_port: 30003}
+  fields: {AS: 11, interface_id: 1, host: 11, border_router: 11, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 23
-  fields: {AS: 10, interface_id: 2, host: 10, public_ip: null, public_port: 50001,
-    bind_ip: null, bind_port: null, internal_port: 30004}
+  fields: {AS: 10, interface_id: 2, host: 10, border_router: 10, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 24
-  fields: {AS: 12, interface_id: 1, host: 12, public_ip: null, public_port: 50000,
-    bind_ip: null, bind_port: null, internal_port: 30003}
+  fields: {AS: 12, interface_id: 1, host: 12, border_router: 12, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 25
-  fields: {AS: 11, interface_id: 2, host: 11, public_ip: null, public_port: 50001,
-    bind_ip: null, bind_port: null, internal_port: 30004}
+  fields: {AS: 11, interface_id: 2, host: 11, border_router: 11, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 26
-  fields: {AS: 12, interface_id: 2, host: 12, public_ip: null, public_port: 50001,
-    bind_ip: null, bind_port: null, internal_port: 30004}
+  fields: {AS: 12, interface_id: 2, host: 12, border_router: 12, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 27
-  fields: {AS: 12, interface_id: 3, host: 12, public_ip: null, public_port: 50002,
-    bind_ip: null, bind_port: null, internal_port: 30005}
+  fields: {AS: 12, interface_id: 3, host: 12, border_router: 12, public_ip: null,
+    public_port: 50002, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 28
-  fields: {AS: 13, interface_id: 1, host: 13, public_ip: null, public_port: 50000,
-    bind_ip: null, bind_port: null, internal_port: 30003}
+  fields: {AS: 13, interface_id: 1, host: 13, border_router: 13, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 29
-  fields: {AS: 10, interface_id: 3, host: 10, public_ip: null, public_port: 50002,
-    bind_ip: null, bind_port: null, internal_port: 30005}
+  fields: {AS: 10, interface_id: 3, host: 10, border_router: 10, public_ip: null,
+    public_port: 50002, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 30
-  fields: {AS: 14, interface_id: 1, host: 14, public_ip: null, public_port: 50000,
-    bind_ip: null, bind_port: null, internal_port: 30003}
+  fields: {AS: 14, interface_id: 1, host: 14, border_router: 14, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 31
-  fields: {AS: 11, interface_id: 3, host: 11, public_ip: null, public_port: 50002,
-    bind_ip: null, bind_port: null, internal_port: 30005}
+  fields: {AS: 11, interface_id: 3, host: 11, border_router: 11, public_ip: null,
+    public_port: 50002, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 32
-  fields: {AS: 14, interface_id: 2, host: 14, public_ip: null, public_port: 50001,
-    bind_ip: null, bind_port: null, internal_port: 30004}
+  fields: {AS: 14, interface_id: 2, host: 14, border_router: 14, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 33
-  fields: {AS: 13, interface_id: 2, host: 13, public_ip: null, public_port: 50001,
-    bind_ip: null, bind_port: null, internal_port: 30004}
+  fields: {AS: 13, interface_id: 2, host: 13, border_router: 13, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
 - model: scionlab.interface
   pk: 34
-  fields: {AS: 15, interface_id: 1, host: 15, public_ip: null, public_port: 50000,
-    bind_ip: null, bind_port: null, internal_port: 30003}
+  fields: {AS: 15, interface_id: 1, host: 15, border_router: 15, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
 - model: scionlab.link
   pk: 1
   fields: {interfaceA: 1, interfaceB: 2, type: PROVIDER, active: true, bandwidth: 1000,
@@ -463,183 +463,228 @@
   pk: 17
   fields: {interfaceA: 33, interfaceB: 34, type: PROVIDER, active: true, bandwidth: 1000,
     mtu: 1472}
+- model: scionlab.borderrouter
+  pk: 1
+  fields: {AS: 1, host: 1, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 2
+  fields: {AS: 3, host: 3, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 3
+  fields: {AS: 2, host: 2, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 4
+  fields: {AS: 4, host: 4, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 5
+  fields: {AS: 5, host: 5, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 6
+  fields: {AS: 6, host: 6, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 7
+  fields: {AS: 7, host: 7, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 8
+  fields: {AS: 8, host: 8, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 9
+  fields: {AS: 9, host: 9, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 10
+  fields: {AS: 10, host: 10, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 11
+  fields: {AS: 11, host: 11, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 12
+  fields: {AS: 12, host: 12, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 13
+  fields: {AS: 13, host: 13, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 14
+  fields: {AS: 14, host: 14, internal_port: 30003, control_port: 30003}
+- model: scionlab.borderrouter
+  pk: 15
+  fields: {AS: 15, host: 15, internal_port: 30003, control_port: 30003}
 - model: scionlab.service
   pk: 1
-  fields: {AS: 1, host: 1, port: 30000, type: BS}
+  fields: {AS: 1, host: 1, port: 30000, type: ''}
 - model: scionlab.service
   pk: 2
-  fields: {AS: 1, host: 1, port: 30001, type: PS}
+  fields: {AS: 1, host: 1, port: 30001, type: ''}
 - model: scionlab.service
   pk: 3
-  fields: {AS: 1, host: 1, port: 30002, type: CS}
+  fields: {AS: 1, host: 1, port: 30002, type: ''}
 - model: scionlab.service
   pk: 4
-  fields: {AS: 1, host: 1, port: 2181, type: ZK}
+  fields: {AS: 1, host: 1, port: 2181, type: ''}
 - model: scionlab.service
   pk: 5
-  fields: {AS: 2, host: 2, port: 30000, type: BS}
+  fields: {AS: 2, host: 2, port: 30000, type: ''}
 - model: scionlab.service
   pk: 6
-  fields: {AS: 2, host: 2, port: 30001, type: PS}
+  fields: {AS: 2, host: 2, port: 30001, type: ''}
 - model: scionlab.service
   pk: 7
-  fields: {AS: 2, host: 2, port: 30002, type: CS}
+  fields: {AS: 2, host: 2, port: 30002, type: ''}
 - model: scionlab.service
   pk: 8
-  fields: {AS: 2, host: 2, port: 2181, type: ZK}
+  fields: {AS: 2, host: 2, port: 2181, type: ''}
 - model: scionlab.service
   pk: 9
-  fields: {AS: 3, host: 3, port: 30000, type: BS}
+  fields: {AS: 3, host: 3, port: 30000, type: ''}
 - model: scionlab.service
   pk: 10
-  fields: {AS: 3, host: 3, port: 30001, type: PS}
+  fields: {AS: 3, host: 3, port: 30001, type: ''}
 - model: scionlab.service
   pk: 11
-  fields: {AS: 3, host: 3, port: 30002, type: CS}
+  fields: {AS: 3, host: 3, port: 30002, type: ''}
 - model: scionlab.service
   pk: 12
-  fields: {AS: 3, host: 3, port: 2181, type: ZK}
+  fields: {AS: 3, host: 3, port: 2181, type: ''}
 - model: scionlab.service
   pk: 13
-  fields: {AS: 4, host: 4, port: 30000, type: BS}
+  fields: {AS: 4, host: 4, port: 30000, type: ''}
 - model: scionlab.service
   pk: 14
-  fields: {AS: 4, host: 4, port: 30001, type: PS}
+  fields: {AS: 4, host: 4, port: 30001, type: ''}
 - model: scionlab.service
   pk: 15
-  fields: {AS: 4, host: 4, port: 30002, type: CS}
+  fields: {AS: 4, host: 4, port: 30002, type: ''}
 - model: scionlab.service
   pk: 16
-  fields: {AS: 4, host: 4, port: 2181, type: ZK}
+  fields: {AS: 4, host: 4, port: 2181, type: ''}
 - model: scionlab.service
   pk: 17
-  fields: {AS: 5, host: 5, port: 30000, type: BS}
+  fields: {AS: 5, host: 5, port: 30000, type: ''}
 - model: scionlab.service
   pk: 18
-  fields: {AS: 5, host: 5, port: 30001, type: PS}
+  fields: {AS: 5, host: 5, port: 30001, type: ''}
 - model: scionlab.service
   pk: 19
-  fields: {AS: 5, host: 5, port: 30002, type: CS}
+  fields: {AS: 5, host: 5, port: 30002, type: ''}
 - model: scionlab.service
   pk: 20
-  fields: {AS: 5, host: 5, port: 2181, type: ZK}
+  fields: {AS: 5, host: 5, port: 2181, type: ''}
 - model: scionlab.service
   pk: 21
-  fields: {AS: 6, host: 6, port: 30000, type: BS}
+  fields: {AS: 6, host: 6, port: 30000, type: ''}
 - model: scionlab.service
   pk: 22
-  fields: {AS: 6, host: 6, port: 30001, type: PS}
+  fields: {AS: 6, host: 6, port: 30001, type: ''}
 - model: scionlab.service
   pk: 23
-  fields: {AS: 6, host: 6, port: 30002, type: CS}
+  fields: {AS: 6, host: 6, port: 30002, type: ''}
 - model: scionlab.service
   pk: 24
-  fields: {AS: 6, host: 6, port: 2181, type: ZK}
+  fields: {AS: 6, host: 6, port: 2181, type: ''}
 - model: scionlab.service
   pk: 25
-  fields: {AS: 7, host: 7, port: 30000, type: BS}
+  fields: {AS: 7, host: 7, port: 30000, type: ''}
 - model: scionlab.service
   pk: 26
-  fields: {AS: 7, host: 7, port: 30001, type: PS}
+  fields: {AS: 7, host: 7, port: 30001, type: ''}
 - model: scionlab.service
   pk: 27
-  fields: {AS: 7, host: 7, port: 30002, type: CS}
+  fields: {AS: 7, host: 7, port: 30002, type: ''}
 - model: scionlab.service
   pk: 28
-  fields: {AS: 7, host: 7, port: 2181, type: ZK}
+  fields: {AS: 7, host: 7, port: 2181, type: ''}
 - model: scionlab.service
   pk: 29
-  fields: {AS: 8, host: 8, port: 30000, type: BS}
+  fields: {AS: 8, host: 8, port: 30000, type: ''}
 - model: scionlab.service
   pk: 30
-  fields: {AS: 8, host: 8, port: 30001, type: PS}
+  fields: {AS: 8, host: 8, port: 30001, type: ''}
 - model: scionlab.service
   pk: 31
-  fields: {AS: 8, host: 8, port: 30002, type: CS}
+  fields: {AS: 8, host: 8, port: 30002, type: ''}
 - model: scionlab.service
   pk: 32
-  fields: {AS: 8, host: 8, port: 2181, type: ZK}
+  fields: {AS: 8, host: 8, port: 2181, type: ''}
 - model: scionlab.service
   pk: 33
-  fields: {AS: 9, host: 9, port: 30000, type: BS}
+  fields: {AS: 9, host: 9, port: 30000, type: ''}
 - model: scionlab.service
   pk: 34
-  fields: {AS: 9, host: 9, port: 30001, type: PS}
+  fields: {AS: 9, host: 9, port: 30001, type: ''}
 - model: scionlab.service
   pk: 35
-  fields: {AS: 9, host: 9, port: 30002, type: CS}
+  fields: {AS: 9, host: 9, port: 30002, type: ''}
 - model: scionlab.service
   pk: 36
-  fields: {AS: 9, host: 9, port: 2181, type: ZK}
+  fields: {AS: 9, host: 9, port: 2181, type: ''}
 - model: scionlab.service
   pk: 37
-  fields: {AS: 10, host: 10, port: 30000, type: BS}
+  fields: {AS: 10, host: 10, port: 30000, type: ''}
 - model: scionlab.service
   pk: 38
-  fields: {AS: 10, host: 10, port: 30001, type: PS}
+  fields: {AS: 10, host: 10, port: 30001, type: ''}
 - model: scionlab.service
   pk: 39
-  fields: {AS: 10, host: 10, port: 30002, type: CS}
+  fields: {AS: 10, host: 10, port: 30002, type: ''}
 - model: scionlab.service
   pk: 40
-  fields: {AS: 10, host: 10, port: 2181, type: ZK}
+  fields: {AS: 10, host: 10, port: 2181, type: ''}
 - model: scionlab.service
   pk: 41
-  fields: {AS: 11, host: 11, port: 30000, type: BS}
+  fields: {AS: 11, host: 11, port: 30000, type: ''}
 - model: scionlab.service
   pk: 42
-  fields: {AS: 11, host: 11, port: 30001, type: PS}
+  fields: {AS: 11, host: 11, port: 30001, type: ''}
 - model: scionlab.service
   pk: 43
-  fields: {AS: 11, host: 11, port: 30002, type: CS}
+  fields: {AS: 11, host: 11, port: 30002, type: ''}
 - model: scionlab.service
   pk: 44
-  fields: {AS: 11, host: 11, port: 2181, type: ZK}
+  fields: {AS: 11, host: 11, port: 2181, type: ''}
 - model: scionlab.service
   pk: 45
-  fields: {AS: 12, host: 12, port: 30000, type: BS}
+  fields: {AS: 12, host: 12, port: 30000, type: ''}
 - model: scionlab.service
   pk: 46
-  fields: {AS: 12, host: 12, port: 30001, type: PS}
+  fields: {AS: 12, host: 12, port: 30001, type: ''}
 - model: scionlab.service
   pk: 47
-  fields: {AS: 12, host: 12, port: 30002, type: CS}
+  fields: {AS: 12, host: 12, port: 30002, type: ''}
 - model: scionlab.service
   pk: 48
-  fields: {AS: 12, host: 12, port: 2181, type: ZK}
+  fields: {AS: 12, host: 12, port: 2181, type: ''}
 - model: scionlab.service
   pk: 49
-  fields: {AS: 13, host: 13, port: 30000, type: BS}
+  fields: {AS: 13, host: 13, port: 30000, type: ''}
 - model: scionlab.service
   pk: 50
-  fields: {AS: 13, host: 13, port: 30001, type: PS}
+  fields: {AS: 13, host: 13, port: 30001, type: ''}
 - model: scionlab.service
   pk: 51
-  fields: {AS: 13, host: 13, port: 30002, type: CS}
+  fields: {AS: 13, host: 13, port: 30002, type: ''}
 - model: scionlab.service
   pk: 52
-  fields: {AS: 13, host: 13, port: 2181, type: ZK}
+  fields: {AS: 13, host: 13, port: 2181, type: ''}
 - model: scionlab.service
   pk: 53
-  fields: {AS: 14, host: 14, port: 30000, type: BS}
+  fields: {AS: 14, host: 14, port: 30000, type: ''}
 - model: scionlab.service
   pk: 54
-  fields: {AS: 14, host: 14, port: 30001, type: PS}
+  fields: {AS: 14, host: 14, port: 30001, type: ''}
 - model: scionlab.service
   pk: 55
-  fields: {AS: 14, host: 14, port: 30002, type: CS}
+  fields: {AS: 14, host: 14, port: 30002, type: ''}
 - model: scionlab.service
   pk: 56
-  fields: {AS: 14, host: 14, port: 2181, type: ZK}
+  fields: {AS: 14, host: 14, port: 2181, type: ''}
 - model: scionlab.service
   pk: 57
-  fields: {AS: 15, host: 15, port: 30000, type: BS}
+  fields: {AS: 15, host: 15, port: 30000, type: ''}
 - model: scionlab.service
   pk: 58
-  fields: {AS: 15, host: 15, port: 30001, type: PS}
+  fields: {AS: 15, host: 15, port: 30001, type: ''}
 - model: scionlab.service
   pk: 59
-  fields: {AS: 15, host: 15, port: 30002, type: CS}
+  fields: {AS: 15, host: 15, port: 30002, type: ''}
 - model: scionlab.service
   pk: 60
-  fields: {AS: 15, host: 15, port: 2181, type: ZK}
+  fields: {AS: 15, host: 15, port: 2181, type: ''}
