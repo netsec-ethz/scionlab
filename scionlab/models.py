@@ -571,7 +571,6 @@ class UserAS(AS):
                 host=attachment_point.get_host_for_useras_interface(),
                 public_ip=attachment_point.vpn.server_vpn_ip(),
                 public_port=None,
-                internal_port=None
             )
         else:
             host.vpn_clients.update(active=False)   # deactivate all vpn clients
@@ -585,7 +584,6 @@ class UserAS(AS):
                 host=attachment_point.get_host_for_useras_interface(),
                 public_ip=None,
                 public_port=None,
-                internal_port=None
             )
 
         self.attachment_point = attachment_point
@@ -856,8 +854,10 @@ class Host(models.Model):
         if ip == self.bind_ip:
             ports |= _value_set(self.interfaces.filter(bind_ip=None), 'public_port')
         if ip == self.internal_ip:
+            ports |= _value_set(self.border_routers, 'internal_port')
+            ports |= _value_set(self.border_routers, 'control_port')  # TODO(matzf) merge query
             ports |= _value_set(self.services, 'port')
-            ports |= _value_set(self.interfaces, 'internal_port')
+            # TODO(matzf) make sure that we don't assign to ports used e.g. by prometheus
         return ports
 
     @staticmethod
@@ -867,38 +867,37 @@ class Host(models.Model):
 
 class InterfaceManager(models.Manager):
     def create(self,
-               host,
+               border_router,
                public_ip=None,
                public_port=None,
                bind_ip=None,
-               bind_port=None,
-               internal_port=None):
+               bind_port=None):
         """
         Create an Interface
-        :param Host host: The host on which this Interface should be configured. Defines the AS.
+        :param BorderRouter border_router: The border router process running responsible for this
+                                           interface. Defines the AS and the host.
         :param str public_ip: optional, the public IP for this interface to override host.public_ip
         :param int public_port: optional, a free port is selected if not specified
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, a free port is selected if bind IP set and not specified
-        :param int internal_port: optional, a free port is selected if not specified
         """
+        host = border_router.host
         as_ = host.AS
         ifid = as_.find_interface_id()
         public_port = public_port or Interface._find_public_port(host, public_ip)
         if bind_port is None and Interface._has_bind_ip(host, public_ip, bind_ip):
             bind_port = Interface._find_bind_port(host, bind_ip)
-        internal_port = internal_port or Interface._find_internal_port(host)
         as_.hosts.bump_config()
 
         return super().create(
             AS=as_,
             interface_id=ifid,
             host=host,
+            border_router=border_router,
             public_ip=public_ip,
             public_port=public_port,
             bind_ip=bind_ip,
             bind_port=bind_port,
-            internal_port=internal_port
         )
 
     def active(self):
@@ -921,6 +920,11 @@ class Interface(models.Model):
         related_name='interfaces',
         on_delete=models.CASCADE,
     )
+    border_router = models.ForeignKey(
+        'BorderRouter',
+        related_name='interfaces',
+        on_delete=models.CASCADE,
+    )
     public_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
@@ -934,7 +938,6 @@ class Interface(models.Model):
         help_text="""Bind IP for this interface (optional). If `public_ip` (!) is not null, this
             overrides the Host's default bind IP.""")
     bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
-    internal_port = models.PositiveSmallIntegerField()
 
     objects = InterfaceManager()
 
@@ -961,24 +964,21 @@ class Interface(models.Model):
         super().save(**kwargs)
 
     def update(self,
-               host=_placeholder,
+               border_router=_placeholder,
                public_ip=_placeholder,
                public_port=_placeholder,
                bind_ip=_placeholder,
-               bind_port=_placeholder,
-               internal_port=_placeholder):
+               bind_port=_placeholder):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
-        :param Host host: optional, defines the AS.
+        :param BorderRouter border_router: optional, defines the Host and the AS.
         :param str public_ip: optional, the public IP for this interface to override host.public_ip
         :param int public_port: optional, a free port is selected if `None` is passed and either
                                 `host` or `public_ip` are changed.
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, if bind IP is set, a free port is selected if `None` is
                               passed and either `host` or `bind_ip` are changed
-        :param int internal_port: optional, a free port is selected if `None` is passed and
-                                  `host` is changed
         """
         prev_host = self.host
         prev_public_ip = self.get_public_ip()
@@ -986,15 +986,8 @@ class Interface(models.Model):
         prev_public_info = self._get_public_info()
         prev_local_info = self._get_local_info()
 
-        if host is not _placeholder:
-            old_as = self.AS
-            new_as = host.AS
-            if new_as != old_as:
-                ifid = new_as.find_interface_id()   # before setting AS-relation
-                self.AS = new_as
-                self.interface_id = ifid
-                old_as.hosts.bump_config()
-            self.host = host
+        self._update_as_host_router(border_router)
+
         if public_ip is not _placeholder:
             self.public_ip = public_ip or None
         if bind_ip is not _placeholder:
@@ -1012,12 +1005,6 @@ class Interface(models.Model):
             elif self.host != prev_host or self.get_bind_ip() != prev_bind_ip:
                 self._assign_bind_port()
 
-        if internal_port is not _placeholder:
-            if internal_port is not None:
-                self.internal_port = internal_port
-            elif internal_port is None or self.host != prev_host:
-                self._assign_internal_port()
-
         self.save()
 
         diff_public = self._get_public_info() != prev_public_info
@@ -1029,6 +1016,20 @@ class Interface(models.Model):
             # if the ASes of both interfaces of a link are changed, this can be either old
             # or new AS, depending on order. Redundant but correct.
             self.remote_as().hosts.bump_config()
+
+    def _update_as_host_router(self, border_router):
+        """ Helper: set AS, host and border_router, bump hosts in old AS if AS is changed. """
+        if border_router is not _placeholder:
+            host = border_router.host
+            old_as = self.AS
+            new_as = host.AS
+            if new_as != old_as:
+                ifid = new_as.find_interface_id()   # before setting AS-relation
+                self.AS = new_as
+                self.interface_id = ifid
+                old_as.hosts.bump_config()
+            self.host = host
+            self.border_router = border_router
 
     def get_public_ip(self):
         """ Get the effective public IP for this interface """
@@ -1082,18 +1083,6 @@ class Interface(models.Model):
         # FIXME(matzf): naive queries
         return self.remote_interface().AS
 
-    @classmethod
-    def get_interface_router_instance_ids(cls, as_):
-        """
-        Get the service instance identifier for the router of the interfaces of the AS
-        :return: str _: the list of Interfaces and their router instance id
-        """
-        # Get instance id from DB id order:
-        AS_interfaces = Interface.objects.filter(AS=as_).order_by("id")
-        AS_interface_ids = enumerate(AS_interfaces, start=0)
-        return [((interface_no // DEFAULT_MAX_ROUTER_INTERFACES) + 1, interface)
-                for interface_no, interface in AS_interface_ids]
-
     def _assign_public_port(self):
         """
         Helper for update: find and assign a free public port
@@ -1108,12 +1097,6 @@ class Interface(models.Model):
             self.bind_port = self._find_bind_port(self.host, self.bind_ip)
         else:
             self.bind_port = None
-
-    def _assign_internal_port(self):
-        """
-        Helper for update: find and assign a free internal port
-        """
-        self.internal_port = self._find_internal_port(self.host)
 
     @staticmethod
     def _find_public_port(host, public_ip):
@@ -1135,14 +1118,6 @@ class Interface(models.Model):
         return host.find_free_port(bind_ip or host.bind_ip, min=DEFAULT_PUBLIC_PORT)
 
     @staticmethod
-    def _find_internal_port(host):
-        """
-        Helper to find a free internal port.
-        :param Host host:
-        """
-        return host.find_free_port(host.internal_ip, min=DEFAULT_INTERNAL_PORT)
-
-    @staticmethod
     def _has_bind_ip(host, public_ip, bind_ip):
         """
         Helper to determine whether `get_bind_ip` will be non-null.
@@ -1154,14 +1129,14 @@ class Interface(models.Model):
         Helper for update: return the information that when changed triggers an update
         of both the remote and the local AS.
         """
-        return [self.host.AS, self.get_public_ip(), self.public_port]
+        return [self.AS, self.get_public_ip(), self.public_port]
 
     def _get_local_info(self):
         """
         Helper for update: return the information that when changed triggers an update
         of only the local AS.
         """
-        return [self.get_bind_ip(), self.bind_port, self.host.internal_ip, self.internal_port]
+        return [self.border_router, self.get_bind_ip(), self.bind_port]
 
 
 class LinkManager(models.Manager):
@@ -1199,8 +1174,10 @@ class LinkManager(models.Manager):
         :returns: Link
         """
         self._check_link(type, host_a.AS, host_b.AS)
-        interfaceA = Interface.objects.create(host=host_a)
-        interfaceB = Interface.objects.create(host=host_b)
+        br_a = host_a.border_routers.first() or BorderRouter.objects.create(host=host_a)
+        br_b = host_b.border_routers.first() or BorderRouter.objects.create(host=host_b)
+        interfaceA = Interface.objects.create(border_router=br_a)
+        interfaceB = Interface.objects.create(border_router=br_b)
         return super().create(
             type=type,
             active=active,
@@ -1334,6 +1311,89 @@ class Link(models.Model):
         return None
 
 
+class BorderRouterManager(models.Manager):
+    def create(self, host, internal_port=None, control_port=None):
+        """
+        Create a Service object.
+        :param Host host: the host, defines the AS
+        :param int internal_port: optional, port, assigned automatically if not specified
+        :param int control_port: optional, port, assigned automatically if not specified
+        :returns: Service
+        """
+        host.AS.hosts.bump_config()
+        return super().create(
+            AS=host.AS,
+            host=host,
+            type=type,
+            internal_port=internal_port or BorderRouter._find_port(host),
+            control_port=control_port or BorderRouter._find_port(host)
+        )
+
+
+class BorderRouter(models.Model):
+    """
+    A BorderRouter object represents the actual `border`-process executing an Interface.
+    It stores the per-border-router settings (internal addess port and control addess port).
+    """
+    AS = models.ForeignKey(
+        AS,
+        related_name='border_routers',
+        on_delete=models.CASCADE,
+    )
+    host = models.ForeignKey(
+        Host,
+        related_name='border_routers',
+        on_delete=models.CASCADE
+    )
+    internal_port = models.PositiveSmallIntegerField(blank=True)
+    control_port = models.PositiveSmallIntegerField(blank=True)
+
+    objects = BorderRouterManager()
+
+    def update(self, host=_placeholder, internal_port=_placeholder, control_port=_placeholder):
+        """
+        Update the given fields
+        :param Host host: optional, the host. Must be in current AS.
+        :param int internal_port: optional, port. A free port is selected if `None` is passed and
+                                  the host is changed.
+        :param int control_port: optional, port. A free port is selected if `None` is passed and
+                                  the host is changed.
+        """
+        prev_host = self.host
+        prev_info = [self.host, self.internal_port, self.control_port]
+
+        if host is not _placeholder:
+            if host.AS != self.AS:
+                # Moving BR to different AS not supported. Would be doable (the Interface.update
+                # already implements this) but not currently useful.
+                raise RuntimeError('BorderRouter.update cannot change AS')
+            self.host = host
+
+        # TODO(matzf): this is so verbose...
+        # TODO(matzf): calling find_free_port twice in a row will not work I think
+        if internal_port is not _placeholder:
+            if internal_port is not None:
+                self.internal_port = internal_port
+            elif self.host != prev_host:
+                self.internal_port = self._find_port(self.host)
+
+        if control_port is not _placeholder:
+            if control_port is not None:
+                self.control_port = control_port
+            elif self.host != prev_host:
+                self.control_port = self._find_port(self.host)
+
+        self.save()
+
+        curr_info = [self.host, self.internal_port, self.control_port]
+        if curr_info != prev_info:
+            host.AS.hosts.bump_config()
+
+    @staticmethod
+    def _find_port(host):
+        return host.find_free_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
+
+
 class ServiceManager(models.Manager):
     def create(self, host, type, port=None):
         """
@@ -1343,12 +1403,11 @@ class ServiceManager(models.Manager):
         :param int port: optional, port, assigned automatically if not specified
         :returns: Service
         """
-        Service._bump_affected(host, type)
+        host.AS.hosts.bump_config()
         return super().create(
             AS=host.AS,
             host=host,
-            type=type,
-            port=Service._assign_service_port(host, type, port)
+            port=port or Service._find_service_port(host, type)
         )
 
 
@@ -1425,16 +1484,22 @@ class Service(models.Model):
         """
         Update the given fields of the
         :param Host host: optional, the host
-        :param str port: optional, port
+        :param str port: optional, port. A free port is selected if `None` is passed and the host is
+                         changed.
         """
+        prev_host = self.host
         prev_info = [self.host, self.port]
 
         if host is not _placeholder:
             if host != self.host:
                 self._bump_affected(self.host, self.type)
             self.host = host
+
         if port is not _placeholder:
-            self.port = Service._assign_service_port(self.host, self.type, port)
+            if port is not None:
+                self.port = port
+            elif self.host != prev_host:
+                self.port = Service._find_service_port(self.host, self.type)
 
         self.save()
 
@@ -1443,17 +1508,13 @@ class Service(models.Model):
             self._bump_affected(self.host, self.type)
 
     @staticmethod
-    def _assign_service_port(host, type, port):
+    def _find_service_port(host, type):
         """
         Helper to assign the public port. Returns the given public_port if defined,
         otherwise, selects and returns an appropriate free port.
         :param Host host: host
         :param str type: Service type
-        :param int port: optional, a free port is selected if not specified
         """
-        if port:
-            return port
-
         if type == Service.ZK:
             return DEFAULT_ZOOKEEPER_PORT
         else:
