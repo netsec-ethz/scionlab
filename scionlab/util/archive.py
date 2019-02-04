@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+:mod:`scionlab.util.archive`  Helper for writing files in a directory structure (i.e.  an "archive"
+                              of files)
+"""
 
 import io
 import json
@@ -21,19 +25,50 @@ import yaml
 
 
 class BaseArchiveWriter:
+    """
+    An archive writer helps to write files to a directory structure. This base class contains
+    shared convenience methods convert content to formatted text and write it to a file.
+
+    Note: for convenience, the `path` passed to any of the `write_`-methods can be:
+        - a string
+        - a pathlib.Path
+        - or a tuple consisting of string/pathlib.Path that will be joined
+    Don't use absolute paths.
+    """
+
     def write_text(self, path, content):
+        """
+        Write content to file at given path.
+        :param str content:
+        """
         raise NotImplementedError()
 
     def write_json(self, path, content):
+        """
+        Format dict as json and write to file at given path.
+        :param dict content:
+        """
         self.write_text(path, json.dumps(content, indent=2))
 
     def write_toml(self, path, content):
+        """
+        Format dict as toml and write to file at given path.
+        :param dict content:
+        """
         self.write_text(path, toml.dumps(content))
 
     def write_yaml(self, path, content):
+        """
+        Format dict as yaml and write to file at given path.
+        :param dict content:
+        """
         self.write_text(path, yaml.dump(content, default_flow_style=False))
 
     def write_config(self, path, config):
+        """
+        Write ConfigParser to file at given path.
+        :param configparser.ConfigParser config:
+        """
         f = io.StringIO()
         config.write(f)
         self.write_text(path, f.getvalue())
@@ -42,10 +77,15 @@ class BaseArchiveWriter:
         if isinstance(path, tuple):
             return str(pathlib.PurePosixPath(*path))
         else:
-            return path
+            return str(path)
 
 
 class FileArchiveWriter(BaseArchiveWriter):
+    """
+    Implementation of an archive writer that actually writes files to the OS filesystem, relative
+    to an initially defined root directory.
+    """
+
     def __init__(self, root):
         self.root = root
 
@@ -55,9 +95,16 @@ class FileArchiveWriter(BaseArchiveWriter):
         filepath.write_text(content)
 
 
-# Tape Archive Writer...
 class TarWriter(BaseArchiveWriter):
+    """
+    Implementation of an archive writer that writes files to a `tarfile.TarFile` "tape archive".
+    If the tarfile is opened writing to an in-memory filelike object, the OS filesystem is bypassed.
+    """
+
     def __init__(self, tar):
+        """
+        :param tarfile.TarFile tar` the tar-file to write to.
+        """
         self.tar = tar
 
     def write_text(self, path, content):
