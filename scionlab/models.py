@@ -568,7 +568,7 @@ class UserAS(AS):
                 bind_port=None
             )
             interface_ap.update(
-                host=attachment_point.get_host_for_useras_interface(),
+                border_router=attachment_point.get_border_router_for_useras_interface(),
                 public_ip=attachment_point.vpn.server_vpn_ip(),
                 public_port=None,
             )
@@ -581,7 +581,7 @@ class UserAS(AS):
                 bind_port=bind_port
             )
             interface_ap.update(
-                host=attachment_point.get_host_for_useras_interface(),
+                border_router=attachment_point.get_border_router_for_useras_interface(),
                 public_ip=None,
                 public_port=None,
             )
@@ -656,7 +656,7 @@ class AttachmentPoint(models.Model):
 
     def get_border_router_for_useras_interface(self):
         """
-        Selects the preferred border router on which the Interfaces to UserASes should be configured.
+        Selects the preferred border router on which the Interfaces to UserASes should be configured
         :returns: a `BorderRouter` of the related `AS`
         """
         if self.vpn is not None:
@@ -1325,10 +1325,9 @@ class BorderRouterManager(models.Manager):
         return super().create(
             AS=host.AS,
             host=host,
-            internal_port=internal_port or BorderRouter._find_port(host),
-            control_port=control_port or BorderRouter._find_port(host)
+            internal_port=internal_port or BorderRouter._find_internal_port(host),
+            control_port=control_port or BorderRouter._find_control_port(host)
         )
-
 
     def first_or_create(self, host):
         """
@@ -1379,18 +1378,18 @@ class BorderRouter(models.Model):
             self.host = host
 
         # TODO(matzf): this is so verbose...
-        # TODO(matzf): calling find_free_port twice in a row will not work I think
+        # TODO(matzf): calling find_free_port twice in a row doesn't work
         if internal_port is not _placeholder:
             if internal_port is not None:
                 self.internal_port = internal_port
             elif self.host != prev_host:
-                self.internal_port = self._find_port(self.host)
+                self.internal_port = self._find_internal_port(self.host)
 
         if control_port is not _placeholder:
             if control_port is not None:
                 self.control_port = control_port
             elif self.host != prev_host:
-                self.control_port = self._find_port(self.host)
+                self.control_port = self._find_control_port(self.host)
 
         self.save()
 
@@ -1399,8 +1398,12 @@ class BorderRouter(models.Model):
             host.AS.hosts.bump_config()
 
     @staticmethod
-    def _find_port(host):
-        return host.find_free_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
+    def _find_internal_port(host):
+        return host.find_free_port(host.internal_ip, min=DEFAULT_INTERNAL_PORT)
+
+    @staticmethod
+    def _find_control_port(host):
+        return host.find_free_port(host.internal_ip, min=DEFAULT_INTERNAL_PORT + 1000)  # XXX
 
 
 class ServiceManager(models.Manager):
@@ -1416,6 +1419,7 @@ class ServiceManager(models.Manager):
         return super().create(
             AS=host.AS,
             host=host,
+            type=type,
             port=port or Service._find_service_port(host, type)
         )
 

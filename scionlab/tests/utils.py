@@ -73,11 +73,13 @@ def check_host_ports(testcase, host):
         ip_port_counter = ports_used.setdefault(ip, Counter())
         ip_port_counter[port] += 1
 
-    for interface in host.interfaces.iterator():
-        _add_port(interface.get_public_ip(), interface.public_port)
-        _add_port(interface.host.internal_ip, interface.internal_port)
-        if interface.get_bind_ip():
-            _add_port(interface.get_bind_ip(), interface.bind_port)
+    for router in host.border_routers.iterator():
+        _add_port(router.host.internal_ip, router.internal_port)
+        _add_port(router.host.internal_ip, router.control_port)
+        for interface in router.interfaces.iterator():
+            _add_port(interface.get_public_ip(), interface.public_port)
+            if interface.get_bind_ip():
+                _add_port(interface.get_bind_ip(), interface.bind_port)
 
     for service in host.services.iterator():
         _add_port(service.host.internal_ip, service.port)
@@ -101,6 +103,7 @@ LinkDescription = namedtuple('LinkDescription', [
     'from_bind_port',
     'from_internal_ip',
     'from_internal_port',
+    'from_control_port',
     'to_as_id',
     'to_public_ip',
     'to_public_port',
@@ -108,6 +111,7 @@ LinkDescription = namedtuple('LinkDescription', [
     'to_bind_port',
     'to_internal_ip',
     'to_internal_port',
+    'to_control_port',
 ])
 # little hack: the `defaults` parameter for namedtuple will only be introduced in python-3.7.
 # As a simple workaround we manually provide the desired default value (_dont_care) for all
@@ -142,13 +146,15 @@ def check_link(testcase, link, link_desc=None):
     testcase.assertEqual(link.interfaceA.AS, link.interfaceA.host.AS)
     testcase.assertEqual(link.interfaceB.AS, link.interfaceB.host.AS)
     _check_port(testcase, link.interfaceA.public_port)
-    _check_port(testcase, link.interfaceA.internal_port)
+    _check_port(testcase, link.interfaceA.border_router.internal_port)
+    _check_port(testcase, link.interfaceA.border_router.control_port)
     if link.interfaceA.get_bind_ip():
         _check_port(testcase, link.interfaceA.bind_port)
     else:
         testcase.assertIsNone(link.interfaceA.bind_port)    # No harm, but this seems cleaner
     _check_port(testcase, link.interfaceB.public_port)
-    _check_port(testcase, link.interfaceB.internal_port)
+    _check_port(testcase, link.interfaceB.border_router.internal_port)
+    _check_port(testcase, link.interfaceB.border_router.control_port)
     if link.interfaceB.get_bind_ip():
         _check_port(testcase, link.interfaceB.bind_port)
     else:
@@ -172,14 +178,16 @@ def _describe_link(link):
         from_bind_ip=link.interfaceA.get_bind_ip(),
         from_bind_port=link.interfaceA.bind_port,
         from_internal_ip=link.interfaceA.host.internal_ip,
-        from_internal_port=link.interfaceA.internal_port,
+        from_internal_port=link.interfaceA.border_router.internal_port,
+        from_control_port=link.interfaceA.border_router.control_port,
         to_as_id=link.interfaceB.AS.as_id,
         to_public_ip=link.interfaceB.get_public_ip(),
         to_public_port=link.interfaceB.public_port,
         to_bind_ip=link.interfaceB.get_bind_ip(),
         to_bind_port=link.interfaceB.bind_port,
         to_internal_ip=link.interfaceB.host.internal_ip,
-        to_internal_port=link.interfaceB.internal_port,
+        to_internal_port=link.interfaceB.border_router.internal_port,
+        to_control_port=link.interfaceB.border_router.control_port,
     )
 
 

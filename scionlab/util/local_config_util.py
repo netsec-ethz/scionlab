@@ -106,13 +106,12 @@ def generate_instance_dir(archive, as_, stype, tp, name):
     _write_keys(archive, elem_dir, as_)
 
 
-def generate_sciond_config(archive, as_, tp):
+def generate_sciond_config(archive, as_, tp, name):
     """
     Writes the endhost folder into the given location.
     :param AS as_: AS of the sciond instance
     :param dict tp: the topology as a dict of dicts.
     """
-    name = "sd%s" % as_.isd_as_path_str()
     elem_dir = _elem_dir(as_, "endhost")
 
     superv = _make_supervisord_conf(name,
@@ -128,19 +127,7 @@ def generate_sciond_config(archive, as_, tp):
     _write_certs_trc(archive, elem_dir, as_)
 
 
-def write_supervisord_group_config(archive, as_, tp):
-    # TODO(matzf): broken, needs to filter for processes on this host. More than one place!
-    processes = []
-    for svc_type in ["BorderRouters", "BeaconService",
-                     "CertificateService", "PathService"]:
-        if svc_type not in tp:
-            continue
-        for elem_id, elem in tp[svc_type].items():
-            processes.append(elem_id)
-
-    sd_id = "sd%s" % as_.isd_as_path_str()
-    processes.append(sd_id)
-
+def write_supervisord_group_config(archive, as_, processes):
     config = configparser.ConfigParser()
     config['group:' + "as%s" % as_.isd_as_path_str()] = {'programs': ",".join(processes)}
     archive.write_config((_isd_as_dir(as_), 'supervisord.conf'), config)

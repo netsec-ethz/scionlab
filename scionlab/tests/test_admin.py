@@ -115,10 +115,6 @@ class LinkAdminFormTests(TestCase):
         self.assertEqual(link.interfaceA.public_port, 50000)
         self.assertEqual(link.interfaceB.public_ip, '192.0.2.2')
         self.assertEqual(link.interfaceB.public_port, 50001)
-        #self.assertEqual(link.interfaceA.border_router.internal_port, 30000)
-        #self.assertEqual(link.interfaceA.border_router.control_port, 30001)
-        #self.assertEqual(link.interfaceB.border_router.internal_port, 30000)
-        #self.assertEqual(link.interfaceB.border_router.control_port, 30001)
 
         # Re-creating form with same data should result in no changes:
         edit_form = LinkAdminForm(instance=link, data=form_data)

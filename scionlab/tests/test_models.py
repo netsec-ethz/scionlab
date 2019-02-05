@@ -14,7 +14,7 @@
 
 from unittest.mock import patch
 from django.test import TestCase
-from scionlab.models import ISD, AS, Link, Host, Interface, Service
+from scionlab.models import ISD, AS, Link, Host, Interface, BorderRouter, Service
 from scionlab.tests import utils
 
 
@@ -165,7 +165,9 @@ class LinkModificationTests(TestCase):
 
         # change the link from A-B to A-C
         as_c = self._as_c()
-        link.interfaceB.update(host=as_c.hosts.first())
+        link.interfaceB.update(
+            border_router=BorderRouter.objects.first_or_create(as_c.hosts.first())  # XXX
+        )
         self._sanity_check_link(link)
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
