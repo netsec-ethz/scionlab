@@ -15,7 +15,6 @@
 import base64
 import ipaddress
 import jsonfield
-import operator
 import os
 
 from django import urls
@@ -31,6 +30,7 @@ from django.db.models.signals import pre_delete, post_delete
 import lib.crypto.asymcrypto
 
 from scionlab.util import as_ids
+from scionlab.util.portmap import PortMap, LazyPortMap
 
 from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
     generate_vpn_server_key_material
@@ -49,9 +49,18 @@ MAX_INTERFACE_ID = 2**12-1
 USER_AS_ID_BEGIN = as_ids.parse('ffaa:1:1')
 USER_AS_ID_END = as_ids.parse('ffaa:1:ffff')
 
-DEFAULT_PUBLIC_PORT = 50000
-DEFAULT_INTERNAL_PORT = 30000
-DEFAULT_ZOOKEEPER_PORT = 2181
+DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-port-ranges)
+DEFAULT_INTERNAL_PORT = 31045  # 30242-30251
+DEFAULT_CONTROL_PORT = 30045   # 30042-30051
+
+DEFAULT_BS_PORT = 31041  # 30252
+DEFAULT_PS_PORT = 31043  # 30253
+DEFAULT_CS_PORT = 31042  # 30254
+DEFAULT_ZK_PORT = 2181
+DEFAULT_BW_PORT = 40001
+DEFAULT_PP_PORT = 40002
+DISPATCHER_PORT = 30041
+
 DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
 DEFAULT_LINK_MTU = 1500 - 20 - 8
 DEFAULT_LINK_BANDWIDTH = 1000
@@ -826,40 +835,48 @@ class Host(models.Model):
         """
         return self.config_version_deployed < self.config_version
 
-    def find_free_port(self, ip, min, max=MAX_PORT):
+    def find_free_port(self, ip, min, max=MAX_PORT, preferred=None):
         """
-        Find a free port for the given IP, in the range {min..max}.
-        :param str ip: IP
-        :param int min: start of the port range to search
-        :param int max: end of the port range to search (included)
-        :return: a free port
+        Get a free port for this IP address in the given range.
+
+        Note: if more than one port needs to be assigned, use the PortMap returned by get_port_map
+        instead.
+
+        :param ip: IP address or `None` for the unspecified address
+        :param int min: Start of acceptable port range
+        :param int max: Optional, end (included) of acceptable port range
+        :param int preferred: Optional, preferred port. Will be selected if free (range not checked)
+        :returns: Port
         :raises: RuntimeError if no port could be found
         """
-        used_ports = self.find_used_ports(ip)
-        for port in range(min, max):
-            if port not in used_ports:
-                return port
-        raise RuntimeError('No free port available')
+        return self.get_port_map().get_port(ip, min, max, preferred)
 
-    def find_used_ports(self, ip):
+    def get_port_map(self):
         """
-        Find a set of ports used with the given IP.
-        :param str ip: IP
-        :returns: Set of used ports for the given IP
+        Find a set of (UDP-)ports used.
+        :returns: PortMap of used UDP-ports
         """
-        ports = _value_set(self.interfaces.filter(public_ip=ip), 'public_port')
-        ports |= _value_set(self.interfaces.filter(bind_ip=ip), 'bind_port')
-        if ip == self.public_ip:
-            ports |= _value_set(self.interfaces.filter(public_ip=None), 'public_port')
-            ports |= _value_set(self.vpn_servers, 'server_port')
-        if ip == self.bind_ip:
-            ports |= _value_set(self.interfaces.filter(bind_ip=None), 'public_port')
-        if ip == self.internal_ip:
-            ports |= _value_set(self.border_routers, 'internal_port')
-            ports |= _value_set(self.border_routers, 'control_port')  # TODO(matzf) merge query
-            ports |= _value_set(self.services, 'port')
-            # TODO(matzf) make sure that we don't assign to ports used e.g. by prometheus
-        return ports
+        portmap = PortMap()
+        portmap.add(None, DISPATCHER_PORT)
+
+        for internal_port, control_port in \
+                self.border_routers.values_list('internal_port', 'control_port'):
+            portmap.add(self.internal_ip, internal_port)
+            portmap.add(self.internal_ip, control_port)
+
+        # Note: could also use values_list for interface ports, but slightly more complicated
+        for interface in self.interfaces.iterator():
+            portmap.add(interface.get_public_ip(), interface.public_port)
+            if interface.get_bind_ip():
+                portmap.add(interface.get_bind_ip(), interface.bind_ip)
+
+        for port, in self.services.values_list('port'):
+            portmap.add(self.internal_ip, port)
+
+        for port, in self.vpn_servers.values_list('server_port'):
+            portmap.add(self.internal_ip, port)
+
+        return portmap
 
     @staticmethod
     def _gen_secret():
@@ -885,9 +902,18 @@ class InterfaceManager(models.Manager):
         host = border_router.host
         as_ = host.AS
         ifid = as_.find_interface_id()
-        public_port = public_port or Interface._find_public_port(host, public_ip)
-        if bind_port is None and Interface._has_bind_ip(host, public_ip, bind_ip):
-            bind_port = Interface._find_bind_port(host, bind_ip)
+
+        effective_public_ip = public_ip or host.public_ip
+        effective_bind_ip = bind_ip or host.bind_ip
+
+        portmap = LazyPortMap(host.get_port_map)
+        if public_port is None:
+            public_port = portmap.get_port(effective_public_ip, DEFAULT_PUBLIC_PORT)
+        if bind_port is None and effective_bind_ip is not None:
+            bind_port = portmap.get_port(effective_bind_ip,
+                                         min=DEFAULT_PUBLIC_PORT,
+                                         preferred=public_port)
+
         as_.hosts.bump_config()
 
         return super().create(
@@ -994,17 +1020,21 @@ class Interface(models.Model):
         if bind_ip is not _placeholder:
             self.bind_ip = bind_ip or None
 
+        portmap = LazyPortMap(self.host.get_port_map)
         if public_port is not _placeholder:
-            if public_port is not None:
-                self.public_port = public_port
-            elif self.host != prev_host or self.get_public_ip() != prev_public_ip:
-                self._assign_public_port()
+            if public_port is None \
+                    and (self.host != prev_host or self.get_public_ip() != prev_public_ip):
+                public_port = portmap.get_port(self.get_public_ip(), DEFAULT_PUBLIC_PORT)
+            self.public_port = public_port
 
         if bind_port is not _placeholder:
-            if bind_port is not None:
-                self.bind_port = bind_port
-            elif self.host != prev_host or self.get_bind_ip() != prev_bind_ip:
-                self._assign_bind_port()
+            if bind_port is None \
+                    and self.get_bind_ip() \
+                    and (self.host != prev_host or self.get_bind_ip() != prev_bind_ip):
+                bind_port = portmap.get_port(self.get_bind_ip(),
+                                             min=DEFAULT_PUBLIC_PORT,
+                                             preferred=self.public_port)
+            self.bind_port = bind_port
 
         self.save()
 
@@ -1083,47 +1113,6 @@ class Interface(models.Model):
         """
         # FIXME(matzf): naive queries
         return self.remote_interface().AS
-
-    def _assign_public_port(self):
-        """
-        Helper for update: find and assign a free public port
-        """
-        self.public_port = self._find_public_port(self.host, self.public_ip)
-
-    def _assign_bind_port(self):
-        """
-        Helper for update: find and assign a free bind port if the bind IP is used
-        """
-        if self.get_bind_ip():
-            self.bind_port = self._find_bind_port(self.host, self.bind_ip)
-        else:
-            self.bind_port = None
-
-    @staticmethod
-    def _find_public_port(host, public_ip):
-        """
-        Helper to assign the public port. Returns the given public_port if defined,
-        otherwise, selects and returns an appropriate free port.
-        :param Host host:
-        :param str public_ip: optional
-        """
-        return host.find_free_port(public_ip or host.public_ip, min=DEFAULT_PUBLIC_PORT)
-
-    @staticmethod
-    def _find_bind_port(host, bind_ip):
-        """
-        Helper to find a free bind port.
-        :param Host host:
-        :param str bind_ip:
-        """
-        return host.find_free_port(bind_ip or host.bind_ip, min=DEFAULT_PUBLIC_PORT)
-
-    @staticmethod
-    def _has_bind_ip(host, public_ip, bind_ip):
-        """
-        Helper to determine whether `get_bind_ip` will be non-null.
-        """
-        return bind_ip or (not public_ip and host.bind_ip)
 
     def _get_public_info(self):
         """
@@ -1322,11 +1311,17 @@ class BorderRouterManager(models.Manager):
         :returns: BorderRouter
         """
         host.AS.hosts.bump_config()
+        portmap = LazyPortMap(host.get_port_map)
+        if not internal_port:
+            internal_port = portmap.get_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
+        if not control_port:
+            control_port = portmap.get_port(host.internal_ip, DEFAULT_CONTROL_PORT)
+
         return super().create(
             AS=host.AS,
             host=host,
-            internal_port=internal_port or BorderRouter._find_internal_port(host),
-            control_port=control_port or BorderRouter._find_control_port(host)
+            internal_port=internal_port,
+            control_port=control_port
         )
 
     def first_or_create(self, host):
@@ -1377,33 +1372,22 @@ class BorderRouter(models.Model):
                 raise RuntimeError('BorderRouter.update cannot change AS')
             self.host = host
 
-        # TODO(matzf): this is so verbose...
-        # TODO(matzf): calling find_free_port twice in a row doesn't work
+        portmap = LazyPortMap(self.host.get_port_map)
         if internal_port is not _placeholder:
-            if internal_port is not None:
-                self.internal_port = internal_port
-            elif self.host != prev_host:
-                self.internal_port = self._find_internal_port(self.host)
+            if internal_port is None and self.host != prev_host:
+                internal_port = portmap.get_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
+            self.internal_port = internal_port
 
         if control_port is not _placeholder:
-            if control_port is not None:
-                self.control_port = control_port
-            elif self.host != prev_host:
-                self.control_port = self._find_control_port(self.host)
+            if control_port is None and self.host != prev_host:
+                control_port = portmap.get_port(host.internal_ip, DEFAULT_CONTROL_PORT)
+            self.control_port = control_port
 
         self.save()
 
         curr_info = [self.host, self.internal_port, self.control_port]
         if curr_info != prev_info:
             host.AS.hosts.bump_config()
-
-    @staticmethod
-    def _find_internal_port(host):
-        return host.find_free_port(host.internal_ip, min=DEFAULT_INTERNAL_PORT)
-
-    @staticmethod
-    def _find_control_port(host):
-        return host.find_free_port(host.internal_ip, min=DEFAULT_INTERNAL_PORT + 1000)  # XXX
 
 
 class ServiceManager(models.Manager):
@@ -1443,6 +1427,14 @@ class Service(models.Model):
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
     )
+    DEFAULT_PORTS = {
+        BS: DEFAULT_BS_PORT,
+        PS: DEFAULT_PS_PORT,
+        CS: DEFAULT_CS_PORT,
+        ZK: DEFAULT_ZK_PORT,
+        BW: DEFAULT_BW_PORT,
+        PP: DEFAULT_PP_PORT,
+    }
 
     AS = models.ForeignKey(
         AS,
@@ -1461,29 +1453,6 @@ class Service(models.Model):
     )
 
     objects = ServiceManager()
-
-    @classmethod
-    def get_service_type_ids(cls, as_, stype):
-        """
-        Get the service instance identifier for all service in a AS of a type
-        :param AS as_: AS
-        :param str stype: service type
-        :return: enumerate object with the services of stype and their id
-        """
-        # Get instance ids from DB id order:
-        AS_service_instances = enumerate(as_.services.filter(type=stype).order_by("id"),
-                                         start=1)
-        return AS_service_instances
-
-    def get_service_instance_id(self):
-        """
-        Get the service instance identifier for a service
-        :return: str instance_id: the service instance id
-        """
-        # Get instance id from DB id order:
-        AS_service_instances = self.AS.services.filter(type=self.type).order_by("id")
-        instance_id = operator.indexOf(AS_service_instances, self) + 1
-        return instance_id
 
     def _pre_delete(self):
         """
@@ -1509,10 +1478,9 @@ class Service(models.Model):
             self.host = host
 
         if port is not _placeholder:
-            if port is not None:
-                self.port = port
-            elif self.host != prev_host:
-                self.port = Service._find_service_port(self.host, self.type)
+            if port is None and self.host != prev_host:
+                port = Service._find_service_port(self.host, self.type)
+            self.port = port
 
         self.save()
 
@@ -1523,15 +1491,12 @@ class Service(models.Model):
     @staticmethod
     def _find_service_port(host, type):
         """
-        Helper to assign the public port. Returns the given public_port if defined,
-        otherwise, selects and returns an appropriate free port.
+        Helper to assign the public port.
         :param Host host: host
         :param str type: Service type
         """
-        if type == Service.ZK:
-            return DEFAULT_ZOOKEEPER_PORT
-        else:
-            return host.find_free_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
+        default_port = Service.DEFAULT_PORTS[type]
+        return host.find_free_port(host.internal_ip, min=default_port)
 
     @staticmethod
     def _bump_affected(host, type, prev_host=None):
