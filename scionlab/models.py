@@ -904,15 +904,18 @@ class InterfaceManager(models.Manager):
         ifid = as_.find_interface_id()
 
         effective_public_ip = public_ip or host.public_ip
-        effective_bind_ip = bind_ip or host.bind_ip
+        effective_bind_ip = bind_ip if public_ip else host.bind_ip
 
         portmap = LazyPortMap(host.get_port_map)
         if public_port is None:
             public_port = portmap.get_port(effective_public_ip, DEFAULT_PUBLIC_PORT)
         if bind_port is None and effective_bind_ip is not None:
+            print('')
+            print('assigning bind_port')
             bind_port = portmap.get_port(effective_bind_ip,
                                          min=DEFAULT_PUBLIC_PORT,
                                          preferred=public_port)
+            print('bind_port', bind_port)
 
         as_.hosts.bump_config()
 
@@ -1020,21 +1023,11 @@ class Interface(models.Model):
         if bind_ip is not _placeholder:
             self.bind_ip = bind_ip or None
 
-        portmap = LazyPortMap(self.host.get_port_map)
-        if public_port is not _placeholder:
-            if public_port is None \
-                    and (self.host != prev_host or self.get_public_ip() != prev_public_ip):
-                public_port = portmap.get_port(self.get_public_ip(), DEFAULT_PUBLIC_PORT)
-            self.public_port = public_port
-
-        if bind_port is not _placeholder:
-            if bind_port is None \
-                    and self.get_bind_ip() \
-                    and (self.host != prev_host or self.get_bind_ip() != prev_bind_ip):
-                bind_port = portmap.get_port(self.get_bind_ip(),
-                                             min=DEFAULT_PUBLIC_PORT,
-                                             preferred=self.public_port)
-            self.bind_port = bind_port
+        self._update_ports(public_port,
+                           bind_port,
+                           host_changed=self.host != prev_host,
+                           public_ip_changed=self.get_public_ip() != prev_public_ip,
+                           bind_ip_changed=self.get_bind_ip() != prev_bind_ip)
 
         self.save()
 
@@ -1061,6 +1054,27 @@ class Interface(models.Model):
                 old_as.hosts.bump_config()
             self.host = host
             self.border_router = border_router
+
+    def _update_ports(self, public_port, bind_port, host_changed, public_ip_changed, bind_ip_changed):
+        """ Helper: update public port and bind port. """
+
+        portmap = LazyPortMap(self.host.get_port_map)
+        if public_port is not _placeholder:
+            if public_port is not None:
+                self.public_port = public_port
+            elif host_changed or public_ip_changed:
+                self.public_port = portmap.get_port(self.get_public_ip(), DEFAULT_PUBLIC_PORT)
+
+        if bind_port is not _placeholder:
+            if bind_port is not None:
+                self.bind_port = bind_port
+            elif not self.get_bind_ip():
+                self.bind_port = None
+            elif host_changed or bind_ip_changed:
+                self.bind_port = portmap.get_port(self.get_bind_ip(),
+                                                  min=DEFAULT_PUBLIC_PORT,
+                                                  preferred=self.public_port)
+
 
     def get_public_ip(self):
         """ Get the effective public IP for this interface """
@@ -1372,22 +1386,29 @@ class BorderRouter(models.Model):
                 raise RuntimeError('BorderRouter.update cannot change AS')
             self.host = host
 
-        portmap = LazyPortMap(self.host.get_port_map)
-        if internal_port is not _placeholder:
-            if internal_port is None and self.host != prev_host:
-                internal_port = portmap.get_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
-            self.internal_port = internal_port
-
-        if control_port is not _placeholder:
-            if control_port is None and self.host != prev_host:
-                control_port = portmap.get_port(host.internal_ip, DEFAULT_CONTROL_PORT)
-            self.control_port = control_port
-
+        self._update_ports(internal_port,
+                           control_port,
+                           host_changed=self.host != prev_host)
         self.save()
 
         curr_info = [self.host, self.internal_port, self.control_port]
         if curr_info != prev_info:
             host.AS.hosts.bump_config()
+
+    def _update_ports(self, internal_port, control_port, host_changed):
+        """ Helper: update internal and control port. """
+        portmap = LazyPortMap(self.host.get_port_map)
+        if internal_port is not _placeholder:
+            if internal_port is not None:
+                self.internal_port = internal_port
+            elif host_changed:
+                self.internal_port = portmap.get_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
+
+        if control_port is not _placeholder:
+            if control_port is not None:
+                self.control_port = control_port
+            elif host_changed:
+                self.control_port = portmap.get_port(host.internal_ip, DEFAULT_CONTROL_PORT)
 
 
 class ServiceManager(models.Manager):
@@ -1478,9 +1499,10 @@ class Service(models.Model):
             self.host = host
 
         if port is not _placeholder:
-            if port is None and self.host != prev_host:
-                port = Service._find_service_port(self.host, self.type)
-            self.port = port
+            if port is not None:
+                self.port = port
+            elif self.host != prev_host:
+                self.port = Service._find_service_port(self.host, self.type)
 
         self.save()
 
