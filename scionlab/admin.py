@@ -16,8 +16,10 @@ from django import urls
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from django.contrib import admin
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
 from django import forms
-from django.urls import resolve
+from django.urls import resolve, path
 
 from scionlab.models import (
     ISD,
@@ -183,10 +185,14 @@ class HostInline(admin.TabularInline):
     model = Host
     extra = 0
     form = HostAdminForm
-    readonly_fields = ('latest_config_deployed', )
+    readonly_fields = ('latest_config_deployed', 'config')
 
     def latest_config_deployed(self, obj):
         return not obj.needs_config_deployment()
+
+    def config(self, obj):
+        url = urls.reverse('admin:scionlab_host_config', args=[obj.pk])
+        return format_html('<a class="viewlink" href="%s"></a>' % url)
 
     latest_config_deployed.boolean = True
 
@@ -252,7 +258,7 @@ class BorderRouterAdminForm(_CreateUpdateModelForm):
 class BorderRouterInline(admin.TabularInline):
     model = BorderRouter
     extra = 0
-    form = ServiceAdminForm
+    form = BorderRouterAdminForm
     fields = ('host', 'internal_port', 'control_port')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -289,7 +295,7 @@ class InterfaceInline(admin.TabularInline):
     readonly_fields = ('link', 'active', 'type', 'public_ip_', 'bind_ip_')
 
     def link(self, obj):
-        url = urls.reverse('admin:scionlab_link_change', args=[obj.pk])
+        url = urls.reverse('admin:scionlab_link_change', args=[obj.link().pk])
         return format_html('<a href="%s">%s</a>' % (url, obj.link()))
 
     def type(self, obj):
@@ -309,8 +315,8 @@ class InterfaceInline(admin.TabularInline):
     def has_add_permission(self, *args, **kwargs):
         return False
 
-    def has_change_permission(self, *args, **kwargs):
-        return False
+    #def has_change_permission(self, *args, **kwargs):
+        #return False
 
 
 class ASCreationForm(_CreateUpdateModelForm):
@@ -607,10 +613,30 @@ class HostAdmin(admin.ModelAdmin):
 
     def download_config(self, request, queryset):
         """
-        Admin action: get configuration for the *single* selected host. This is a bit clunky, but
-        avoids having to configure additional URLs for this. Good enough for now.
+        Admin action: get configuration for the *single* selected host.
+        This is a bit clunky. Good enough for now.
         """
-        host = queryset.get()  # Error if not exactly one
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        url = urls.reverse('scionlab_host_config', args=[selected[0].pk])
+        return HttpResponseRedirect(url)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        urls += [
+            path('<path:object_id>/config',
+                 self.admin_site.admin_view(self.get_config),
+                 name='scionlab_host_config'),
+        ]
+        print(urls)
+        return urls
+
+    def get_config(self, request, object_id):
+        """
+        View to retrieve configuration tar ball for a host.
+        Returns same content as api/host/<int:pk>/config, but authentication is by user (admin), not
+        host/secret.
+        """
+        host = get_object_or_404(Host, pk=object_id)
         filename = '{host}_v{version}.tar.gz'.format(
                         host=host.path_str(),
                         version=host.config_version)
