@@ -261,181 +261,181 @@
     config_version: 5, config_version_deployed: 0}
 - model: scionlab.service
   pk: 1
-  fields: {AS: 1, host: 1, port: 30000, type: BS}
+  fields: {AS: 1, host: 1, port: 31041, type: BS}
 - model: scionlab.service
   pk: 2
-  fields: {AS: 1, host: 1, port: 30001, type: PS}
+  fields: {AS: 1, host: 1, port: 31043, type: PS}
 - model: scionlab.service
   pk: 3
-  fields: {AS: 1, host: 1, port: 30002, type: CS}
+  fields: {AS: 1, host: 1, port: 31042, type: CS}
 - model: scionlab.service
   pk: 4
   fields: {AS: 1, host: 1, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 5
-  fields: {AS: 2, host: 2, port: 30000, type: BS}
+  fields: {AS: 2, host: 2, port: 31041, type: BS}
 - model: scionlab.service
   pk: 6
-  fields: {AS: 2, host: 2, port: 30001, type: PS}
+  fields: {AS: 2, host: 2, port: 31043, type: PS}
 - model: scionlab.service
   pk: 7
-  fields: {AS: 2, host: 2, port: 30002, type: CS}
+  fields: {AS: 2, host: 2, port: 31042, type: CS}
 - model: scionlab.service
   pk: 8
   fields: {AS: 2, host: 2, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 9
-  fields: {AS: 3, host: 3, port: 30000, type: BS}
+  fields: {AS: 3, host: 3, port: 31041, type: BS}
 - model: scionlab.service
   pk: 10
-  fields: {AS: 3, host: 3, port: 30001, type: PS}
+  fields: {AS: 3, host: 3, port: 31043, type: PS}
 - model: scionlab.service
   pk: 11
-  fields: {AS: 3, host: 3, port: 30002, type: CS}
+  fields: {AS: 3, host: 3, port: 31042, type: CS}
 - model: scionlab.service
   pk: 12
   fields: {AS: 3, host: 3, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 13
-  fields: {AS: 4, host: 4, port: 30000, type: BS}
+  fields: {AS: 4, host: 4, port: 31041, type: BS}
 - model: scionlab.service
   pk: 14
-  fields: {AS: 4, host: 4, port: 30001, type: PS}
+  fields: {AS: 4, host: 4, port: 31043, type: PS}
 - model: scionlab.service
   pk: 15
-  fields: {AS: 4, host: 4, port: 30002, type: CS}
+  fields: {AS: 4, host: 4, port: 31042, type: CS}
 - model: scionlab.service
   pk: 16
   fields: {AS: 4, host: 4, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 17
-  fields: {AS: 5, host: 5, port: 30000, type: BS}
+  fields: {AS: 5, host: 5, port: 31041, type: BS}
 - model: scionlab.service
   pk: 18
-  fields: {AS: 5, host: 5, port: 30001, type: PS}
+  fields: {AS: 5, host: 5, port: 31043, type: PS}
 - model: scionlab.service
   pk: 19
-  fields: {AS: 5, host: 5, port: 30002, type: CS}
+  fields: {AS: 5, host: 5, port: 31042, type: CS}
 - model: scionlab.service
   pk: 20
   fields: {AS: 5, host: 5, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 21
-  fields: {AS: 6, host: 6, port: 30000, type: BS}
+  fields: {AS: 6, host: 6, port: 31041, type: BS}
 - model: scionlab.service
   pk: 22
-  fields: {AS: 6, host: 6, port: 30001, type: PS}
+  fields: {AS: 6, host: 6, port: 31043, type: PS}
 - model: scionlab.service
   pk: 23
-  fields: {AS: 6, host: 6, port: 30002, type: CS}
+  fields: {AS: 6, host: 6, port: 31042, type: CS}
 - model: scionlab.service
   pk: 24
   fields: {AS: 6, host: 6, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 25
-  fields: {AS: 7, host: 7, port: 30000, type: BS}
+  fields: {AS: 7, host: 7, port: 31041, type: BS}
 - model: scionlab.service
   pk: 26
-  fields: {AS: 7, host: 7, port: 30001, type: PS}
+  fields: {AS: 7, host: 7, port: 31043, type: PS}
 - model: scionlab.service
   pk: 27
-  fields: {AS: 7, host: 7, port: 30002, type: CS}
+  fields: {AS: 7, host: 7, port: 31042, type: CS}
 - model: scionlab.service
   pk: 28
   fields: {AS: 7, host: 7, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 29
-  fields: {AS: 8, host: 8, port: 30000, type: BS}
+  fields: {AS: 8, host: 8, port: 31041, type: BS}
 - model: scionlab.service
   pk: 30
-  fields: {AS: 8, host: 8, port: 30001, type: PS}
+  fields: {AS: 8, host: 8, port: 31043, type: PS}
 - model: scionlab.service
   pk: 31
-  fields: {AS: 8, host: 8, port: 30002, type: CS}
+  fields: {AS: 8, host: 8, port: 31042, type: CS}
 - model: scionlab.service
   pk: 32
   fields: {AS: 8, host: 8, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 33
-  fields: {AS: 9, host: 9, port: 30000, type: BS}
+  fields: {AS: 9, host: 9, port: 31041, type: BS}
 - model: scionlab.service
   pk: 34
-  fields: {AS: 9, host: 9, port: 30001, type: PS}
+  fields: {AS: 9, host: 9, port: 31043, type: PS}
 - model: scionlab.service
   pk: 35
-  fields: {AS: 9, host: 9, port: 30002, type: CS}
+  fields: {AS: 9, host: 9, port: 31042, type: CS}
 - model: scionlab.service
   pk: 36
   fields: {AS: 9, host: 9, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 37
-  fields: {AS: 10, host: 10, port: 30000, type: BS}
+  fields: {AS: 10, host: 10, port: 31041, type: BS}
 - model: scionlab.service
   pk: 38
-  fields: {AS: 10, host: 10, port: 30001, type: PS}
+  fields: {AS: 10, host: 10, port: 31043, type: PS}
 - model: scionlab.service
   pk: 39
-  fields: {AS: 10, host: 10, port: 30002, type: CS}
+  fields: {AS: 10, host: 10, port: 31042, type: CS}
 - model: scionlab.service
   pk: 40
   fields: {AS: 10, host: 10, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 41
-  fields: {AS: 11, host: 11, port: 30000, type: BS}
+  fields: {AS: 11, host: 11, port: 31041, type: BS}
 - model: scionlab.service
   pk: 42
-  fields: {AS: 11, host: 11, port: 30001, type: PS}
+  fields: {AS: 11, host: 11, port: 31043, type: PS}
 - model: scionlab.service
   pk: 43
-  fields: {AS: 11, host: 11, port: 30002, type: CS}
+  fields: {AS: 11, host: 11, port: 31042, type: CS}
 - model: scionlab.service
   pk: 44
   fields: {AS: 11, host: 11, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 45
-  fields: {AS: 12, host: 12, port: 30000, type: BS}
+  fields: {AS: 12, host: 12, port: 31041, type: BS}
 - model: scionlab.service
   pk: 46
-  fields: {AS: 12, host: 12, port: 30001, type: PS}
+  fields: {AS: 12, host: 12, port: 31043, type: PS}
 - model: scionlab.service
   pk: 47
-  fields: {AS: 12, host: 12, port: 30002, type: CS}
+  fields: {AS: 12, host: 12, port: 31042, type: CS}
 - model: scionlab.service
   pk: 48
   fields: {AS: 12, host: 12, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 49
-  fields: {AS: 13, host: 13, port: 30000, type: BS}
+  fields: {AS: 13, host: 13, port: 31041, type: BS}
 - model: scionlab.service
   pk: 50
-  fields: {AS: 13, host: 13, port: 30001, type: PS}
+  fields: {AS: 13, host: 13, port: 31043, type: PS}
 - model: scionlab.service
   pk: 51
-  fields: {AS: 13, host: 13, port: 30002, type: CS}
+  fields: {AS: 13, host: 13, port: 31042, type: CS}
 - model: scionlab.service
   pk: 52
   fields: {AS: 13, host: 13, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 53
-  fields: {AS: 14, host: 14, port: 30000, type: BS}
+  fields: {AS: 14, host: 14, port: 31041, type: BS}
 - model: scionlab.service
   pk: 54
-  fields: {AS: 14, host: 14, port: 30001, type: PS}
+  fields: {AS: 14, host: 14, port: 31043, type: PS}
 - model: scionlab.service
   pk: 55
-  fields: {AS: 14, host: 14, port: 30002, type: CS}
+  fields: {AS: 14, host: 14, port: 31042, type: CS}
 - model: scionlab.service
   pk: 56
   fields: {AS: 14, host: 14, port: 2181, type: ZK}
 - model: scionlab.service
   pk: 57
-  fields: {AS: 15, host: 15, port: 30000, type: BS}
+  fields: {AS: 15, host: 15, port: 31041, type: BS}
 - model: scionlab.service
   pk: 58
-  fields: {AS: 15, host: 15, port: 30001, type: PS}
+  fields: {AS: 15, host: 15, port: 31043, type: PS}
 - model: scionlab.service
   pk: 59
-  fields: {AS: 15, host: 15, port: 30002, type: CS}
+  fields: {AS: 15, host: 15, port: 31042, type: CS}
 - model: scionlab.service
   pk: 60
   fields: {AS: 15, host: 15, port: 2181, type: ZK}

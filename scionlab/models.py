@@ -1055,7 +1055,8 @@ class Interface(models.Model):
             self.host = host
             self.border_router = border_router
 
-    def _update_ports(self, public_port, bind_port, host_changed, public_ip_changed, bind_ip_changed):
+    def _update_ports(self, public_port, bind_port,
+                      host_changed, public_ip_changed, bind_ip_changed):
         """ Helper: update public port and bind port. """
 
         portmap = LazyPortMap(self.host.get_port_map)
@@ -1074,7 +1075,6 @@ class Interface(models.Model):
                 self.bind_port = portmap.get_port(self.get_bind_ip(),
                                                   min=DEFAULT_PUBLIC_PORT,
                                                   preferred=self.public_port)
-
 
     def get_public_ip(self):
         """ Get the effective public IP for this interface """
@@ -1402,13 +1402,13 @@ class BorderRouter(models.Model):
             if internal_port is not None:
                 self.internal_port = internal_port
             elif host_changed:
-                self.internal_port = portmap.get_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
+                self.internal_port = portmap.get_port(self.host.internal_ip, DEFAULT_INTERNAL_PORT)
 
         if control_port is not _placeholder:
             if control_port is not None:
                 self.control_port = control_port
             elif host_changed:
-                self.control_port = portmap.get_port(host.internal_ip, DEFAULT_CONTROL_PORT)
+                self.control_port = portmap.get_port(self.host.internal_ip, DEFAULT_CONTROL_PORT)
 
 
 class ServiceManager(models.Manager):
