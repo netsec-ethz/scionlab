@@ -17,7 +17,6 @@ from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from django.contrib import admin
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
 from django import forms
 from django.urls import resolve, path
 
@@ -181,20 +180,29 @@ class HostAdminForm(_CreateUpdateModelForm):
         )
 
 
-class HostInline(admin.TabularInline):
-    model = Host
-    extra = 0
-    form = HostAdminForm
-    readonly_fields = ('latest_config_deployed', 'config')
-
+class HostAdminMixin:
+    """
+    Helper class for shared functionality in HostAdmin (the ModelAdmin for Host) and
+    HostInline (the ModelInline for Host in ASAdmin).
+    This is simply a bag of methods that can be used in readonly_fields/list_display.
+    """
     def latest_config_deployed(self, obj):
         return not obj.needs_config_deployment()
 
-    def config(self, obj):
+    latest_config_deployed.boolean = True
+
+    def get_config_link(self, obj):
         url = urls.reverse('admin:scionlab_host_config', args=[obj.pk])
         return format_html('<a class="viewlink" href="%s"></a>' % url)
 
-    latest_config_deployed.boolean = True
+    get_config_link.short_description = 'Config'
+
+
+class HostInline(HostAdminMixin, admin.TabularInline):
+    model = Host
+    extra = 0
+    form = HostAdminForm
+    readonly_fields = ('latest_config_deployed', 'get_config_link')
 
 
 class ServiceAdminForm(_CreateUpdateModelForm):
@@ -277,6 +285,13 @@ class BorderRouterInline(admin.TabularInline):
         return None
 
 
+class InterfaceAdminForm(_CreateUpdateModelForm):
+    def update(self):
+        self.instance.update(
+            border_router=self.cleaned_data['border_router'],
+        )
+
+
 class InterfaceInline(admin.TabularInline):
     """
     Inline to show the interface and the associated link in the AS change page.
@@ -288,15 +303,16 @@ class InterfaceInline(admin.TabularInline):
     # but looking at the LinkAdmin/LinkAdminForm setup, it actually seems doable now using a similar
     # setup.
 
+    form = InterfaceAdminForm
     model = Interface
     extra = 0
-    fields = ('link', 'interface_id', 'host', 'border_router', 'public_ip_', 'public_port',
+    fields = ('link', 'interface_id', 'border_router', 'host', 'public_ip_', 'public_port',
               'bind_ip_', 'bind_port', 'type', 'active', )
-    readonly_fields = ('link', 'active', 'type', 'public_ip_', 'bind_ip_')
+    readonly_fields = tuple([f for f in fields if f != 'border_router'])
 
     def link(self, obj):
         url = urls.reverse('admin:scionlab_link_change', args=[obj.link().pk])
-        return format_html('<a href="%s">%s</a>' % (url, obj.link()))
+        return format_html('<a class="changelink" href="%s">%s</a>' % (url, obj.link()))
 
     def type(self, obj):
         return obj.link().type
@@ -315,8 +331,22 @@ class InterfaceInline(admin.TabularInline):
     def has_add_permission(self, *args, **kwargs):
         return False
 
-    #def has_change_permission(self, *args, **kwargs):
-        #return False
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "border_router":
+            as_ = self.get_parent_object_from_request(request)
+            kwargs["queryset"] = as_.border_routers.all()
+        foo = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        print(foo)
+        return foo
+
+    def get_parent_object_from_request(self, request):
+        """
+        Returns the parent object from the request or None.
+        """
+        resolved = resolve(request.path_info)
+        if 'object_id' in resolved.kwargs:
+            return self.parent_model.objects.get(pk=resolved.kwargs['object_id'])
+        return None
 
 
 class ASCreationForm(_CreateUpdateModelForm):
@@ -350,11 +380,12 @@ class ASCreationForm(_CreateUpdateModelForm):
 
 @admin.register(AS, UserAS)
 class ASAdmin(admin.ModelAdmin):
-
     inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
     actions = ['update_keys']
-    list_display = ('isd_as_str', 'label', 'is_core', 'is_ap', 'is_userAS')
-    list_filter = ('isd', 'is_core',)
+    list_display = ('isd', 'as_id', 'label', 'is_core', 'is_ap', 'is_userAS')
+    list_display_links = ('as_id', 'label')
+    list_filter = ('isd', 'is_core')
+    ordering = ('isd', 'as_id')
 
     def get_fieldsets(self, request, obj=None):
         """
@@ -607,18 +638,13 @@ class LinkAdmin(admin.ModelAdmin):
 
 
 @admin.register(Host)
-class HostAdmin(admin.ModelAdmin):
+class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
-    actions = ['download_config']
-
-    def download_config(self, request, queryset):
-        """
-        Admin action: get configuration for the *single* selected host.
-        This is a bit clunky. Good enough for now.
-        """
-        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        url = urls.reverse('scionlab_host_config', args=[selected[0].pk])
-        return HttpResponseRedirect(url)
+    list_display = ('__str__', 'AS',
+                    'internal_ip', 'public_ip', 'bind_ip', 'managed', 'management_ip', 'ssh_port',
+                    'latest_config_deployed', 'get_config_link')
+    list_filter = ('AS__isd', 'AS', )
+    ordering = ['AS']
 
     def get_urls(self):
         urls = super().get_urls()
@@ -627,7 +653,6 @@ class HostAdmin(admin.ModelAdmin):
                  self.admin_site.admin_view(self.get_config),
                  name='scionlab_host_config'),
         ]
-        print(urls)
         return urls
 
     def get_config(self, request, object_id):

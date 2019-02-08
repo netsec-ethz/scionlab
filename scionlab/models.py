@@ -910,12 +910,9 @@ class InterfaceManager(models.Manager):
         if public_port is None:
             public_port = portmap.get_port(effective_public_ip, DEFAULT_PUBLIC_PORT)
         if bind_port is None and effective_bind_ip is not None:
-            print('')
-            print('assigning bind_port')
             bind_port = portmap.get_port(effective_bind_ip,
                                          min=DEFAULT_PUBLIC_PORT,
                                          preferred=public_port)
-            print('bind_port', bind_port)
 
         as_.hosts.bump_config()
 
