@@ -1090,20 +1090,10 @@ class Interface(models.Model):
         Get the link associated with this interface.
         :returns: Link
         """
-        return (
-            Link.objects.filter(interfaceA=self) |
-            Link.objects.filter(interfaceB=self)
-        ).get()
-
-    def link_relation(self):
-        if self.link().type == Link.PROVIDER:
-            # By definition, interfaceA is on the parent side
-            if self.link().interfaceA == self:
-                return "PARENT"
-            else:
-                return"CHILD"
+        if hasattr(self, 'link_as_interfaceA'):
+            return self.link_as_interfaceA
         else:
-            return self.link().type
+            return self.link_as_interfaceB
 
     def remote_interface(self):
         """

@@ -58,9 +58,6 @@ TYPES_TO_KEYS = {
 }
 
 
-PROM_PORT_OFFSET = 1000  # TODO(matzf) move to model for port assignment
-
-
 def generate_instance_dir(archive, as_, stype, tp, name):
     """
     Generate the service instance directory for the gen folder
@@ -82,7 +79,7 @@ def generate_instance_dir(archive, as_, stype, tp, name):
     elif stype == 'CS':
         cmd = 'bin/cert_srv -config "%s/csconfig.toml"' % elem_dir
     elif stype == 'PS':
-        cmd = 'bin/path_server -config %s/psconfig.tom' % elem_dir
+        cmd = 'bin/path_srv -config %s/psconfig.toml' % elem_dir
     else:  # beacon server
         assert stype == 'BS'
         env.append('PYTHONPATH=python/:.')
@@ -228,66 +225,27 @@ def _write_as_conf_and_path_policy(archive, elem_dir):
 
 
 def _build_ps_conf(instance_name, instance_path):
-    log_dir = 'logs'
-    db_dir = 'gen-cache'
-    log_level = 'debug'
-    raw_entry = {
-        'general': {
-            'ID': instance_name,
-            'ConfigDir': instance_path,
-            'ReconnectToDispatcher': True,
-        },
-        'logging': {
-            'file': {
-                'Path': os.path.join(log_dir, "%s.log" % instance_name),
-                'Level': log_level,
-            },
-            'console': {
-                'Level': 'crit',
-            },
-        },
-        'TrustDB': {
-            'Backend': 'sqlite',
-            'Connection': os.path.join(db_dir, '%s.trust.db' % instance_name),
-        },
+    conf = _build_common_goservice_conf(instance_name, instance_path)
+    conf.update({
         'infra': {
             'Type': "PS"
         },
         'ps': {
             'PathDB': {
                 'Backend': 'sqlite',
-                'Connection': os.path.join(db_dir, '%s.path.db' % instance_name),
+                'Connection': 'gen-cache/%s.path.db' % instance_name,
             },
             'SegSync': True,
         },
-    }
-    return raw_entry
+    })
+    return conf
 
 
 def _build_cs_conf(instance_name, instance_path):
-    log_dir = 'logs'
-    db_dir = 'gen-cache'
-    log_level = 'debug'
-    raw_entry = {
-        'general': {
-            'ID': instance_name,
-            'ConfigDir': instance_path,
-        },
+    conf = _build_common_goservice_conf(instance_name, instance_path)
+    conf.update({
         'sd_client': {
             'Path': os.path.join(SCIOND_API_SOCKDIR, 'default.sock')
-        },
-        'logging': {
-            'file': {
-                'Path': os.path.join(log_dir, "%s.log" % instance_name),
-                'Level': log_level,
-            },
-            'console': {
-                'Level': 'crit',
-            },
-        },
-        'TrustDB': {
-            'Backend': 'sqlite',
-            'Connection': os.path.join(db_dir, '%s.trust.db' % instance_name),
         },
         'infra': {
             'Type': "CS"
@@ -298,24 +256,37 @@ def _build_cs_conf(instance_name, instance_path):
             'ReissueRate': "10s",
             'ReissueTimeout': "5s",
         },
-    }
-    return raw_entry
+    })
+    return conf
 
 
 def _build_sciond_conf(instance_name, instance_path, ia):
-    log_dir = 'logs'
-    db_dir = 'gen-cache'
-    log_level = 'debug'
-    raw_entry = {
+    conf = _build_common_goservice_conf(instance_name, instance_path)
+    conf.update({
+        'sd': {
+            'Reliable': os.path.join(SCIOND_API_SOCKDIR, "default.sock"),
+            'Unix': os.path.join(SCIOND_API_SOCKDIR, "default.unix"),
+            'Public': '%s,[127.0.0.1]:0' % ia,  # XXX(matzf): Should rather be the host addr?
+            'PathDB': {
+                'Connection': 'gen-cache/%s.path.db' % instance_name,
+            },
+        },
+    })
+    return conf
+
+
+def _build_common_goservice_conf(instance_name, instance_path):
+    """ Helper: return common settings for golang CS/PS/sciond """
+    return {
         'general': {
             'ID': instance_name,
             'ConfigDir': instance_path,
-            'ReconnectToDispatcher': True,
+            'ReconnectToDispatcher': True,  # XXX(matzf): for CS, topology/go.py this is False. Why?
         },
         'logging': {
             'file': {
-                'Path': os.path.join(log_dir, "%s.log" % instance_name),
-                'Level': log_level,
+                'Path': 'logs/%s.log' % instance_name,
+                'Level': 'debug',
             },
             'console': {
                 'Level': 'crit',
@@ -323,15 +294,6 @@ def _build_sciond_conf(instance_name, instance_path, ia):
         },
         'TrustDB': {
             'Backend': 'sqlite',
-            'Connection': os.path.join(db_dir, '%s.trust.db' % instance_name),
-        },
-        'sd': {
-            'Reliable': os.path.join(SCIOND_API_SOCKDIR, "default.sock"),
-            'Unix': os.path.join(SCIOND_API_SOCKDIR, "default.unix"),
-            'Public': '%s,[127.0.0.1]:0' % ia,  # TODO(matzf): IPv6!
-            'PathDB': {
-                'Connection': os.path.join(db_dir, '%s.path.db' % instance_name),
-            },
-        },
+            'Connection': 'gen-cache/%s.trust.db' % instance_name,
+        }
     }
-    return raw_entry

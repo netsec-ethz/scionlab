@@ -14,7 +14,7 @@
 
 import ipaddress
 
-from scionlab.models import Service
+from scionlab.models import Service, Link
 import scionlab.util.local_config_util as generator
 
 
@@ -114,7 +114,7 @@ def _topo_add_routers(topo_dict, routers, as_address_type):
 
             interface_entry = {
                 "ISD_AS": remote_AS_obj.isd_as_str(),
-                "LinkTo": str(interface.link_relation()),
+                "LinkTo": _get_linkto_relation(interface),
                 "Bandwidth": interface.link().bandwidth,
                 "PublicOverlay": {
                     "Addr": interface.get_public_ip(),
@@ -198,6 +198,18 @@ def _get_link_overlay_type_str(interface):
         return "UDP/IPv6"
     else:
         return "UDP/IPv4"
+
+
+def _get_linkto_relation(interface):
+    link = interface.link()
+    if link.type == Link.PROVIDER:
+        # By definition, interfaceA is on the parent side
+        if link.interfaceA == interface:
+            return "CHILD"
+        else:
+            return"PARENT"
+    else:
+        return link.type
 
 
 def _get_router_names(as_):
