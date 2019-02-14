@@ -335,9 +335,7 @@ class InterfaceInline(admin.TabularInline):
         if db_field.name == "border_router":
             as_ = self.get_parent_object_from_request(request)
             kwargs["queryset"] = as_.border_routers.all()
-        foo = super().formfield_for_foreignkey(db_field, request, **kwargs)
-        print(foo)
-        return foo
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_parent_object_from_request(self, request):
         """
