@@ -32,7 +32,7 @@ from scionlab.views.api import GetHostConfig
 
 urlpatterns = [
     # TODO(matzf): implement actual home page
-    path('', TemplateView(template_name='home.html').as_view(), name='home'),
+    path('', TemplateView.as_view(template_name='scionlab/home.html'), name='home'),
 
     # Admin space
     path('admin/', admin.site.urls),
