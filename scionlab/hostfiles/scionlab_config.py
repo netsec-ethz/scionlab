@@ -28,7 +28,10 @@ import sys
 from collections import namedtuple
 
 REQUEST_TIMEOUT_SECONDS = 10
-DEFAULT_CONFIG_INFO_PATH = os.path.expandvars('${SC}/gen/scionlab-host.json')
+
+DEFAULT_SCION_PATH = os.path.expanduser('~/go/src/github.com/scionproto/scion')
+SCION_PATH = os.path.environ('SC', DEFAULT_SCION_PATH)
+DEFAULT_CONFIG_INFO_PATH = os.path.join(SCION_PATH, 'gen/scionlab-config.json')
 DEFAULT_COORDINATOR_URL = 'https://www.scionlab.org'
 
 
@@ -45,9 +48,13 @@ def main():
         if config is _CONFIG_EMPTY:
             # stop_scion()
             pass
-        elif config is not _CONFIG_UNCHANGED:
+        elif config is _CONFIG_UNCHANGED:
+            # log debug
+            pass
+        else:
             new_config_info = unpack_config(config)
-            confirm_deployed(new_config_info)
+            if new_config_info:
+                confirm_deployed(new_config_info)
     else:
         tar = tarfile.open(args.tar, mode='r')
         unpack_config(tar)
@@ -131,10 +138,6 @@ def _load_config_info(file):
         _error_exit("Invalid scionlab config info file '%s'" % file, e)
 
 
-def unpack_config(tar):
-    pass
-
-
 def fetch_config(config_info):
     url = '{coordinator_url}/api/host/{host_id}/config'.format(
         coordinator_url=config_info.url,
@@ -192,6 +195,13 @@ def _http_post(url, params):
 def _error_exit(*args, **kwargs):
     logging.error(*args, **kwargs)
     sys.exit(1)
+
+
+def unpack_config(tar):
+    sc = SCION_PATH
+    tar.extract('scionlab-config.json', path=sc)
+    tar.extract('gen', path=sc)
+    pass
 
 
 if __name__ == '__main__':
