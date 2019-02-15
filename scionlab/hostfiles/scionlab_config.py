@@ -25,21 +25,30 @@ import os
 import tarfile
 import urllib.request
 import sys
+import subprocess
 from collections import namedtuple
 
-REQUEST_TIMEOUT_SECONDS = 10
 
 DEFAULT_SCION_PATH = os.path.expanduser('~/go/src/github.com/scionproto/scion')
-SCION_PATH = os.path.environ('SC', DEFAULT_SCION_PATH)
+SCION_PATH = os.environ.get('SC', DEFAULT_SCION_PATH)
+
 DEFAULT_CONFIG_INFO_PATH = os.path.join(SCION_PATH, 'gen/scionlab-config.json')
 DEFAULT_COORDINATOR_URL = 'https://www.scionlab.org'
+REQUEST_TIMEOUT_SECONDS = 10
 
 
 _CONFIG_EMPTY = object()
 _CONFIG_UNCHANGED = object()
 
+ConfigInfo = namedtuple('ConfigInfo',
+                        ['host_id',
+                         'host_secret',
+                         'url',
+                         'version'])
+
 
 def main():
+    sys.traceback = None
     args = parse_command_line_args()
 
     if not args.tar:
@@ -52,12 +61,11 @@ def main():
             # log debug
             pass
         else:
-            new_config_info = unpack_config(config)
-            if new_config_info:
-                confirm_deployed(new_config_info)
+            install_config(config)
+            confirm_deployed(args)
     else:
         tar = tarfile.open(args.tar, mode='r')
-        unpack_config(tar)
+        install_config(tar)
 
 
 def parse_command_line_args():
@@ -82,16 +90,9 @@ def parse_command_line_args():
     return parser.parse_args()
 
 
-ConfigInfo = namedtuple('ConfigInfo',
-                        ['host_id',
-                         'host_secret',
-                         'url',
-                         'version'])
-
-
 def get_config_info(args):
     if args.config_info:
-        return _get_config_info_from_file(args.config_info)
+        return _get_config_info_from_file(args.config_info, args)
     elif args.host_id or args.host_secret:
         if not args.host_id and args.host_secret:
             _error_exit("Either none of or --host-id and --host-secret parameters need to be set")
@@ -105,7 +106,7 @@ def get_config_info(args):
                         "an existing config info file with --config-info, or explicitly provide "
                         "authentication parameters for this host with --host-id and --host-secret."
                         % DEFAULT_CONFIG_INFO_PATH)
-        return _get_config_info_from_file(DEFAULT_CONFIG_INFO_PATH)
+        return _get_config_info_from_file(DEFAULT_CONFIG_INFO_PATH, args)
 
 
 def _get_config_info_from_file(file, args):
@@ -114,13 +115,14 @@ def _get_config_info_from_file(file, args):
     Overwrite url with the URL argument.
     Overwrite the version if '--force' or '--local-version' are given.
     """
-    config_info = _load_config_info(DEFAULT_CONFIG_INFO_PATH)
-    config_info.url = args.url or config_info.url or DEFAULT_COORDINATOR_URL
+    config_info = _load_config_info(file)
+    url = args.url or config_info.url or DEFAULT_COORDINATOR_URL
+    version = config_info.version
     if args.force:
-        config_info.version = None
+        version = None
     elif args.local_version:
-        config_info.version = args.local_version
-    return config_info
+        version = args.local_version
+    return config_info._replace(url=url, version=version)
 
 
 def _load_config_info(file):
@@ -162,12 +164,17 @@ def fetch_config(config_info):
     return tarfile.open(mode='r:gz', fileobj=io.BytesIO(response_data))
 
 
-def confirm_deployed(config_info):
+def confirm_deployed(args):
+    # Get newly installed config info
+    config_info = _load_config_info(DEFAULT_CONFIG_INFO_PATH)
+    if args.url:
+        config_info = config_info._replace(url=args.url)
+
     url = '{coordinator_url}/api/host/{host_id}/deployed_config_version'.format(
         coordinator_url=config_info.url,
         host_id=config_info.host_id
     )
-    data = {'secret': config_info.host_secret, 'version': config_info.host_version}
+    data = {'secret': config_info.host_secret, 'version': config_info.version}
     _http_post(url, data)
 
 
@@ -183,13 +190,11 @@ def _http_get(url, params):
 
 def _http_post(url, params):
     """ Helper: make POST request to URL with given params """
-    request = urllib.request.Request(
+    return urllib.request.urlopen(
         url,
         data=urllib.parse.urlencode(params).encode('utf-8'),
-        method='POST',
         timeout=REQUEST_TIMEOUT_SECONDS
     )
-    return urllib.request.urlopen(request)
 
 
 def _error_exit(*args, **kwargs):
@@ -197,11 +202,30 @@ def _error_exit(*args, **kwargs):
     sys.exit(1)
 
 
-def unpack_config(tar):
+def install_config(tar):
     sc = SCION_PATH
-    tar.extract('scionlab-config.json', path=sc)
-    tar.extract('gen', path=sc)
-    pass
+    if not os.path.isdir(sc):
+        _error_exit('No SCION installation found at $SC (%s).' % sc)
+
+    gen_members = [f for f in tar.getmembers() if f.path == 'gen' or f.path.startswith('gen/')]
+    tar.extractall(members=gen_members, path=sc)
+
+    restart_scion()
+
+    # TODO
+    # - VPN Client
+    # - VPN Server
+
+
+def restart_scion():
+    # TODO quick reload: only restart if set of processes changed, otherwise trigger config
+    # reloading
+    sc = SCION_PATH
+    scion_sh = os.path.join(sc, 'scion.sh')
+    supervisor_sh = os.path.join(sc, 'supervisor/supervisor.sh')
+    subprocess.check_call([scion_sh, 'stop'], cwd=sc)
+    subprocess.check_call([supervisor_sh, 'reload'], cwd=sc)
+    subprocess.check_call([scion_sh, 'start', 'nobuild'], cwd=sc)
 
 
 if __name__ == '__main__':
