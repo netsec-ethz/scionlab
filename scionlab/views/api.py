@@ -15,6 +15,8 @@
 import hmac
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
@@ -57,6 +59,7 @@ class GetHostConfig(SingleObjectMixin, View):
         return resp
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class PostHostDeployedConfigVersion(SingleObjectMixin, View):
     """
     Post a version to set the `config_version_deployed` of a Host object.
