@@ -1,0 +1,28 @@
+{% extends 'scionlab/base.html' %}
+
+{% block title %}SCIONLab{% endblock %}
+
+{% block content %}
+<h3>Welcome to SCIONLab!</h3>
+
+SCIONLab is a global research network to test the SCION next-generation
+internet architecture. The main idea of SCIONLab is that participants join the
+SCION network with their own computation resources and can easily set up and
+run their own full-fledged SCION autonomous systems (ASes).
+
+These ASes will actively participate in routing in the SCIONLab network,
+SCIONLab enables realistic experimentation with the unique properties of SCION
+architecture.
+
+<a class="btn btn-primary btn-lg" href="{% url 'register' %}">Register and Create your own AS</a>
+
+</hr>
+
+<h4>What is SCION</h4>
+SCION (<b>S</b>calability, <b>C</b>ontrol and <b>I</b>solation on next-generation <b>N</b>etworks)
+is a next-generation internet architecture. 
+
+See the <a href="https://www.scion-architecture.net">SCION Architecture</a> main page for more details.
+
+{% endif %}
+{% endblock content %}

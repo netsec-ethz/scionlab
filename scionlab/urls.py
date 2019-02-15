@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from django.views.generic.base import TemplateView
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
@@ -25,13 +26,13 @@ from scionlab.views.user_as_views import (
     UserASActivateView,
     UserASDetailView,
     UserASGetConfigView)
-from scionlab.views.placehoder_view import PlaceholderView
+# from scionlab.views.placehoder_view import PlaceholderView
 from scionlab.views.registration_view import UserRegistrationView
 from scionlab.views.api import GetHostConfig
 
 urlpatterns = [
     # TODO(matzf): implement actual home page
-    path('', PlaceholderView.as_view(), name='home'),
+    path('', TemplateView(template_name='home.html').as_view(), name='home'),
 
     # Admin space
     path('admin/', admin.site.urls),
