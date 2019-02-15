@@ -73,7 +73,7 @@ def _generate_topology_from_DB(as_):
     topo_dict = {}
 
     # get overlay type inside AS from IPs used by hosts
-    address_type = _get_internal_address_type_str(as_)
+    address_type = _get_ip_type_str(as_.hosts.first().internal_ip)
     overlay_type = "UDP/" + address_type
 
     # AS wide entries
@@ -107,34 +107,41 @@ def _topo_add_routers(topo_dict, routers, as_address_type):
         router_entry = _topo_add_router_entry(topo_dict, router, router_name, as_address_type)
 
         for interface in interfaces:
-            remote_if_obj = interface.remote_interface()
-            remote_AS_obj = interface.remote_as()
+            _topo_add_interface(router_entry, interface)
 
-            link_overlay = _get_link_overlay_type_str(interface)
 
-            interface_entry = {
-                "ISD_AS": remote_AS_obj.isd_as_str(),
-                "LinkTo": _get_linkto_relation(interface),
-                "Bandwidth": interface.link().bandwidth,
-                "PublicOverlay": {
-                    "Addr": interface.get_public_ip(),
-                    "OverlayPort": interface.public_port
-                },
-                "MTU": interface.link().bandwidth,
-                "RemoteOverlay": {
-                    "Addr": remote_if_obj.get_public_ip(),
-                    "OverlayPort": remote_if_obj.public_port
-                },
-                "Overlay": link_overlay
+def _topo_add_interface(router_entry, interface):
+    """
+    Add an entry for the given interface to the BorderRouter-entry `router_entry` in the topo dict.
+    """
+    remote_interface = interface.remote_interface()
+
+    address_type = _get_ip_type_str(interface.get_public_ip())
+    link_overlay = "UDP/" + address_type
+
+    interface_entry = {
+        "ISD_AS": remote_interface.AS.isd_as_str(),
+        "LinkTo": _get_linkto_relation(interface),
+        "Bandwidth": interface.link().bandwidth,
+        "PublicOverlay": {
+            "Addr": interface.get_public_ip(),
+            "OverlayPort": interface.public_port
+        },
+        "MTU": interface.link().bandwidth,
+        "RemoteOverlay": {
+            "Addr": remote_interface.get_public_ip(),
+            "OverlayPort": remote_interface.public_port
+        },
+        "Overlay": link_overlay
+    }
+    if interface.get_bind_ip():
+        interface_entry.update({
+            "BindOverlay": {
+                "Addr": interface.get_bind_ip(),
+                "OverlayPort": interface.bind_port or interface.public_port
             }
-            if interface.get_bind_ip():
-                interface_entry.update({
-                    "BindOverlay": {
-                        "Addr": interface.get_bind_ip(),
-                        "OverlayPort": interface.bind_port or interface.public_port
-                    }
-                })
-            router_entry["Interfaces"][interface.interface_id] = interface_entry
+        })
+    router_entry["Interfaces"][interface.interface_id] = interface_entry
 
 
 def _topo_add_router_entry(topo_dict, router, router_name, as_address_type):
@@ -183,9 +190,14 @@ def _topo_add_zookeeper(topo_dict, as_):
         }
 
 
-def _get_internal_address_type_str(as_):
-    host = as_.hosts.first()
-    ip = ipaddress.ip_address(host.internal_ip)
+def _get_ip_type_str(ip):
+    """
+    Return the type of the given IP address as string to be used in the scion topology
+    files; returns either "IPv4" or "IPv6"
+    :param str ip: IP address
+    :return str: "IPv4" or "IPv6"
+    """
+    ip = ipaddress.ip_address(ip)
     if isinstance(ip, ipaddress.IPv6Address):
         return "IPv6"
     else:
@@ -193,11 +205,8 @@ def _get_internal_address_type_str(as_):
 
 
 def _get_link_overlay_type_str(interface):
-    ip = ipaddress.ip_address(interface.get_public_ip())
-    if isinstance(ip, ipaddress.IPv6Address):
-        return "UDP/IPv6"
-    else:
-        return "UDP/IPv4"
+    ip_type = _get_ip_type_str(interface.get_public_ip())
+    return "UDP/" + ip_type
 
 
 def _get_linkto_relation(interface):

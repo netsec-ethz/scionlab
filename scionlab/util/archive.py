@@ -103,7 +103,7 @@ class TarWriter(BaseArchiveWriter):
 
     def __init__(self, tar):
         """
-        :param tarfile.TarFile tar` the tar-file to write to.
+        :param tarfile.TarFile tar: the tar-file to write to.
         """
         self.tar = tar
 

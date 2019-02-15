@@ -853,8 +853,8 @@ class Host(models.Model):
 
     def get_port_map(self):
         """
-        Find a set of (UDP-)ports used.
-        :returns: PortMap of used UDP-ports
+        Find a set of ports used.
+        :returns: PortMap of used ports
         """
         portmap = PortMap()
         portmap.add(None, DISPATCHER_PORT)
