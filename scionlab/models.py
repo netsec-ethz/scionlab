@@ -145,7 +145,7 @@ class ISD(models.Model):
 
     def update_trc_and_core_certificates(self, cached_ases=[]):
         """
-        Update the TRC and the Core AS Certificates for all the (core-)ASes in this ISD.
+        Update the TRC and the Core AS Certificates for all the core-ASes in this ISD.
 
         All AS objects not in `cached_ases` are saved. The ISD object is saved.
 
