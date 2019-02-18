@@ -18,7 +18,6 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 
-from scionlab.forms.login_form import AuthenticationFormWithCaptcha
 from scionlab.views.user_as_views import (
     UserASesView,
     UserASCreateView,
@@ -39,8 +38,7 @@ urlpatterns = [
 
     # Authentication
     path('user/login/',
-         auth_views.LoginView.as_view(form_class=AuthenticationFormWithCaptcha,
-                                      template_name='registration/login.html'),
+         auth_views.LoginView.as_view(template_name='registration/login.html'),
          name='login'),
     # django.contrib.auth: auth views for logout, password reset/change
     path('user/', include('django.contrib.auth.urls')),

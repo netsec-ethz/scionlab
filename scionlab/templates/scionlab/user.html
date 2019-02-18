@@ -1,7 +1,7 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
 
-{% block title %}User ASes{% endblock %}
+{% block title %}{{block.super}} - My ASes{% endblock %}
 {% block content_title %}My SCIONLab ASes{% endblock %}
 
 {% block content %}
@@ -41,7 +41,7 @@
   {% for user_as in object_list %}
   <tr>
     <th scope="row">{{ forloop.counter }}</th>
-    <td><a href="{% url 'user_as_detail' pk=user_as.pk %}">{{ user_as.isd_as_str }}</a></td>
+    <td><a href="{% url 'user_as_detail' pk=user_as.pk %}"><span class="fa fa-edit"></span> {{ user_as.isd_as_str }}</a></td>
     <td>{{ user_as.label|default:"-" }}</td>
     <td>{{ user_as.attachment_point }}</td>
     <td>{{ user_as.public_ip|default:"<i>VPN</i>"|safe }}:{{ user_as.get_public_port }}</td>
@@ -49,11 +49,11 @@
       {% if user_as.is_active %}
       <img src="{% static "admin/img/icon-yes.svg" %}">
       {% else %}
-      <img src="{% static "admin/img/icon-yes.svg" %}">
+      <img src="{% static "admin/img/icon-no.svg" %}">
       {% endif %}
     </td>
     <td>
-      <a href="{% url 'user_as_config' pk=user_as.pk %}">Save</a>
+      <a href="{% url 'user_as_config' pk=user_as.pk %}"><span class="fa fa-download"></span></a>
     </td>
     <!--td>
       {% if user_as.is_active %}
