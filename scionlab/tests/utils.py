@@ -47,6 +47,10 @@ def check_as(testcase, as_):
     if as_.is_core:
         check_as_core_keys(testcase, as_)
 
+    testcase.assertIsNotNone(as_.certificate_chain)
+    if as_.is_core:
+        testcase.assertIsNotNone(as_.core_certificate)
+
     for host in as_.hosts.iterator():
         check_host_ports(testcase, host)
 
@@ -223,8 +227,8 @@ def check_as_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    _check_sig_keypair(testcase, as_.sig_pub_key, as_.sig_priv_key)
-    _check_enc_keypair(testcase, as_.enc_pub_key, as_.enc_priv_key)
+    check_sig_keypair(testcase, as_.sig_pub_key, as_.sig_priv_key)
+    check_enc_keypair(testcase, as_.enc_pub_key, as_.enc_priv_key)
     testcase.assertIsNotNone(as_.master_as_key)
     _sanity_check_base64(testcase, as_.master_as_key)
 
@@ -236,12 +240,12 @@ def check_as_core_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    _check_sig_keypair(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
-    _check_sig_keypair(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
-    _check_sig_keypair(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
+    check_sig_keypair(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
+    check_sig_keypair(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
+    check_sig_keypair(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
 
 
-def _check_sig_keypair(testcase, sig_pub_key_b64, sig_priv_key_b64):
+def check_sig_keypair(testcase, sig_pub_key_b64, sig_priv_key_b64):
     """
     Check that this signing keypair was correctly created
     """
@@ -259,7 +263,7 @@ def _check_sig_keypair(testcase, sig_pub_key_b64, sig_priv_key_b64):
     testcase.assertTrue(lib.crypto.asymcrypto.verify(m, s, sig_pub_key))
 
 
-def _check_enc_keypair(testcase, enc_pub_key_b64, enc_priv_key_b64):
+def check_enc_keypair(testcase, enc_pub_key_b64, enc_priv_key_b64):
     """
     Check that this encryption keypair was correctly created
     """

@@ -2,3 +2,4 @@
 pynacl
 pygments  # accidental dependency, just for stack traces somewhere
 pycapnp
+lz4

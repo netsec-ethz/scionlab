@@ -91,12 +91,17 @@ class UpdateASKeysTests(TestCase):
 
         as_ = AS.objects.first()
 
+        prev_certificate_chain = as_.certificate_chain
+
         as_.update_keys()
 
-        self.assertTrue(as_.certificates_needs_update)
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
             list(as_.hosts.all())
+        )
+        self.assertEqual(
+            as_.certificate_chain['0']['Version'],
+            prev_certificate_chain['0']['Version'] + 1
         )
 
 

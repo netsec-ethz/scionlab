@@ -38,8 +38,6 @@ def generate_user_as_config_tar(user_as, fileobj):
     :param Host host: the Host for which config should be generated
     :param fileobj: writable, file-like object for output
     """
-    _ensure_certificates(user_as)
-
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
         generate.create_gen(host, TarWriter(tar))
@@ -58,8 +56,6 @@ def generate_host_config_tar(host, fileobj):
     :param Host host: the Host for which config should be generated
     :param fileobj: writable, file-like object for output
     """
-    _ensure_certificates(host.AS)
-
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
         generate.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
@@ -73,14 +69,6 @@ def is_empty_config(host):
             and not host.interfaces.exists()
             and not host.vpn_clients.filter(active=True).exists()
             and not host.vpn_servers.exists())
-
-
-def _ensure_certificates(as_):
-    """
-    Create/update TRC and AS certificates if necessary.
-    """
-    # TODO(matzf)
-    pass
 
 
 def _add_vpn_config(host, tar):

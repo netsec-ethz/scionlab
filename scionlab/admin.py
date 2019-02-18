@@ -134,7 +134,7 @@ class ISDAdmin(admin.ModelAdmin):
         })
         trc_fields = ('TRC', {
             'classes': ('collapse',),
-            'fields': ('trc', 'trc_priv_keys', 'trc_needs_update')
+            'fields': ('trc', 'trc_priv_keys')
         })
         if not obj:
             return (base_fields,)
@@ -411,8 +411,8 @@ class ASAdmin(admin.ModelAdmin):
                     ('core_sig_pub_key', 'core_sig_priv_key'),
                     ('core_online_pub_key', 'core_online_priv_key'),
                     ('core_offline_pub_key', 'core_offline_priv_key'),
-                    'certificates',
-                    'certificates_needs_update'
+                    'certificate_chain',
+                    'core_certificate',
                 )
             }
         )
