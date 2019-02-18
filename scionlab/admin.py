@@ -16,10 +16,11 @@ from django import urls
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from django.contrib import admin
+from django.shortcuts import get_object_or_404
 from django import forms
-from django.urls import resolve
+from django.urls import resolve, path
 
-from .models import (
+from scionlab.models import (
     ISD,
     AS,
     UserAS,
@@ -27,16 +28,18 @@ from .models import (
     Host,
     Interface,
     Link,
+    BorderRouter,
     Service,
     VPN,
     VPNClient,
     MAX_PORT,
     DEFAULT_HOST_INTERNAL_IP,
 )
+from scionlab.util.http import HttpResponseAttachment
+from scionlab.util import config_tar
 
 admin.site.register([
     AttachmentPoint,
-    Host,
 ])
 
 
@@ -177,16 +180,29 @@ class HostAdminForm(_CreateUpdateModelForm):
         )
 
 
-class HostInline(admin.TabularInline):
-    model = Host
-    extra = 0
-    form = HostAdminForm
-    readonly_fields = ('latest_config_deployed', )
-
+class HostAdminMixin:
+    """
+    Helper class for shared functionality in HostAdmin (the ModelAdmin for Host) and
+    HostInline (the ModelInline for Host in ASAdmin).
+    This is simply a bag of methods that can be used in readonly_fields/list_display.
+    """
     def latest_config_deployed(self, obj):
         return not obj.needs_config_deployment()
 
     latest_config_deployed.boolean = True
+
+    def get_config_link(self, obj):
+        url = urls.reverse('admin:scionlab_host_config', args=[obj.pk])
+        return format_html('<a class="viewlink" href="%s"></a>' % url)
+
+    get_config_link.short_description = 'Config'
+
+
+class HostInline(HostAdminMixin, admin.TabularInline):
+    model = Host
+    extra = 0
+    form = HostAdminForm
+    readonly_fields = ('latest_config_deployed', 'get_config_link')
 
 
 class ServiceAdminForm(_CreateUpdateModelForm):
@@ -231,6 +247,51 @@ class ServiceInline(admin.TabularInline):
         return None
 
 
+class BorderRouterAdminForm(_CreateUpdateModelForm):
+    def create(self):
+        return BorderRouter.objects.create(
+            host=self.cleaned_data['host'],
+            internal_port=self.cleaned_data['internal_port'],
+            control_port=self.cleaned_data['control_port']
+        )
+
+    def update(self):
+        self.instance.update(
+            host=self.cleaned_data['host'],
+            internal_port=self.cleaned_data['internal_port'],
+            control_port=self.cleaned_data['control_port']
+        )
+
+
+class BorderRouterInline(admin.TabularInline):
+    model = BorderRouter
+    extra = 0
+    form = BorderRouterAdminForm
+    fields = ('host', 'internal_port', 'control_port')
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "host":
+            as_ = self.get_parent_object_from_request(request)
+            kwargs["queryset"] = as_.hosts.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_parent_object_from_request(self, request):
+        """
+        Returns the parent object from the request or None.
+        """
+        resolved = resolve(request.path_info)
+        if 'object_id' in resolved.kwargs:
+            return self.parent_model.objects.get(pk=resolved.kwargs['object_id'])
+        return None
+
+
+class InterfaceAdminForm(_CreateUpdateModelForm):
+    def update(self):
+        self.instance.update(
+            border_router=self.cleaned_data['border_router'],
+        )
+
+
 class InterfaceInline(admin.TabularInline):
     """
     Inline to show the interface and the associated link in the AS change page.
@@ -242,15 +303,16 @@ class InterfaceInline(admin.TabularInline):
     # but looking at the LinkAdmin/LinkAdminForm setup, it actually seems doable now using a similar
     # setup.
 
+    form = InterfaceAdminForm
     model = Interface
     extra = 0
-    fields = ('link', 'interface_id', 'host', 'internal_port', 'public_ip_', 'public_port',
+    fields = ('link', 'interface_id', 'border_router', 'host', 'public_ip_', 'public_port',
               'bind_ip_', 'bind_port', 'type', 'active', )
-    readonly_fields = ('link', 'active', 'type', 'public_ip_', 'bind_ip_')
+    readonly_fields = tuple([f for f in fields if f != 'border_router'])
 
     def link(self, obj):
-        url = urls.reverse('admin:scionlab_link_change', args=[obj.pk])
-        return format_html('<a href="%s">%s</a>' % (url, obj.link()))
+        url = urls.reverse('admin:scionlab_link_change', args=[obj.link().pk])
+        return format_html('<a class="changelink" href="%s">%s</a>' % (url, obj.link()))
 
     def type(self, obj):
         return obj.link().type
@@ -269,8 +331,20 @@ class InterfaceInline(admin.TabularInline):
     def has_add_permission(self, *args, **kwargs):
         return False
 
-    def has_change_permission(self, *args, **kwargs):
-        return False
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "border_router":
+            as_ = self.get_parent_object_from_request(request)
+            kwargs["queryset"] = as_.border_routers.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_parent_object_from_request(self, request):
+        """
+        Returns the parent object from the request or None.
+        """
+        resolved = resolve(request.path_info)
+        if 'object_id' in resolved.kwargs:
+            return self.parent_model.objects.get(pk=resolved.kwargs['object_id'])
+        return None
 
 
 class ASCreationForm(_CreateUpdateModelForm):
@@ -304,11 +378,12 @@ class ASCreationForm(_CreateUpdateModelForm):
 
 @admin.register(AS, UserAS)
 class ASAdmin(admin.ModelAdmin):
-
-    inlines = [InterfaceInline, ServiceInline, HostInline]
+    inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
     actions = ['update_keys']
-    list_display = ('isd_as_str', 'label', 'is_core', 'is_ap', 'is_userAS')
-    list_filter = ('isd', 'is_core',)
+    list_display = ('isd', 'as_id', 'label', 'is_core', 'is_ap', 'is_userAS')
+    list_display_links = ('as_id', 'label')
+    list_filter = ('isd', 'is_core')
+    ordering = ('isd', 'as_id')
 
     def get_fieldsets(self, request, obj=None):
         """
@@ -464,14 +539,12 @@ class LinkAdminForm(_CreateUpdateModelForm):
     from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     from_bind_ip = forms.GenericIPAddressField(required=False)
     from_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
-    from_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     to_host = forms.ModelChoiceField(queryset=Host.objects.all())
     to_public_ip = forms.GenericIPAddressField(required=False)
     to_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     to_bind_ip = forms.GenericIPAddressField(required=False)
     to_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
-    to_internal_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     def __init__(self, data=None, files=None, initial=None, instance=None, **kwargs):
         initial = initial or {}
@@ -493,19 +566,17 @@ class LinkAdminForm(_CreateUpdateModelForm):
         initial[prefix+'public_port'] = interface.public_port
         initial[prefix+'bind_ip'] = interface.bind_ip
         initial[prefix+'bind_port'] = interface.bind_port
-        initial[prefix+'internal_port'] = interface.internal_port
 
     def _init_default_form_data(self, initial, prefix):
         pass
 
     def _get_interface_form_data(self, prefix):
         return dict(
-            host=self.cleaned_data[prefix+'host'],
+            border_router=BorderRouter.objects.first_or_create(self.cleaned_data[prefix+'host']),
             public_ip=self.cleaned_data[prefix+'public_ip'],
             public_port=self.cleaned_data[prefix+'public_port'],
             bind_ip=self.cleaned_data[prefix+'bind_ip'],
             bind_port=self.cleaned_data[prefix+'bind_port'],
-            internal_port=self.cleaned_data[prefix+'internal_port'],
         )
 
     def create(self):
@@ -562,3 +633,36 @@ class LinkAdmin(admin.ModelAdmin):
 
     def bind_port_b(self, obj):
         return obj.interfaceB.bind_port
+
+
+@admin.register(Host)
+class HostAdmin(HostAdminMixin, admin.ModelAdmin):
+    form = HostAdminForm
+    list_display = ('__str__', 'AS',
+                    'internal_ip', 'public_ip', 'bind_ip', 'managed', 'management_ip', 'ssh_port',
+                    'latest_config_deployed', 'get_config_link')
+    list_filter = ('AS__isd', 'AS', )
+    ordering = ['AS']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        urls += [
+            path('<path:object_id>/config',
+                 self.admin_site.admin_view(self.get_config),
+                 name='scionlab_host_config'),
+        ]
+        return urls
+
+    def get_config(self, request, object_id):
+        """
+        View to retrieve configuration tar ball for a host.
+        Returns same content as api/host/<int:pk>/config, but authentication is by user (admin), not
+        host/secret.
+        """
+        host = get_object_or_404(Host, pk=object_id)
+        filename = '{host}_v{version}.tar.gz'.format(
+                        host=host.path_str(),
+                        version=host.config_version)
+        resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
+        config_tar.generate_host_config_tar(host, resp)
+        return resp

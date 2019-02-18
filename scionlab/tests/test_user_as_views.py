@@ -159,9 +159,10 @@ class UserASFormTests(TestCase):
 
         # Create a UserAS with the given data
         create_form = UserASForm(user=get_testuser(), data=form_data)
+        self.assertIsNotNone(create_form.as_table())
         self.assertTrue(create_form.is_valid(), create_form.errors)
         user_as = create_form.save()
-        self.assertIsNotNone(create_form)
+        self.assertIsNotNone(user_as)
 
         # Check that the form can be instantiated for the object just created
         # and check that the forms initial values are the same as the
