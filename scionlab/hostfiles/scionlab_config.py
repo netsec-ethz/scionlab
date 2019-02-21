@@ -18,6 +18,7 @@ TODO(matzf) doc
 """
 
 import argparse
+import base64
 import io
 import json
 import logging
@@ -48,7 +49,7 @@ ConfigInfo = namedtuple('ConfigInfo',
 
 
 def main():
-    sys.traceback = None
+    sys.tracebacklimit = -1
     args = parse_command_line_args()
 
     if not args.tar:
@@ -58,8 +59,8 @@ def main():
             # stop_scion()
             pass
         elif config is _CONFIG_UNCHANGED:
-            # log debug
-            pass
+            logging.info('Configuration unchanged (version %s). Nothing to do.',
+                         config_info.version)
         else:
             install_config(config)
             confirm_deployed(args)
@@ -69,15 +70,14 @@ def main():
 
 
 def parse_command_line_args():
-    parser = argparse.ArgumentParser(description='')  # TODO(matzf) doc
+    parser = argparse.ArgumentParser(description='Install configuration for a SCIONLab host.')
 
-    group_fetch = parser.add_argument_group('Fetch configuration options')
+    group_fetch = parser.add_argument_group('Fetch options')
     parser.add_argument('--config-info',
                         help="Path to json file containing host-id, secret and the local version. "
                              "(default=%s)" % DEFAULT_CONFIG_INFO_PATH)
-    group_fetch.add_argument('--host-id', help='The host ID of the ',
-                             type=int)
-    group_fetch.add_argument('--host-secret', help='The secret for this host')
+    group_fetch.add_argument('--host-id', help='Host identifier', type=int)
+    group_fetch.add_argument('--host-secret', help='Authentication for host')
     # Either 'local-version' or 'force'
     group_version = group_fetch.add_mutually_exclusive_group()
     group_version.add_argument('--local-version', help='',
@@ -87,6 +87,7 @@ def parse_command_line_args():
     group_fetch.add_argument('--url', help='URL of the SCIONLab coordination service')
 
     parser.add_argument('--tar')
+
     return parser.parse_args()
 
 
@@ -104,8 +105,8 @@ def get_config_info(args):
         if not os.path.exists(DEFAULT_CONFIG_INFO_PATH):
             _error_exit("No scionlab config info file found at '%s'. Please specify the path to "
                         "an existing config info file with --config-info, or explicitly provide "
-                        "authentication parameters for this host with --host-id and --host-secret."
-                        % DEFAULT_CONFIG_INFO_PATH)
+                        "authentication parameters for this host with --host-id and --host-secret.",
+                        DEFAULT_CONFIG_INFO_PATH)
         return _get_config_info_from_file(DEFAULT_CONFIG_INFO_PATH, args)
 
 
@@ -116,85 +117,132 @@ def _get_config_info_from_file(file, args):
     Overwrite the version if '--force' or '--local-version' are given.
     """
     config_info = _load_config_info(file)
-    url = args.url or config_info.url or DEFAULT_COORDINATOR_URL
-    version = config_info.version
+
+    if args.url:
+        config_info = config_info._replace(url=args.url)
+
     if args.force:
-        version = None
+        config_info = config_info._replace(version=None)
     elif args.local_version:
-        version = args.local_version
-    return config_info._replace(url=url, version=version)
+        config_info = config_info._replace(version=args.local_version)
+
+    return config_info
 
 
 def _load_config_info(file):
+    """
+    Load and parse the config info json-file.
+    :returns: ConfigInfo
+    """
     try:
         with open(file, 'r') as f:
             config_info_dict = json.load(f)
     except IOError as e:
-        _error_exit("Error loading the scionlab config info file '%s'" % file, e)
+        _error_exit("Error loading the scionlab config info file '%s': %s", file, e)
     try:
         return ConfigInfo(config_info_dict['host_id'],
                           config_info_dict['host_secret'],
-                          config_info_dict.get('url'),
+                          config_info_dict.get('url') or DEFAULT_COORDINATOR_URL,
                           config_info_dict.get('version'))
     except KeyError as e:
-        _error_exit("Invalid scionlab config info file '%s'" % file, e)
+        _error_exit("Invalid scionlab config info file '%s': %s", file, e)
 
 
 def fetch_config(config_info):
+    """
+    Request configuration tar-ball from SCIONLab coordinator.
+
+    If available from either the config file or the command line and --force is not used, the
+    request sent to the coordinator will include the currently installed version. If the current
+    version is already the latest version, the server will reply with 304 Not Modified.
+
+    :param ConfigInfo config_info: base url, host-id/secret for authentication, version (optional).
+    :returns:
+        - _CONFIG_UNCHANGED if the current version is already the latest version, or
+        - _CONFIG_EMPTY if there is currently no configuration for this host, or
+        - tarfile.tar the configuration archive
+    """
+
     url = '{coordinator_url}/api/host/{host_id}/config'.format(
-        coordinator_url=config_info.url,
+        coordinator_url=config_info.url.rstrip('/'),
         host_id=config_info.host_id
     )
-    data = {'secret': config_info.host_secret}
+
     # version may be None (if "--force" is used or if version is not in the config info file)
+    data = {}
     if config_info.version:
         data['version'] = config_info.version
 
     try:
-        conn = _http_get(url, data)
+        conn = _http_get(url, data, username=config_info.host_id, password=config_info.host_secret)
         response_data = conn.read()
     except urllib.error.HTTPError as e:
         if e.code == 304:
-            return _CONFIG_EMPTY
-        elif e.code == 204:
             return _CONFIG_UNCHANGED
+        elif e.code == 204:
+            return _CONFIG_EMPTY
         else:
-            _error_exit("Failed to fetch configuration from SCIONLab coordinator at '%s'"
-                        % config_info.url, e)
+            _error_exit("Failed to fetch configuration from SCIONLab coordinator at %s: %s",
+                        config_info.url, e)
+    except Exception as e:
+            _error_exit("Failed to fetch configuration from SCIONLab coordinator at %s: %s",
+                        config_info.url, e)
     return tarfile.open(mode='r:gz', fileobj=io.BytesIO(response_data))
 
 
 def confirm_deployed(args):
+    """
+    Inform the SCIONLab coordinator of the currently installed version of the configuration. This
+    confirms that this version has been sucessfully installed. This information is used coordinator
+    by the coordinator only in the case where it actively pushes configuration to a host. A failure
+    in this step is generally unproblematic.
+
+    :param args: commandline arguments for optional coordinator URL
+    """
     # Get newly installed config info
     config_info = _load_config_info(DEFAULT_CONFIG_INFO_PATH)
     if args.url:
         config_info = config_info._replace(url=args.url)
 
     url = '{coordinator_url}/api/host/{host_id}/deployed_config_version'.format(
-        coordinator_url=config_info.url,
+        coordinator_url=config_info.url.rstrip('/'),
         host_id=config_info.host_id
     )
-    data = {'secret': config_info.host_secret, 'version': config_info.version}
-    _http_post(url, data)
+    data = {'version': config_info.version}
+    _http_post(url, data, username=config_info.host_id, password=config_info.host_secret)
 
 
-def _http_get(url, params):
-    """ Helper: make GET request to URL with given params
-    :returns: urlopen return
-    """
+def _http_get(url, params, username, password):
+    """ Helper: make GET request to URL with given params.  """
+    query = ''
+    if params:
+        query += '?' + urllib.parse.urlencode(params)
+    request = urllib.request.Request(url + query)
+    _add_basic_auth(request, username, password)
     return urllib.request.urlopen(
-        url + '?' + urllib.parse.urlencode(params),
+        request,
         timeout=REQUEST_TIMEOUT_SECONDS
     )
 
 
-def _http_post(url, params):
+def _http_post(url, params, username, password):
     """ Helper: make POST request to URL with given params """
+
+    request = urllib.request.Request(url,
+                                     data=urllib.parse.urlencode(params).encode('utf-8'),
+                                     method='POST')
+    _add_basic_auth(request, username, password)
     return urllib.request.urlopen(
-        url,
-        data=urllib.parse.urlencode(params).encode('utf-8'),
+        request,
         timeout=REQUEST_TIMEOUT_SECONDS
     )
+
+
+def _add_basic_auth(request, username, password):
+    """ Helper: add basic authorization header to a request """
+    uname_pwd = '%s:%s' % (username, password)
+    uname_pwd_encoded = base64.b64encode(uname_pwd.encode('utf-8')).decode('ascii')
+    request.add_header("Authorization", "Basic %s" % uname_pwd_encoded)
 
 
 def _error_exit(*args, **kwargs):
@@ -205,7 +253,7 @@ def _error_exit(*args, **kwargs):
 def install_config(tar):
     sc = SCION_PATH
     if not os.path.isdir(sc):
-        _error_exit('No SCION installation found at $SC (%s).' % sc)
+        _error_exit('No SCION installation found at $SC (%s).', sc)
 
     gen_members = [f for f in tar.getmembers() if f.path == 'gen' or f.path.startswith('gen/')]
     tar.extractall(members=gen_members, path=sc)
