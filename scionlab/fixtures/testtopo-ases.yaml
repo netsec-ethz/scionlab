@@ -252,77 +252,77 @@
 - model: scionlab.host
   pk: 1
   fields: {AS: 1, internal_ip: 127.0.0.1, public_ip: 192.0.2.11, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: 5a2W0_NrlEZzfqmk_7Pq-w==,
+    managed: false, management_ip: null, secret: 5a2W0_NrlEZzfqmk_7Pq-w==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 2
   fields: {AS: 2, internal_ip: 127.0.0.1, public_ip: 192.0.2.12, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: OBKlTVlvLg-AdwqYGbP8ZA==,
+    managed: false, management_ip: null, secret: OBKlTVlvLg-AdwqYGbP8ZA==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 3
   fields: {AS: 3, internal_ip: 127.0.0.1, public_ip: 192.0.2.13, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: atSmFACYMbJVKD05o3JgtQ==,
+    managed: false, management_ip: null, secret: atSmFACYMbJVKD05o3JgtQ==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 4
   fields: {AS: 4, internal_ip: 127.0.0.1, public_ip: 192.0.2.17, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: R7D6Lhl52uxloBQFRulzzA==,
+    managed: false, management_ip: null, secret: R7D6Lhl52uxloBQFRulzzA==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 5
   fields: {AS: 5, internal_ip: 127.0.0.1, public_ip: 192.0.2.31, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: c8CtMx5_ZUE1pAr_8sw3nw==,
+    managed: false, management_ip: null, secret: c8CtMx5_ZUE1pAr_8sw3nw==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 6
   fields: {AS: 6, internal_ip: 127.0.0.1, public_ip: 192.0.2.32, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: Js_8WmkJnHdidQwZeMcmBQ==,
+    managed: false, management_ip: null, secret: Js_8WmkJnHdidQwZeMcmBQ==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 7
   fields: {AS: 7, internal_ip: 127.0.0.1, public_ip: 192.0.2.33, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: kuA3OhfG0eLjoMeAsoZrgQ==,
+    managed: false, management_ip: null, secret: kuA3OhfG0eLjoMeAsoZrgQ==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 8
   fields: {AS: 8, internal_ip: 127.0.0.1, public_ip: 192.0.2.34, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: 9UIhB_c1XFV59UpL7-D1jQ==,
+    managed: false, management_ip: null, secret: 9UIhB_c1XFV59UpL7-D1jQ==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 9
   fields: {AS: 9, internal_ip: 127.0.0.1, public_ip: 192.0.2.35, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: jpuwJ8uzcu1mL8Rrbiw_9Q==,
+    managed: false, management_ip: null, secret: jpuwJ8uzcu1mL8Rrbiw_9Q==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 10
   fields: {AS: 10, internal_ip: 127.0.0.1, public_ip: 192.0.2.41, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: Ch2eAP9F36OzSrrmOiTAkg==,
+    managed: false, management_ip: null, secret: Ch2eAP9F36OzSrrmOiTAkg==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 11
   fields: {AS: 11, internal_ip: 127.0.0.1, public_ip: 192.0.2.42, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: -n51cB4VFD0Z08MnaeLrNg==,
+    managed: false, management_ip: null, secret: -n51cB4VFD0Z08MnaeLrNg==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 12
   fields: {AS: 12, internal_ip: 127.0.0.1, public_ip: 192.0.2.43, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: tIupSDi91OY9EIROrFM7Xw==,
+    managed: false, management_ip: null, secret: tIupSDi91OY9EIROrFM7Xw==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 13
   fields: {AS: 13, internal_ip: 127.0.0.1, public_ip: 192.0.2.44, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: QiOaZrQw0lHJSmLxDzUJUA==,
+    managed: false, management_ip: null, secret: QiOaZrQw0lHJSmLxDzUJUA==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 14
   fields: {AS: 14, internal_ip: 127.0.0.1, public_ip: 192.0.2.45, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: aPRjKwCAI5_eqYPXu7MlFA==,
+    managed: false, management_ip: null, secret: aPRjKwCAI5_eqYPXu7MlFA==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.host
   pk: 15
   fields: {AS: 15, internal_ip: 127.0.0.1, public_ip: 192.0.2.46, bind_ip: null, label: null,
-    managed: false, management_ip: null, ssh_port: 22, secret: rwl0ZbgeZ1h-DQVFvf4IQQ==,
+    managed: false, management_ip: null, secret: rwl0ZbgeZ1h-DQVFvf4IQQ==,
     config_version: 6, config_version_deployed: 0}
 - model: scionlab.service
   pk: 1

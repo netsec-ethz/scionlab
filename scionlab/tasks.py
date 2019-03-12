@@ -19,25 +19,19 @@ Huey tasks config for scionlab project.
 import logging
 import os
 import time
-from huey.contrib.djhuey import task, lock_task
-from huey.exceptions import TaskLockedException
+import huey.contrib.djhuey as huey
 
-SSH_CONNECT_TIMEOUT_SECONDS = 5
 
 # TODO(matzf) remove
-@task()
 def echo_task(message, sleep_time):
     """
     Simple echo task for testing.
     """
     # De-dupe using lock_task.
-    try:
-        with lock_task(message):
-            print(message)
-            time.sleep(sleep_time)
-            print(message, 'done')
-    except TaskLockedException:
-        pass
+    with huey.lock_task(message):
+        print(message)
+        time.sleep(sleep_time)
+        print(message, 'done')
 
 
 def deploy_host_config(host):
@@ -51,31 +45,32 @@ def deploy_host_config(host):
     if not host.needs_config_deployment():
         return
     _deploy_host_config(host.management_ip,
-                        host.ssh_port,
-                        'scion',
                         host.pk,
                         host.secret)
 
 
-@task()
-def _deploy_host_config(ip, ssh_port, ssh_user, host_id, host_secret):
+@huey.task()
+def _deploy_host_config(ssh_host, host_id, host_secret):
     """
     Task to deploy configuration to a managed scionlab host.
     Ensures that only one such task is executing per host.
 
-    Note: parameters are passed individually instead of the entire host object, because the
-    parameters are serialised (by huey).
+    Note: parameters are passed individually instead of as the full host object,
+    because the parameters are serialised by huey.
+
+    :param str ssh_host: name to ssh to host
+    :param str host_id: id (primary key) of the Host object
+    :param str host_secret: secret to authenticate request for this Host object
     """
     try:
-        with lock_task(str(host_id)):
-            _invoke_ssh_scionlab_config(ip, ssh_port, ssh_user, host_id, host_secret)
-    except TaskLockedException:
+        with huey.lock_task(str(host_id)):
+            _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret)
+    except huey.exceptions.TaskLockedException:
         pass
 
 
-def _invoke_ssh_scionlab_config(ip, ssh_port, ssh_user, host_id, host_secret):
+def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
     command = ('scionlab-config'
-               ' --force'
                ' --host-id {host_id}'
                ' --host-secret {host_secret}'
                ' --url "{url}"').format(
@@ -83,12 +78,8 @@ def _invoke_ssh_scionlab_config(ip, ssh_port, ssh_user, host_id, host_secret):
                   host_secret=host_secret,
                   url='localhost:8080')  # TODO(matzf)
 
-    # TODO or rather only define a hostname and define the other settings in ssh-config?
-    ssh_command = "ssh -p {port} {user}@{host} -o ConnectTimeout={timeout} '{command}'".format(
-                    port=ssh_port,
-                    user=ssh_user,
-                    host=ip,
-                    timeout=SSH_CONNECT_TIMEOUT_SECONDS,
+    ssh_command = "ssh {ssh_host} '{command}'".format(
+                    ssh_host=ssh_host,
                     command=command)
 
     logging.info(ssh_command)

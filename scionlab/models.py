@@ -811,7 +811,6 @@ class Host(models.Model):
         blank=True,
         help_text="Public IP of the host for management (should be reachable by the coordinator)."
     )
-    ssh_port = models.PositiveSmallIntegerField(default=22)
     secret = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     # TODO(matzf): we may need additional information for container or VM
@@ -840,7 +839,6 @@ class Host(models.Model):
                label=_placeholder,
                managed=_placeholder,
                management_ip=_placeholder,
-               ssh_port=_placeholder,
                secret=_placeholder):
         """
         Update the specified fields of this host instance, and immediately `save`.
@@ -852,7 +850,6 @@ class Host(models.Model):
         :param str label: optional
         :param bool managed: optional
         :param str management_ip: optional, public IP of the host for management
-        :param int ssh_port: optional, port used for management access with ssh
         :param str secret: optional, a secret to authenticate the host. If `None` is given, a new
                            random secret is generated.
         """
@@ -873,8 +870,6 @@ class Host(models.Model):
             self.managed = managed
         if management_ip is not _placeholder:
             self.management_ip = management_ip or None
-        if ssh_port is not _placeholder:
-            self.ssh_port = ssh_port
         if secret is not _placeholder:
             self.secret = secret or self._gen_secret()
         self.save()
