@@ -19,14 +19,17 @@ TODO(matzf) doc
 
 import argparse
 import base64
+import filecmp
 import io
 import json
 import logging
 import os
-import tarfile
-import urllib.request
-import sys
+import shutil
 import subprocess
+import sys
+import tarfile
+import tempfile
+import urllib.request
 from collections import namedtuple
 
 
@@ -251,18 +254,22 @@ def _error_exit(*args, **kwargs):
 
 
 def install_config(tar):
+    try:
+        tmpdir = tempfile.mkdtemp()
+        tar.extractall(path=tmpdir)
+        install_scion_config(tmpdir)
+        install_vpn_client_config(tmpdir)
+        install_vpn_server_config(tmpdir)
+    finally:
+        shutil.rmtree(tmpdir)
+
+
+def install_scion_config(tmpdir):
     sc = SCION_PATH
     if not os.path.isdir(sc):
         _error_exit('No SCION installation found at $SC (%s).', sc)
-
-    gen_members = [f for f in tar.getmembers() if f.path == 'gen' or f.path.startswith('gen/')]
-    tar.extractall(members=gen_members, path=sc)
-
+    _mv_dir(tmpdir, 'gen', sc)
     restart_scion()
-
-    # TODO
-    # - VPN Client
-    # - VPN Server
 
 
 def restart_scion():
@@ -274,6 +281,52 @@ def restart_scion():
     subprocess.check_call([scion_sh, 'stop'], cwd=sc)
     subprocess.check_call([supervisor_sh, 'reload'], cwd=sc)
     subprocess.check_call([scion_sh, 'start', 'nobuild'], cwd=sc)
+
+
+def install_vpn_client_config(tmpdir):
+    # TODO subfolder "vpn_client"?
+    changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
+    if changed:
+        subprocess.check_call(['sudo', 'systemctl', 'reload-or-restart', 'openvpn@client'])
+
+
+def install_vpn_server_config(tmpdir):
+    changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
+    if changed:
+        subprocess.check_call(['sudo', 'systemctl', 'reload-or-restart', 'openvpn@client'])
+    _sudo_mv(os.path.join(tmpdir, 'openvpn_ccd'), '/etc/openvpn')
+
+
+def _mv_dir(srcdir, dirname, dstdir):
+    shutil.rmtree(os.path.join(dstdir, dirname), ignore_errors=True)
+    shutil.move(os.path.join(srcdir, dirname), dstdir)
+
+
+def _install_file(srcdir, filename, dstdir):
+    """
+    Installs the file into the dir at the path.
+    Returns False iff the file was changed.
+    If the member doesn't exist, the file at path will be removed.
+    """
+    srcfilename = os.path.join(srcdir, filename)
+    dstfilename = os.path.join(srcdir, filename)
+    if not os.path.exists(srcfilename):
+        if os.path.exists(dstfilename):
+            os.remove(dstfilename)
+            return True
+        return False
+
+    try:
+        equal = filecmp.cmp(srcfilename, dstfilename, shallow=False)
+    except FileNotFoundError:
+        equal = False
+    if not equal:
+        _sudo_mv(srcfilename, dstfilename)
+    return not equal
+
+
+def _sudo_mv(src, dst):
+    subprocess.check_call(["sudo", "mv", src, dst])
 
 
 if __name__ == '__main__':
