@@ -17,7 +17,7 @@ Huey tasks config for scionlab project.
 """
 
 import logging
-import os
+import subprocess
 import time
 import huey.contrib.djhuey as huey
 
@@ -78,9 +78,5 @@ def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
                   host_secret=host_secret,
                   url='localhost:8080')  # TODO(matzf)
 
-    ssh_command = "ssh {ssh_host} '{command}'".format(
-                    ssh_host=ssh_host,
-                    command=command)
-
-    logging.info(ssh_command)
-    os.system(ssh_command)
+    logging.info("ssh %s '%s'" % (ssh_host, command))
+    subprocess.call(['ssh', ssh_host, command])
