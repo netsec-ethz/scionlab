@@ -35,6 +35,9 @@ from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
     generate_vpn_server_key_material
 
+from scionlab.tasks import deploy_host_config
+
+
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether
 # we can make better use of e.g. changed_data information of the forms.
@@ -548,7 +551,7 @@ class UserASManager(models.Manager):
             interfaceB=interface_client
         )
 
-        # TODO(matzf): somewhere we need to trigger the config deployment
+        attachment_point.trigger_deployment()
 
         return user_as
 
@@ -669,7 +672,7 @@ class UserAS(AS):
         self.bind_port = bind_port
         self.save()
 
-        # TODO(matzf) trigger AP config deployment
+        self.attachment_point.trigger_deployment()
 
     def is_use_vpn(self):
         """
@@ -749,6 +752,13 @@ class AttachmentPoint(models.Model):
         if self.vpn is None:
             raise ValidationError("Selected attachment point does not support VPN",
                                   code='attachment_point_no_vpn')
+
+    def trigger_deployment(self):
+        """
+        Trigger the deployment for the attachment point configuration.
+        """
+        for host in self.AS.hosts.iterator():
+            deploy_host_config(host, delay=60)
 
 
 class HostManager(models.Manager):
