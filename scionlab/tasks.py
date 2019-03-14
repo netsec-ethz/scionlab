@@ -22,7 +22,7 @@ import huey.contrib.djhuey as huey
 from scionlab.models import Host
 
 
-def deploy_host_config(host):
+def deploy_host_config(host, delay=None):
     """
     Trigger configuration deployment for a managed scionlab host.
 
@@ -30,6 +30,12 @@ def deploy_host_config(host):
 
     The deployment is run asynchronously, so that will actually be deployed could be any version
     later than the current version.
+
+    Note that if a delay is specified, all subsequently triggered tasks will wait for this delay,
+    even if don't have a delay specified.
+
+    :param Host host:
+    :param int delay: optional delay in seconds. Number of seconds to wait until execution starts.
     """
     assert host.managed
 
@@ -40,14 +46,10 @@ def deploy_host_config(host):
     # Custom trickery with hueys key-value store:
     # ensure only one task per host is in the queue or executing at any time.
     if _put_if_empty(_key_deploy_host_running(host.pk), True):
-        _deploy_host_config(host.management_ip,
-                            host.pk,
-                            host.secret)
-        print("enqueued")
+        _deploy_host_config.schedule(args=(host.management_ip, host.pk, host.secret), delay=delay)
     else:
         # Mark as re-triggered to ensure that the task will re-run if necessary.
         _put_if_empty(_key_deploy_host_retriggered(host.pk), True)
-        print("retriggered")
 
 
 @huey.task()
