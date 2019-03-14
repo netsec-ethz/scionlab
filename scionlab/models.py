@@ -942,7 +942,7 @@ class Host(models.Model):
 
     @staticmethod
     def _gen_secret():
-        return base64.urlsafe_b64encode(os.urandom(16)).decode()
+        return base64.urlsafe_b64encode(os.urandom(16)).decode().rstrip('=')
 
 
 class InterfaceManager(models.Manager):
