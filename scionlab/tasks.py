@@ -18,42 +18,42 @@ Huey tasks config for scionlab project.
 
 import logging
 import subprocess
-import time
 import huey.contrib.djhuey as huey
-
-
-# TODO(matzf) remove
-def echo_task(message, sleep_time):
-    """
-    Simple echo task for testing.
-    """
-    # De-dupe using lock_task.
-    with huey.lock_task(message):
-        print(message)
-        time.sleep(sleep_time)
-        print(message, 'done')
+from scionlab.models import Host
 
 
 def deploy_host_config(host):
     """
     Trigger configuration deployment for a managed scionlab host.
+
+    Ensures that only one such task is executing per host.
+
+    The deployment is run asynchronously, so that will actually be deployed could be any version
+    later than the current version.
     """
     assert host.managed
+
     # Double check that this is not a no-op:
-    # Note that we could defer this check by passing the local version
-    # to the GET config request, but this is obviously cheaper.
     if not host.needs_config_deployment():
         return
-    _deploy_host_config(host.management_ip,
-                        host.pk,
-                        host.secret)
+
+    # Custom trickery with hueys key-value store:
+    # ensure only one task per host is in the queue or executing at any time.
+    if _put_if_empty(_key_deploy_host_running(host.pk), True):
+        _deploy_host_config(host.management_ip,
+                            host.pk,
+                            host.secret)
+        print("enqueued")
+    else:
+        # Mark as re-triggered to ensure that the task will re-run if necessary.
+        _put_if_empty(_key_deploy_host_retriggered(host.pk), True)
+        print("retriggered")
 
 
 @huey.task()
 def _deploy_host_config(ssh_host, host_id, host_secret):
     """
     Task to deploy configuration to a managed scionlab host.
-    Ensures that only one such task is executing per host.
 
     Note: parameters are passed individually instead of as the full host object,
     because the parameters are serialised by huey.
@@ -63,10 +63,32 @@ def _deploy_host_config(ssh_host, host_id, host_secret):
     :param str host_secret: secret to authenticate request for this Host object
     """
     try:
-        with huey.lock_task(str(host_id)):
+        while True:
             _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret)
-    except huey.exceptions.TaskLockedException:
-        pass
+            retriggered = huey.HUEY.get(_key_deploy_host_retriggered(host_id))
+            if not retriggered or not _check_host_needs_config_deployment(host_id):
+                break
+    finally:
+        huey.HUEY.get(_key_deploy_host_running(host_id))
+
+
+def _check_host_needs_config_deployment(host_id):
+    return Host.objects.get(id=host_id).needs_config_deployment()
+
+
+# this wrapper is missing from huey.api
+def _put_if_empty(key, value):
+    import pickle
+    return huey.HUEY.storage.put_if_empty(key,
+                                          pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
+
+
+def _key_deploy_host_running(host_id):
+    return 'scionlab_deploy_host_ongoing_' + str(host_id)
+
+
+def _key_deploy_host_retriggered(host_id):
+    return 'scionlab_deploy_host_version_retriggered' + str(host_id)
 
 
 def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
