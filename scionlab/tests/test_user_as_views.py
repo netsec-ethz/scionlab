@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import re
-from unittest.mock import patch
 
 from django.test import TestCase
 from parameterized import parameterized, param
@@ -25,17 +24,6 @@ from scionlab.fixtures import testtopo
 from scionlab.util.openvpn_config import write_vpn_ca_config
 from scionlab.views.user_as_views import UserASForm
 from scionlab.tests import utils
-
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import dh
-
-# dh_params = dh.generate_parameters(generator=2, key_size=4096,
-dh_params = dh.generate_parameters(generator=2, key_size=2048,
-                                   backend=default_backend())
-
-
-def constant_dh_params(**kwargs):
-    return dh_params
 
 
 _QUOTA_EXCEEDED_MESSAGE = ('You have reached the maximum number of ASes '
@@ -66,11 +54,9 @@ def _setup_vpn_attachment_point():
         write_vpn_ca_config()
     # TODO(matzf): move to a fixture once the VPN stuff is somewhat stable
     ap = AttachmentPoint.objects.all()[0]
-    with patch('cryptography.hazmat.primitives.asymmetric.dh.generate_parameters',
-               side_effect=constant_dh_params):
-        ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
-                                    subnet='10.0.8.0/24',
-                                    server_port=4321)
+    ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
+                                subnet='10.0.8.0/24',
+                                server_port=4321)
     ap.save()
 
 

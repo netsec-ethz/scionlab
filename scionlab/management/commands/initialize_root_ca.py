@@ -13,18 +13,19 @@
 # limitations under the License.
 import os
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from scionlab.util.openvpn_config import write_vpn_ca_config, CA_KEY_PATH, CA_CERT_PATH
+from scionlab.util.openvpn_config import write_vpn_ca_config
 
 
 class Command(BaseCommand):
     help = 'Generate root CA configuration'
 
     def handle(self, *args, **options):
-        if os.path.exists(CA_KEY_PATH) and os.path.exists(CA_CERT_PATH):
+        if os.path.exists(settings.VPN_CA_KEY_PATH) and os.path.exists(settings.VPN_CA_CERT_PATH):
             raise CommandError('Root CA files already generated. '
                                'To generate a new root CA configuration, remove the '
-                               'key (%s) and certificate (%s) files first.' % (CA_KEY_PATH,
-                                                                               CA_CERT_PATH))
+                               'key (%s) and certificate (%s) files first.' % (
+                                    settings.VPN_CA_KEY_PATH, settings.VPN_CA_CERT_PATH))
         write_vpn_ca_config()

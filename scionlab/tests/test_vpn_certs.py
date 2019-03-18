@@ -18,44 +18,34 @@ import re
 from io import StringIO
 from unittest.mock import patch
 
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import dh
 from cryptography.hazmat.primitives.asymmetric import dsa
 from django.core.management import CommandError
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.conf import settings
 
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.models import VPN, AttachmentPoint, UserAS
-from scionlab.settings.common import BASE_DIR, SECRET_KEY
 from scionlab.util.openvpn_config import write_vpn_ca_config, generate_vpn_client_config, \
-    load_ca_cert, _generate_root_ca_key, load_ca_key, _generate_root_ca_cert, \
+    load_ca_cert, _generate_private_key, load_ca_key, _generate_root_ca_cert, \
     generate_vpn_server_config, ccd_config
 
 test_public_port = 54321
 
-# dh_params = dh.generate_parameters(generator=2, key_size=4096,
-dh_params = dh.generate_parameters(generator=2, key_size=2048,
-                                   backend=default_backend())
-
-TEST_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'test_root_ca_key.pem')
-TEST_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'test_root_ca_cert.pem')
-
-
-def constant_dh_params(**kwargs):
-    return dh_params
+TEST_CA_KEY_PATH = os.path.join(settings.BASE_DIR, 'run', 'test_root_ca_key.pem')
+TEST_CA_CERT_PATH = os.path.join(settings.BASE_DIR, 'run', 'test_root_ca_cert.pem')
 
 
 def _setup_vpn_attachment_point():
     """ Setup VPN for the first AP """
     ap = AttachmentPoint.objects.first()
-    with patch('cryptography.hazmat.primitives.asymmetric.dh.generate_parameters',
-               side_effect=constant_dh_params):
-        ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
-                                    subnet='10.0.8.0/24',
-                                    server_port=4321)
+    ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
+                                subnet='10.0.8.0/24',
+                                server_port=4321)
     ap.save()
 
 
@@ -73,24 +63,8 @@ def create_user_as(ap, label='Some label'):
         )
 
 
-class _PatchedCAPathTestCase(TestCase):
-    ca_path_patches = [patch('scionlab.util.openvpn_config.CA_KEY_PATH', new=TEST_CA_KEY_PATH),
-                       patch('scionlab.util.openvpn_config.CA_CERT_PATH', new=TEST_CA_CERT_PATH)]
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        for patcher in cls.ca_path_patches:
-            patcher.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        for patcher in cls.ca_path_patches:
-            patcher.stop()
-        super().tearDownClass()
-
-
-class RootCASetupTests(_PatchedCAPathTestCase):
+@override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)
+class RootCASetupTests(TestCase):
     def tearDown(self):
         # cleanup test files
         os.remove(TEST_CA_KEY_PATH)
@@ -123,8 +97,8 @@ class RootCASetupTests(_PatchedCAPathTestCase):
                              format=serialization.PublicFormat.PKCS1).decode())
 
     def test_loading_ca_key(self):
-        ca_key = _generate_root_ca_key()
-        with patch('scionlab.util.openvpn_config._generate_root_ca_key', return_value=ca_key):
+        ca_key = _generate_private_key()
+        with patch('scionlab.util.openvpn_config._generate_private_key', return_value=ca_key):
             call_command('initialize_root_ca')
         stored_ca_key = load_ca_key()
         self.assertEqual(ca_key.private_bytes(
@@ -147,7 +121,7 @@ class RootCASetupTests(_PatchedCAPathTestCase):
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
                 encryption_algorithm=serialization.BestAvailableEncryption(
-                    SECRET_KEY.encode('utf-8'))
+                    settings.VPN_CA_KEY_PASSWORD.encode('utf-8'))
             )
         )
 
@@ -156,7 +130,7 @@ class RootCASetupTests(_PatchedCAPathTestCase):
             load_ca_key()
 
     def test_loading_ca_cert(self):
-        ca_key = _generate_root_ca_key()
+        ca_key = _generate_private_key()
         ca_cert = _generate_root_ca_cert(ca_key)
         with patch('scionlab.util.openvpn_config._generate_root_ca_cert', return_value=ca_cert):
             call_command('initialize_root_ca')
@@ -165,7 +139,8 @@ class RootCASetupTests(_PatchedCAPathTestCase):
                          stored_ca_cert.public_bytes(serialization.Encoding.PEM).decode())
 
 
-class VPNCertsTests(_PatchedCAPathTestCase):
+@override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)
+class VPNCertsTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases']
 
     def setUp(self):
@@ -183,9 +158,7 @@ class VPNCertsTests(_PatchedCAPathTestCase):
         user_as = create_user_as(attachment_point)
 
         vpn_client = user_as.hosts.first().vpn_clients.first()
-        config = generate_vpn_client_config(attachment_point.AS,
-                                            vpn_client.private_key,
-                                            vpn_client.cert)
+        config = generate_vpn_client_config(vpn_client)
 
         # check ca cert
         ca_cert_string_match = re.findall('<ca>\n(.*?)\n</ca>', config, flags=re.DOTALL)
@@ -248,14 +221,15 @@ class VPNCertsTests(_PatchedCAPathTestCase):
         ccd_filename, ccd_config_entry = ccd_config(vpn_client)
         self.assertEqual(ccd_filename,
                          vpn_client.host.AS.owner.email+"__"+user_as.isd_as_path_str())
-        ccd_string_match = re.findall('ifconfig-push (\S*) (\S*)', ccd_config_entry)
+        ccd_string_match = re.findall(r'ifconfig-push (\S*) (\S*)', ccd_config_entry)
         self.assertTrue(len(ccd_string_match) == 1)
         client_ip, netmask = ccd_string_match[0]
         self.assertEqual(str(vpn_client.ip), client_ip)
         self.assertEqual(str(vpn_network.netmask), netmask)
 
 
-class VPNCertsMissingCATests(_PatchedCAPathTestCase):
+@override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)
+class VPNCertsMissingCATests(TestCase):
     fixtures = ['testuser', 'testtopo-ases']
 
     def tearDown(self):
@@ -267,7 +241,9 @@ class VPNCertsMissingCATests(_PatchedCAPathTestCase):
             pass
 
     def test_generate_client_cert(self):
+        print("write_vpn_ca_config()")
         write_vpn_ca_config()
+        print("_setup_vpn_attachment_point()")
         _setup_vpn_attachment_point()
         attachment_point = AttachmentPoint.objects.first()
 

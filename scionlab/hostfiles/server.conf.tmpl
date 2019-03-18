@@ -5,12 +5,6 @@ dev tun
 port ${ServerPort}
 proto udp
 
-# certificates and keys
-ca   root_ca_cert.crt
-cert AS${AS}_AP_cert.crt
-key  AS${AS}_AP_key.key  # This file should be kept secret
-dh   AS${AS}_AP_dh4096.pem
-
 topology subnet
 push "topology subnet"
 ifconfig ${ServerIP} ${Netmask}
@@ -19,17 +13,16 @@ route ${Subnet} ${Netmask}
 push "route ${ServerIP}"
 
 ifconfig-pool-persist ipp.txt
-client-config-dir /etc/openvpn/openvpn_ccd
+client-config-dir ccd
+ccd-exclusive
+
 keepalive 10 120
-;tls-auth ta.key 0 # This file is secret
 comp-lzo no
 push "comp-lzo no"
 
 cipher AES-128-CBC
 txqueuelen 100
-# engine aesni
 
-;max-clients 100
 user nobody
 group nogroup
 persist-key
@@ -37,3 +30,12 @@ persist-tun
 status openvpn-status.log
 verb 3
 mute 20
+
+# certificates and keys
+dh   dh.pem
+<ca>
+${CACert}</ca>
+<cert>
+${ServerCert}</cert>
+<key>
+${ServerKey}</key>
