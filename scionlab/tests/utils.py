@@ -348,7 +348,7 @@ def _check_tarball_gen(testcase, tar, host):
     isd_str = 'ISD%i' % host.AS.isd.isd_id
     as_str = 'AS%s' % host.AS.as_path_str()
 
-    testcase.assertEqual([isd_str, 'dispatcher'], _tar_ls(tar, 'gen'))
+    testcase.assertEqual([isd_str, 'dispatcher', 'scionlab-config.json'], _tar_ls(tar, 'gen'))
     testcase.assertEqual([as_str], _tar_ls(tar, os.path.join('gen', isd_str)))
 
     as_gen_dir = os.path.join('gen', isd_str, as_str)
