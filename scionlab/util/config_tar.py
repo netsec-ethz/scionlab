@@ -77,17 +77,15 @@ def _add_vpn_config(host, tar):
     """
     vpn_clients = list(host.vpn_clients.filter(active=True))
     for vpn_client in vpn_clients:
-        client_config = generate_vpn_client_config(vpn_client.host.AS.attachment_point.AS,
-                                                   vpn_client.private_key,
-                                                   vpn_client.cert)
+        client_config = generate_vpn_client_config(vpn_client)
         tar_add_textfile(tar, "client.conf", client_config)
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
         tar_add_textfile(tar, "server.conf", generate_vpn_server_config(vpn_server))
-        for vpn_client in vpn_server.clients:
+        for vpn_client in vpn_server.clients.iterator():
             common_name, config_string = ccd_config(vpn_client)
-            tar_add_textfile(tar, common_name, config_string)
+            tar_add_textfile(tar, 'ccd/' + common_name, config_string)
 
 
 def _add_vagrantfiles(host, tar):

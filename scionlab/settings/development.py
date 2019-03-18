@@ -47,3 +47,15 @@ RECAPTCHA_PRIVATE_KEY = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
 
 # ##### MAILER CONFIGURATION ##############################
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+VPN_CA_KEY_PASSWORD = 'sci0nl4b'
+VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'dev_root_ca_key.pem')
+VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'dev_root_ca_cert.pem')
+
+
+class VPNKeygenConfDev(VPNKeygenConf):
+    KEY_SIZE = 512  # Shortest possible keys for faster tests
+
+
+VPN_KEYGEN_CONFIG = VPNKeygenConfDev

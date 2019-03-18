@@ -28,23 +28,10 @@ from scionlab.models import (
     DEFAULT_PUBLIC_PORT,
 )
 
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import dh
-
 from scionlab.fixtures import testtopo
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
-
-# dh_params = dh.generate_parameters(generator=2, key_size=4096,
 from scionlab.util.openvpn_config import write_vpn_ca_config
-
-dh_params = dh.generate_parameters(generator=2, key_size=2048,
-                                   backend=default_backend())
-
-
-def constant_dh_params(**kwargs):
-    return dh_params
-
 
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 
@@ -60,11 +47,9 @@ def setup_vpn_attachment_point(ap):
     if VPN.objects.count() == 0:
         write_vpn_ca_config()
     # TODO(matzf): move to a fixture once the VPN stuff is somewhat stable
-    with patch('cryptography.hazmat.primitives.asymmetric.dh.generate_parameters',
-               side_effect=constant_dh_params):
-        ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
-                                    subnet='10.0.8.0/24',
-                                    server_port=4321)
+    ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
+                                subnet='10.0.8.0/24',
+                                server_port=4321)
     ap.save()
 
 

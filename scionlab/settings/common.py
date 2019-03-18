@@ -81,35 +81,41 @@ REGISTRATION_OPEN = True  # Accept new registrations
 # ##### DEFAULT SETTINGS CONFIGURATION ####################
 MAX_ASES_ADMIN = 10
 MAX_ASES_USER = 5
-GEN_ROOT = "/tmp/gen_root"
 GRAFANA_URL = "https://prometheus.scionlab.org"
-IOT_IMAGES = [
-    {
-        "name": "ubuntu-odroid-xu4",
-        "display_name": "Odroid XU4 Ubuntu minimal image",
-        "description": "Short description",
-        "version": "1.0"
-    },
-    {"name": "rpi-2-ubuntu",
-     "display_name": "Raspberry PI 2 Ubuntu",
-     "description": "Short description.",
-     "version": "1.0"
-     },
-    {"name": "rpi-3-ubuntu",
-     "display_name": "Raspberry PI 3 Ubuntu",
-     "description": "Short description...",
-     "version": "1.0"
-     },
-    {"name": "rpi-mate",
-     "display_name": "Raspberry PI Ubuntu MATE",
-     "description": "Short description.",
-     "version": "1.0"
-     },
-    {"name": "odroid-xu4-mate",
-     "display_name": "Odroid XU4 Ubuntu MATE",
-     "description": "Short description",
-     "version": "1.0"}
-]
+
+
+# Openvpn key/cert:
+VPN_CA_KEY_PASSWORD = os.environ.get('SCIONLAB_ROOT_CA_KEY_PASSWORD')
+VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_key.pem')
+VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_cert.pem')
+
+
+class VPNKeygenConf:
+    # A large key size will slow down TLS negotiation performance as well as the one-time DH parms
+    # generation process.
+    KEY_SIZE = 4096
+
+    # In how many days should the root CA key expire?
+    CA_EXPIRE = 1000
+
+    # In how many days should certificates expire?
+    KEY_EXPIRE = 730
+
+    # Fields which will be placed in the certificate.
+    KEY_COUNTRY = "CH"
+    KEY_PROVINCE = "ZH"
+    KEY_CITY = "Zurich"
+    KEY_ORG = "ETH"
+    KEY_EMAIL = "scion@lists.inf.ethz.ch"
+    KEY_OU = "NetSec"
+
+    # X509 Subject Field
+    KEY_NAME = "SCIONVPN"
+    KEY_ALTNAMES = "SCIONVPN"
+
+
+VPN_KEYGEN_CONFIG = VPNKeygenConf()
+
 
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []

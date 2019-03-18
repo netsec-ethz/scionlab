@@ -1612,14 +1612,22 @@ class VPN(models.Model):
     subnet = models.CharField(max_length=15)
     private_key = models.TextField(null=True, blank=True)
     cert = models.TextField(null=True, blank=True)
-    dh_params = models.TextField(null=True, blank=True)
 
     objects = VPNManager()
 
+    class Meta:
+        verbose_name = 'VPN'
+        verbose_name_plural = 'VPNs'
+
+    def _pre_delete(self):
+        """
+        Called by the pre_delete signal handler `_vpn_server_pre_delete`.
+        """
+        self.server.bump_config()
+
     def init_key(self):
-        key, dh_params, cert = generate_vpn_server_key_material(self.server)
+        key, cert = generate_vpn_server_key_material(self.server)
         self.private_key = key
-        self.dh_params = dh_params
         self.cert = cert
 
     def create_client(self, host, active):
@@ -1673,6 +1681,8 @@ class VPNClientManager(models.Manager):
         )
         client.init_key()
         client.save()
+        host.bump_config()
+        vpn.server.bump_config()
         return client
 
 
@@ -1693,6 +1703,17 @@ class VPNClient(models.Model):
     cert = models.TextField(null=True, blank=True)
 
     objects = VPNClientManager()
+
+    class Meta:
+        verbose_name = 'VPN Client'
+        verbose_name_plural = 'VPN Clients'
+
+    def _pre_delete(self):
+        """
+        Called by the pre_delete signal handler `_vpn_client_pre_delete`.
+        """
+        self.host.bump_config()
+        self.vpn.server.bump_config()
 
     def init_key(self):
         key, cert = generate_vpn_client_key_material(self.host.AS)
@@ -1717,6 +1738,16 @@ def _link_post_delete(sender, instance, using, **kwargs):
 
 @receiver(pre_delete, sender=Service, dispatch_uid='service_delete_callback')
 def _service_pre_delete(sender, instance, using, **kwargs):
+    instance._pre_delete()
+
+
+@receiver(pre_delete, sender=VPN, dispatch_uid='vpn_delete_callback')
+def _vpn_pre_delete(sender, instance, using, **kwargs):
+    instance._pre_delete()
+
+
+@receiver(pre_delete, sender=VPNClient, dispatch_uid='vpn_client_delete_callback')
+def _vpn_client_pre_delete(sender, instance, using, **kwargs):
     instance._pre_delete()
 
 

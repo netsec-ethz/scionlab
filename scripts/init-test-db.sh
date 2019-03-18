@@ -29,3 +29,6 @@ python manage.py shell -c 'from scionlab.models import User; u = User.objects.ge
 
 python manage.py loaddata scionlab/fixtures/testtopo-ases-links.yaml
 python manage.py loaddata scionlab/fixtures/testuser.yaml
+
+cp scionlab/fixtures/testtopo_ca_key.pem run/dev_root_ca_key.pem
+cp scionlab/fixtures/testtopo_ca_cert.pem run/dev_root_ca_cert.pem
