@@ -26,7 +26,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column
 from crispy_forms.bootstrap import AppendedText
 
-from scionlab.defines import MAX_PORT
+from scionlab.defines import MAX_PORT, MAX_LINK_BANDWIDTH
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.util.http import HttpResponseAttachment
 from scionlab import config_tar
@@ -77,6 +77,13 @@ class UserASForm(forms.ModelForm):
         help_text="The attachment point will use this port for the overlay link to your AS."
     )
 
+    bw_limit = forms.IntegerField(
+        min_value=0,
+        max_value=MAX_LINK_BANDWIDTH,
+        initial=MAX_LINK_BANDWIDTH,
+        label="Upper limit for the bandwidth usable for this AS [Kbps]"
+    )
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         instance = kwargs.get('instance')
@@ -84,7 +91,9 @@ class UserASForm(forms.ModelForm):
         if instance:
             initial['use_vpn'] = instance.is_use_vpn()
             initial['public_port'] = instance.get_public_port()
+            initial['bw_limit'] = instance.get_bw_limit()
         self.helper = self._crispy_helper()
+
         super().__init__(*args, initial=initial, **kwargs)
 
     def clean(self):
@@ -137,6 +146,7 @@ class UserASForm(forms.ModelForm):
                 public_port=self.cleaned_data['public_port'],
                 bind_ip=self.cleaned_data['bind_ip'],
                 bind_port=self.cleaned_data['bind_port'],
+                bw_limit=self.cleaned_data['bw_limit'],
             )
         else:
             self.instance.update(
@@ -148,6 +158,7 @@ class UserASForm(forms.ModelForm):
                 public_port=self.cleaned_data['public_port'],
                 bind_ip=self.cleaned_data['bind_ip'],
                 bind_port=self.cleaned_data['bind_port'],
+                bw_limit=self.cleaned_data['bw_limit'],
             )
             return self.instance
 
@@ -165,6 +176,7 @@ class UserASForm(forms.ModelForm):
             'use_vpn',
             AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
             AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
+            AppendedText('bw_limit', '<span class="fa fa-tachometer"/>'),
             Row(
                 Column(
                     AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),

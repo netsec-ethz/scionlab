@@ -43,6 +43,7 @@ from collections import namedtuple
 
 DEFAULT_SCION_PATH = os.path.expanduser('~/go/src/github.com/scionproto/scion')
 SCION_PATH = os.environ.get('SC', DEFAULT_SCION_PATH)
+SCIONLAB_BANDWIDTH_LIMITER_PATH = os.path.expanduser('~/SCIONLab_Bandwidth_Limiter')
 
 DEFAULT_CONFIG_INFO_PATH = os.path.join(SCION_PATH, 'gen/scionlab-config.json')
 DEFAULT_COORDINATOR_URL = 'https://www.scionlab.org'
@@ -291,6 +292,9 @@ def restart_scion():
     subprocess.check_call([scion_sh, 'stop'], cwd=sc)
     subprocess.check_call([supervisor_sh, 'reload'], cwd=sc)
     subprocess.check_call([scion_sh, 'start', 'nobuild'], cwd=sc)
+    # TODO(mmeinen) check if that works
+    scionlab_bandwidth_limiter = os.path.join(SCIONLAB_BANDWIDTH_LIMITER_PATH, 'scionlab_bw_limiter')
+    subprocess.check_call([scionlab_bandwidth_limiter, '-l'], shell=True)
 
 
 def install_vpn_client_config(tmpdir):

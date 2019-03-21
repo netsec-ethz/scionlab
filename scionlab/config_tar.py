@@ -20,13 +20,14 @@ from contextlib import closing
 
 from django.conf import settings
 from scionlab import scion_config
-from scionlab.models.user_as import UserAS
+from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.openvpn_config import (
     generate_vpn_client_config,
     generate_vpn_server_config,
     ccd_config,
 )
 from scionlab.util.archive import TarWriter, tar_add_textfile, tar_add_dir
+from scionlab.util.bandwidth_config import generate_link_info
 
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
@@ -66,6 +67,30 @@ def generate_host_config_tar(host, fileobj):
         _add_config_info(host, tar)
         scion_config.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
+        _add_bandwidth_config(host, tar)
+
+
+def hosts_ap(host):
+    """ Does the 'host' host an AttachmentPoint? """
+    return AttachmentPoint.objects.filter(AS__as_id=host.AS.as_id).exists()
+
+
+def _add_bandwidth_config(host, tar):
+    """
+       Generate the link_info.json file that is used to do the bandwidth configuration and add it to the tar.
+    """
+    if hosts_ap(host):
+        tar_add_textfile(tar, "link_info.json", _generate_link_info_json(host))
+
+
+def _generate_link_info_json(host):
+    """
+    Return a JSON-formatted string; a dict containing the link info
+    :param Host host:
+    :returns: json string
+    """
+    link_info = generate_link_info(host)
+    return json.dumps(link_info, indent=4)
 
 
 def is_empty_config(host):
@@ -74,7 +99,7 @@ def is_empty_config(host):
     """
     return (not host.services.exists()
             and not host.interfaces.exists()
-            and not host.vpn_clients.filter(active=True).exists()
+            and not host.vpn_clients.filter(active=True).exists ()
             and not host.vpn_servers.exists())
 
 

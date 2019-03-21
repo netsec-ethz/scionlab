@@ -29,6 +29,7 @@ from scionlab.models.vpn import VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
+    DEFAULT_LINK_BANDWIDTH
 )
 from scionlab.util import as_ids
 
@@ -48,7 +49,8 @@ class UserASManager(models.Manager):
                public_ip=None,
                bind_ip=None,
                bind_port=None,
-               vpn_client_ip=None):
+               vpn_client_ip=None,
+               bw_limit=DEFAULT_LINK_BANDWIDTH):
         """
         Create a UserAS attached to the given attachment point.
 
@@ -86,6 +88,7 @@ class UserASManager(models.Manager):
             bind_ip=bind_ip,
             bind_port=bind_port,
             installation_type=installation_type,
+            bandwidth=bw_limit
         )
 
         user_as.init_keys()
