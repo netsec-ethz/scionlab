@@ -63,7 +63,7 @@ The SCION infrastructure is automatically started when the VM boots up.
 
 After your setup is activated at the designated SCIONLab AS, you should be able to see the beacons
 being received.
-You can test this by checking the logs in `/go/src/github.com/scionproto/scion/logs/` or by simply
+You can test this by checking the logs in `~/go/src/github.com/scionproto/scion/logs/` or by simply
 calling `checkbeacons`.
 
 
