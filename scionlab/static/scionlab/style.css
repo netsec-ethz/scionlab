@@ -1,18 +1,20 @@
-.error{
-  color: red;
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
 }
-.spacer{
-  margin: 0;
-  padding: 0;
-  height: 50px;
+body {
+  margin-bottom: 50px; /* Margin bottom by footer height */
+}
+main {
+  margin-top: 3rem;
 }
 .footer {
-  padding-top: 10px;
-}
-td {
-  vertical-align:top;
-}
-
-#recaptcha-id {
-  padding-left: 100px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 50px; /* Set the fixed height of the footer here */
+  line-height: 50px; /* Vertically center the text there */
+  background-color: #f5f5f5;
 }

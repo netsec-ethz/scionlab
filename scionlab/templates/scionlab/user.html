@@ -77,6 +77,6 @@
 
 
 {%  if object_list.count < request.user.max_num_ases %}
-<a class="btn btn-primary" href="{% url 'user_as_add' %}">Create a new SCIONLab AS</a>
+  <a class="btn btn-primary" href="{% url 'user_as_add' %}">Create a new SCIONLab AS</a>
 {% endif %}
 {% endblock content %}

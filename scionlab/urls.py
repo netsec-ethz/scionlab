@@ -14,7 +14,6 @@
 
 from django.views.generic.base import TemplateView
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 
@@ -37,9 +36,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Authentication
-    path('user/login/',
-         auth_views.LoginView.as_view(template_name='registration/login.html'),
-         name='login'),
     # django.contrib.auth: auth views for logout, password reset/change
     path('user/', include('django.contrib.auth.urls')),
 
