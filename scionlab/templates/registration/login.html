@@ -1,25 +1,14 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
-{% load recaptcha2 %}
 
-{% block meta %}{% recaptcha_explicit_support %}{% endblock %}
 {% block title %}{{ block.super }} - Login{% endblock title%}
 {% block content_title %}Login{% endblock content_title%}
 
 {% block content %}
-  <div class="row">
-    <div class="col-lg-3 col-lg-offset-4 text-center">
-      <form id="login_form" method="post">
-        {% csrf_token %}
-        <table> {{ form.as_table }} </table>
-        <button type="submit" class="btn btn-primary btn-block">Login</button>
-      </form>
-      {% recaptcha_explicit_init 'en' %}
-      <form id="registration" action="{% url 'registration_form' %}">
-        <button type="submit" class="btn btn-secondary btn-block">Register</button>
-      </form>
-
-    </div>
-  </div>
-  <img class="img-fluid center-block" src="{% static "scionlab/images/topology_no_labels.gv.png" %}"/>
+  <form id="login_form" method="post">
+    {% csrf_token %}
+    <table> {{ form.as_table }} </table>
+  </form>
+  <button form="login_form" type="submit" class="btn btn-primary btn-lg">Login</button>
+  <a class="btn btn-outline-secondary btn-lg" href="{% url 'registration_form' %}">Register</a>
 {% endblock content %}

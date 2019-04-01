@@ -40,7 +40,7 @@ def constant_dh_params(**kwargs):
 
 _QUOTA_EXCEEDED_MESSAGE = ('You have reached the maximum number of ASes '
                            'and cannot create further ones.')
-_NO_USER_AS_MESSAGE = 'You have no AS yet'
+_NO_USER_AS_MESSAGE = 'You currently have no registered SCIONLab ASes'
 _test_ip = '192.0.2.111'
 _test_start_port = 50000
 
@@ -362,8 +362,7 @@ class UserASActivateTests(_WebTestHack):
 
         self.app.set_user(TESTUSER_EMAIL)
         user_page = self.app.get(reverse('user'))
-        edit_page = user_page.click(href=reverse('user_as_detail',
-                                                 kwargs={'pk': user_as.pk}))
+        edit_page = user_page.click(href=reverse('user_as_detail', kwargs={'pk': user_as.pk})+'$')
         check_active(True, user_as, edit_page)
 
         edit_page = edit_page.forms['id_deactivate_form'].submit().maybe_follow()

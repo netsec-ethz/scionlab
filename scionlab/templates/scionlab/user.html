@@ -1,10 +1,10 @@
 {% extends 'scionlab/base.html' %}
+{% load static %}
 
-{% block title %}User ASes{% endblock %}
+{% block title %}{{block.super}} - My ASes{% endblock %}
+{% block content_title %}My SCIONLab ASes{% endblock %}
 
 {% block content %}
-<h3>Welcome to SCIONLab!</h3>
-
 <div class="alert alert-info">
   <p>
     {% if object_list.count == 0 %}
@@ -23,18 +23,60 @@
   </p>
 </div>
 
-<div class="spacer"></div>
-<div>
-  <h3>Your ASes</h3>
-  <ul>
+
+{% if object_list %}
+<table class="table table-striped">
+<thead>
+  <tr>
+    <th scope="col">#</th>
+    <th scope="col">AS ID</th>
+    <th scope="col">Label</th>
+    <th scope="col">Parent AS</th>
+    <th scope="col">IP/Port</th>
+    <th scope="col">Active</th>
+    <th scope="col">Configuration</th>
+  </tr>
+</thead>
+<tbody>
   {% for user_as in object_list %}
-      <li><a href="{% url 'user_as_detail' pk=user_as.pk %}">{{ user_as.as_id }}</a></li>
-  {% empty %}
-      <li>You have no AS yet.</li>
+  <tr>
+    <th scope="row">{{ forloop.counter }}</th>
+    <td><a href="{% url 'user_as_detail' pk=user_as.pk %}"><span class="fa fa-edit"></span> {{ user_as.isd_as_str }}</a></td>
+    <td>{{ user_as.label|default:"-" }}</td>
+    <td>{{ user_as.attachment_point }}</td>
+    <td>{{ user_as.public_ip|default:"<i>VPN</i>"|safe }}:{{ user_as.get_public_port }}</td>
+    <td>
+      {% if user_as.is_active %}
+      <img src="{% static "admin/img/icon-yes.svg" %}">
+      {% else %}
+      <img src="{% static "admin/img/icon-no.svg" %}">
+      {% endif %}
+    </td>
+    <td>
+      <a href="{% url 'user_as_config' pk=user_as.pk %}"><span class="fa fa-download"></span></a>
+    </td>
+    <!--td>
+      {% if user_as.is_active %}
+      <form method="post" action="{% url 'user_as_deactivate' pk=user_as.pk %}">{% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger">Deactivate</button>
+      </form>
+      {% else %}
+      <form method="post" action="{% url 'user_as_activate' pk=user_as.pk %}">{% csrf_token %}
+        <button type="submit" class="btn btn-outline-success">Activate</button>
+      </form>
+      {% endif %}
+    </td>
+    <td>
+      <a href={% url 'user_as_delete' pk=user_as.pk %} class="btn btn-outline-danger">Delete</a>
+    </td-->
+  </tr>
   {% endfor %}
-  </ul>
-</div>
+</tbody>
+</table>
+{% endif %}
+
+
 {%  if object_list.count < request.user.max_num_ases %}
-<a class="btn btn-primary" href="{% url 'user_as_add' %}">Create a new SCIONLab AS</a>
+  <a class="btn btn-primary" href="{% url 'user_as_add' %}">Create a new SCIONLab AS</a>
 {% endif %}
 {% endblock content %}

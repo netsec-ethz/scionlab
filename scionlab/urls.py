@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from django.views.generic.base import TemplateView
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 
-from scionlab.forms.login_form import AuthenticationFormWithCaptcha
 from scionlab.views.user_as_views import (
     UserASesView,
     UserASCreateView,
@@ -25,22 +24,18 @@ from scionlab.views.user_as_views import (
     UserASActivateView,
     UserASDetailView,
     UserASGetConfigView)
-from scionlab.views.placehoder_view import PlaceholderView
+# from scionlab.views.placehoder_view import PlaceholderView
 from scionlab.views.registration_view import UserRegistrationView
 from scionlab.views.api import GetHostConfig
 
 urlpatterns = [
     # TODO(matzf): implement actual home page
-    path('', PlaceholderView.as_view(), name='home'),
+    path('', TemplateView.as_view(template_name='scionlab/home.html'), name='home'),
 
     # Admin space
     path('admin/', admin.site.urls),
 
     # Authentication
-    path('user/login/',
-         auth_views.LoginView.as_view(form_class=AuthenticationFormWithCaptcha,
-                                      template_name='registration/login.html'),
-         name='login'),
     # django.contrib.auth: auth views for logout, password reset/change
     path('user/', include('django.contrib.auth.urls')),
 

@@ -1,0 +1,51 @@
+{% extends 'scionlab/base.html' %}
+{% load static %}
+
+{% block content_title %}Welcome to SCIONLab{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-sm">
+<p class="lead">
+SCIONLab is a global research network to test the SCION next-generation
+internet architecture.
+</p>
+<p>
+You can join the SCION network with your own computation
+resources and can set up and run your own autonomous systems (ASes).
+Your ASes will actively participate in routing in the SCIONLab network and
+enable realistic experimentation with the unique properties of SCION architecture.
+</p>
+
+{% if user.is_authenticated %}
+  <a class="btn btn-outline-primary btn-lg" href="{% url 'user' %}">Manage My SCIONLab ASes</a>
+{% else %}
+  <a class="btn btn-primary btn-lg" href="{% url 'registration_form' %}">Register to Create my SCIONLab ASes</a>
+  <a class="btn btn-outline-secondary btn-lg" href="{% url 'login' %}">Login</a>
+{% endif %}
+</div>
+
+<div class="col">
+  <img class="img-fluid center-block" src="{% static "scionlab/images/topology_no_labels.gv.png" %}"/>
+</div>
+</div>
+
+<hr class="mt-5">
+<h4>About SCION</h4>
+
+<p>
+SCION (<i>S</i>calability, <i>C</i>ontrol and <i>I</i>solation on next-generation <i>N</i>etworks)
+is a next-generation internet architecture. 
+</p>
+<p>
+See the <a href="https://www.scion-architecture.net" target="_blank">SCION Architecture</a> main page for more details.
+</p>
+
+{% lorem %}
+
+<hr class="mt-5">
+<h4>About SCIONLab</h4>
+
+{% lorem 2 %}
+
+{% endblock content %}
