@@ -339,7 +339,7 @@ class CreateUserASTests(TestCase):
                                 bind_port=test_bind_port)
 
     def test_create_vpn(self):
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         create_and_check_useras(self,
                                 owner=get_testuser(),
                                 attachment_point=attachment_point,
@@ -365,7 +365,7 @@ class UpdateUserASTests(TestCase):
 
     def test_enable_vpn(self):
         seed = 1
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         user_as = create_random_useras(self,
                                        seed=seed,
                                        attachment_point=attachment_point,
@@ -380,7 +380,7 @@ class UpdateUserASTests(TestCase):
 
     def test_disable_vpn(self):
         seed = 2
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         user_as = create_random_useras(self,
                                        seed=seed,
                                        attachment_point=attachment_point,
@@ -394,7 +394,7 @@ class UpdateUserASTests(TestCase):
 
     def test_cycle_vpn(self):
         seed = 3
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         user_as = create_random_useras(self,
                                        seed=seed,
                                        attachment_point=attachment_point,

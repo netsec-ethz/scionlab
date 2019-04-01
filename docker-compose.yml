@@ -21,7 +21,9 @@ services:
     networks:
       as_net:
         ipv4_address: 172.31.0.10
-    entrypoint: /bin/bash -c "sleep 10; ./scionlab/.circleci/setup/coord.sh"
+    # waits for setup script to be loaded
+    entrypoint: /bin/bash
+    command: -c "./scionlab/.circleci/setup/coord.sh"
 
   zookeeper:
     image: zookeeper:latest
@@ -31,16 +33,16 @@ services:
         ipv4_address: 172.31.0.11
     restart: always
 
-  coreAS110:
+  coreAS1301:
     image: ethznetsec/scion_base:latest
-    container_name: coreAS110
+    container_name: coreAS1301
     depends_on:
       - zookeeper
       - coord
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
-        ipv4_address: ${coreAS110IP}
+        ipv4_address: ${coreAS1301IP}
     user: scion
     environment:
       PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
@@ -49,18 +51,21 @@ services:
       CUSER: "5"
       # fixture secret
       CSECRET: "c8CtMx5_ZUE1pAr_8sw3nw"
-    entrypoint: /bin/bash -c "sleep 30; /tmp/existingAS_full.sh; sleep 40; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
+    tty: true
+    # waits for binaries and setup script to be loaded, then for SCION to be ready
+    entrypoint: /bin/bash
+    command: -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; echo up; cat;"
 
-  infraAS111:
+  infraAS1303:
     image: ethznetsec/scion_base:latest
-    container_name: infraAS111
+    container_name: infraAS1303
     depends_on:
       - zookeeper
-      - coreAS110
+      - coreAS1301
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
-        ipv4_address: ${infraAS111IP}
+        ipv4_address: ${infraAS1303IP}
     user: scion
     environment:
       PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
@@ -69,18 +74,21 @@ services:
       CUSER: "7"
       # fixture secret
       CSECRET: "kuA3OhfG0eLjoMeAsoZrgQ"
-    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 50; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 111;"
+    tty: true
+    # waits for binaries and setup script to be loaded, then for SCION to be ready
+    entrypoint: /bin/bash
+    command: -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; cat;"
 
-  infraAS112:
+  infraAS1305:
     image: ethznetsec/scion_base:latest
-    container_name: infraAS112
+    container_name: infraAS1305
     depends_on:
       - zookeeper
-      - coreAS110
+      - coreAS1301
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
-        ipv4_address: ${infraAS112IP}
+        ipv4_address: ${infraAS1305IP}
     user: scion
     environment:
       PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
@@ -89,17 +97,20 @@ services:
       CUSER: "9"
       # fixture secret
       CSECRET: "jpuwJ8uzcu1mL8Rrbiw_9Q"
-    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 50; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 112;"
+    tty: true
+    # waits for binaries and setup script to be loaded, then for SCION to be ready
+    entrypoint: /bin/bash
+    command: -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; cat;"
 
-  coreAS113:
+  coreAS1401:
     image: ethznetsec/scion_base:latest
-    container_name: coreAS113
+    container_name: coreAS1401
     depends_on:
       - zookeeper
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
-        ipv4_address: ${coreAS113IP}
+        ipv4_address: ${coreAS1401IP}
     user: scion
     environment:
       PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
@@ -108,18 +119,21 @@ services:
       CUSER: "10"
       # fixture secret
       CSECRET: "Ch2eAP9F36OzSrrmOiTAkg"
-    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 360; exit 113;"
+    tty: true
+    # waits for binaries and setup script to be loaded, then beacons for a while before exiting
+    entrypoint: /bin/bash
+    command: -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; sleep 500; exit 113;"
 
-  infraAS114:
+  infraAS1405:
     image: ethznetsec/scion_base:latest
-    container_name: infraAS114
+    container_name: infraAS1405
     depends_on:
       - zookeeper
-      - coreAS113
+      - coreAS1401
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
-        ipv4_address: ${infraAS114IP}
+        ipv4_address: ${infraAS1405IP}
     user: scion
     privileged: true
     environment:
@@ -129,4 +143,8 @@ services:
       CUSER: "14"
       # fixture secret
       CSECRET: "aPRjKwCAI5_eqYPXu7MlFA"
-    entrypoint: /bin/bash -c "sleep 20; /tmp/VPNexistingAS.sh; sleep 3600; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]; exit 114;"
+    tty: true
+    # waits for binaries and setup script to be loaded, then a user AS to connect and run scmp echos
+    entrypoint: /bin/bash
+    command: -c "until [ -e /tmp/VPNexistingAS.sh ]; do sleep 1; done; /tmp/VPNexistingAS.sh; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch $${SC}/done; sleep 120; echo 'reloading AP'; /tmp/reloadASConfig.sh; sleep 3600; exit 114;"
+
