@@ -1,88 +1,49 @@
-# Copyright 2018 ETH Zurich
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-#
 version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.6.1
-      #- image: scionproto/scion_base@sha256:975646f75df9db5a0dd882a4bc6bac36dd63201e0aff920f7ee711053b1ca48e
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
+      # using custom image, see .circleci/images/primary/Dockerfile
+      #- image: circleci/buildpack-deps:xenial@sha256:950cf9d4831257359a40ef212fd556a8bee1f49ccd028a63ef2e0b9f2e1fb1e7
+      - image: circleci/buildpack-deps:xenial
     working_directory: ~/repo
+
+    environment:
+      TEST_RESULTS: /tmp/test-results
 
     steps:
       - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v3-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v3-dependencies-
+      - run: mkdir -p $TEST_RESULTS
+
+      - setup_remote_docker
 
       - run:
-          name: install dependencies
+          name: Start containers and verify they are working
           command: |
-            python3 -m venv /tmp/venv 2>&1
-            . /tmp/venv/bin/activate
-            pip install --require-hashes -r requirements.txt -r dev-requirements.txt
+            set -x
+            sudo docker-compose -f ./docker-compose.yml up -d
+            sleep 30
 
-            [ -d /tmp/scion ] || git clone https://github.com/netsec-ethz/netsec-scion.git /tmp/scion
-            cd /tmp/scion
-            git fetch && git checkout scionlab && git reset --hard origin/scionlab
-
-      - save_cache:
-          paths:
-            - /tmp/venv
-            - /tmp/scion
-          key: v3-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
-
-      # run flake8
-      - run:
-          name: run flake8 style checker
-          command: |
-            . /tmp/venv/bin/activate
-            mkdir -p test-reports/flake8/
-            flake8 --config=flake8.ini --format junit-xml --output-file=test-reports/flake8/results.xml
-
-      # run Django's tests (using nose as the test runner)
-      - run:
-          name: run tests
-          command: |
-            . /tmp/venv/bin/activate
-            mkdir -p test-reports/django/
-            # Create migrations, otherwise test DB will not be initialised properly
-            # TODO: remove once migrations are checked in!
-            PYTHONPATH=/tmp/scion/python python manage.py makemigrations scionlab
-            PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
-          when: always
-
-      - store_test_results:
-          path: test-reports
+            # docker-compose will start 5 containers, the one with the coordinator will be named `coord`
+            # Then we have one core AS container coreAS110, two user ASes userAS111 and userAS112 and 
+            # a zookeeper instance they share.
+            
+            # We capture the exit codes from the userAS containers
+            E111=$(sudo docker wait userAS111)
+            E112=$(sudo docker wait userAS112)
+            echo -e "Exit codes:\n\t\tuserAS111 ${E111}\n\t\tuserAS112 ${E112}"
+            
+            # Now we start another container with curl in the same network as `coord`, this way we have
+            # all exposed ports from `coord` available on `localhost` in this new container
+            sudo docker run --net repo_as_net\
+              --rm --entrypoint curl circleci/buildpack-deps:xenial --retry 5 --retry-delay 1 http://172.31.0.10:8000/user/login/
+            sudo docker-compose -f ./docker-compose.yml down
+            sleep 30
 
       - store_artifacts:
-          path: test-reports
-          destination: test-reports
+          path: /tmp/test-results
+          destination: raw-test-output
+
+      - store_test_results:
+          path: /tmp/test-results
 

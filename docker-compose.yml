@@ -1,0 +1,89 @@
+version: "2"
+
+networks:
+  as_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.31.0.0/16
+
+services:
+  coord:
+    image: scionlab/tmp_coordinator_base:running
+    container_name: coord
+    working_dir: /home/circleci/repo
+    environment:
+      PYTHONPATH: /tmp/scion/python
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.10
+    entrypoint: /bin/bash -c "git config url.https://github.com/.insteadOf git@github.com:; git fetch origin pull/55/head:matzf__host_config; git checkout matzf__host_config; . /tmp/venv/bin/activate; curl https://gist.githubusercontent.com/FR4NK-W/c1d7a782a8fe18f240279e8a728275b2/raw/e786453df9e44f957becab4ce6ab54fae7abe649/e2e_ci_IPs.patch -o /tmp/e2e_ci_IPs.patch; git apply /tmp/e2e_ci_IPs.patch; PYTHONPATH=/tmp/scion/python scripts/create-fixture-testtopo.sh; PYTHONPATH=/tmp/scion/python scripts/init-test-db.sh; export RECAPTCHA_DISABLE=True; PYTHONPATH=/tmp/scion/python python manage.py runserver 0.0.0.0:8000"
+
+  zookeeper:
+    image: zookeeper:latest
+    container_name: zookeeper
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.11
+    restart: always
+
+  coreAS110:
+    image: scionlab/tmp_scion_installed:running
+    container_name: coreAS110
+    depends_on:
+      - zookeeper
+      - coord
+    working_dir: /tmp/go/src/github.com/scionproto/scion
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.110
+    user: scion
+    environment:
+      PYTHONPATH: "/tmp/scion/python"
+      GOPATH: "/tmp/go"
+      SC: "/tmp/go/src/github.com/scionproto/scion"
+      CUSER: "5"
+      # fixture secret
+      CSECRET: "c8CtMx5_ZUE1pAr_8sw3nw=="
+    entrypoint: /bin/bash -c "sleep 20; curl https://gist.githubusercontent.com/FR4NK-W/332adb9697ac87cc6ec576271dea504d/raw/96b67b4102825169cb6106c38e7b794ab8b7d8cc/existingAS.sh -o /tmp/existingAS.sh; chmod +x /tmp/existingAS.sh; /tmp/existingAS.sh; sleep 20; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
+
+  userAS111:
+    image: scionlab/tmp_scion_installed:running
+    container_name: userAS111
+    depends_on:
+      - zookeeper
+      - coreAS110
+    working_dir: /tmp/go/src/github.com/scionproto/scion
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.111
+    user: scion
+    environment:
+      PYTHONPATH: "/tmp/scion/python"
+      GOPATH: "/tmp/go"
+      SC: "/tmp/go/src/github.com/scionproto/scion"
+      CUSER: "7"
+      # fixture secret
+      CSECRET: "kuA3OhfG0eLjoMeAsoZrgQ=="
+    entrypoint: /bin/bash -c "sleep 20; curl https://gist.githubusercontent.com/FR4NK-W/332adb9697ac87cc6ec576271dea504d/raw/96b67b4102825169cb6106c38e7b794ab8b7d8cc/existingAS.sh -o /tmp/existingAS.sh; chmod +x /tmp/existingAS.sh; /tmp/existingAS.sh; sleep 20; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 111;"
+
+  userAS112:
+    image: scionlab/tmp_scion_installed:running
+    container_name: userAS112
+    depends_on:
+      - zookeeper
+      - coreAS110
+    working_dir: /tmp/go/src/github.com/scionproto/scion
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.112
+    user: scion
+    environment:
+      PYTHONPATH: "/tmp/scion/python"
+      GOPATH: "/tmp/go"
+      SC: "/tmp/go/src/github.com/scionproto/scion"
+      CUSER: "9"
+      # fixture secret
+      CSECRET: "jpuwJ8uzcu1mL8Rrbiw_9Q=="
+    entrypoint: /bin/bash -c "sleep 20; curl https://gist.githubusercontent.com/FR4NK-W/332adb9697ac87cc6ec576271dea504d/raw/96b67b4102825169cb6106c38e7b794ab8b7d8cc/existingAS.sh -o /tmp/existingAS.sh; chmod +x /tmp/existingAS.sh; /tmp/existingAS.sh; sleep 20; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 112;"

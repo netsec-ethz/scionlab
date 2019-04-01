@@ -60,11 +60,11 @@ ases = [
     makeASdef(17, 0x1103, 'SWTH', '192.0.2.13'),
     makeASdef(17, 0x1107, 'ETHZ-AP', '192.0.2.17', is_ap=True),
     # eu
-    makeASdef(19, 0x1301, 'PV', '192.0.2.31', is_core=True),
+    makeASdef(19, 0x1301, 'PV', '172.31.0.110', is_core=True),
     makeASdef(19, 0x1302, 'GEANT', '192.0.2.32', is_core=True),
-    makeASdef(19, 0x1303, 'Magdeburg', '192.0.2.33', is_ap=True),
+    makeASdef(19, 0x1303, 'Magdeburg', '172.31.0.111', is_ap=True),
     makeASdef(19, 0x1304, 'FR@Linode', '192.0.2.34'),
-    makeASdef(19, 0x1305, 'Darmstadt', '192.0.2.35'),
+    makeASdef(19, 0x1305, 'Darmstadt', '172.31.0.112'),
     # korea (Kompletely made up)
     makeASdef(20, 0x1401, 'K_core1', '192.0.2.41', is_core=True),
     makeASdef(20, 0x1402, 'K_core2', '192.0.2.42', is_core=True),
