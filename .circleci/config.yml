@@ -21,7 +21,7 @@ jobs:
           name: Start containers and verify they are working
           command: |
             set -x
-            sudo docker-compose -f ./docker-compose.yml up -d
+            docker-compose -f ./docker-compose.yml up -d
             sleep 30
 
             # docker-compose will start 5 containers, the one with the coordinator will be named `coord`
@@ -35,9 +35,9 @@ jobs:
             
             # Now we start another container with curl in the same network as `coord`, this way we have
             # all exposed ports from `coord` available on `localhost` in this new container
-            sudo docker run --net repo_as_net\
+            docker run --net repo_as_net\
               --rm --entrypoint curl circleci/buildpack-deps:xenial --retry 5 --retry-delay 1 http://172.31.0.10:8000/user/login/
-            sudo docker-compose -f ./docker-compose.yml down
+            docker-compose -f ./docker-compose.yml down
             sleep 30
 
       - store_artifacts:
