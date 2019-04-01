@@ -27,11 +27,11 @@ def deploy_host_config(host, delay=None):
 
     Ensures that only one such task is executing per host.
 
-    The deployment is run asynchronously, so that will actually be deployed could be any version
-    later than the current version.
+    The deployment is run asynchronously, the version that will be deployed can be any version newer
+    than the current one.
 
     Note that if a delay is specified, all subsequently triggered tasks will wait for this delay,
-    even if don't have a delay specified.
+    even if they don't have a delay specified.
 
     :param Host host:
     :param int delay: optional delay in seconds. Number of seconds to wait until execution starts.
