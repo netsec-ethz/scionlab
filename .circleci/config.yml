@@ -29,8 +29,8 @@ jobs:
             # a zookeeper instance they share.
             
             # We capture the exit codes from the userAS containers
-            E111=$(sudo docker wait userAS111)
-            E112=$(sudo docker wait userAS112)
+            E111=$(docker wait userAS111)
+            E112=$(docker wait userAS112)
             echo -e "Exit codes:\n\t\tuserAS111 ${E111}\n\t\tuserAS112 ${E112}"
             
             # Now we start another container with curl in the same network as `coord`, this way we have
