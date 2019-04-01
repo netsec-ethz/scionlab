@@ -61,7 +61,8 @@ VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'dev_root_ca_cert.pem')
 
 
 class VPNKeygenConfDev(VPNKeygenConf):
-    KEY_SIZE = 512  # Shortest possible keys for faster tests
+    KEY_SIZE = 1024  # Shortest workable keys for faster tests.
+                     # Note: 512-bit can be generated, but cannot initiate openvpn connection.
 
 
 VPN_KEYGEN_CONFIG = VPNKeygenConfDev
