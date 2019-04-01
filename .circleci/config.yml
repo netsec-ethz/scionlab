@@ -22,6 +22,9 @@ jobs:
     docker:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
+    environment:
+      SCION_SRC: "https://github.com/netsec-ethz/netsec-scion"
+      SC: "/home/scion/go/src/github.com/scionproto/scion"
 
     steps:
       - checkout
@@ -36,12 +39,6 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            [ -d /tmp/scion ] || git clone https://github.com/netsec-ethz/netsec-scion.git /tmp/scion
-            cd /tmp/scion
-            git fetch && git checkout scionlab && git reset --hard origin/scionlab
-            if [[ ${CIRCLE_BRANCH} != *"_local"* ]]; then
-              exit 0
-            fi
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
@@ -60,10 +57,6 @@ jobs:
       - run:
           name: run flake8 style checker
           command: |
-            if [[ ${CIRCLE_BRANCH} != *"_local"* ]]; then
-              echo "Skipped: run flake8 style checker"
-              exit 0
-            fi
             . /tmp/venv/bin/activate
             mkdir -p test-reports/flake8/
             flake8 --config=flake8.ini --format junit-xml --output-file=test-reports/flake8/results.xml
@@ -72,9 +65,6 @@ jobs:
       - run:
           name: run tests
           command: |
-            if [[ ${CIRCLE_BRANCH} != *"_local"* ]]; then
-              exit 0
-            fi
             . /tmp/venv/bin/activate
             mkdir -p test-reports/django/
             # Create migrations, otherwise test DB will not be initialised properly
@@ -85,6 +75,18 @@ jobs:
 
       - setup_remote_docker
 
+      # Setup coordinator
+      - run:
+          name: Setup coordinator
+          command: |
+            set -x
+            # We first start only the coordinator
+            docker-compose -f ./docker-compose.yml create coord
+            # create is deprecated in v18, use no-start when circleci updates its images
+            # docker-compose -f ./docker-compose.yml up --no-start coord
+            docker cp ./ coord:/home/circleci/repo/scionlab
+            docker-compose -f ./docker-compose.yml up --no-recreate -d coord
+
       - run:
           name: Build latest scion binaries for scionlab
           command: |
@@ -94,22 +96,24 @@ jobs:
             #./scion.sh build
 
             # Use builder container, to build once when not using local image
-            sudo docker run --name scion_builder --rm -d\
-              --entrypoint /bin/bash ethznetsec/scion_base -c "sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev; git clone https://github.com/netsec-ethz/netsec-scion /home/scion/go/src/github.com/scionproto/scion; cd /home/scion/go/src/github.com/scionproto/scion; ./env/deps; make; until [ -e ./done ]; do sleep 10; done;"
+            docker run --name scion_builder --rm -d\
+              --entrypoint /bin/bash ethznetsec/scion_base -c "sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev; git clone ${SCION_SRC} ${SC}; cd ${SC}; ./env/deps; make; until [ -e ./done ]; do sleep 10; done;"
             echo "Started builder"
-            sudo docker exec scion_builder /bin/bash -c "until [ -e /home/scion/go/src/github.com/scionproto/scion/bin/sig ]; do sleep 10; done;"
+            docker exec scion_builder /bin/bash -c "until [ -e ${SC}/bin/sig ]; do sleep 10; done;"
             echo "Build completed"
-            sudo docker cp scion_builder:/home/scion/go/src/github.com/scionproto/scion/bin /tmp/scion
-            sudo docker cp scion_builder:/home/scion/go/src/github.com/scionproto/scion/proto /tmp/scion
+            # Copying built binaries, explicitly ignoring braccept
+            for x in border cert_srv dispatcher path_srv pingpong scion-pki sciond scmp sig; do
+                docker cp scion_builder:${SC}/bin/${x} /tmp/scion/bin/;
+            done
+            docker cp scion_builder:${SC}/proto /tmp/scion
             echo "Finished copying"
-            sudo docker exec scion_builder /bin/bash -c "touch /home/scion/go/src/github.com/scionproto/scion/done"
-            sudo docker stop scion_builder
+            docker exec scion_builder /bin/bash -c "touch ${SC}/done"
 
             # use local cache to speedup local execution until packages are available
-            # add $SC/bin and $SC/proto to your the cache directory and source it
+            # add $SC/bin and $SC/proto to your cache directory and source it
             #mv ./cache/bin/* /tmp/scion/bin/
             #mv ./cache/proto/* /tmp/scion/proto/
-            
+
       # Start integration tests
       - run:
           name: Start containers and verify they are working
@@ -118,65 +122,77 @@ jobs:
             # docker-compose will start 5 containers, the one with the coordinator will be named `coord`
             # Then we have one core AS container coreAS110, two infra ASes infraAS111 and infraAS112 and 
             # a zookeeper instance they share.
-            
-            sudo docker-compose -f ./docker-compose.yml up -d coord
-            sudo docker cp ./ coord:/home/circleci/repo/scionlab
+
             # We start another container with curl in the same network as `coord` to check `coord` is ready. 
             # All exposed ports from `coord` are available on `localhost` in this new container.
-            sleep 120 # Avoid log spam
-            sudo docker run --net repo_as_net --name curl_test\
+            docker run --net repo_as_net --name curl_test\
               --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/user/login/; do echo 'Coord unreachable, retrying...'; sleep 5; done"
+
             export coreAS110IP=172.31.0.110 infraAS111IP=172.31.0.111 infraAS112IP=172.31.0.112 
-            sudo -E coreAS110IP=172.31.0.110 infraAS111IP=172.31.0.111 infraAS112IP=172.31.0.112 docker-compose -f ./docker-compose.yml up -d zookeeper coreAS110 infraAS111 infraAS112
+            sudo -E docker-compose -f ./docker-compose.yml up -d zookeeper coreAS110 infraAS111 infraAS112
 
             # speedup deployment until we have binary packages
             for dst_AS in coreAS110 infraAS111 infraAS112; do
                 for src_dir in bin supervisor python proto env; do
-                    sudo docker cp /tmp/scion/${src_dir} ${dst_AS}:/home/scion/go/src/github.com/scionproto/scion
+                    docker cp /tmp/scion/${src_dir} ${dst_AS}:${SC}
                 done
-                sudo docker cp .circleci/setup/existingAS_full.sh ${dst_AS}:/tmp/existingAS_full.sh
+                for f in $(ls .circleci/setup/); do
+                    docker cp .circleci/setup/${f} ${dst_AS}:/tmp/
+                done
             done
 
             # We capture the exit codes from the infraAS containers
-            E111=$(sudo docker wait infraAS111)
-            E112=$(sudo docker wait infraAS112)
+            E111=$(docker wait infraAS111)
+            E112=$(docker wait infraAS112)
             echo -e "Exit codes:\n\t\tinfraAS111: ${E111}\n\t\tinfraAS112: ${E112}"
+            docker logs coreAS110
+            docker logs infraAS111
+            docker logs infraAS112
 
       - run:
           name: Start VPN containers and verify the connection over VPN works 
           command: |
             set -x
             # Skip if not running on a local branch, since CircleCI does not support docker privileged
-            if [[ ${CIRCLE_BRANCH} == *"_local"* ]]; then
+            if [[ ${CIRCLE_BRANCH} != *"_local"* ]]; then
               exit 0
             fi
             echo "Start containers required for VPN AP and verify they are working"
             export coreAS113IP=172.31.0.113 infraAS114IP=172.31.0.114
-            sudo -E coreAS113IP=172.31.0.113 infraAS114IP=172.31.0.114 docker-compose -f ./docker-compose.yml up -d coreAS113 infraAS114
+            sudo -E docker-compose -f ./docker-compose.yml up -d coreAS113 infraAS114
 
             # speedup deployment until we have binary packages
             for dst_AS in coreAS113 infraAS114; do
                 for src_dir in bin supervisor python proto env; do
-                    sudo docker cp /tmp/scion/${src_dir} ${dst_AS}:/home/scion/go/src/github.com/scionproto/scion
+                    docker cp /tmp/scion/${src_dir} ${dst_AS}:${SC}
                 done
-                sudo docker cp .circleci/setup/existingAS_full.sh ${dst_AS}:/tmp/existingAS_full.sh
+                for f in $(ls .circleci/setup/); do
+                    docker cp .circleci/setup/${f} ${dst_AS}:/tmp/
+                done
             done
+            # Wait for AP to be set up (key generation is slow)
+            docker exec infraAS114 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 1; done;"
+            echo "AP started"
 
-            sudo docker cp .circleci/setup/VPNexistingAS.sh infraAS114:/tmp/VPNexistingAS.sh
-            sleep 120 # Wait for AP to be set up
             # Start user AS container, create user AS and connect:
-            sudo docker run --net repo_as_net --privileged --name userAS1\
-              --rm --entrypoint /bin/bash scionlab/tmp_scion_installed:running -c 'sudo apt-get install -y openvpn; sudo mkdir -p /dev/net; sudo mknod /dev/net/tun c 10 20; sudo chmod 600 /dev/net/tun; curl https://gist.githubusercontent.com/FR4NK-W/87e9a47b5e7c156edc23bc461f0f792d/raw/ad271828a729e1663f39a26d0f15513eff19d5df/create_useras.py -o /tmp/create_useras.py; pip3 install --user requests; python3 /tmp/create_useras.py; export SC=/tmp/go/src/github.com/scionproto/scion; tar -C $SC/ -xf /tmp/host_config.tar; cd $SC; ZK_IP=$(dig +short zookeeper A); for f in $(find $SC/gen/ -name topology.json); do jq ".ZookeeperService[]|=({Addr:\"$ZK_IP\", L4Port:.L4Port})" $f | sponge $f; done; sudo cp client.conf /etc/openvpn/; sudo openvpn --daemon ovpn-client --cd /etc/openvpn --config /etc/openvpn/client.conf; ./supervisor/supervisor.sh reload; ./supervisor/supervisor.sh start all;'
+            docker run --net repo_as_net --privileged -d --name userAS1\
+              --entrypoint /bin/bash ethznetsec/scion_base:latest -c 'sleep 10; /tmp/VPNnewUserAS.sh'  # waits for setup script to be loaded
+            for f in $(ls .circleci/setup/); do
+                docker cp .circleci/setup/${f} userAS1:/tmp/
+            done
+            for src_dir in bin supervisor python proto env; do
+                docker cp /tmp/scion/${src_dir} userAS1:${SC}
+            done
+            # Wait for client to be setup
+            sleep 180
+            echo "Starting VPN client SCMPs"
+            docker exec userAS1 /bin/bash -c "./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]"
+            docker stop userAS1; docker rm userAS1;
             
-
       - run:
           name: Wind down the containers
           command: |
-            for i in $(seq 1 300); do
-              echo ${i}
-              sleep 500
-            done
-            sudo docker-compose -f ./docker-compose.yml down
+            docker-compose -f ./docker-compose.yml down
 
       - store_test_results:
           path: test-reports

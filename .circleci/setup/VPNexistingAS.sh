@@ -1,13 +1,7 @@
 #!/bin/bash
 
-#### Replace with binary package
-# Get SCION executables ready
-sudo chown scion:scion -R ./bin
-sudo chmod +x ./bin/*
-# Add python dependencies
-pip3 install --user -r env/pip3/requirements.txt
-mkdir ./gen-cache
-#### 
+sleep 10
+/tmp/minimalInstall.sh
 
 # Configure container for OpenVPN connections
 sudo apt-get install -y openvpn
@@ -26,9 +20,10 @@ rm $SC/gen -rf
 tar -C $SC/ -xf /tmp/host_config.tar
 
 # Setup OpenVPN attachment point server
-sudo cp server.conf
+sudo cp server.conf /etc/openvpn/
 echo 'ifconfig-push 10.0.8.2 255.255.255.0' > /tmp/userAS1.ccd
 sudo mv /tmp/userAS1.ccd /etc/openvpn/ccd/scion@scionlab.org__20-ffaa_1_1
+sudo openvpn --daemon ovpn-server --cd /etc/openvpn --config /etc/openvpn/server.conf
 
 ZK_IP=$(dig +short zookeeper A); for f in $(find $SC/gen/ -name topology.json); do
     jq ".ZookeeperService[]|=({Addr:\"$ZK_IP\", L4Port:.L4Port})" $f | sponge $f;

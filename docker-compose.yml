@@ -21,7 +21,8 @@ services:
     networks:
       as_net:
         ipv4_address: 172.31.0.10
-    entrypoint: /bin/bash -c "sleep 10; ./scionlab/.circleci/setup/coord.sh"
+    # waits for setup script to be loaded
+    entrypoint: /bin/bash -c "until [ -e ./scionlab/.circleci/setup/coord.sh ]; do sleep 1; done; ./scionlab/.circleci/setup/coord.sh"
 
   zookeeper:
     image: zookeeper:latest
@@ -49,7 +50,8 @@ services:
       CUSER: "5"
       # fixture secret
       CSECRET: "c8CtMx5_ZUE1pAr_8sw3nw"
-    entrypoint: /bin/bash -c "sleep 30; /tmp/existingAS_full.sh; sleep 40; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
+    # waits for binaries and setup script to be loaded, then for SCION to be ready
+    entrypoint: /bin/bash -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; sleep 40; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]; sleep 120;"
 
   infraAS111:
     image: ethznetsec/scion_base:latest
@@ -69,7 +71,8 @@ services:
       CUSER: "7"
       # fixture secret
       CSECRET: "kuA3OhfG0eLjoMeAsoZrgQ"
-    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 50; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 111;"
+    # waits for binaries and setup script to be loaded, then for SCION to be ready
+    entrypoint: /bin/bash -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; sleep 40; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 111;"
 
   infraAS112:
     image: ethznetsec/scion_base:latest
@@ -89,7 +92,8 @@ services:
       CUSER: "9"
       # fixture secret
       CSECRET: "jpuwJ8uzcu1mL8Rrbiw_9Q"
-    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 50; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 112;"
+    # waits for binaries and setup script to be loaded, then for SCION to be ready
+    entrypoint: /bin/bash -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; sleep 30; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 112;"
 
   coreAS113:
     image: ethznetsec/scion_base:latest
@@ -108,7 +112,8 @@ services:
       CUSER: "10"
       # fixture secret
       CSECRET: "Ch2eAP9F36OzSrrmOiTAkg"
-    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 360; exit 113;"
+    # waits for binaries and setup script to be loaded, then beacons for a while before exiting
+    entrypoint: /bin/bash -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; sleep 500; exit 113;"
 
   infraAS114:
     image: ethznetsec/scion_base:latest
@@ -129,4 +134,6 @@ services:
       CUSER: "14"
       # fixture secret
       CSECRET: "aPRjKwCAI5_eqYPXu7MlFA"
-    entrypoint: /bin/bash -c "sleep 20; /tmp/VPNexistingAS.sh; sleep 3600; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]; exit 114;"
+    # waits for binaries and setup script to be loaded, then a user AS to connect and run scmp echos
+    entrypoint: /bin/bash -c "until [ -e /tmp/VPNexistingAS.sh ]; do sleep 1; done; /tmp/VPNexistingAS.sh; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch $${SC}/done; sleep 120; echo 'reloading AP'; /tmp/reloadASConfig.sh; sleep 3600; exit 114;"
+

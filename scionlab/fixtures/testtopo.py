@@ -110,7 +110,7 @@ extra_services = [
 # VPNs
 vpns = [
    # Asia AP VPN
-   VPNDef(7, 1194, "10.0.8.0/24", "14"),
+   VPNDef(14, 1194, "10.0.8.0/24", "14"),
 ]
 
 
@@ -140,9 +140,11 @@ def create_testtopo_links():
     for link_def in links:
         _create_as_link(**link_def._asdict())
 
+
 def create_testtopo_vpn():
     for vpn_def in vpns:
         _create_vpn(**vpn_def._asdict())
+
 
 def create_testtopo_extraservices():
     for as_serv in extra_services:
@@ -174,10 +176,11 @@ def _create_as_link(type, as_id_a, as_id_b):
     as_b = AS.objects.get(as_id=as_id_b)
     Link.objects.create_from_ases(type, as_a, as_b)
 
+
 def _create_vpn(server, server_port, subnet, AP):
-    vpn = VPN.objects.create(server=Host.objects.get(id=server), server_port=server_port, subnet=subnet)
+    vpn = VPN.objects.create(server=Host.objects.get(id=server),
+                             server_port=server_port, subnet=subnet)
     # Add vpn to AP
     ap = AttachmentPoint.objects.get(AS_id=AP)
-    ap.vpn=vpn
+    ap.vpn = vpn
     ap.save()
-

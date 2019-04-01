@@ -1,30 +1,70 @@
 - model: scionlab.isd
   pk: 1
-  fields: {isd_id: 16, label: AWS, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 16
+    label: AWS
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 2
-  fields: {isd_id: 17, label: Switzerland, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 17
+    label: Switzerland
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 3
-  fields: {isd_id: 18, label: North America, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 18
+    label: North America
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 4
-  fields: {isd_id: 19, label: EU, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 19
+    label: EU
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 5
-  fields: {isd_id: 20, label: Korea, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 20
+    label: Korea
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 6
-  fields: {isd_id: 21, label: Japan, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 21
+    label: Japan
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 7
-  fields: {isd_id: 22, label: Taiwan, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 22
+    label: Taiwan
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 8
-  fields: {isd_id: 23, label: Singapore, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 23
+    label: Singapore
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 9
-  fields: {isd_id: 24, label: Australia, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 24
+    label: Australia
+    trc: null
+    trc_priv_keys: null
 - model: scionlab.isd
   pk: 10
-  fields: {isd_id: 25, label: China, trc: null, trc_priv_keys: null}
+  fields:
+    isd_id: 25
+    label: China
+    trc: null
+    trc_priv_keys: null
