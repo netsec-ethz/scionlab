@@ -202,17 +202,24 @@ class VPNCertsTests(TestCase):
 
     def test_generate_server_config(self):
         attachment_point = AttachmentPoint.objects.first()
-        server_config = generate_vpn_server_config(attachment_point.vpn)
-        client_pool_string_match = re.findall('ifconfig-pool ([0-9.:]*) ([0-9.:]*) ([0-9.:]*)',
-                                              server_config)
-        self.assertTrue(len(client_pool_string_match) == 1)
-        start_ip, end_ip, netmask = client_pool_string_match[0]
-        vpn_network = ipaddress.ip_network(attachment_point.vpn.subnet)
+        vpn = attachment_point.vpn
+        server_config = generate_vpn_server_config(vpn)
+        ifconfig_string_match = re.findall('ifconfig ([0-9.:]*) ([0-9.:]*)',
+                                           server_config)
+        self.assertEqual(len(ifconfig_string_match), 1)
+        server_ip, netmask = ifconfig_string_match[0]
+        route_string_match = re.findall('route ([0-9.:/]*) ([0-9.:]*)',
+                                        server_config)
+        self.assertEqual(len(route_string_match), 1)
+        subnet, route_netmask = route_string_match[0]
+        self.assertEqual(route_netmask, netmask)
+
+        vpn_network = ipaddress.ip_network(vpn.subnet)
 
         # Check VPN IPs valid
         self.assertEqual(str(vpn_network.netmask), netmask)
-        self.assertTrue(ipaddress.ip_address(start_ip) in vpn_network.hosts())
-        self.assertTrue(ipaddress.ip_address(end_ip) in vpn_network.hosts())
+        self.assertEqual(str(vpn_network), subnet)
+        self.assertTrue(ipaddress.ip_address(server_ip) in vpn_network.hosts())
 
         # Check CCD
         user_as = create_user_as(attachment_point)

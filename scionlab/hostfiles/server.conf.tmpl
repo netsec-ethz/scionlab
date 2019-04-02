@@ -8,11 +8,9 @@ proto udp
 topology subnet
 push "topology subnet"
 ifconfig ${ServerIP} ${Netmask}
-ifconfig-pool ${SubnetStart} ${SubnetEnd} ${Netmask}
 route ${Subnet} ${Netmask}
 push "route ${ServerIP}"
 
-ifconfig-pool-persist ipp.txt
 client-config-dir ccd
 ccd-exclusive
 
