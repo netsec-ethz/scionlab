@@ -221,7 +221,6 @@ def generate_vpn_server_config(vpn):
     server_vpn_ip = vpn.server_vpn_ip()
     server_vpn_port = vpn.server_port
     server_vpn_subnet = vpn.vpn_subnet()
-    server_vpn_start_ip, server_vpn_end_ip = vpn.vpn_subnet_min_max_client_ips()
 
     server_config = string.Template(server_config_tmpl).substitute(
         AS=server_vpn_as,
@@ -229,8 +228,6 @@ def generate_vpn_server_config(vpn):
         ServerPort=server_vpn_port,
         Netmask=server_vpn_subnet.netmask,
         Subnet=server_vpn_subnet,
-        SubnetStart=server_vpn_start_ip,
-        SubnetEnd=server_vpn_end_ip,
         CACert=ca_cert,
         ServerCert=vpn.cert,
         ServerKey=vpn.private_key,
