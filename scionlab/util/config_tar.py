@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import string
 import tarfile
@@ -40,8 +41,10 @@ def generate_user_as_config_tar(user_as, fileobj):
     """
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
+        _add_config_info(host, tar)
         generate.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
+
         if user_as.installation_type == UserAS.VM:
             tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
             _add_vagrantfiles(host, tar)
@@ -57,6 +60,7 @@ def generate_host_config_tar(host, fileobj):
     :param fileobj: writable, file-like object for output
     """
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
+        _add_config_info(host, tar)
         generate.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
 
@@ -93,6 +97,18 @@ def _add_vagrantfiles(host, tar):
     Add the Vagrantfiles and additional required files to the tar.
     Expands the 'Vagrantfile.tmpl'-template.
     """
+    tar_add_textfile(tar, "Vagrantfile", _expand_vagrantfile_template(host))
+
+    # Add services and scripts:
+    # Note: in the future, some of these may be included in the "box".
+    service_files = ["scion.service", "scionupgrade.service",
+                     "scion-viz.service", "scionupgrade.timer"]
+    script_files = ["run.sh", "scionupgrade.sh"]
+    for f in service_files + script_files:
+        tar.add(_hostfiles_path(f), arcname=f)
+
+
+def _expand_vagrantfile_template(host):
     if not host.vpn_clients.filter(active=True).exists():
         forwarding_string = 'config.vm.network "forwarded_port",' \
                             ' guest: {0}, host: {0}, protocol: "udp"'. \
@@ -102,19 +118,32 @@ def _add_vagrantfiles(host, tar):
 
     with open(_hostfiles_path("Vagrantfile.tmpl")) as f:
         vagrant_tmpl = f.read()
-    vagrant_file_content = string.Template(vagrant_tmpl).substitute(
+    return string.Template(vagrant_tmpl).substitute(
         PortForwarding=forwarding_string,
         ASID=host.AS.as_id,
     )
-    tar_add_textfile(tar, "Vagrantfile", vagrant_file_content)
 
-    # Add services and scripts:
-    # Note: in the future, some of these may be included in the "box".
-    service_files = ["scion.service", "scionupgrade.service",
-                     "scion-viz.service", "scionupgrade.timer"]
-    script_files = ["run.sh", "scionupgrade.sh"]
-    for f in service_files + script_files:
-        tar.add(_hostfiles_path(f), arcname=f)
+
+def _add_config_info(host, tar):
+    tar_add_textfile(tar, "gen/scionlab-config.json", _generate_config_info_json(host))
+
+
+def _generate_config_info_json(host):
+    """
+    Return a JSON-formatted string; a dict containing the authentication parameters for the host
+    and the current configuration version number.
+    :param Host host:
+    :returns: json string
+    """
+    config_info = {
+        'host_id': host.pk,
+        'host_secret': host.secret,
+        'version': host.config_version,
+        # 'ia': host.AS.isd_as_str() # XXX: what for?
+        'url': 'locahost:8080'  # TODO(matzf): how to get this?
+                                # Put into settings? Or get from request and pass in?
+    }
+    return json.dumps(config_info)
 
 
 def _hostfiles_path(filename):
