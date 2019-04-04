@@ -293,8 +293,11 @@ def install_vpn_client_config(tmpdir):
 def install_vpn_server_config(tmpdir):
     changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
     if changed:
-        subprocess.check_call(['sudo', 'systemctl', 'reload-or-restart', 'openvpn@client'])
+        subprocess.check_call(['sudo', 'systemctl', 'reload-or-restart', 'openvpn@server'])
     _sudo_mv(os.path.join(tmpdir, 'openvpn_ccd'), '/etc/openvpn')
+    if not os.path.exists('/etc/openvpn/dh.pem'):
+        subprocess.check_call(['sudo', 'openssl', 'dhparam', '-out', 'dh.pem', '2048'],
+                              cwd='/etc/openvpn/')
 
 
 def _mv_dir(srcdir, dirname, dstdir):
