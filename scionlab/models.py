@@ -35,6 +35,9 @@ from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
     generate_vpn_server_key_material
 
+from scionlab.tasks import deploy_host_config
+
+
 # TODO(matzf): some of the models use explicit create & update methods
 # The interface of these methods should be revisited & check whether
 # we can make better use of e.g. changed_data information of the forms.
@@ -548,7 +551,7 @@ class UserASManager(models.Manager):
             interfaceB=interface_client
         )
 
-        # TODO(matzf): somewhere we need to trigger the config deployment
+        attachment_point.trigger_deployment()
 
         return user_as
 
@@ -669,7 +672,7 @@ class UserAS(AS):
         self.bind_port = bind_port
         self.save()
 
-        # TODO(matzf) trigger AP config deployment
+        self.attachment_point.trigger_deployment()
 
     def is_use_vpn(self):
         """
@@ -750,6 +753,13 @@ class AttachmentPoint(models.Model):
             raise ValidationError("Selected attachment point does not support VPN",
                                   code='attachment_point_no_vpn')
 
+    def trigger_deployment(self):
+        """
+        Trigger the deployment for the attachment point configuration.
+        """
+        for host in self.AS.hosts.iterator():
+            deploy_host_config(host, delay=60)
+
 
 class HostManager(models.Manager):
     def create(self, secret=None, **kwargs):
@@ -811,7 +821,6 @@ class Host(models.Model):
         blank=True,
         help_text="Public IP of the host for management (should be reachable by the coordinator)."
     )
-    ssh_port = models.PositiveSmallIntegerField(default=22)
     secret = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     # TODO(matzf): we may need additional information for container or VM
@@ -840,7 +849,6 @@ class Host(models.Model):
                label=_placeholder,
                managed=_placeholder,
                management_ip=_placeholder,
-               ssh_port=_placeholder,
                secret=_placeholder):
         """
         Update the specified fields of this host instance, and immediately `save`.
@@ -852,7 +860,6 @@ class Host(models.Model):
         :param str label: optional
         :param bool managed: optional
         :param str management_ip: optional, public IP of the host for management
-        :param int ssh_port: optional, port used for management access with ssh
         :param str secret: optional, a secret to authenticate the host. If `None` is given, a new
                            random secret is generated.
         """
@@ -873,8 +880,6 @@ class Host(models.Model):
             self.managed = managed
         if management_ip is not _placeholder:
             self.management_ip = management_ip or None
-        if ssh_port is not _placeholder:
-            self.ssh_port = ssh_port
         if secret is not _placeholder:
             self.secret = secret or self._gen_secret()
         self.save()
@@ -947,7 +952,7 @@ class Host(models.Model):
 
     @staticmethod
     def _gen_secret():
-        return base64.urlsafe_b64encode(os.urandom(16)).decode()
+        return base64.urlsafe_b64encode(os.urandom(16)).decode().rstrip('=')
 
 
 class InterfaceManager(models.Manager):

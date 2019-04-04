@@ -152,7 +152,7 @@ class ISDAdmin(admin.ModelAdmin):
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
         fields = ('internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'management_ip',
-                  'ssh_port', 'secret')
+                  'secret')
 
     def create(self):
         return Host.objects.create(
@@ -163,7 +163,6 @@ class HostAdminForm(_CreateUpdateModelForm):
             label=self.cleaned_data['label'],
             managed=self.cleaned_data['managed'],
             management_ip=self.cleaned_data['management_ip'],
-            ssh_port=self.cleaned_data['ssh_port'],
             secret=self.cleaned_data['secret']
         )
 
@@ -175,7 +174,6 @@ class HostAdminForm(_CreateUpdateModelForm):
             label=self.cleaned_data['label'],
             managed=self.cleaned_data['managed'],
             management_ip=self.cleaned_data['management_ip'],
-            ssh_port=self.cleaned_data['ssh_port'],
             secret=self.cleaned_data['secret']
         )
 
@@ -639,7 +637,7 @@ class LinkAdmin(admin.ModelAdmin):
 class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
     list_display = ('__str__', 'AS',
-                    'internal_ip', 'public_ip', 'bind_ip', 'managed', 'management_ip', 'ssh_port',
+                    'internal_ip', 'public_ip', 'bind_ip', 'managed', 'management_ip',
                     'latest_config_deployed', 'get_config_link')
     list_filter = ('AS__isd', 'AS', )
     ordering = ['AS']
