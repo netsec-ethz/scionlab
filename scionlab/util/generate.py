@@ -52,13 +52,12 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
         generator.generate_instance_dir(archive, as_, 'BR', topo_dict, instance_name)
         processes.append(instance_name)
 
-    services = host.services.all()
     for service in host.services.all():
         instance_name = service_names.get(service)
         if service.type in SERVICE_TYPES_CONTROL_PLANE:
             generator.generate_instance_dir(archive, as_, service.type, topo_dict, instance_name)
         elif service.type in SERVICE_TYPES_SERVER_APPS:
-            generator.generate_server_app_dir(archive, as_, service.type, 
+            generator.generate_server_app_dir(archive, as_, service.type,
                                               instance_name, host.internal_ip, service.port)
         else:
             continue
