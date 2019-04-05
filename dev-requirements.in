@@ -1,4 +1,3 @@
-peewee # for huey.contrib.sqlitedb.SqliteHuey
 # Testing:
 django-webtest
 django-nose
