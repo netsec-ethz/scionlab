@@ -29,7 +29,7 @@ def create_gen(host, archive):
     :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
     topo_dict, router_names, service_names = _generate_topology_from_DB(host.AS)  # topology file
-    service_names.update(_get_service_names(host.AS, from_set=SERVICE_TYPES_SERVER_APPS))
+    service_names.update(_get_service_names(host.AS, service_types=SERVICE_TYPES_SERVER_APPS))
     _create_gen(host, archive, topo_dict, router_names, service_names)
 
 
@@ -93,7 +93,7 @@ def _generate_topology_from_DB(as_):
     router_names = _get_router_names(as_)
     _topo_add_routers(topo_dict, router_names, address_type)
 
-    service_names = _get_service_names(as_)
+    service_names = _get_service_names(as_, service_types=SERVICE_TYPES_CONTROL_PLANE)
     _topo_add_control_services(topo_dict, service_names, address_type)
 
     _topo_add_zookeeper(topo_dict, as_)
@@ -237,9 +237,9 @@ def _get_router_names(as_):
     return router_names
 
 
-def _get_service_names(as_, from_set=SERVICE_TYPES_CONTROL_PLANE):
+def _get_service_names(as_, service_types):
     service_names = {}
-    for stype in from_set:
+    for stype in service_types:
         for id, service in enumerate(as_.services.filter(type=stype), start=1):
             service_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(), id)
             service_names[service] = service_name
