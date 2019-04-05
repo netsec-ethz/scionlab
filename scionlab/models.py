@@ -734,11 +734,7 @@ class AttachmentPoint(models.Model):
         Selects the preferred border router on which the Interfaces to UserASes should be configured
         :returns: a `BorderRouter` of the related `AS`
         """
-        if self.vpn is not None:
-            assert(self.vpn.server.AS == self.AS)
-            host = self.vpn.server
-        else:
-            host = self.AS.hosts.filter(public_ip__isnull=False)[0]
+        host = self._get_host_for_useras_attachment()
         return BorderRouter.objects.first_or_create(host)
 
     def check_vpn_available(self):
@@ -759,6 +755,24 @@ class AttachmentPoint(models.Model):
         delay = settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD
         for host in self.AS.hosts.iterator():
             scionlab.tasks.deploy_host_config(host, delay=delay)
+
+    def supported_ip_versions(self):
+        """
+        Returns the IP versions for the host where the user ASes will attach to
+        """
+        host = self._get_host_for_useras_attachment()
+        return {ipaddress.ip_address(host.public_ip).version}
+
+    def _get_host_for_useras_attachment(self):
+        """
+        Finds the host where user ASes would attach to
+        """
+        if self.vpn is not None:
+            assert(self.vpn.server.AS == self.AS)
+            host = self.vpn.server
+        else:
+            host = self.AS.hosts.filter(public_ip__isnull=False)[0]
+        return host
 
 
 class HostManager(models.Manager):
