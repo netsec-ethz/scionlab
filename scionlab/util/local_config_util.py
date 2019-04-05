@@ -103,6 +103,7 @@ def generate_instance_dir(archive, as_, stype, tp, name):
     _write_certs_trc(archive, elem_dir, as_)
     _write_keys(archive, elem_dir, as_)
 
+
 def generate_server_app_dir(archive, as_, app_type, name, host_ip, app_port):
     """
     Generates a server application directory
@@ -115,14 +116,15 @@ def generate_server_app_dir(archive, as_, app_type, name, host_ip, app_port):
     """
     ia = as_.isd_as_str()
     elem_dir = _elem_dir(as_, name)
-    env = DEFAULT_ENV.copy()
     if app_type == Service.BW:
-        cmd = 'bash -c "sleep 10 && bin/bwtestserver -s {ia},[{ip}]:{port}"'.format(
+        cmd = 'bash -c "sleep 10 && exec bin/bwtestserver -s {ia},[{ip}]:{port}"'.format(
             ia=ia, ip=host_ip, port=app_port)
     elif app_type == Service.PP:
-        cmd = 'bash -c "sleep 10 && bin/pingpong -mode server -local {ia},[{ip}]:{port}"'.format(
-            ia=ia, ip=host_ip, port=app_port)
-    archive.write_config((elem_dir, 'supervisord.conf'), _make_supervisord_conf(name, cmd, env, priority=200))
+        cmd = 'bash -c "sleep 10 && exec bin/pingpong -mode server -local '
+        '{ia},[{ip}]:{port}"'.format(ia=ia, ip=host_ip, port=app_port)
+    archive.write_config((elem_dir, 'supervisord.conf'),
+                         _make_supervisord_conf(name, cmd, DEFAULT_ENV, priority=200))
+
 
 def generate_sciond_config(archive, as_, tp, name):
     """
