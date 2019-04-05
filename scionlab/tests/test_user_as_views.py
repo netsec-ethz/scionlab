@@ -29,7 +29,7 @@ from scionlab.tests import utils
 _QUOTA_EXCEEDED_MESSAGE = ('You have reached the maximum number of ASes '
                            'and cannot create further ones.')
 _NO_USER_AS_MESSAGE = 'You currently have no registered SCIONLab ASes'
-_test_ip = '192.0.2.111'
+_test_ip = '192.1.2.111'
 _test_start_port = 50000
 
 
