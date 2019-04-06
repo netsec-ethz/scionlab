@@ -374,7 +374,7 @@ class ASCreationForm(_CreateUpdateModelForm):
         )
 
 
-@admin.register(AS, UserAS)
+@admin.register(AS)
 class ASAdmin(admin.ModelAdmin):
     inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
     actions = ['update_keys']
@@ -450,7 +450,7 @@ class ASAdmin(admin.ModelAdmin):
 
     def is_ap(self, obj):
         """ Is the AS `obj` an attachment point? """
-        return hasattr(obj, 'attachment_point')
+        return hasattr(obj, 'attachment_point_info')
 
     def is_userAS(self, obj):
         """ Is the AS `obj` a user AS? """
