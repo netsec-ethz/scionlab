@@ -531,7 +531,6 @@ class LinkAdminForm(_CreateUpdateModelForm):
         model = Link
         exclude = ['interfaceA', 'interfaceB']
 
-    # TODO(matzf): avoid duplication, make naming consistent (to/from vs. a/b)?
     from_host = forms.ModelChoiceField(queryset=Host.objects.all())
     from_public_ip = forms.GenericIPAddressField(required=False)
     from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
