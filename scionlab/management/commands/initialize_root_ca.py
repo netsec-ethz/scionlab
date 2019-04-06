@@ -16,7 +16,7 @@ import os
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from scionlab.util.openvpn_config import write_vpn_ca_config
+from scionlab.openvpn_config import write_vpn_ca_config
 
 
 class Command(BaseCommand):

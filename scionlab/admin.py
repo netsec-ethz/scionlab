@@ -38,7 +38,7 @@ from scionlab.models import (
     VPNClient,
 )
 from scionlab.util.http import HttpResponseAttachment
-from scionlab.util import config_tar
+from scionlab import config_tar
 from scionlab.tasks import deploy_host_config
 
 admin.site.register([

@@ -24,7 +24,6 @@ from scionlab.views.user_as_views import (
     UserASActivateView,
     UserASDetailView,
     UserASGetConfigView)
-# from scionlab.views.placehoder_view import PlaceholderView
 from scionlab.views.registration_view import UserRegistrationView
 from scionlab.views.api import GetHostConfig, PostHostDeployedConfigVersion
 

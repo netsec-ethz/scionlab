@@ -19,11 +19,14 @@ import tarfile
 from contextlib import closing
 
 from django.conf import settings
-from scionlab.util import generate
-from scionlab.util.archive import TarWriter, tar_add_textfile
+from scionlab import scion_config
 from scionlab.models import UserAS
-from scionlab.util.openvpn_config import generate_vpn_client_config, generate_vpn_server_config, \
-    ccd_config
+from scionlab.openvpn_config import (
+    generate_vpn_client_config,
+    generate_vpn_server_config,
+    ccd_config,
+)
+from scionlab.util.archive import TarWriter, tar_add_textfile
 
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
@@ -42,7 +45,7 @@ def generate_user_as_config_tar(user_as, fileobj):
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
         _add_config_info(host, tar)
-        generate.create_gen(host, TarWriter(tar))
+        scion_config.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
 
         if user_as.installation_type == UserAS.VM:
@@ -61,7 +64,7 @@ def generate_host_config_tar(host, fileobj):
     """
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
         _add_config_info(host, tar)
-        generate.create_gen(host, TarWriter(tar))
+        scion_config.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
 
 

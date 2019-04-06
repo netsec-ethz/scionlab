@@ -30,7 +30,7 @@ from django.conf import settings
 
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.models import VPN, AttachmentPoint, UserAS
-from scionlab.util.openvpn_config import write_vpn_ca_config, generate_vpn_client_config, \
+from scionlab.openvpn_config import write_vpn_ca_config, generate_vpn_client_config, \
     load_ca_cert, _generate_private_key, load_ca_key, _generate_root_ca_cert, \
     generate_vpn_server_config, ccd_config
 
@@ -98,7 +98,7 @@ class RootCASetupTests(TestCase):
 
     def test_loading_ca_key(self):
         ca_key = _generate_private_key()
-        with patch('scionlab.util.openvpn_config._generate_private_key', return_value=ca_key):
+        with patch('scionlab.openvpn_config._generate_private_key', return_value=ca_key):
             call_command('initialize_root_ca')
         stored_ca_key = load_ca_key()
         self.assertEqual(ca_key.private_bytes(
@@ -132,7 +132,7 @@ class RootCASetupTests(TestCase):
     def test_loading_ca_cert(self):
         ca_key = _generate_private_key()
         ca_cert = _generate_root_ca_cert(ca_key)
-        with patch('scionlab.util.openvpn_config._generate_root_ca_cert', return_value=ca_cert):
+        with patch('scionlab.openvpn_config._generate_root_ca_cert', return_value=ca_cert):
             call_command('initialize_root_ca')
         stored_ca_cert = load_ca_cert()
         self.assertEqual(ca_cert.public_bytes(serialization.Encoding.PEM).decode(),

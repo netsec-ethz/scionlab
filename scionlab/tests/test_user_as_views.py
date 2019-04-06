@@ -21,7 +21,7 @@ from django_webtest import WebTest
 from scionlab.models import User, UserAS, AttachmentPoint, VPN, DEFAULT_PUBLIC_PORT
 from scionlab.fixtures.testuser import get_testuser, TESTUSER_EMAIL
 from scionlab.fixtures import testtopo
-from scionlab.util.openvpn_config import write_vpn_ca_config
+from scionlab.openvpn_config import write_vpn_ca_config
 from scionlab.views.user_as_views import UserASForm
 from scionlab.tests import utils
 
