@@ -20,6 +20,10 @@ from django.shortcuts import get_object_or_404
 from django import forms
 from django.urls import resolve, path
 
+from scionlab.defines import (
+    MAX_PORT,
+    DEFAULT_HOST_INTERNAL_IP,
+)
 from scionlab.models import (
     ISD,
     AS,
@@ -32,8 +36,6 @@ from scionlab.models import (
     Service,
     VPN,
     VPNClient,
-    MAX_PORT,
-    DEFAULT_HOST_INTERNAL_IP,
 )
 from scionlab.util.http import HttpResponseAttachment
 from scionlab.util import config_tar

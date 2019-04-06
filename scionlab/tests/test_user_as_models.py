@@ -31,6 +31,7 @@ from scionlab.models import (
 from scionlab.fixtures import testtopo
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
+from scionlab.util import as_ids
 from scionlab.util.openvpn_config import write_vpn_ca_config
 
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
@@ -286,6 +287,7 @@ class GenerateUserASIDTests(TestCase):
     def test_first(self):
         as_id_int = UserAS.objects.get_next_id()
         self.assertEqual(as_id_int, USER_AS_ID_BEGIN)
+        self.assertEqual(as_ids.format(as_id_int), 'ffaa:1:1')
 
     @patch('scionlab.models.UserAS.objects._max_id', return_value=USER_AS_ID_BEGIN)
     def test_second(self, mock):

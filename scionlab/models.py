@@ -32,37 +32,29 @@ import lib.crypto.asymcrypto
 import scionlab.tasks
 from scionlab.util import as_ids
 from scionlab.util.portmap import PortMap, LazyPortMap
-from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
-    generate_vpn_server_key_material
-
-
-# TODO(matzf) move to common definitions module?
-
-MAX_PORT = 2**16-1
-""" Max value for ports """
-
-MAX_INTERFACE_ID = 2**12-1
-
-USER_AS_ID_BEGIN = as_ids.parse('ffaa:1:1')
-USER_AS_ID_END = as_ids.parse('ffaa:1:ffff')
-
-DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-port-ranges)
-DEFAULT_INTERNAL_PORT = 31045  # 30242-30251
-DEFAULT_CONTROL_PORT = 30045   # 30042-30051
-
-DEFAULT_BS_PORT = 31041  # 30252
-DEFAULT_PS_PORT = 31043  # 30253
-DEFAULT_CS_PORT = 31042  # 30254
-DEFAULT_ZK_PORT = 2181
-DEFAULT_BW_PORT = 40001
-DEFAULT_PP_PORT = 40002
-DISPATCHER_PORT = 30041
-
-DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
-DEFAULT_LINK_MTU = 1500 - 20 - 8
-DEFAULT_LINK_BANDWIDTH = 1000
-
-DEFAULT_MAX_ROUTER_INTERFACES = 12
+from scionlab.util.openvpn_config import (
+    generate_vpn_client_key_material,
+    generate_vpn_server_key_material,
+)
+from scionlab.defines import (
+    MAX_PORT,
+    MAX_INTERFACE_ID,
+    USER_AS_ID_BEGIN,
+    USER_AS_ID_END,
+    DEFAULT_PUBLIC_PORT,
+    DEFAULT_INTERNAL_PORT,
+    DEFAULT_CONTROL_PORT,
+    DEFAULT_BS_PORT,
+    DEFAULT_PS_PORT,
+    DEFAULT_CS_PORT,
+    DEFAULT_ZK_PORT,
+    DEFAULT_BW_PORT,
+    DEFAULT_PP_PORT,
+    DISPATCHER_PORT,
+    DEFAULT_HOST_INTERNAL_IP,
+    DEFAULT_LINK_MTU,
+    DEFAULT_LINK_BANDWIDTH,
+)
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
