@@ -804,7 +804,6 @@ class Host(models.Model):
         related_name='hosts',
         on_delete=models.SET_NULL,
     )
-    # TODO(matzf): handle changes in the ip fields
     internal_ip = models.GenericIPAddressField(
         default=DEFAULT_HOST_INTERNAL_IP,
         help_text="IP of the host in the AS"
@@ -828,9 +827,6 @@ class Host(models.Model):
         help_text="Public IP of the host for management (should be reachable by the coordinator)."
     )
     secret = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-
-    # TODO(matzf): we may need additional information for container or VM
-    # initialisation (to access the host's host)
 
     config_version = models.PositiveIntegerField(default=1)
     config_version_deployed = models.PositiveIntegerField(default=0)
@@ -1178,19 +1174,16 @@ class Interface(models.Model):
         Get the "other" interface of the link associated with this interface.
         :returns: Interface
         """
-        # FIXME(matzf): naive queries
-        link = self.link()
-        if self == link.interfaceA:
-            return link.interfaceB
+        if hasattr(self, 'link_as_interfaceA'):
+            return self.link_as_interfaceA.interfaceB
         else:
-            return link.interfaceA
+            return self.link_as_interfaceB.interfaceA
 
     def remote_as(self):
         """
         Get the AS of the "other" interface of the link associated with this interface.
         :returns: AS
         """
-        # FIXME(matzf): naive queries
         return self.remote_interface().AS
 
     def _get_public_info(self):
