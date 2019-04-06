@@ -20,7 +20,8 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django import forms
 
-from scionlab.models import UserAS, MAX_PORT
+from scionlab.defines import MAX_PORT
+from scionlab.models import UserAS
 from scionlab.util.http import HttpResponseAttachment
 from scionlab.util import config_tar
 

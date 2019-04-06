@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MAX_PORT = 2**16-1
+from scionlab.defines import MAX_PORT
 
 
 class PortMap:
