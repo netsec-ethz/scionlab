@@ -23,7 +23,7 @@ from django import forms
 from scionlab.defines import MAX_PORT
 from scionlab.models import UserAS
 from scionlab.util.http import HttpResponseAttachment
-from scionlab.util import config_tar
+from scionlab import config_tar
 
 
 class UserASForm(forms.ModelForm):

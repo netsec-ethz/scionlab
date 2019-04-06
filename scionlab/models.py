@@ -30,12 +30,17 @@ from django.db.models.signals import pre_delete, post_delete
 import lib.crypto.asymcrypto
 
 import scionlab.tasks
-from scionlab.util import as_ids
-from scionlab.util.portmap import PortMap, LazyPortMap
-from scionlab.util.openvpn_config import (
+from scionlab.certificates import (
+    generate_trc,
+    generate_core_certificate,
+    generate_as_certificate_chain,
+)
+from scionlab.openvpn_config import (
     generate_vpn_client_key_material,
     generate_vpn_server_key_material,
 )
+from scionlab.util import as_ids
+from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.defines import (
     MAX_PORT,
     MAX_INTERFACE_ID,
@@ -152,7 +157,6 @@ class ISD(models.Model):
                 self._update_coreas_certificates(as_)
 
     def _generate_trc(self):
-        from scionlab.util.certificates import generate_trc
         self.trc, self.trc_priv_keys = generate_trc(self)
         self.save()
 
@@ -375,7 +379,6 @@ class AS(models.Model):
         for core ASes, `update_core_certificate` needs to be called first.
         See ASManager.update_certificates, which creates the certificates in the correct order.
         """
-        from scionlab.util.certificates import generate_as_certificate_chain
         if self.is_core:
             issuer = self
         else:
@@ -392,7 +395,6 @@ class AS(models.Model):
 
         Requires that the TRC in this ISD exists/is up to date.
         """
-        from scionlab.util.certificates import generate_core_certificate
         self.core_certificate = generate_core_certificate(self)
 
     def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):

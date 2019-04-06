@@ -23,9 +23,9 @@ from django.http import (
     HttpResponseNotModified
 )
 
+from scionlab import config_tar
 from scionlab.models import Host
 from scionlab.util.http import HttpResponseAttachment, basicauth
-from scionlab.util import config_tar
 
 
 def _authenticate_host(host_id, secret):
