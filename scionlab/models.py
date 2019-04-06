@@ -29,18 +29,12 @@ from django.db.models.signals import pre_delete, post_delete
 
 import lib.crypto.asymcrypto
 
+import scionlab.tasks
 from scionlab.util import as_ids
 from scionlab.util.portmap import PortMap, LazyPortMap
-
 from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
     generate_vpn_server_key_material
 
-from scionlab.tasks import deploy_host_config
-
-
-# TODO(matzf): some of the models use explicit create & update methods
-# The interface of these methods should be revisited & check whether
-# we can make better use of e.g. changed_data information of the forms.
 
 # TODO(matzf) move to common definitions module?
 
@@ -626,6 +620,8 @@ class UserAS(AS):
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
+        prev_ap = self.attachment_point
+
         host = self.hosts.get()   # UserAS always has only one host
 
         if self.isd != attachment_point.AS.isd:
@@ -672,6 +668,8 @@ class UserAS(AS):
         self.bind_port = bind_port
         self.save()
 
+        if self.attachment_point != prev_ap:
+            prev_ap.trigger_deployment()
         self.attachment_point.trigger_deployment()
 
     def is_use_vpn(self):
@@ -690,8 +688,12 @@ class UserAS(AS):
         return self.interfaces.get().public_port
 
     def set_active(self, active):
+        """
+        Set the UserAS to be active/inactive.
+        This will trigger a deployment of the attachment point configuration.
+        """
         self.interfaces.get().link().set_active(active)
-        # TODO(matzf) trigger AP config deployment (delayed?)
+        self.attachment_point.trigger_deployment()
 
     def _get_ap_link(self):
         # FIXME(matzf): find the correct link to the AP if multiple links present!
@@ -756,9 +758,13 @@ class AttachmentPoint(models.Model):
     def trigger_deployment(self):
         """
         Trigger the deployment for the attachment point configuration.
+
+        The deployment is rate limited, max rate controlled by
+        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD.
         """
+        delay = settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD
         for host in self.AS.hosts.iterator():
-            deploy_host_config(host, delay=60)
+            scionlab.tasks.deploy_host_config(host, delay=delay)
 
 
 class HostManager(models.Manager):

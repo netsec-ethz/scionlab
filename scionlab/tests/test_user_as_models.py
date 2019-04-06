@@ -93,22 +93,29 @@ def create_and_check_useras(testcase,
     """
     hosts_pending_before = set(Host.objects.needs_config_deployment())
 
-    user_as = UserAS.objects.create(
-        owner=owner,
-        attachment_point=attachment_point,
-        installation_type=installation_type,
-        label=label,
-        use_vpn=use_vpn,
-        public_ip=public_ip,
-        public_port=public_port,
-        bind_ip=bind_ip,
-        bind_port=bind_port,
-    )
+    with patch('scionlab.tasks.deploy_host_config') as mock_deploy:
+        user_as = UserAS.objects.create(
+            owner=owner,
+            attachment_point=attachment_point,
+            installation_type=installation_type,
+            label=label,
+            use_vpn=use_vpn,
+            public_ip=public_ip,
+            public_port=public_port,
+            bind_ip=bind_ip,
+            bind_port=bind_port,
+        )
 
     # Check AS needs_config_deployment:
     testcase.assertSetEqual(
         hosts_pending_before | set(user_as.hosts.all() | attachment_point.AS.hosts.all()),
         set(Host.objects.needs_config_deployment())
+    )
+
+    # Check that scionlab.tasks.deploy_host_config was called for the attachment point hosts.
+    testcase.assertSetEqual(
+        {args[0] for args, kwargs in mock_deploy.call_args_list},
+        set(attachment_point.AS.hosts.all())
     )
 
     check_useras(testcase,
@@ -183,7 +190,7 @@ def check_useras(testcase,
         ))
 
 
-def update_useras(user_as, **kwargs):
+def update_useras(testcase, user_as, **kwargs):
     """
     Helper function for tests: update only the given parameters of a UserAS, leaving
     all others unchanged.
@@ -191,15 +198,26 @@ def update_useras(user_as, **kwargs):
     but it seems preferable to keep the "production" logic lean, as this functionality
     only seems to be used here.
     """
-    user_as.update(
-        attachment_point=kwargs.get('attachment_point', user_as.attachment_point),
-        label=kwargs.get('label', user_as.label),
-        installation_type=kwargs.get('installation_type', user_as.installation_type),
-        use_vpn=kwargs.get('use_vpn', user_as.is_use_vpn()),
-        public_ip=kwargs.get('public_ip', user_as.public_ip),
-        public_port=kwargs.get('public_port', user_as.get_public_port()),
-        bind_ip=kwargs.get('bind_ip', user_as.bind_ip),
-        bind_port=kwargs.get('bind_port', user_as.bind_port),
+    prev_ap_hosts = set(user_as.attachment_point.AS.hosts.all())
+
+    with patch('scionlab.tasks.deploy_host_config') as mock_deploy:
+        user_as.update(
+            attachment_point=kwargs.get('attachment_point', user_as.attachment_point),
+            label=kwargs.get('label', user_as.label),
+            installation_type=kwargs.get('installation_type', user_as.installation_type),
+            use_vpn=kwargs.get('use_vpn', user_as.is_use_vpn()),
+            public_ip=kwargs.get('public_ip', user_as.public_ip),
+            public_port=kwargs.get('public_port', user_as.get_public_port()),
+            bind_ip=kwargs.get('bind_ip', user_as.bind_ip),
+            bind_port=kwargs.get('bind_port', user_as.bind_port),
+        )
+
+
+    # Check that scionlab.tasks.deploy_host_config was called for the attachment point hosts.
+    curr_ap_hosts = set(user_as.attachment_point.AS.hosts.all())
+    testcase.assertSetEqual(
+        {args[0] for args, kwargs in mock_deploy.call_args_list},
+        prev_ap_hosts | curr_ap_hosts
     )
 
 
@@ -338,7 +356,6 @@ class CreateUserASTests(TestCase):
 
 
 class UpdateUserASTests(TestCase):
-    # TODO(matzf): fixture currently only has two APs, should extend this a bit
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
@@ -352,7 +369,7 @@ class UpdateUserASTests(TestCase):
                                        seed=seed,
                                        attachment_point=attachment_point,
                                        use_vpn=False)
-        update_useras(user_as, use_vpn=True)
+        update_useras(self, user_as, use_vpn=True)
         check_random_useras(self,
                             user_as,
                             seed=seed,
@@ -367,7 +384,7 @@ class UpdateUserASTests(TestCase):
                                        seed=seed,
                                        attachment_point=attachment_point,
                                        use_vpn=True)
-        update_useras(user_as, use_vpn=False)
+        update_useras(self, user_as, use_vpn=False)
         check_random_useras(self,
                             user_as,
                             seed=seed,
@@ -387,7 +404,8 @@ class UpdateUserASTests(TestCase):
         vpn_client_ip = vpn_client.ip
         del vpn_client
 
-        update_useras(user_as,
+        update_useras(self,
+                      user_as,
                       use_vpn=False,
                       public_ip=test_public_ip)
         check_random_useras(self,
@@ -403,7 +421,8 @@ class UpdateUserASTests(TestCase):
         self.assertFalse(vpn_client.active)
         del vpn_client
 
-        update_useras(user_as,
+        update_useras(self,
+                      user_as,
                       use_vpn=True,
                       public_ip=None)
         check_random_useras(self,
@@ -491,7 +510,7 @@ class UpdateUserASTests(TestCase):
         prev_certificate_chain = user_as.certificate_chain
         hosts_pending_before = set(Host.objects.needs_config_deployment())
 
-        update_useras(user_as, attachment_point=attachment_point)
+        update_useras(self, user_as, attachment_point=attachment_point)
 
         # Check needs_config_deployment: hosts of UserAS and both APs
         self.assertSetEqual(
@@ -527,7 +546,8 @@ class ActivateUserASTests(TestCase):
 
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
 
-    def test_cycle_active(self):
+    @patch('scionlab.tasks.deploy_host_config')
+    def test_cycle_active(self, mock_deploy):
         seed = 123
         user_as = create_random_useras(self, seed=seed)
 
@@ -540,6 +560,11 @@ class ActivateUserASTests(TestCase):
             list(user_as.hosts.all() |
                  user_as.attachment_point.AS.hosts.all())
         )
+        self.assertSetEqual(
+            {args[0] for args, kwargs in mock_deploy.call_args_list},
+            set(user_as.attachment_point.AS.hosts.all())
+        )
+        mock_deploy.reset_mock()
 
         user_as.set_active(True)
 
@@ -549,6 +574,10 @@ class ActivateUserASTests(TestCase):
             list(Host.objects.needs_config_deployment()),
             list(user_as.hosts.all() |
                  user_as.attachment_point.AS.hosts.all())
+        )
+        self.assertSetEqual(
+            {args[0] for args, kwargs in mock_deploy.call_args_list},
+            set(user_as.attachment_point.AS.hosts.all())
         )
 
         check_random_useras(self, user_as, seed=seed)

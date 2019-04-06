@@ -84,6 +84,9 @@ MAX_ASES_ADMIN = 10
 MAX_ASES_USER = 5
 GRAFANA_URL = "https://prometheus.scionlab.org"
 
+# Rate limit for attachment point deployment, specified by the minimal time between
+# two consecutive deployments (value in seconds).
+ATTACHMENT_POINT_DEPLOYMENT_PERIOD = 60
 
 # Openvpn key/cert:
 VPN_CA_KEY_PASSWORD = os.environ.get('SCIONLAB_ROOT_CA_KEY_PASSWORD')
