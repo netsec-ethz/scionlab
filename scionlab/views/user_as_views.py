@@ -78,27 +78,30 @@ class UserASForm(forms.ModelForm):
         else:
             public_ip = cleaned_data.get('public_ip')
             if not public_ip:
+                # TODO: maybe check self.errors['public_ip] if the field is not any char
                 raise ValidationError(
                     'Please provide a value for public IP, or enable "Use OpenVPN".',
                     code='missing_public_ip_no_vpn'
                 )
             try:
-                iface = ipaddress.ip_interface(public_ip)
+                ip_addr = ipaddress.ip_address(public_ip)
             except ValueError:
                 raise forms.ValidationError('Not a valid IP address',
                                             code='malformed_public_ip')
-            if not iface.is_global or \
-               iface.is_loopback or \
-               iface.is_multicast or \
-               iface.is_reserved or \
-               (iface.version == 6 and iface.is_site_local or iface.is_link_local) or \
-               iface.is_unspecified:
+
+            if not ip_addr.is_global or \
+               ip_addr.is_loopback or \
+               ip_addr.is_multicast or \
+               ip_addr.is_reserved or \
+               ip_addr.is_link_local or \
+               (ip_addr.version == 6 and ip_addr.is_site_local) or \
+               ip_addr.is_unspecified:
                 raise ValidationError("IP address cannot be used as public address",
                                       code='invalid_public_ip')
             ap = cleaned_data['attachment_point']
-            if iface.version not in ap.supported_ip_versions():
+            if ip_addr.version not in ap.supported_ip_versions():
                 raise ValidationError('IP version {ipv} not supported by the selected '
-                                      'attachment point'.format(ipv=iface.version),
+                                      'attachment point'.format(ipv=ip_addr.version),
                                       code='unsupported_ip_version')
         return self.cleaned_data
 
