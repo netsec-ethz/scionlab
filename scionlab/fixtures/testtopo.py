@@ -15,7 +15,7 @@
 import random
 from unittest.mock import patch
 from collections import namedtuple
-from scionlab.models import ISD, AS, Link, AttachmentPoint
+from scionlab.models import ISD, AS, Link, AttachmentPoint, Host, Service
 
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.
@@ -99,6 +99,12 @@ links = [
     makeLinkDef(Link.PROVIDER, 0x1404, 0x1406),
 ]
 
+# other than default services
+extra_services = [
+    ('ffaa:0:1107', Service.PP),
+    ('ffaa:0:1107', Service.BW),
+]
+
 
 def create_testtopo_isds():
     for isd_def in isds:
@@ -125,6 +131,12 @@ def create_testtopo_ases():
 def create_testtopo_links():
     for link_def in links:
         _create_as_link(**link_def._asdict())
+
+
+def create_testtopo_extraservices():
+    for as_serv in extra_services:
+        host = Host.objects.get(AS__as_id=as_serv[0])
+        Service.objects.create(host=host, type=as_serv[1])
 
 
 def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):

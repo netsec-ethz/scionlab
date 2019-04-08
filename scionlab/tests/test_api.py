@@ -88,6 +88,30 @@ class GetHostConfigTests(TestCase):
         self.assertEqual(ret.status_code, 204)
 
 
+class GetHostConfigExtraServicesTests(TestCase):
+    fixtures = ['testtopo-ases-links-extraserv']
+
+    @staticmethod
+    def _get_url(host):
+        return '/api/host/%i/config' % host.pk
+
+    @staticmethod
+    def _get_auth_headers(host):
+        return _basic_auth(host.id, host.secret)
+
+    def test_get(self):
+        # in the fixture, the host for 17-ffaa:0:1107 has extra services
+        hosts = Host.objects.filter(AS__as_id='ffaa:0:1107')
+        host = hosts[0]
+        resp = self.client.get(self._get_url(host), {}, **self._get_auth_headers(host))
+        self.assertEqual(resp.status_code, 200)
+        utils.check_tarball_host(self, resp, host)
+        utils.check_tarball_files_exist(self, resp, [
+            'gen/ISD17/ASffaa_0_1107/bw17-ffaa_0_1107-1/supervisord.conf',
+            'gen/ISD17/ASffaa_0_1107/pp17-ffaa_0_1107-1/supervisord.conf'
+        ])
+
+
 class PostHostConfigVersionTests(TestCase):
     fixtures = ['testtopo-ases-links']
 
