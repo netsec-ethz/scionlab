@@ -328,6 +328,23 @@ def check_tarball_host(testcase, response, host):
     _check_tarball_gen(testcase, tar, host)
 
 
+def check_tarball_files_exist(testcase, response, files):
+    """
+    Check the tarball in the reponse for existance of files.
+    The provided file names will be matched exactly against a listing of the tarball.
+    """
+    file_set = set(files)
+    tar = _check_open_tarball(testcase, response)
+    filenames = tar.getnames()
+    for f in filenames:
+        if f in file_set:
+            file_set.remove(f)
+        if not file_set:
+            break
+    testcase.assertEqual(0, len(file_set),
+                         'Could not find all files: {}'.format(','.join(file_set)))
+
+
 def _check_open_tarball(testcase, response):
     """
     Check http-response headers and open tar ball from content.

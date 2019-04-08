@@ -31,6 +31,8 @@ python manage.py shell -c 'from scionlab.fixtures.testtopo import *; create_test
 python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testtopo-ases.yaml
 python manage.py shell -c 'from scionlab.fixtures.testtopo import *; create_testtopo_links()'
 python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testtopo-ases-links.yaml
+python manage.py shell -c 'from scionlab.fixtures.testtopo import *; create_testtopo_extraservices()'
+python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testtopo-ases-links-extraserv.yaml
 
 # get db back
 mv $tempdir/dev.sqlite3 run/
