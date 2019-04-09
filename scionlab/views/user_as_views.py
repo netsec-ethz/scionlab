@@ -19,6 +19,7 @@ from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django import forms
+from django.conf import settings
 import ipaddress
 
 from scionlab.defines import MAX_PORT
@@ -88,9 +89,7 @@ class UserASForm(forms.ModelForm):
             except ValueError:
                 raise forms.ValidationError('Not a valid IP address',
                                             code='malformed_public_ip')
-
-            if not ip_addr.is_global or \
-               ip_addr.is_loopback or \
+            if (not settings.DEBUG and (not ip_addr.is_global or ip_addr.is_loopback)) or \
                ip_addr.is_multicast or \
                ip_addr.is_reserved or \
                ip_addr.is_link_local or \
