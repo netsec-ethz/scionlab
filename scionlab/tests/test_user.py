@@ -101,7 +101,7 @@ class PasswordWebTests(WebTest):
         reset_mail = mail.outbox[0]
         self.assertEqual(reset_mail.recipients(), [TESTUSER_EMAIL])
         reset_mail_message = reset_mail.message().as_string()
-        links = re.findall('http://testserver(/\S*)', reset_mail_message, re.MULTILINE)
+        links = re.findall(r'http://testserver(/\S*)', reset_mail_message, re.MULTILINE)
         self.assertEqual(len(links), 1)
         reset_link = links[0]
 

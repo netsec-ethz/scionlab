@@ -78,7 +78,7 @@ class ActivationRequiredTest(TestCase):
 
         # Now we activate the account by using the link sent by email
         activation_mail_message = str(activation_mail.message().get_payload())
-        links = re.findall('http://testserver(/\S*)', activation_mail_message, re.MULTILINE)
+        links = re.findall(r'http://testserver(/\S*)', activation_mail_message, re.MULTILINE)
 
         dummy_activation_key = 'XXX'
         activation_url = reverse('django_registration_activate',

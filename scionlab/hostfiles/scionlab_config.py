@@ -188,8 +188,8 @@ def fetch_config(config_info):
             _error_exit("Failed to fetch configuration from SCIONLab coordinator at %s: %s",
                         config_info.url, e)
     except Exception as e:
-            _error_exit("Failed to fetch configuration from SCIONLab coordinator at %s: %s",
-                        config_info.url, e)
+        _error_exit("Failed to fetch configuration from SCIONLab coordinator at %s: %s",
+                    config_info.url, e)
     return tarfile.open(mode='r:gz', fileobj=io.BytesIO(response_data))
 
 

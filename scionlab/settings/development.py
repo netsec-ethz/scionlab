@@ -14,7 +14,7 @@
 
 import os
 from .common import *
-from huey.contrib.sqlitedb import SqliteHuey
+import huey
 
 # ##### DEBUG CONFIGURATION ###############################
 DEBUG = True
@@ -34,8 +34,8 @@ DATABASES = {
 
 
 # ##### HUEY TASK QUEUE CONFIGURATION #####################
-HUEY = SqliteHuey('scionlab-huey',
-                  filename=os.path.join(BASE_DIR, 'run', 'dev-huey.sqlite3'))
+HUEY = huey.SqliteHuey('scionlab-huey',
+                       filename=os.path.join(BASE_DIR, 'run', 'dev-huey.sqlite3'))
 
 # ##### APPLICATION CONFIGURATION #########################
 INSTALLED_APPS += [
