@@ -38,6 +38,7 @@ class UserASForm(forms.ModelForm):
             'label',
             'attachment_point',
             'installation_type',
+            'public_ip',
             'bind_ip',
             'bind_port'
         )
@@ -53,7 +54,6 @@ class UserASForm(forms.ModelForm):
         required=False,
         label="Use OpenVPN connection for this AS"
     )
-    public_ip = forms.CharField(required=False)
     public_port = forms.IntegerField(
         min_value=1024,
         max_value=MAX_PORT,
@@ -67,7 +67,6 @@ class UserASForm(forms.ModelForm):
         initial = kwargs.pop('initial', {})
         if instance:
             initial['use_vpn'] = instance.is_use_vpn()
-            initial['public_ip'] = instance.public_ip
             initial['public_port'] = instance.get_public_port()
         super().__init__(*args, initial=initial, **kwargs)
 
@@ -76,19 +75,18 @@ class UserASForm(forms.ModelForm):
         self.user.check_as_quota()
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
+        elif 'public_ip' in self.errors:
+            assert('public_ip' not in cleaned_data)
+            return cleaned_data
         else:
             public_ip = cleaned_data.get('public_ip')
             if not public_ip:
-                # TODO: maybe check self.errors['public_ip] if the field is not any char
+                # public_ip cannot be empty when use_vpn is false
                 raise ValidationError(
                     'Please provide a value for public IP, or enable "Use OpenVPN".',
                     code='missing_public_ip_no_vpn'
                 )
-            try:
-                ip_addr = ipaddress.ip_address(public_ip)
-            except ValueError:
-                raise forms.ValidationError('Not a valid IP address',
-                                            code='malformed_public_ip')
+            ip_addr = ipaddress.ip_address(public_ip)
             if (not settings.DEBUG and (not ip_addr.is_global or ip_addr.is_loopback)) or \
                ip_addr.is_multicast or \
                ip_addr.is_reserved or \
@@ -102,7 +100,7 @@ class UserASForm(forms.ModelForm):
                 raise ValidationError('IP version {ipv} not supported by the selected '
                                       'attachment point'.format(ipv=ip_addr.version),
                                       code='unsupported_ip_version')
-        return self.cleaned_data
+        return cleaned_data
 
     def save(self, commit=True):
         if self.instance.pk is None:
