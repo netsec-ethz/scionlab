@@ -213,7 +213,6 @@ def update_useras(testcase, user_as, **kwargs):
             bind_port=kwargs.get('bind_port', user_as.bind_port),
         )
 
-
     # Check that scionlab.tasks.deploy_host_config was called for the attachment point hosts.
     curr_ap_hosts = set(user_as.attachment_point.AS.hosts.all())
     testcase.assertSetEqual(
