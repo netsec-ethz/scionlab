@@ -19,6 +19,7 @@ import scionlab.util.local_config_util as generator
 
 
 SERVICE_TYPES_CONTROL_PLANE = [Service.BS, Service.CS, Service.PS]
+SERVICE_TYPES_SERVER_APPS = [Service.BW, Service.PP]
 
 
 def create_gen(host, archive):
@@ -28,6 +29,7 @@ def create_gen(host, archive):
     :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
     topo_dict, router_names, service_names = _generate_topology_from_DB(host.AS)  # topology file
+    service_names.update(_get_service_names(host.AS, service_types=SERVICE_TYPES_SERVER_APPS))
     _create_gen(host, archive, topo_dict, router_names, service_names)
 
 
@@ -50,9 +52,15 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
         generator.generate_instance_dir(archive, as_, 'BR', topo_dict, instance_name)
         processes.append(instance_name)
 
-    for service in host.services.filter(type__in=SERVICE_TYPES_CONTROL_PLANE):
-        instance_name = service_names[service]
-        generator.generate_instance_dir(archive, as_, service.type, topo_dict, instance_name)
+    for service in host.services.all():
+        instance_name = service_names.get(service)
+        if service.type in SERVICE_TYPES_CONTROL_PLANE:
+            generator.generate_instance_dir(archive, as_, service.type, topo_dict, instance_name)
+        elif service.type in SERVICE_TYPES_SERVER_APPS:
+            generator.generate_server_app_dir(archive, as_, service.type,
+                                              instance_name, host.internal_ip, service.port)
+        else:
+            continue
         processes.append(instance_name)
 
     sciond_name = "sd%s" % as_.isd_as_path_str()
@@ -85,7 +93,7 @@ def _generate_topology_from_DB(as_):
     router_names = _get_router_names(as_)
     _topo_add_routers(topo_dict, router_names, address_type)
 
-    service_names = _get_service_names(as_)
+    service_names = _get_service_names(as_, service_types=SERVICE_TYPES_CONTROL_PLANE)
     _topo_add_control_services(topo_dict, service_names, address_type)
 
     _topo_add_zookeeper(topo_dict, as_)
@@ -229,9 +237,9 @@ def _get_router_names(as_):
     return router_names
 
 
-def _get_service_names(as_):
+def _get_service_names(as_, service_types):
     service_names = {}
-    for stype in SERVICE_TYPES_CONTROL_PLANE:
+    for stype in service_types:
         for id, service in enumerate(as_.services.filter(type=stype), start=1):
             service_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(), id)
             service_names[service] = service_name

@@ -1,0 +1,761 @@
+- model: scionlab.isd
+  pk: 1
+  fields: {isd_id: 16, label: AWS, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722952,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{},"ExpirationTime":1586258952,"Description":"ISD
+      16 (AWS)","CoreASes":{},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":0,"ISD":16}',
+    trc_priv_keys: '{}'}
+- model: scionlab.isd
+  pk: 2
+  fields: {isd_id: 17, label: Switzerland, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722952,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{"17-ffaa:0:1101":"pj8nm/mL6q4gMj1lNjLh49dUNzZu3yB+t0H1zImhouh8YHDOSrxUdkbR75HOZPxKD0umlC0D/y2lash5SDv+AQ=="},"ExpirationTime":1586258952,"Description":"ISD
+      17 (Switzerland)","CoreASes":{"17-ffaa:0:1101":{"OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=","OnlineKey":"XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw="}},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":1,"ISD":17}',
+    trc_priv_keys: '{"17-ffaa:0:1101":"G02NSrQfjFXQ7Io09syajJZJcReYzGJRkz1KLzDSLwg="}'}
+- model: scionlab.isd
+  pk: 3
+  fields: {isd_id: 18, label: North America, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722952,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{},"ExpirationTime":1586258952,"Description":"ISD
+      18 (North America)","CoreASes":{},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":0,"ISD":18}',
+    trc_priv_keys: '{}'}
+- model: scionlab.isd
+  pk: 4
+  fields: {isd_id: 19, label: EU, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722952,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{"19-ffaa:0:1302":"sTxkt+sutl4bH3OGQZeg+TUd3K8AyHUBz0F5k7akS828JkGRteHdkU2gKH7SFgxETObsKEjD2y9xac6M1ZKpBw==","19-ffaa:0:1301":"6w0i8phe3y/w6O1+LHwJ5jcOJQHp1CA5dsbhVJVItVpujjLpHWXl1hPq0hpgS5ckUGv8fYIHy5wq5HU7uf27CA=="},"ExpirationTime":1586258952,"Description":"ISD
+      19 (EU)","CoreASes":{"19-ffaa:0:1302":{"OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"3XNhBvzgUgzNS/P7mrLDkNzwmgaXq8scEXp3LKIcCKg=","OnlineKey":"nICZKsg16RCuGg3yHp96fYWw0vWn06+UKO1hneOD/tQ="},"19-ffaa:0:1301":{"OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"AorvZPRBFryuSB8sTQ056vL3OWUWhb2/KKUVC1B7ngo=","OnlineKey":"A6bZwIfqNibMdrCsI5/RXIJ4VS/TnT+gdQVHotLtpns="}},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":2,"ISD":19}',
+    trc_priv_keys: '{"19-ffaa:0:1302":"ieaZatP4e9jK+GObljvZ3cwFqOIAvS5NgZFBVRB+3EM=","19-ffaa:0:1301":"s39tCU1VvK/kJ+sqoJBgzvn9oxYQzhUyvzgPYgIZZI4="}'}
+- model: scionlab.isd
+  pk: 5
+  fields: {isd_id: 20, label: Korea, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722952,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{"20-ffaa:0:1402":"SMPFymiDZY8YHrdVw22nZw1O5pPcOymQV7DO2YDOpRB4I5Z6LhpHS+UxK3f0f6OEuSWvnQ1Mza4nz/AHlBKGCA==","20-ffaa:0:1401":"yFl9K9ZOhuHHYuxr764GZIENVcUiK0o1/84jM3fGGi+Vb/kgZMtAHBz+TCcgJxSJhQrP1tByjlXUM1dFQ+9GDg=="},"ExpirationTime":1586258952,"Description":"ISD
+      20 (Korea)","CoreASes":{"20-ffaa:0:1402":{"OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"pCZqF/PCLq82i6IHwKqlT2mukBle/MXd17+PTwqZgP8=","OnlineKey":"hsZ992fgw6tmMkGqqtifBVG5wuQFMPb9D4WAdMNB2Nk="},"20-ffaa:0:1401":{"OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"q6NQNph3vnkNxb8s99KFktHrkR7H7954gXMI3hq7AKM=","OnlineKey":"c+LO/s2rpe6CR2J9f23PFNiD+EYkkZBQKKzVXOc4wOw="}},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":2,"ISD":20}',
+    trc_priv_keys: '{"20-ffaa:0:1402":"+Jtljus4dDFWmxqb4hXLUVKJdORTQQeFCzBeFDXehlg=","20-ffaa:0:1401":"SnFfkaAjKB+yHmFml3cjj6tMWqF5vmo3en2xgFF+pvU="}'}
+- model: scionlab.isd
+  pk: 6
+  fields: {isd_id: 21, label: Japan, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722953,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{},"ExpirationTime":1586258953,"Description":"ISD
+      21 (Japan)","CoreASes":{},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":0,"ISD":21}',
+    trc_priv_keys: '{}'}
+- model: scionlab.isd
+  pk: 7
+  fields: {isd_id: 22, label: Taiwan, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722953,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{},"ExpirationTime":1586258953,"Description":"ISD
+      22 (Taiwan)","CoreASes":{},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":0,"ISD":22}',
+    trc_priv_keys: '{}'}
+- model: scionlab.isd
+  pk: 8
+  fields: {isd_id: 23, label: Singapore, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722953,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{},"ExpirationTime":1586258953,"Description":"ISD
+      23 (Singapore)","CoreASes":{},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":0,"ISD":23}',
+    trc_priv_keys: '{}'}
+- model: scionlab.isd
+  pk: 9
+  fields: {isd_id: 24, label: Australia, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722953,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{},"ExpirationTime":1586258953,"Description":"ISD
+      24 (Australia)","CoreASes":{},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":0,"ISD":24}',
+    trc_priv_keys: '{}'}
+- model: scionlab.isd
+  pk: 10
+  fields: {isd_id: 25, label: China, trc: '{"Version":1,"RootCAs":{},"CreationTime":1554722953,"CertLogs":{},"Quarantine":false,"RAINS":{},"Signatures":{},"ExpirationTime":1586258953,"Description":"ISD
+      25 (China)","CoreASes":{},"QuorumCAs":0,"ThresholdEEPKI":0,"GracePeriod":0,"QuorumTRC":0,"ISD":25}',
+    trc_priv_keys: '{}'}
+- model: scionlab.as
+  pk: 1
+  fields: {isd: 2, as_id: 'ffaa:0:1101', as_id_int: 281105609527553, label: SCMN,
+    mtu: 1472, owner: null, sig_pub_key: LRai1PEjkEAwLWZJRghc8ZcHOqftQQeuwfYq7CnIpBM=,
+    sig_priv_key: 2GLC42sKQveCfGfryNRN93pbleToN4EjSCPBGJ7MQPw=, enc_pub_key: pta2eWXWEIV0F8CnPusbRfANYA4S+dOdeQZr0uW7TBk=,
+    enc_priv_key: 6Ij7tM+a5iVPGboS5tmvVHiPGVpvUJyj6TT3jXpx3YU=, master_as_key: Qg/O64zqAxe412a108iroA==,
+    is_core: true, core_sig_priv_key: AJx+095VPrpTtN4QMOqROD3N9yTNi3IXFP5R4IL/7n0=,
+    core_sig_pub_key: Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=, core_online_priv_key: G02NSrQfjFXQ7Io09syajJZJcReYzGJRkz1KLzDSLwg=,
+    core_online_pub_key: XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=, core_offline_priv_key: nPuoQnkRFq3BIeAm7AnXFOWz7NSKrmTWtIZGhc882Tc=,
+    core_offline_pub_key: b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=, certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"pta2eWXWEIV0F8CnPusbRfANYA4S+dOdeQZr0uW7TBk=","SubjectSignKey":"LRai1PEjkEAwLWZJRghc8ZcHOqftQQeuwfYq7CnIpBM=","TRCVersion":1,"Subject":"17-ffaa:0:1101","Issuer":"17-ffaa:0:1101","Signature":"F55KHDV7DiMgrZXxNnSOWn5cPZpkVAe5IHlg2lPLhLozedBL1rPgTKK7EB5SLHKfb+7G39d2gfiZUw6437tGDQ==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","TRCVersion":1,"Subject":"17-ffaa:0:1101","Issuer":"17-ffaa:0:1101","Signature":"z61deuevIIzWk4JdLngKnCvRyRExqcdSmgogef6/GZhN0MShayD/W0oKn4zizSJCf8hXTVNFeefm0ogoDhKXCQ==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: '{"Version":1,"SubjectEncKey":"","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","TRCVersion":1,"Subject":"17-ffaa:0:1101","Issuer":"17-ffaa:0:1101","Signature":"z61deuevIIzWk4JdLngKnCvRyRExqcdSmgogef6/GZhN0MShayD/W0oKn4zizSJCf8hXTVNFeefm0ogoDhKXCQ==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}'}
+- model: scionlab.as
+  pk: 2
+  fields: {isd: 2, as_id: 'ffaa:0:1102', as_id_int: 281105609527554, label: ETHZ,
+    mtu: 1472, owner: null, sig_pub_key: mg9QsOmRjFRe6bcNp0qoZbE+lsvQAQTxvXnFKPmD8OA=,
+    sig_priv_key: y1sVU5wdfJahVdgwPgS7RR20OF/LK1Vt0A8ZyCXasjg=, enc_pub_key: nzj72xX3pZopcGzzmXMdNahSn/74G5FT3Jdm4tb30wQ=,
+    enc_priv_key: C9GSoujviJquEgYfojCb1JMeZBde1fsdCZsFMfb4L7c=, master_as_key: H3o1uswP760Fi2yeGdVCEQ==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"nzj72xX3pZopcGzzmXMdNahSn/74G5FT3Jdm4tb30wQ=","SubjectSignKey":"mg9QsOmRjFRe6bcNp0qoZbE+lsvQAQTxvXnFKPmD8OA=","TRCVersion":1,"Subject":"17-ffaa:0:1102","Issuer":"17-ffaa:0:1101","Signature":"wd0lHf72+JoCh8aropw5hOwgYxsoQB4j1dzD0Uqunh+URdHXp7sVQzbDtBQZy5cBeffuS5iQwkYHP6Qop1BuDw==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","TRCVersion":1,"Subject":"17-ffaa:0:1101","Issuer":"17-ffaa:0:1101","Signature":"z61deuevIIzWk4JdLngKnCvRyRExqcdSmgogef6/GZhN0MShayD/W0oKn4zizSJCf8hXTVNFeefm0ogoDhKXCQ==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 3
+  fields: {isd: 2, as_id: 'ffaa:0:1103', as_id_int: 281105609527555, label: SWTH,
+    mtu: 1472, owner: null, sig_pub_key: l1KAXj/ZJbM9MvLRjGWiQJArQns1TewNazJwHjSfX0M=,
+    sig_priv_key: M0Jb57t41ubrkSuyrDT3xA7JrSjYKVeHQB6Y63GqLAM=, enc_pub_key: EJMcwWdaUaapj8fw88Ra3Ylztddieu9v1Inwx7HENlQ=,
+    enc_priv_key: eK5o5pHfgupPpltj1qhAJ4+wA3W9FFW9C4tHIj3D9Hs=, master_as_key: WpxJrFuX8uSi2p4ht09jvw==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"EJMcwWdaUaapj8fw88Ra3Ylztddieu9v1Inwx7HENlQ=","SubjectSignKey":"l1KAXj/ZJbM9MvLRjGWiQJArQns1TewNazJwHjSfX0M=","TRCVersion":1,"Subject":"17-ffaa:0:1103","Issuer":"17-ffaa:0:1101","Signature":"YDWLy/Hu3o6GJIw3MNEuPgtyOVlpBJ9iqgL2ArHycj6DK58Q1Kho7ul9m81tM32PovTNsVqPhQ6yc76AaOrBAw==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","TRCVersion":1,"Subject":"17-ffaa:0:1101","Issuer":"17-ffaa:0:1101","Signature":"z61deuevIIzWk4JdLngKnCvRyRExqcdSmgogef6/GZhN0MShayD/W0oKn4zizSJCf8hXTVNFeefm0ogoDhKXCQ==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 4
+  fields: {isd: 2, as_id: 'ffaa:0:1107', as_id_int: 281105609527559, label: ETHZ-AP,
+    mtu: 1472, owner: null, sig_pub_key: iFtCBwnrJbMWsD6LOLg/lFwBz28foTqbtmHmY9wTzDA=,
+    sig_priv_key: 4KyR32oIZt+zkWvFqbULKnIQQrMocofifOiPmsEA4gk=, enc_pub_key: U/qbR7Q8xUFtQGKGO2uGSDPVM7yNApsfum+dtZzMX2k=,
+    enc_priv_key: flNP1ncMz9Lg+c9qMIz/9qL6Fda5IfwDZvOtalAANgM=, master_as_key: t8EA+tKsh5wZMB6bpjLfTQ==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"U/qbR7Q8xUFtQGKGO2uGSDPVM7yNApsfum+dtZzMX2k=","SubjectSignKey":"iFtCBwnrJbMWsD6LOLg/lFwBz28foTqbtmHmY9wTzDA=","TRCVersion":1,"Subject":"17-ffaa:0:1107","Issuer":"17-ffaa:0:1101","Signature":"5LFNAJ4xofJTKaLJNMudk9AI9/v5ZqhIp1i0ll3L4CNgzhavpMT6+pWNFIawor4Bqv8TuhUSXyjAlkpMT+EZDw==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","TRCVersion":1,"Subject":"17-ffaa:0:1101","Issuer":"17-ffaa:0:1101","Signature":"z61deuevIIzWk4JdLngKnCvRyRExqcdSmgogef6/GZhN0MShayD/W0oKn4zizSJCf8hXTVNFeefm0ogoDhKXCQ==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 5
+  fields: {isd: 4, as_id: 'ffaa:0:1301', as_id_int: 281105609528065, label: PV, mtu: 1472,
+    owner: null, sig_pub_key: 2Ga+zgdJTjkZV96rmkzLGxtx7AL8M1jZRNpfmvBMQdo=, sig_priv_key: yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=,
+    enc_pub_key: lPB+8CG8zMDyR2g4AKesU17OYq2RsCBciifeUWtobB4=, enc_priv_key: v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=,
+    master_as_key: ngkKRSkm+5VKXGX9jCFLHQ==, is_core: true, core_sig_priv_key: ers97wxOLduFuhJNZ9VUTGobGY/oe3lW18z5z1cfeh0=,
+    core_sig_pub_key: gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=, core_online_priv_key: s39tCU1VvK/kJ+sqoJBgzvn9oxYQzhUyvzgPYgIZZI4=,
+    core_online_pub_key: A6bZwIfqNibMdrCsI5/RXIJ4VS/TnT+gdQVHotLtpns=, core_offline_priv_key: hEpy633JlbatN2wVXjj9/0KVxipuMVsdENLd2rMH54Y=,
+    core_offline_pub_key: AorvZPRBFryuSB8sTQ056vL3OWUWhb2/KKUVC1B7ngo=, certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"lPB+8CG8zMDyR2g4AKesU17OYq2RsCBciifeUWtobB4=","SubjectSignKey":"2Ga+zgdJTjkZV96rmkzLGxtx7AL8M1jZRNpfmvBMQdo=","TRCVersion":1,"Subject":"19-ffaa:0:1301","Issuer":"19-ffaa:0:1301","Signature":"smr6jXLhQ0zahjD/dASxF6i4NxWJcqC2a1BzCQ3hPxMrlSRAZHUaI1zwfVoZ4zZFETNT48F5yx9Uu877crUoDw==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","TRCVersion":1,"Subject":"19-ffaa:0:1301","Issuer":"19-ffaa:0:1301","Signature":"vu8B0jKtHD/dohakzcqQQCSJrJKTSchshDZMmdspS2hb6/bn90s4h3GT+Vkhivr4/3andhyY+kktZWC5Z/5uCg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: '{"Version":1,"SubjectEncKey":"","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","TRCVersion":1,"Subject":"19-ffaa:0:1301","Issuer":"19-ffaa:0:1301","Signature":"vu8B0jKtHD/dohakzcqQQCSJrJKTSchshDZMmdspS2hb6/bn90s4h3GT+Vkhivr4/3andhyY+kktZWC5Z/5uCg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}'}
+- model: scionlab.as
+  pk: 6
+  fields: {isd: 4, as_id: 'ffaa:0:1302', as_id_int: 281105609528066, label: GEANT,
+    mtu: 1472, owner: null, sig_pub_key: HCnbPxH+m9v+/N96SujsbEhJNQbh82z0lrBiN/G4ZoM=,
+    sig_priv_key: JRoydWBci9MmGv2Y+3wlkGejrmzghX6t6uNS1X//f6I=, enc_pub_key: TRjl4lNgnltGlScdpbqkuC/323aKMtGJlOUVXSOjtXQ=,
+    enc_priv_key: q98zipzuOAJXtPa/5lHRUgmGJd9Bmsgn12GVS7e0zng=, master_as_key: EMwVhN7qChA5IQpMA8LYcg==,
+    is_core: true, core_sig_priv_key: VNwpzCbep3X3X4Fh5oeACJIXrcvOhMKZ/RO/befBNEo=,
+    core_sig_pub_key: fdil/2jERpKZpEoT83hJXuxiZOxJjdO02wWENzjSIHI=, core_online_priv_key: ieaZatP4e9jK+GObljvZ3cwFqOIAvS5NgZFBVRB+3EM=,
+    core_online_pub_key: nICZKsg16RCuGg3yHp96fYWw0vWn06+UKO1hneOD/tQ=, core_offline_priv_key: 8dNNxWhiz2IPKaTvID1JutRVDvEJe2okfePdmrcUrLI=,
+    core_offline_pub_key: 3XNhBvzgUgzNS/P7mrLDkNzwmgaXq8scEXp3LKIcCKg=, certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"TRjl4lNgnltGlScdpbqkuC/323aKMtGJlOUVXSOjtXQ=","SubjectSignKey":"HCnbPxH+m9v+/N96SujsbEhJNQbh82z0lrBiN/G4ZoM=","TRCVersion":1,"Subject":"19-ffaa:0:1302","Issuer":"19-ffaa:0:1302","Signature":"VuXTn3FI12HZ9SdEOy1koOwOro0sdXiBXiVeliJKD/8HVag0P6FfsJpxcjvmgZQMJukY0h5+pMDthC+rwbImDw==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"fdil/2jERpKZpEoT83hJXuxiZOxJjdO02wWENzjSIHI=","TRCVersion":1,"Subject":"19-ffaa:0:1302","Issuer":"19-ffaa:0:1302","Signature":"9Uvpn/Px0jKxOiAB4seIzYWua2NgK589hUO1NAJMmlB1Hu8647Pv4nUWhifmK/S94PL/OqP+fIGqGWmMKZXpDA==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: '{"Version":1,"SubjectEncKey":"","SubjectSignKey":"fdil/2jERpKZpEoT83hJXuxiZOxJjdO02wWENzjSIHI=","TRCVersion":1,"Subject":"19-ffaa:0:1302","Issuer":"19-ffaa:0:1302","Signature":"9Uvpn/Px0jKxOiAB4seIzYWua2NgK589hUO1NAJMmlB1Hu8647Pv4nUWhifmK/S94PL/OqP+fIGqGWmMKZXpDA==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}'}
+- model: scionlab.as
+  pk: 7
+  fields: {isd: 4, as_id: 'ffaa:0:1303', as_id_int: 281105609528067, label: Magdeburg,
+    mtu: 1472, owner: null, sig_pub_key: kuGy2pnGpBhgBl0k8ZnSAL+2hX6Z+6ojoZpBOkmrL6M=,
+    sig_priv_key: CJmeIaFSGrOMplgxYsjGx30c4Q+cs3edoe9Wph/4rrY=, enc_pub_key: dEhctPhIoiAw9sq8HlBYB/QTYUqhLfOTd1zSCS6r9gk=,
+    enc_priv_key: n0vJ2SD16WPMS+q+3/Wu+88fhNzJ/jAJyGRxX8EwdFs=, master_as_key: yqET9Avm7wp8QeYG8YWqkQ==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"dEhctPhIoiAw9sq8HlBYB/QTYUqhLfOTd1zSCS6r9gk=","SubjectSignKey":"kuGy2pnGpBhgBl0k8ZnSAL+2hX6Z+6ojoZpBOkmrL6M=","TRCVersion":1,"Subject":"19-ffaa:0:1303","Issuer":"19-ffaa:0:1301","Signature":"LAQb5i6wlLaAH3CUzVYJtWYsWltaUH3M0Tt24TqOuw1YlWohyteSDy9c4va+aMh1r05s7GhTXwYaPTiNDD/ABg==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","TRCVersion":1,"Subject":"19-ffaa:0:1301","Issuer":"19-ffaa:0:1301","Signature":"vu8B0jKtHD/dohakzcqQQCSJrJKTSchshDZMmdspS2hb6/bn90s4h3GT+Vkhivr4/3andhyY+kktZWC5Z/5uCg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 8
+  fields: {isd: 4, as_id: 'ffaa:0:1304', as_id_int: 281105609528068, label: FR@Linode,
+    mtu: 1472, owner: null, sig_pub_key: WjB0G9tDTeNUFMzJ433DG+f4zkwhJVg4vWn/kbdC82I=,
+    sig_priv_key: TvIdJW3kkGzsFe8aahAZasYnu/QHynJur2oHf+vd9lM=, enc_pub_key: ea5nrhhfQNWVYTixnV47/O22Rn2mt5lGj/HipYkLOBg=,
+    enc_priv_key: uEAUWhIfW7EHWFktAtT5O9FdEpjkJDUANKisu/DmH78=, master_as_key: AUtesAbumjvbJC90HHpYtQ==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"ea5nrhhfQNWVYTixnV47/O22Rn2mt5lGj/HipYkLOBg=","SubjectSignKey":"WjB0G9tDTeNUFMzJ433DG+f4zkwhJVg4vWn/kbdC82I=","TRCVersion":1,"Subject":"19-ffaa:0:1304","Issuer":"19-ffaa:0:1301","Signature":"Wy0Mj9AjCMyKlhauE3hX7xwx8wr7UIVPBwVdWgIEpChyfGFWLy4Uxg1QUQm+wu/7M90JjyPaHsGoPQhqmPGzCQ==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","TRCVersion":1,"Subject":"19-ffaa:0:1301","Issuer":"19-ffaa:0:1301","Signature":"vu8B0jKtHD/dohakzcqQQCSJrJKTSchshDZMmdspS2hb6/bn90s4h3GT+Vkhivr4/3andhyY+kktZWC5Z/5uCg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 9
+  fields: {isd: 4, as_id: 'ffaa:0:1305', as_id_int: 281105609528069, label: Darmstadt,
+    mtu: 1472, owner: null, sig_pub_key: JEWglQDIIdOucJ2CyYAjq70FFJgT23JUlWxvaZdxOo4=,
+    sig_priv_key: olMvl/4UGoiUTihg5SXyIM05UII+PMEvSl9rqQvcIZk=, enc_pub_key: gU8VeV9uYcT1NjnH0slm0hAnpIC957p2Uw/REIC/oEg=,
+    enc_priv_key: BWQTsxIha0yMar3tJJdsTKNaFT9xoV6j8ocOYGgCavY=, master_as_key: uuZScDRfS/N4F/MvyxtGHA==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"gU8VeV9uYcT1NjnH0slm0hAnpIC957p2Uw/REIC/oEg=","SubjectSignKey":"JEWglQDIIdOucJ2CyYAjq70FFJgT23JUlWxvaZdxOo4=","TRCVersion":1,"Subject":"19-ffaa:0:1305","Issuer":"19-ffaa:0:1301","Signature":"hwBiHrU2FeUNnJp9svayMx6vuwIgzHkoqT327rawxE3NEvyIuNKdWoj/TwndsarjCQ64zlIE4lCqP71GXJDMDg==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","TRCVersion":1,"Subject":"19-ffaa:0:1301","Issuer":"19-ffaa:0:1301","Signature":"vu8B0jKtHD/dohakzcqQQCSJrJKTSchshDZMmdspS2hb6/bn90s4h3GT+Vkhivr4/3andhyY+kktZWC5Z/5uCg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 10
+  fields: {isd: 5, as_id: 'ffaa:0:1401', as_id_int: 281105609528321, label: K_core1,
+    mtu: 1472, owner: null, sig_pub_key: VznkquG5zL0uhCbdgCgdsN3vWdADY1qBrazlQJ4leU4=,
+    sig_priv_key: dFfvhSRadqGjFnvBNEsA1LJynnYBN0wdxPqhTYubJ2w=, enc_pub_key: os+0iwyO2/7seOR9DDe2fTycOUDChgDOtdDN4OZP/z4=,
+    enc_priv_key: tMB4F61/wvU7i8NnR6H7BR5F4qsKAEFlhuOUtWVxGr8=, master_as_key: QFpI38Gs6DKYFQkSykNOiA==,
+    is_core: true, core_sig_priv_key: Vx6H3D/k68MpEWrcSkiFIpKFoDWIGmn0ootnvcfnyUc=,
+    core_sig_pub_key: 8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=, core_online_priv_key: SnFfkaAjKB+yHmFml3cjj6tMWqF5vmo3en2xgFF+pvU=,
+    core_online_pub_key: c+LO/s2rpe6CR2J9f23PFNiD+EYkkZBQKKzVXOc4wOw=, core_offline_priv_key: D3FMJL5+DeOfNwZaeGTj/gLYhvoRr90Ur/O97KtlAVw=,
+    core_offline_pub_key: q6NQNph3vnkNxb8s99KFktHrkR7H7954gXMI3hq7AKM=, certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"os+0iwyO2/7seOR9DDe2fTycOUDChgDOtdDN4OZP/z4=","SubjectSignKey":"VznkquG5zL0uhCbdgCgdsN3vWdADY1qBrazlQJ4leU4=","TRCVersion":1,"Subject":"20-ffaa:0:1401","Issuer":"20-ffaa:0:1401","Signature":"Eb8n+r8NG6YfbeYfV9GhwqhCsz7wteialLuamTnHeZXeUR1O1Q0kImd3Yom6dZUNoEPfMtb5O1eYomnuemSKCg==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","TRCVersion":1,"Subject":"20-ffaa:0:1401","Issuer":"20-ffaa:0:1401","Signature":"PEZjh896GKQPa7leRuvkZvxNgc6I5xaULIki6oEwsjWbD+72IhW/DSZuDG+QAFjnLUx7qmvj2LbNno5wmOj0Cg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: '{"Version":1,"SubjectEncKey":"","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","TRCVersion":1,"Subject":"20-ffaa:0:1401","Issuer":"20-ffaa:0:1401","Signature":"PEZjh896GKQPa7leRuvkZvxNgc6I5xaULIki6oEwsjWbD+72IhW/DSZuDG+QAFjnLUx7qmvj2LbNno5wmOj0Cg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}'}
+- model: scionlab.as
+  pk: 11
+  fields: {isd: 5, as_id: 'ffaa:0:1402', as_id_int: 281105609528322, label: K_core2,
+    mtu: 1472, owner: null, sig_pub_key: X8tDJqxMk6qzh1wwAD8RTjMmZ7Ji2/jI++ILQ3UQDI0=,
+    sig_priv_key: STAab3W3VGIrVGul5a9vJXLutSWGUCE16S9xWcr7Y20=, enc_pub_key: fz1oV0jHmlpRrUGsMcBooofk5229B6lWfdMvZV1iNDI=,
+    enc_priv_key: zn1jujjLMnDwNJa1DOdjCDuiFd4vXQ6+o60sO5xMnBY=, master_as_key: tN6DwEjF4OJaaXUNobKEqg==,
+    is_core: true, core_sig_priv_key: 9Kb0jO68726UdH1BtHk3VkQKCw0pWQBKpwEjEMltrjg=,
+    core_sig_pub_key: VlDgPI7tolHQb49P6N8OB31+Q1s4C2Y0WAVFk1WbyQg=, core_online_priv_key: +Jtljus4dDFWmxqb4hXLUVKJdORTQQeFCzBeFDXehlg=,
+    core_online_pub_key: hsZ992fgw6tmMkGqqtifBVG5wuQFMPb9D4WAdMNB2Nk=, core_offline_priv_key: MNYzQKy6vE1PhNxiQXtY37Y9C07vjRICdX65cAzqz2k=,
+    core_offline_pub_key: pCZqF/PCLq82i6IHwKqlT2mukBle/MXd17+PTwqZgP8=, certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"fz1oV0jHmlpRrUGsMcBooofk5229B6lWfdMvZV1iNDI=","SubjectSignKey":"X8tDJqxMk6qzh1wwAD8RTjMmZ7Ji2/jI++ILQ3UQDI0=","TRCVersion":1,"Subject":"20-ffaa:0:1402","Issuer":"20-ffaa:0:1402","Signature":"Ws6VN67iblINEV9EpAXOr7v2AwIZBxYfti0OU6GRPZJ8uH8+ODfGwk+OGCRGiJ/f3oMeLMgFDiyB7cLL/MdwCA==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"VlDgPI7tolHQb49P6N8OB31+Q1s4C2Y0WAVFk1WbyQg=","TRCVersion":1,"Subject":"20-ffaa:0:1402","Issuer":"20-ffaa:0:1402","Signature":"2M3iw4kDWRReZQ0XpU64UFSashV2ejAVVtOQegqF6sLxSbA+ffSQ3HrfnwjYFpNTC0B9iQkEldYxjMzJkcSCCA==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: '{"Version":1,"SubjectEncKey":"","SubjectSignKey":"VlDgPI7tolHQb49P6N8OB31+Q1s4C2Y0WAVFk1WbyQg=","TRCVersion":1,"Subject":"20-ffaa:0:1402","Issuer":"20-ffaa:0:1402","Signature":"2M3iw4kDWRReZQ0XpU64UFSashV2ejAVVtOQegqF6sLxSbA+ffSQ3HrfnwjYFpNTC0B9iQkEldYxjMzJkcSCCA==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}'}
+- model: scionlab.as
+  pk: 12
+  fields: {isd: 5, as_id: 'ffaa:0:1403', as_id_int: 281105609528323, label: K_L1,
+    mtu: 1472, owner: null, sig_pub_key: V0dR4JdPM20rE37pwW8P3EisLyiSKJbthTlEfy3ewec=,
+    sig_priv_key: cJwT0W2PweLUZAr1Lj99OCDX3kfvWlH+bxuO5kmcisk=, enc_pub_key: E6yYLHdVEkympCXrgsl9FI6GGczdk7mDjQwGvxFa/Xo=,
+    enc_priv_key: M7ZLx3GDmnaJokJFOwQenci2GSy7aj83SOG8/6gBvYk=, master_as_key: g23bDB9ipUUe+LyQWzqstw==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"E6yYLHdVEkympCXrgsl9FI6GGczdk7mDjQwGvxFa/Xo=","SubjectSignKey":"V0dR4JdPM20rE37pwW8P3EisLyiSKJbthTlEfy3ewec=","TRCVersion":1,"Subject":"20-ffaa:0:1403","Issuer":"20-ffaa:0:1401","Signature":"8LGtyjhR8vrY0sd7ZCCXkGu+3svlFhdcSQ/04HxmWVcs1gBrRCO/Q4PMPtuCioGj5QmcetSxa6LKeMyNxoDbDw==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","TRCVersion":1,"Subject":"20-ffaa:0:1401","Issuer":"20-ffaa:0:1401","Signature":"PEZjh896GKQPa7leRuvkZvxNgc6I5xaULIki6oEwsjWbD+72IhW/DSZuDG+QAFjnLUx7qmvj2LbNno5wmOj0Cg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 13
+  fields: {isd: 5, as_id: 'ffaa:0:1404', as_id_int: 281105609528324, label: K_AP1,
+    mtu: 1472, owner: null, sig_pub_key: nudp4iNlbGD5wT8hHjdvX2l3DQIct/Km+OIj1D5/j3k=,
+    sig_priv_key: oHpJlSsjzwONgVNdlaIGzyHgZSf5LYL9EyLDNMjqxn8=, enc_pub_key: I5PS1nggaYwo5bUuKHf5dJaVj+QHJ/1o6NvFlzktb1s=,
+    enc_priv_key: kcSy+DY8uyHQO8JiWpuXIaF/5uobndUGhphbfXRPA/U=, master_as_key: OI6nKanhfs/0vHuLULTZFA==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"I5PS1nggaYwo5bUuKHf5dJaVj+QHJ/1o6NvFlzktb1s=","SubjectSignKey":"nudp4iNlbGD5wT8hHjdvX2l3DQIct/Km+OIj1D5/j3k=","TRCVersion":1,"Subject":"20-ffaa:0:1404","Issuer":"20-ffaa:0:1401","Signature":"c6CM/2wBOL6sMMWhM3ysk49C8bFJ5iQtnAkxoqz7qVEyjIRgPalnwWmfmPoa9IWul+01C97eXeJU1J7VAudBCQ==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","TRCVersion":1,"Subject":"20-ffaa:0:1401","Issuer":"20-ffaa:0:1401","Signature":"PEZjh896GKQPa7leRuvkZvxNgc6I5xaULIki6oEwsjWbD+72IhW/DSZuDG+QAFjnLUx7qmvj2LbNno5wmOj0Cg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 14
+  fields: {isd: 5, as_id: 'ffaa:0:1405', as_id_int: 281105609528325, label: K_AP2,
+    mtu: 1472, owner: null, sig_pub_key: rsS15MofKPVhZHpBXTkcS+2dgSBUx4zjkIWHccrlgfQ=,
+    sig_priv_key: ub/2P1fccKu5qKg5QlirKU4EW5KKDruhJloFfaAPBj0=, enc_pub_key: ffSHmjAXpgFYfPJRIm6WFWgB6Ty5TD+/ADoZ18V+fng=,
+    enc_priv_key: CwM58qdTEdIPWPipbCLk7DdybyRbTy2mVLr8yb9oYQI=, master_as_key: aORDiIjNvPuvtHbCCpDrHw==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"ffSHmjAXpgFYfPJRIm6WFWgB6Ty5TD+/ADoZ18V+fng=","SubjectSignKey":"rsS15MofKPVhZHpBXTkcS+2dgSBUx4zjkIWHccrlgfQ=","TRCVersion":1,"Subject":"20-ffaa:0:1405","Issuer":"20-ffaa:0:1401","Signature":"avZ8Oy73m+TFbzbxcB6hJ0J4lw7yUPNvNUe7kW5o4H9waCx7bvd1L7pmYXLBmxE9NBIhnwn+Z5H8OvaExYucCQ==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","TRCVersion":1,"Subject":"20-ffaa:0:1401","Issuer":"20-ffaa:0:1401","Signature":"PEZjh896GKQPa7leRuvkZvxNgc6I5xaULIki6oEwsjWbD+72IhW/DSZuDG+QAFjnLUx7qmvj2LbNno5wmOj0Cg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.as
+  pk: 15
+  fields: {isd: 5, as_id: 'ffaa:0:1406', as_id_int: 281105609528326, label: K_L3,
+    mtu: 1472, owner: null, sig_pub_key: K1RZMfYF+3Pow5fV0mzjhY2zS4VEGItehMX9X03xHS4=,
+    sig_priv_key: VDzX1NItP/IF9M7lK77J1q+PK7cUbe3dmRqeoHW1Jp0=, enc_pub_key: pVxzouUaRKCkw9K0h/TU2Z62ka0wKQ8udwyMIxVafVU=,
+    enc_priv_key: mgpAV868u2AGoO7jCX8WW0qrJnU8gVspvMBnVkXNfvE=, master_as_key: ZANPh+ZJjHj6CMWIko1D7w==,
+    is_core: false, core_sig_priv_key: null, core_sig_pub_key: null, core_online_priv_key: null,
+    core_online_pub_key: null, core_offline_priv_key: null, core_offline_pub_key: null,
+    certificate_chain: '{"0":{"Version":1,"SubjectEncKey":"pVxzouUaRKCkw9K0h/TU2Z62ka0wKQ8udwyMIxVafVU=","SubjectSignKey":"K1RZMfYF+3Pow5fV0mzjhY2zS4VEGItehMX9X03xHS4=","TRCVersion":1,"Subject":"20-ffaa:0:1406","Issuer":"20-ffaa:0:1401","Signature":"72+Nnt8lQDCBkgPf3Cpoe0GO4m1Clj4CGl2earP6VvLlbRf4cKHWxeOKtM3ccbVBZ5PyoQGh+NYnYYZJf49YDQ==","Comment":"AS
+      Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258951,"CanIssue":false,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"},"1":{"Version":1,"SubjectEncKey":"","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","TRCVersion":1,"Subject":"20-ffaa:0:1401","Issuer":"20-ffaa:0:1401","Signature":"PEZjh896GKQPa7leRuvkZvxNgc6I5xaULIki6oEwsjWbD+72IhW/DSZuDG+QAFjnLUx7qmvj2LbNno5wmOj0Cg==","Comment":"Core
+      AS Certificate","SignAlgorithm":"ed25519","ExpirationTime":1586258952,"CanIssue":true,"IssuingTime":1554722952,"EncAlgorithm":"curve25519xsalsa20poly1305"}}',
+    core_certificate: null}
+- model: scionlab.attachmentpoint
+  pk: 1
+  fields: {AS: 4, vpn: null}
+- model: scionlab.attachmentpoint
+  pk: 2
+  fields: {AS: 7, vpn: null}
+- model: scionlab.attachmentpoint
+  pk: 3
+  fields: {AS: 13, vpn: null}
+- model: scionlab.attachmentpoint
+  pk: 4
+  fields: {AS: 14, vpn: null}
+- model: scionlab.host
+  pk: 1
+  fields: {AS: 1, internal_ip: 127.0.0.1, public_ip: 192.0.2.11, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: 5a2W0_NrlEZzfqmk_7Pq-w, config_version: 10,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 2
+  fields: {AS: 2, internal_ip: 127.0.0.1, public_ip: 192.0.2.12, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: OBKlTVlvLg-AdwqYGbP8ZA, config_version: 9,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 3
+  fields: {AS: 3, internal_ip: 127.0.0.1, public_ip: 192.0.2.13, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: atSmFACYMbJVKD05o3JgtQ, config_version: 9,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 4
+  fields: {AS: 4, internal_ip: 127.0.0.1, public_ip: 192.0.2.17, bind_ip: null, label: null,
+    managed: true, management_ip: 192.0.2.17, secret: R7D6Lhl52uxloBQFRulzzA, config_version: 10,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 5
+  fields: {AS: 5, internal_ip: 127.0.0.1, public_ip: 192.0.2.31, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: c8CtMx5_ZUE1pAr_8sw3nw, config_version: 11,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 6
+  fields: {AS: 6, internal_ip: 127.0.0.1, public_ip: 192.0.2.32, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: Js_8WmkJnHdidQwZeMcmBQ, config_version: 9,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 7
+  fields: {AS: 7, internal_ip: 127.0.0.1, public_ip: 192.0.2.33, bind_ip: null, label: null,
+    managed: true, management_ip: 192.0.2.33, secret: kuA3OhfG0eLjoMeAsoZrgQ, config_version: 9,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 8
+  fields: {AS: 8, internal_ip: 127.0.0.1, public_ip: 192.0.2.34, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: 9UIhB_c1XFV59UpL7-D1jQ, config_version: 9,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 9
+  fields: {AS: 9, internal_ip: 127.0.0.1, public_ip: 192.0.2.35, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: jpuwJ8uzcu1mL8Rrbiw_9Q, config_version: 9,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 10
+  fields: {AS: 10, internal_ip: 127.0.0.1, public_ip: 192.0.2.41, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: Ch2eAP9F36OzSrrmOiTAkg, config_version: 10,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 11
+  fields: {AS: 11, internal_ip: 127.0.0.1, public_ip: 192.0.2.42, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: -n51cB4VFD0Z08MnaeLrNg, config_version: 10,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 12
+  fields: {AS: 12, internal_ip: 127.0.0.1, public_ip: 192.0.2.43, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: tIupSDi91OY9EIROrFM7Xw, config_version: 10,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 13
+  fields: {AS: 13, internal_ip: 127.0.0.1, public_ip: 192.0.2.44, bind_ip: null, label: null,
+    managed: true, management_ip: 192.0.2.44, secret: QiOaZrQw0lHJSmLxDzUJUA, config_version: 9,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 14
+  fields: {AS: 14, internal_ip: 127.0.0.1, public_ip: 192.0.2.45, bind_ip: null, label: null,
+    managed: true, management_ip: 192.0.2.45, secret: aPRjKwCAI5_eqYPXu7MlFA, config_version: 9,
+    config_version_deployed: 0}
+- model: scionlab.host
+  pk: 15
+  fields: {AS: 15, internal_ip: 127.0.0.1, public_ip: 192.0.2.46, bind_ip: null, label: null,
+    managed: false, management_ip: null, secret: rwl0ZbgeZ1h-DQVFvf4IQQ, config_version: 8,
+    config_version_deployed: 0}
+- model: scionlab.interface
+  pk: 1
+  fields: {AS: 1, interface_id: 1, host: 1, border_router: 1, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 2
+  fields: {AS: 3, interface_id: 1, host: 3, border_router: 2, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 3
+  fields: {AS: 3, interface_id: 2, host: 3, border_router: 2, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 4
+  fields: {AS: 2, interface_id: 1, host: 2, border_router: 3, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 5
+  fields: {AS: 2, interface_id: 2, host: 2, border_router: 3, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 6
+  fields: {AS: 4, interface_id: 1, host: 4, border_router: 4, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 7
+  fields: {AS: 5, interface_id: 1, host: 5, border_router: 5, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 8
+  fields: {AS: 6, interface_id: 1, host: 6, border_router: 6, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 9
+  fields: {AS: 5, interface_id: 2, host: 5, border_router: 5, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 10
+  fields: {AS: 7, interface_id: 1, host: 7, border_router: 7, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 11
+  fields: {AS: 5, interface_id: 3, host: 5, border_router: 5, public_ip: null, public_port: 50002,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 12
+  fields: {AS: 8, interface_id: 1, host: 8, border_router: 8, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 13
+  fields: {AS: 7, interface_id: 2, host: 7, border_router: 7, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 14
+  fields: {AS: 9, interface_id: 1, host: 9, border_router: 9, public_ip: null, public_port: 50000,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 15
+  fields: {AS: 8, interface_id: 2, host: 8, border_router: 8, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 16
+  fields: {AS: 9, interface_id: 2, host: 9, border_router: 9, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 17
+  fields: {AS: 1, interface_id: 2, host: 1, border_router: 1, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 18
+  fields: {AS: 5, interface_id: 4, host: 5, border_router: 5, public_ip: null, public_port: 50003,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 19
+  fields: {AS: 1, interface_id: 3, host: 1, border_router: 1, public_ip: null, public_port: 50002,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 20
+  fields: {AS: 6, interface_id: 2, host: 6, border_router: 6, public_ip: null, public_port: 50001,
+    bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 21
+  fields: {AS: 10, interface_id: 1, host: 10, border_router: 10, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 22
+  fields: {AS: 11, interface_id: 1, host: 11, border_router: 11, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 23
+  fields: {AS: 10, interface_id: 2, host: 10, border_router: 10, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 24
+  fields: {AS: 12, interface_id: 1, host: 12, border_router: 12, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 25
+  fields: {AS: 11, interface_id: 2, host: 11, border_router: 11, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 26
+  fields: {AS: 12, interface_id: 2, host: 12, border_router: 12, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 27
+  fields: {AS: 12, interface_id: 3, host: 12, border_router: 12, public_ip: null,
+    public_port: 50002, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 28
+  fields: {AS: 13, interface_id: 1, host: 13, border_router: 13, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 29
+  fields: {AS: 10, interface_id: 3, host: 10, border_router: 10, public_ip: null,
+    public_port: 50002, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 30
+  fields: {AS: 14, interface_id: 1, host: 14, border_router: 14, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 31
+  fields: {AS: 11, interface_id: 3, host: 11, border_router: 11, public_ip: null,
+    public_port: 50002, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 32
+  fields: {AS: 14, interface_id: 2, host: 14, border_router: 14, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 33
+  fields: {AS: 13, interface_id: 2, host: 13, border_router: 13, public_ip: null,
+    public_port: 50001, bind_ip: null, bind_port: null}
+- model: scionlab.interface
+  pk: 34
+  fields: {AS: 15, interface_id: 1, host: 15, border_router: 15, public_ip: null,
+    public_port: 50000, bind_ip: null, bind_port: null}
+- model: scionlab.link
+  pk: 1
+  fields: {interfaceA: 1, interfaceB: 2, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 2
+  fields: {interfaceA: 3, interfaceB: 4, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 3
+  fields: {interfaceA: 5, interfaceB: 6, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 4
+  fields: {interfaceA: 7, interfaceB: 8, type: CORE, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 5
+  fields: {interfaceA: 9, interfaceB: 10, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 6
+  fields: {interfaceA: 11, interfaceB: 12, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 7
+  fields: {interfaceA: 13, interfaceB: 14, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 8
+  fields: {interfaceA: 15, interfaceB: 16, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 9
+  fields: {interfaceA: 17, interfaceB: 18, type: CORE, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 10
+  fields: {interfaceA: 19, interfaceB: 20, type: CORE, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 11
+  fields: {interfaceA: 21, interfaceB: 22, type: CORE, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 12
+  fields: {interfaceA: 23, interfaceB: 24, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 13
+  fields: {interfaceA: 25, interfaceB: 26, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 14
+  fields: {interfaceA: 27, interfaceB: 28, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 15
+  fields: {interfaceA: 29, interfaceB: 30, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 16
+  fields: {interfaceA: 31, interfaceB: 32, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.link
+  pk: 17
+  fields: {interfaceA: 33, interfaceB: 34, type: PROVIDER, active: true, bandwidth: 1000,
+    mtu: 1472}
+- model: scionlab.borderrouter
+  pk: 1
+  fields: {AS: 1, host: 1, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 2
+  fields: {AS: 3, host: 3, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 3
+  fields: {AS: 2, host: 2, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 4
+  fields: {AS: 4, host: 4, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 5
+  fields: {AS: 5, host: 5, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 6
+  fields: {AS: 6, host: 6, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 7
+  fields: {AS: 7, host: 7, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 8
+  fields: {AS: 8, host: 8, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 9
+  fields: {AS: 9, host: 9, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 10
+  fields: {AS: 10, host: 10, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 11
+  fields: {AS: 11, host: 11, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 12
+  fields: {AS: 12, host: 12, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 13
+  fields: {AS: 13, host: 13, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 14
+  fields: {AS: 14, host: 14, internal_port: 31045, control_port: 30045}
+- model: scionlab.borderrouter
+  pk: 15
+  fields: {AS: 15, host: 15, internal_port: 31045, control_port: 30045}
+- model: scionlab.service
+  pk: 1
+  fields: {AS: 1, host: 1, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 2
+  fields: {AS: 1, host: 1, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 3
+  fields: {AS: 1, host: 1, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 4
+  fields: {AS: 1, host: 1, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 5
+  fields: {AS: 2, host: 2, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 6
+  fields: {AS: 2, host: 2, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 7
+  fields: {AS: 2, host: 2, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 8
+  fields: {AS: 2, host: 2, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 9
+  fields: {AS: 3, host: 3, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 10
+  fields: {AS: 3, host: 3, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 11
+  fields: {AS: 3, host: 3, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 12
+  fields: {AS: 3, host: 3, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 13
+  fields: {AS: 4, host: 4, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 14
+  fields: {AS: 4, host: 4, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 15
+  fields: {AS: 4, host: 4, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 16
+  fields: {AS: 4, host: 4, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 17
+  fields: {AS: 5, host: 5, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 18
+  fields: {AS: 5, host: 5, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 19
+  fields: {AS: 5, host: 5, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 20
+  fields: {AS: 5, host: 5, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 21
+  fields: {AS: 6, host: 6, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 22
+  fields: {AS: 6, host: 6, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 23
+  fields: {AS: 6, host: 6, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 24
+  fields: {AS: 6, host: 6, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 25
+  fields: {AS: 7, host: 7, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 26
+  fields: {AS: 7, host: 7, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 27
+  fields: {AS: 7, host: 7, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 28
+  fields: {AS: 7, host: 7, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 29
+  fields: {AS: 8, host: 8, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 30
+  fields: {AS: 8, host: 8, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 31
+  fields: {AS: 8, host: 8, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 32
+  fields: {AS: 8, host: 8, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 33
+  fields: {AS: 9, host: 9, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 34
+  fields: {AS: 9, host: 9, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 35
+  fields: {AS: 9, host: 9, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 36
+  fields: {AS: 9, host: 9, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 37
+  fields: {AS: 10, host: 10, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 38
+  fields: {AS: 10, host: 10, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 39
+  fields: {AS: 10, host: 10, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 40
+  fields: {AS: 10, host: 10, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 41
+  fields: {AS: 11, host: 11, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 42
+  fields: {AS: 11, host: 11, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 43
+  fields: {AS: 11, host: 11, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 44
+  fields: {AS: 11, host: 11, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 45
+  fields: {AS: 12, host: 12, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 46
+  fields: {AS: 12, host: 12, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 47
+  fields: {AS: 12, host: 12, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 48
+  fields: {AS: 12, host: 12, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 49
+  fields: {AS: 13, host: 13, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 50
+  fields: {AS: 13, host: 13, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 51
+  fields: {AS: 13, host: 13, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 52
+  fields: {AS: 13, host: 13, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 53
+  fields: {AS: 14, host: 14, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 54
+  fields: {AS: 14, host: 14, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 55
+  fields: {AS: 14, host: 14, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 56
+  fields: {AS: 14, host: 14, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 57
+  fields: {AS: 15, host: 15, port: 31041, type: BS}
+- model: scionlab.service
+  pk: 58
+  fields: {AS: 15, host: 15, port: 31043, type: PS}
+- model: scionlab.service
+  pk: 59
+  fields: {AS: 15, host: 15, port: 31042, type: CS}
+- model: scionlab.service
+  pk: 60
+  fields: {AS: 15, host: 15, port: 2181, type: ZK}
+- model: scionlab.service
+  pk: 61
+  fields: {AS: 4, host: 4, port: 40002, type: PP}
+- model: scionlab.service
+  pk: 62
+  fields: {AS: 4, host: 4, port: 40001, type: BW}
