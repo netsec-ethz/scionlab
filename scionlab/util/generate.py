@@ -70,6 +70,7 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
     generator.write_supervisord_group_config(archive, as_, processes)
 
     generator.write_dispatcher_config(archive)
+    generator.write_ia_file(archive, as_)
 
 
 def _generate_topology_from_DB(as_):
