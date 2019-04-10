@@ -20,6 +20,10 @@ from django.shortcuts import get_object_or_404
 from django import forms
 from django.urls import resolve, path
 
+from scionlab.defines import (
+    MAX_PORT,
+    DEFAULT_HOST_INTERNAL_IP,
+)
 from scionlab.models import (
     ISD,
     AS,
@@ -32,11 +36,10 @@ from scionlab.models import (
     Service,
     VPN,
     VPNClient,
-    MAX_PORT,
-    DEFAULT_HOST_INTERNAL_IP,
 )
 from scionlab.util.http import HttpResponseAttachment
-from scionlab.util import config_tar
+from scionlab import config_tar
+from scionlab.tasks import deploy_host_config
 
 admin.site.register([
     AttachmentPoint,
@@ -374,10 +377,10 @@ class ASCreationForm(_CreateUpdateModelForm):
         )
 
 
-@admin.register(AS, UserAS)
+@admin.register(AS)
 class ASAdmin(admin.ModelAdmin):
     inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
-    actions = ['update_keys']
+    actions = ['update_keys', 'trigger_config_deployment']
     list_display = ('isd', 'as_id', 'label', 'is_core', 'is_ap', 'is_userAS')
     list_display_links = ('as_id', 'label')
     list_filter = ('isd', 'is_core')
@@ -450,7 +453,7 @@ class ASAdmin(admin.ModelAdmin):
 
     def is_ap(self, obj):
         """ Is the AS `obj` an attachment point? """
-        return hasattr(obj, 'attachment_point')
+        return hasattr(obj, 'attachment_point_info')
 
     def is_userAS(self, obj):
         """ Is the AS `obj` a user AS? """
@@ -467,6 +470,14 @@ class ASAdmin(admin.ModelAdmin):
         """
         for as_ in queryset.iterator():
             as_.update_keys()
+
+    def trigger_config_deployment(self, request, queryset):
+        """
+        Trigger deployment for managed hosts in selected ASes.
+        """
+        for as_ in queryset.iterator():
+            for host in as_.hosts.filter(managed=True):
+                deploy_host_config(host)
 
 
 class VPNCreationForm(_CreateUpdateModelForm):
@@ -531,7 +542,6 @@ class LinkAdminForm(_CreateUpdateModelForm):
         model = Link
         exclude = ['interfaceA', 'interfaceB']
 
-    # TODO(matzf): avoid duplication, make naming consistent (to/from vs. a/b)?
     from_host = forms.ModelChoiceField(queryset=Host.objects.all())
     from_public_ip = forms.GenericIPAddressField(required=False)
     from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
@@ -636,6 +646,7 @@ class LinkAdmin(admin.ModelAdmin):
 @admin.register(Host)
 class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
+    actions = ['trigger_config_deployment']
     list_display = ('__str__', 'AS',
                     'internal_ip', 'public_ip', 'bind_ip', 'managed', 'management_ip',
                     'latest_config_deployed', 'get_config_link')
@@ -664,3 +675,10 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
         resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
         config_tar.generate_host_config_tar(host, resp)
         return resp
+
+    def trigger_config_deployment(self, request, queryset):
+        """
+        Trigger deployment for selected managed hosts.
+        """
+        for host in queryset.filter(managed=True).iterator():
+            deploy_host_config(host)

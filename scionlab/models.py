@@ -29,46 +29,37 @@ from django.db.models.signals import pre_delete, post_delete
 
 import lib.crypto.asymcrypto
 
+import scionlab.tasks
+from scionlab.certificates import (
+    generate_trc,
+    generate_core_certificate,
+    generate_as_certificate_chain,
+)
+from scionlab.openvpn_config import (
+    generate_vpn_client_key_material,
+    generate_vpn_server_key_material,
+)
 from scionlab.util import as_ids
 from scionlab.util.portmap import PortMap, LazyPortMap
-
-from scionlab.util.openvpn_config import generate_vpn_client_key_material, \
-    generate_vpn_server_key_material
-
-from scionlab.tasks import deploy_host_config
-
-
-# TODO(matzf): some of the models use explicit create & update methods
-# The interface of these methods should be revisited & check whether
-# we can make better use of e.g. changed_data information of the forms.
-
-# TODO(matzf) move to common definitions module?
-
-MAX_PORT = 2**16-1
-""" Max value for ports """
-
-MAX_INTERFACE_ID = 2**12-1
-
-USER_AS_ID_BEGIN = as_ids.parse('ffaa:1:1')
-USER_AS_ID_END = as_ids.parse('ffaa:1:ffff')
-
-DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-port-ranges)
-DEFAULT_INTERNAL_PORT = 31045  # 30242-30251
-DEFAULT_CONTROL_PORT = 30045   # 30042-30051
-
-DEFAULT_BS_PORT = 31041  # 30252
-DEFAULT_PS_PORT = 31043  # 30253
-DEFAULT_CS_PORT = 31042  # 30254
-DEFAULT_ZK_PORT = 2181
-DEFAULT_BW_PORT = 40001
-DEFAULT_PP_PORT = 40002
-DISPATCHER_PORT = 30041
-
-DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
-DEFAULT_LINK_MTU = 1500 - 20 - 8
-DEFAULT_LINK_BANDWIDTH = 1000
-
-DEFAULT_MAX_ROUTER_INTERFACES = 12
+from scionlab.defines import (
+    MAX_PORT,
+    MAX_INTERFACE_ID,
+    USER_AS_ID_BEGIN,
+    USER_AS_ID_END,
+    DEFAULT_PUBLIC_PORT,
+    DEFAULT_INTERNAL_PORT,
+    DEFAULT_CONTROL_PORT,
+    DEFAULT_BS_PORT,
+    DEFAULT_PS_PORT,
+    DEFAULT_CS_PORT,
+    DEFAULT_ZK_PORT,
+    DEFAULT_BW_PORT,
+    DEFAULT_PP_PORT,
+    DISPATCHER_PORT,
+    DEFAULT_HOST_INTERNAL_IP,
+    DEFAULT_LINK_MTU,
+    DEFAULT_LINK_BANDWIDTH,
+)
 
 _MAX_LEN_DEFAULT = 255
 """ Max length value for fields without specific requirements to max length """
@@ -166,7 +157,6 @@ class ISD(models.Model):
                 self._update_coreas_certificates(as_)
 
     def _generate_trc(self):
-        from scionlab.util.certificates import generate_trc
         self.trc, self.trc_priv_keys = generate_trc(self)
         self.save()
 
@@ -389,7 +379,6 @@ class AS(models.Model):
         for core ASes, `update_core_certificate` needs to be called first.
         See ASManager.update_certificates, which creates the certificates in the correct order.
         """
-        from scionlab.util.certificates import generate_as_certificate_chain
         if self.is_core:
             issuer = self
         else:
@@ -406,7 +395,6 @@ class AS(models.Model):
 
         Requires that the TRC in this ISD exists/is up to date.
         """
-        from scionlab.util.certificates import generate_core_certificate
         self.core_certificate = generate_core_certificate(self)
 
     def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):
@@ -626,6 +614,8 @@ class UserAS(AS):
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
+        prev_ap = self.attachment_point
+
         host = self.hosts.get()   # UserAS always has only one host
 
         if self.isd != attachment_point.AS.isd:
@@ -672,6 +662,8 @@ class UserAS(AS):
         self.bind_port = bind_port
         self.save()
 
+        if self.attachment_point != prev_ap:
+            prev_ap.trigger_deployment()
         self.attachment_point.trigger_deployment()
 
     def is_use_vpn(self):
@@ -690,8 +682,12 @@ class UserAS(AS):
         return self.interfaces.get().public_port
 
     def set_active(self, active):
+        """
+        Set the UserAS to be active/inactive.
+        This will trigger a deployment of the attachment point configuration.
+        """
         self.interfaces.get().link().set_active(active)
-        # TODO(matzf) trigger AP config deployment (delayed?)
+        self.attachment_point.trigger_deployment()
 
     def _get_ap_link(self):
         # FIXME(matzf): find the correct link to the AP if multiple links present!
@@ -756,9 +752,13 @@ class AttachmentPoint(models.Model):
     def trigger_deployment(self):
         """
         Trigger the deployment for the attachment point configuration.
+
+        The deployment is rate limited, max rate controlled by
+        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD.
         """
+        delay = settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD
         for host in self.AS.hosts.iterator():
-            deploy_host_config(host, delay=60)
+            scionlab.tasks.deploy_host_config(host, delay=delay)
 
 
 class HostManager(models.Manager):
@@ -798,7 +798,6 @@ class Host(models.Model):
         related_name='hosts',
         on_delete=models.SET_NULL,
     )
-    # TODO(matzf): handle changes in the ip fields
     internal_ip = models.GenericIPAddressField(
         default=DEFAULT_HOST_INTERNAL_IP,
         help_text="IP of the host in the AS"
@@ -822,9 +821,6 @@ class Host(models.Model):
         help_text="Public IP of the host for management (should be reachable by the coordinator)."
     )
     secret = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
-
-    # TODO(matzf): we may need additional information for container or VM
-    # initialisation (to access the host's host)
 
     config_version = models.PositiveIntegerField(default=1)
     config_version_deployed = models.PositiveIntegerField(default=0)
@@ -1172,19 +1168,16 @@ class Interface(models.Model):
         Get the "other" interface of the link associated with this interface.
         :returns: Interface
         """
-        # FIXME(matzf): naive queries
-        link = self.link()
-        if self == link.interfaceA:
-            return link.interfaceB
+        if hasattr(self, 'link_as_interfaceA'):
+            return self.link_as_interfaceA.interfaceB
         else:
-            return link.interfaceA
+            return self.link_as_interfaceB.interfaceA
 
     def remote_as(self):
         """
         Get the AS of the "other" interface of the link associated with this interface.
         :returns: AS
         """
-        # FIXME(matzf): naive queries
         return self.remote_interface().AS
 
     def _get_public_info(self):

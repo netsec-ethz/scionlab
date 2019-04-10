@@ -24,12 +24,10 @@ from scionlab.views.user_as_views import (
     UserASActivateView,
     UserASDetailView,
     UserASGetConfigView)
-# from scionlab.views.placehoder_view import PlaceholderView
 from scionlab.views.registration_view import UserRegistrationView
 from scionlab.views.api import GetHostConfig, PostHostDeployedConfigVersion
 
 urlpatterns = [
-    # TODO(matzf): implement actual home page
     path('', TemplateView.as_view(template_name='scionlab/home.html'), name='home'),
 
     # Admin space
