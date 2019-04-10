@@ -365,7 +365,8 @@ def _check_tarball_gen(testcase, tar, host):
     isd_str = 'ISD%i' % host.AS.isd.isd_id
     as_str = 'AS%s' % host.AS.as_path_str()
 
-    testcase.assertEqual([isd_str, 'dispatcher', 'scionlab-config.json'], _tar_ls(tar, 'gen'))
+    testcase.assertEqual([isd_str, 'dispatcher', 'ia', 'scionlab-config.json'], _tar_ls(tar, 'gen'))
+    testcase.assertEqual(host.AS.isd_as_path_str(), _tar_cat(tar, 'gen/ia').decode())
     testcase.assertEqual([as_str], _tar_ls(tar, os.path.join('gen', isd_str)))
 
     as_gen_dir = os.path.join('gen', isd_str, as_str)
@@ -391,3 +392,12 @@ def _tar_ls(tar, path):
         if m:
             s.add(m.group(1))
     return list(sorted(s))
+
+
+def _tar_cat(tar, path):
+    """
+    Reads file and returns content as bytes
+    """
+    mem = tar.getmember(path)
+    with tar.extractfile(mem) as f:
+        return f.read()

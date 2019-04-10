@@ -169,6 +169,10 @@ def write_dispatcher_config(archive):
     archive.write_text('gen/dispatcher/dispatcher.zlog.conf', zlog)
 
 
+def write_ia_file(archive, as_):
+    archive.write_text('gen/ia', as_.isd_as_path_str())
+
+
 def _make_supervisord_conf(name, cmd, envs, priority=100):
     config = configparser.ConfigParser()
     config['program:' + name] = {
