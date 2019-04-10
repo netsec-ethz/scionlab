@@ -17,8 +17,8 @@ MAX_PORT = 2**16-1
 
 MAX_INTERFACE_ID = 2**12-1
 
-USER_AS_ID_BEGIN = 0xffaa_0001_0001  # 'ffaa:1:1'
-USER_AS_ID_END = 0xffaa_0001_ffff  # 'ffaa:1:ffff'
+USER_AS_ID_BEGIN = 0xffaa00010001  # 'ffaa:1:1'
+USER_AS_ID_END = 0xffaa0001ffff  # 'ffaa:1:ffff'
 
 DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-port-ranges)
 DEFAULT_INTERNAL_PORT = 31045  # 30242-30251
