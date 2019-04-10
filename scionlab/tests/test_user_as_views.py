@@ -29,8 +29,9 @@ from scionlab.tests import utils
 _QUOTA_EXCEEDED_MESSAGE = ('You have reached the maximum number of ASes '
                            'and cannot create further ones.')
 _NO_USER_AS_MESSAGE = 'You currently have no registered SCIONLab ASes'
-_test_ip = '192.0.2.111'
+_test_ip = '192.1.2.111'
 _test_start_port = 50000
+_test_ipv6 = '2a00:1450:400a:801::2004'
 
 
 def _create_ases_for_testuser(num):
@@ -75,6 +76,7 @@ class UserASFormTests(TestCase):
         # Ok to provide redundant IP:
         param(attachment_point="1", use_vpn=True, public_ip=_test_ip),
         param(attachment_point="2", public_ip=_test_ip),
+        param(attachment_point="1", use_vpn=True, public_ip=_test_ipv6),
     ]
     # Invalid form parameters
     invalid_form_params = [
@@ -82,6 +84,12 @@ class UserASFormTests(TestCase):
         param(attachment_point="1", use_vpn=False, public_ip=''),
         # AP 2 does not have VPN
         param(attachment_point="2", use_vpn=True),
+        # invalid IP
+        param(attachment_point="1", use_vpn=False, public_ip='aa'),
+        # localhost is not allowed
+        param(attachment_point="1", use_vpn=False, public_ip='127.0.0.1'),
+        # the attachment point doesn't support IPv6
+        param(attachment_point="1", use_vpn=False, public_ip=_test_ipv6),
     ]
 
     def setUp(self):

@@ -19,6 +19,8 @@ from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django import forms
+from django.conf import settings
+import ipaddress
 
 from scionlab.defines import MAX_PORT
 from scionlab.models import UserAS
@@ -48,7 +50,6 @@ class UserASForm(forms.ModelForm):
         widgets = {
             'installation_type': forms.RadioSelect(),
         }
-
     use_vpn = forms.BooleanField(
         required=False,
         label="Use OpenVPN connection for this AS"
@@ -74,12 +75,32 @@ class UserASForm(forms.ModelForm):
         self.user.check_as_quota()
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
-        if not cleaned_data.get('use_vpn') and not self.cleaned_data.get('public_ip'):
-            raise ValidationError(
-                "Please provide a value for public IP, or enable 'Use OpenVPN'.",
-                code='missing_public_ip_no_vpn'
-            )
-        return self.cleaned_data
+        elif 'public_ip' in self.errors:
+            assert('public_ip' not in cleaned_data)
+            return cleaned_data
+        else:
+            public_ip = cleaned_data.get('public_ip')
+            if not public_ip:
+                # public_ip cannot be empty when use_vpn is false
+                raise ValidationError(
+                    'Please provide a value for public IP, or enable "Use OpenVPN".',
+                    code='missing_public_ip_no_vpn'
+                )
+            ip_addr = ipaddress.ip_address(public_ip)
+            if (not settings.DEBUG and (not ip_addr.is_global or ip_addr.is_loopback)) or \
+               ip_addr.is_multicast or \
+               ip_addr.is_reserved or \
+               ip_addr.is_link_local or \
+               (ip_addr.version == 6 and ip_addr.is_site_local) or \
+               ip_addr.is_unspecified:
+                raise ValidationError("IP address cannot be used as public address",
+                                      code='invalid_public_ip')
+            ap = cleaned_data['attachment_point']
+            if ip_addr.version not in ap.supported_ip_versions():
+                raise ValidationError('IP version {ipv} not supported by the selected '
+                                      'attachment point'.format(ipv=ip_addr.version),
+                                      code='unsupported_ip_version')
+        return cleaned_data
 
     def save(self, commit=True):
         if self.instance.pk is None:
