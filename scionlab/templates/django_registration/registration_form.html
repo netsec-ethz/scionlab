@@ -1,16 +1,15 @@
 {% extends 'scionlab/base.html' %}
-{% load static %}
+{% load crispy_forms_tags %}
 {% load recaptcha2 %}
 
 {% block meta %}{% recaptcha_explicit_support %}{% endblock %}
 {% block title %}SCIONLab Registration{% endblock %}
+{% block content_title %}SCIONLab Registration{% endblock %}
 
 {% block content %}
-
-  <form action="{% url 'registration_form' %}" method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <input type="submit" value="Submit">
+  <form method="post" class="form-box mt-4">{% csrf_token %}
+    {{ form|crispy }}
+    <input type="submit" class="btn btn-primary btn-block" value="Register"/>
   </form>
   {% recaptcha_explicit_init 'en' %}
 

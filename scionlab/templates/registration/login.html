@@ -1,14 +1,17 @@
 {% extends 'scionlab/base.html' %}
-{% load static %}
+{% load crispy_forms_tags %}
 
 {% block title %}{{ block.super }} - Login{% endblock title%}
-{% block content_title %}Login{% endblock content_title%}
 
 {% block content %}
-  <form id="login_form" method="post">
-    {% csrf_token %}
-    <table> {{ form.as_table }} </table>
-  </form>
-  <button form="login_form" type="submit" class="btn btn-primary btn-lg">Login</button>
-  <a class="btn btn-outline-secondary btn-lg" href="{% url 'registration_form' %}">Register</a>
+  <div id="login-form-panel">
+    <form method="post" id="login-form" class="form-box">{% csrf_token %}
+      {{ form|crispy }}
+      <button type="submit" class="mb-2 btn btn-primary btn-block">Log in</button>
+      <a class="text-muted text-lighter" href="{% url 'password_reset' %}">Forgot password?</a>
+    </form>
+    <div id="login-register-callout" class="mt-3">
+      New to SCIONLab? <a href="{% url 'registration_form' %}">Create an account</a>.
+    </div>
+  </div>
 {% endblock content %}

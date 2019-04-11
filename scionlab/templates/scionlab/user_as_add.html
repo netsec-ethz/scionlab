@@ -1,13 +1,12 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block title %}Create User AS{% endblock %}
 
 {% block content %}
-<div class="wrapper">
-  <form method="post">{% csrf_token %}
-    {% include "scionlab/partials/user_as_form.html" %}
-    <button type="submit" class="btn btn-primary">Create AS</button>
-  </form>
+<div class="form-box">
+  {% crispy form %}
+  <button type="submit" form="id_user_as_form" class="btn btn-primary">Create AS</button>
 </div>
 {% endblock content %}

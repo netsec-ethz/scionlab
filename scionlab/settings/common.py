@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'scionlab',
     'django_registration',  # used for two-step user account activation (Email verification)
     'snowpenguin.django.recaptcha2',  # used for human verification (no bot)
+    'crispy_forms',
     'widget_tweaks',  # used to control form widget in the template
     'django.contrib.admin',
     'django.contrib.auth',
@@ -78,6 +79,9 @@ LOGIN_REDIRECT_URL = 'user'
 # django_registration
 ACCOUNT_ACTIVATION_DAYS = 14  # Allow a two-week time window for account activation after signup
 REGISTRATION_OPEN = True  # Accept new registrations
+
+# crispy_forms
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # ##### DEFAULT SETTINGS CONFIGURATION ####################
 MAX_ASES_ADMIN = 10

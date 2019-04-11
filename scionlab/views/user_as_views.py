@@ -22,6 +22,9 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django import forms
 from django.conf import settings
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Div, Row, Column
+from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT
 from scionlab.models.user_as import UserAS
@@ -44,7 +47,7 @@ class UserASForm(forms.ModelForm):
             'bind_port'
         )
         labels = {
-            'label': "Label for this AS (optional)",
+            'label': "Label",
             'attachment_point': "Attachment point to connect to",
             'public_ip': "My host's public IP address",
         }
@@ -69,6 +72,7 @@ class UserASForm(forms.ModelForm):
         if instance:
             initial['use_vpn'] = instance.is_use_vpn()
             initial['public_port'] = instance.get_public_port()
+        self.helper = self._crispy_helper()
         super().__init__(*args, initial=initial, **kwargs)
 
     def clean(self):
@@ -129,6 +133,35 @@ class UserASForm(forms.ModelForm):
             )
             return self.instance
 
+    def _crispy_helper(self):
+        """
+        Create the crispy-forms FormHelper. The form will then be rendered
+        using {% crispy form %} in the template.
+        """
+        helper = FormHelper()
+        helper.attrs['id'] = 'id_user_as_form'
+        helper.layout = Layout(
+            'attachment_point',
+            AppendedText('label', '<span class="fa fa-pencil"/>'),
+            'installation_type',
+            'use_vpn',
+            AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
+            AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
+            Row(
+                Column(
+                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
+                    css_class='form-group col-md-6 mb-0',
+                ),
+                Column(
+                    AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
+                    css_class='form-group col-md-6 mb-0',
+                ),
+                css_id='row_id_bind_addr'
+            ),
+        )
+
+        return helper
+
 
 class UserASCreateView(CreateView):
     template_name = "scionlab/user_as_add.html"
@@ -155,6 +188,11 @@ class UserASCreateView(CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        _add_attachment_point_data(context)
+        return context
+
 
 class OwnedUserASQuerysetMixin:
     """
@@ -175,6 +213,11 @@ class UserASDetailView(OwnedUserASQuerysetMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        _add_attachment_point_data(context)
+        return context
 
 
 class UserASDeleteView(OwnedUserASQuerysetMixin, DeleteView):
@@ -222,3 +265,17 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
 class UserASesView(OwnedUserASQuerysetMixin, ListView):
     template_name = "scionlab/user.html"
     model = UserAS
+
+
+def _add_attachment_point_data(context):
+    """
+    Helper for UserASCreateView and UserASDetailView.
+    Add attachment point data to context dict.
+    """
+    ap_data = {
+        str(ap.pk): {
+            'has_vpn': bool(ap.vpn)
+        }
+        for ap in AttachmentPoint.objects.all()
+    }
+    context['attachment_points'] = ap_data

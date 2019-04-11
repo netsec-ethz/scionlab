@@ -1,5 +1,6 @@
 cryptography
 Django>=2.1.5
+django-crispy-forms
 django-extensions
 django-recaptcha2
 django-registration
