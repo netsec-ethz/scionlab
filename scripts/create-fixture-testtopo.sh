@@ -29,6 +29,8 @@ python manage.py shell -c 'from scionlab.fixtures.testtopo import *; create_test
 python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testtopo-isds.yaml
 python manage.py shell -c 'from scionlab.fixtures.testtopo import *; create_testtopo_ases()'
 python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testtopo-ases.yaml
+python manage.py shell -c 'from scionlab.fixtures.testtopo import *; create_testtopo_vpn()'
+python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testtopo-ases-vpn.yaml
 python manage.py shell -c 'from scionlab.fixtures.testtopo import *; create_testtopo_links()'
 python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testtopo-ases-links.yaml
 python manage.py shell -c 'from scionlab.fixtures.testtopo import *; create_testtopo_extraservices()'

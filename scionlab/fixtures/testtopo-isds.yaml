@@ -1,8 +1,6 @@
 - model: scionlab.isd
   pk: 1
   fields:
-    created_date: 2019-04-24 04:21:45.953746
-    modified_date: 2019-04-24 04:21:45.953771
     isd_id: 16
     label: AWS
     trc: null
@@ -10,8 +8,6 @@
 - model: scionlab.isd
   pk: 2
   fields:
-    created_date: 2019-04-24 04:21:45.963249
-    modified_date: 2019-04-24 04:21:45.963264
     isd_id: 17
     label: Switzerland
     trc: null
@@ -19,8 +15,6 @@
 - model: scionlab.isd
   pk: 3
   fields:
-    created_date: 2019-04-24 04:21:45.972499
-    modified_date: 2019-04-24 04:21:45.972513
     isd_id: 18
     label: North America
     trc: null
@@ -28,8 +22,6 @@
 - model: scionlab.isd
   pk: 4
   fields:
-    created_date: 2019-04-24 04:21:45.982513
-    modified_date: 2019-04-24 04:21:45.982575
     isd_id: 19
     label: EU
     trc: null
@@ -37,8 +29,6 @@
 - model: scionlab.isd
   pk: 5
   fields:
-    created_date: 2019-04-24 04:21:45.993055
-    modified_date: 2019-04-24 04:21:45.993117
     isd_id: 20
     label: Korea
     trc: null
@@ -46,8 +36,6 @@
 - model: scionlab.isd
   pk: 6
   fields:
-    created_date: 2019-04-24 04:21:46.003572
-    modified_date: 2019-04-24 04:21:46.003634
     isd_id: 21
     label: Japan
     trc: null
@@ -55,8 +43,6 @@
 - model: scionlab.isd
   pk: 7
   fields:
-    created_date: 2019-04-24 04:21:46.014199
-    modified_date: 2019-04-24 04:21:46.014261
     isd_id: 22
     label: Taiwan
     trc: null
@@ -64,8 +50,6 @@
 - model: scionlab.isd
   pk: 8
   fields:
-    created_date: 2019-04-24 04:21:46.024625
-    modified_date: 2019-04-24 04:21:46.024686
     isd_id: 23
     label: Singapore
     trc: null
@@ -73,8 +57,6 @@
 - model: scionlab.isd
   pk: 9
   fields:
-    created_date: 2019-04-24 04:21:46.035052
-    modified_date: 2019-04-24 04:21:46.035113
     isd_id: 24
     label: Australia
     trc: null
@@ -82,8 +64,6 @@
 - model: scionlab.isd
   pk: 10
   fields:
-    created_date: 2019-04-24 04:21:46.045263
-    modified_date: 2019-04-24 04:21:46.045325
     isd_id: 25
     label: China
     trc: null

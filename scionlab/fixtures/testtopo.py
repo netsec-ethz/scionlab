@@ -15,14 +15,14 @@
 import random
 from unittest.mock import patch
 from collections import namedtuple
-from scionlab.models.core import ISD, AS, Link, Host, Service
-from scionlab.models.user_as import AttachmentPoint
+from scionlab.models import AS, AttachmentPoint, Host, ISD, Link, Service, VPN
 
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.
 ISDdef = namedtuple('ISDdef', ['isd_id', 'label'])
 ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'public_ip', 'is_core', 'is_ap'])
 LinkDef = namedtuple('LinkDef', ['type', 'as_id_a', 'as_id_b'])
+VPNDef = namedtuple('VPNDef', ['server', 'server_port', 'subnet', 'AP'])
 
 
 def _expand_as_id(as_id_tail):
@@ -61,17 +61,17 @@ ases = [
     makeASdef(17, 0x1103, 'SWTH', '192.0.2.13'),
     makeASdef(17, 0x1107, 'ETHZ-AP', '192.0.2.17', is_ap=True),
     # eu
-    makeASdef(19, 0x1301, 'PV', '192.0.2.31', is_core=True),
+    makeASdef(19, 0x1301, 'PV', '172.31.0.110', is_core=True),
     makeASdef(19, 0x1302, 'GEANT', '192.0.2.32', is_core=True),
-    makeASdef(19, 0x1303, 'Magdeburg', '192.0.2.33', is_ap=True),
+    makeASdef(19, 0x1303, 'Magdeburg', '172.31.0.111', is_ap=True),
     makeASdef(19, 0x1304, 'FR@Linode', '192.0.2.34'),
-    makeASdef(19, 0x1305, 'Darmstadt', '192.0.2.35'),
+    makeASdef(19, 0x1305, 'Darmstadt', '172.31.0.112'),
     # korea (Kompletely made up)
-    makeASdef(20, 0x1401, 'K_core1', '192.0.2.41', is_core=True),
+    makeASdef(20, 0x1401, 'K_core1', '172.31.0.113', is_core=True),
     makeASdef(20, 0x1402, 'K_core2', '192.0.2.42', is_core=True),
     makeASdef(20, 0x1403, 'K_L1', '192.0.2.43'),
     makeASdef(20, 0x1404, 'K_AP1', '192.0.2.44', is_ap=True),
-    makeASdef(20, 0x1405, 'K_AP2', '192.0.2.45', is_ap=True),
+    makeASdef(20, 0x1405, 'K_AP2', '172.31.0.114', is_ap=True),
     makeASdef(20, 0x1406, 'K_L3', '192.0.2.46'),
 ]
 
@@ -100,10 +100,17 @@ links = [
     makeLinkDef(Link.PROVIDER, 0x1404, 0x1406),
 ]
 
+
 # other than default services
 extra_services = [
     ('ffaa:0:1107', Service.PP),
     ('ffaa:0:1107', Service.BW),
+]
+
+# VPNs
+vpns = [
+   # Asia AP VPN
+   VPNDef(14, 1194, "10.0.8.0/24", "14"),
 ]
 
 
@@ -132,6 +139,11 @@ def create_testtopo_ases():
 def create_testtopo_links():
     for link_def in links:
         _create_as_link(**link_def._asdict())
+
+
+def create_testtopo_vpn():
+    for vpn_def in vpns:
+        _create_vpn(**vpn_def._asdict())
 
 
 def create_testtopo_extraservices():
@@ -163,3 +175,12 @@ def _create_as_link(type, as_id_a, as_id_b):
     as_a = AS.objects.get(as_id=as_id_a)
     as_b = AS.objects.get(as_id=as_id_b)
     Link.objects.create_from_ases(type, as_a, as_b)
+
+
+def _create_vpn(server, server_port, subnet, AP):
+    vpn = VPN.objects.create(server=Host.objects.get(id=server),
+                             server_port=server_port, subnet=subnet)
+    # Add vpn to AP
+    ap = AttachmentPoint.objects.get(AS_id=AP)
+    ap.vpn = vpn
+    ap.save()
