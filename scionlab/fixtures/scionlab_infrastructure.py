@@ -20,17 +20,32 @@
 # django.setup()
 
 
-import sys
 import os
 import re
-import lib.packet.scion_addr
+import json
+from collections import defaultdict, namedtuple
+from lib.packet.scion_addr import ISD_AS
 
 from scionlab.fixtures.testtopo import (
-    ISDdef, ASdef, LinkDef,
+    ISDdef, LinkDef,
     makeASdef, makeLinkDef
 )
-from scionlab.models import ISD, AS, Link, AttachmentPoint, Host, Service
+from scionlab.models import (
+    ISD, AS, Link, AttachmentPoint, Host, Service,
+    User,
+    DEFAULT_HOST_INTERNAL_IP,
+)
+from scionlab.scion_config import SERVICE_TYPES_CONTROL_PLANE
+from scionlab.util.local_config_util import (
+    # KEY_BR,
+    # KEY_BS,
+    # KEY_CS,
+    # KEY_PS,
+    # KEY_ZK,
+    TYPES_TO_KEYS
+)
 
+ASDef = namedtuple('ASDef', ['isd_id', 'as_id', 'label'])
 
 
 # SCIONLab ISDs
@@ -50,23 +65,22 @@ isds = [
 # SCIONLab ASes
 ases = [
     # ch
-    makeASdef(17, 0x1101, 'SCMN', '192.0.2.11', is_core=True),
-    makeASdef(17, 0x1102, 'ETHZ', '192.0.2.12'),
-    makeASdef(17, 0x1103, 'SWTH', '192.0.2.13'),
-    makeASdef(17, 0x1107, 'ETHZ-AP', '192.0.2.17', is_ap=True),
+    ASDef(17, 0x1101, 'SCMN'),
+    ASDef(17, 0x1102, 'ETHZ'),
+    ASDef(17, 0x1103, 'SWTH'),
+    ASDef(17, 0x1107, 'ETHZ-AP'),
     # eu
-    makeASdef(19, 0x1301, 'PV', '192.0.2.31', is_core=True),
-    makeASdef(19, 0x1302, 'GEANT', '192.0.2.32', is_core=True),
-    makeASdef(19, 0x1303, 'Magdeburg', '192.0.2.33', is_ap=True),
-    makeASdef(19, 0x1304, 'FR@Linode', '192.0.2.34'),
-    makeASdef(19, 0x1305, 'Darmstadt', '192.0.2.35'),
+    ASDef(19, 0x1301, 'Magdeburg core'),
+    ASDef(19, 0x1302, 'GEANT'),
+    ASDef(19, 0x1303, 'Magdeburg AP'),
+    ASDef(19, 0x1304, 'FR@Linode'),
+    ASDef(19, 0x1305, 'Darmstadt'),
     # korea (Kompletely made up)
-    makeASdef(20, 0x1401, 'K_core1', '192.0.2.41', is_core=True),
-    makeASdef(20, 0x1402, 'K_core2', '192.0.2.42', is_core=True),
-    makeASdef(20, 0x1403, 'K_L1', '192.0.2.43'),
-    makeASdef(20, 0x1404, 'K_AP1', '192.0.2.44', is_ap=True),
-    makeASdef(20, 0x1405, 'K_AP2', '192.0.2.45', is_ap=True),
-    makeASdef(20, 0x1406, 'K_L3', '192.0.2.46'),
+    ASDef(20, 0x1401, 'K_core1'),
+    ASDef(20, 0x1402, 'K_core2'),
+    ASDef(20, 0x1403, 'K_L1'),
+    ASDef(20, 0x1404, 'K_AP1'),
+    ASDef(20, 0x1405, 'K_AP2'),
 ]
 
 
@@ -77,6 +91,7 @@ class Loader:
     cert_re = re.compile(r'^ISD\d+-AS.+-V\d+.crt$')
     def __init__(self, gen_path):
         # load TRC
+        self.core_ases_per_isd = defaultdict(list)
         self.trcs = {}
         self.certs = {}
         self.master0s = {}
@@ -86,22 +101,22 @@ class Loader:
         self.core_keys_sig = {}
         self.core_keys_online = {}
         self.core_keys_offline = {}
+        self.topologies = {}
         for d in os.listdir(gen_path):
             trc = None
             groups = self.isd_re.match(d)
             if not groups:
                 continue
-            isd_id = groups.group(1)
+            isd_id = int(groups.group(1))
             dir_isd = os.path.join(gen_path, d)
             for dir_as in os.listdir(dir_isd):
                 groups = self.as_re.match(dir_as)
                 if not groups:
                     continue
                 as_id = groups.group(1)
-                # TODO: use standard IA here
-                # as_id = scion_addr.ISD_AS(as_id)
-                # as_id = as_id
-                dir_certs = os.path.join(dir_isd, dir_as, 'endhost', 'certs')
+                isd_as_id = str(ISD_AS('{isd}-{as_}'.format(isd=isd_id, as_=as_id)))
+                dir_endhost = os.path.join(dir_isd, dir_as, 'endhost')
+                dir_certs = os.path.join(dir_endhost, 'certs')
                 for cert in os.listdir(dir_certs):
                     if not trc:
                         groups = self.trc_re.match(cert)
@@ -111,64 +126,142 @@ class Loader:
                     groups = self.cert_re.match(cert)
                     if groups:
                         with open(os.path.join(dir_certs, cert)) as f:
-                            self.certs[as_id] = f.read()
-                dir_keys = os.path.join(dir_isd, dir_as, 'endhost', 'keys')
+                            self.certs[isd_as_id] = f.read()
+                dir_keys = os.path.join(dir_endhost, 'keys')
                 for key in os.listdir(dir_keys):
                     with open(os.path.join(dir_keys, key)) as f:
                         content = f.read()
                     if key == 'master0.key':
-                        self.master0s[as_id] = content
+                        self.master0s[isd_as_id] = content
                     elif key == 'master1.key':
-                        self.master1s[as_id] = content
+                        self.master1s[isd_as_id] = content
                     elif key == 'as-sig.seed':
-                        self.keys_sig[as_id] = content
+                        self.keys_sig[isd_as_id] = content
                     elif key == 'as-decrypt.key':
-                        self.keys_decrypt[as_id] = content
+                        self.keys_decrypt[isd_as_id] = content
                     elif key == 'core-sig.seed':
-                        self.core_keys_sig[as_id] = content
+                        self.core_keys_sig[isd_as_id] = content
+                        self.core_ases_per_isd[isd_id].append(isd_as_id)
                     elif key == 'online-root.seed':
-                        self.core_keys_online[as_id] = content
+                        self.core_keys_online[isd_as_id] = content
                     elif key == 'offline-root.seed':
-                        self.core_keys_offline[as_id] = content
+                        self.core_keys_offline[isd_as_id] = content
+                with open(os.path.join(dir_endhost, 'topology.json')) as f:
+                    topology = json.load(f)
+                self.topologies[isd_as_id] = topology
             # insert the trc
             self.trcs[isd_id] = trc
 
 
 class Generator:
-    def __init__(self, loader):
-        self.loader = loader
+    def __init__(self, scionlab_old_gen_path):
+        self.loader = Loader(scionlab_old_gen_path)
+        # TODO: remove the check user admin exists or create
+        if User.objects.filter(username='admin').count() == 0:
+            User.objects.create_superuser('admin', 'scionlab@scionlab.org', 'admin')
 
-    def create_isd(self, isd_def):
-        trc = self.loader.trcs[isd_def['isd_id']]
+    def create_isds(self, isds):
+        for isd_def in isds:
+            self._create_isd(isd_def)
+        isd_17 = ISD.objects.get(isd_id=17)
+        print(isd_17)
 
+    def _create_isd(self, isd_def):
+        isd_id = isd_def.isd_id
+        trc = self.loader.trcs[isd_id]
+        trc_priv_keys = {isd_as_id: self.loader.core_keys_sig[isd_as_id] 
+                         for isd_as_id in self.loader.core_ases_per_isd[isd_id]}
+        ISD.objects.create(**isd_def._asdict(), trc=trc, trc_priv_keys=trc_priv_keys)
 
-def _create_isd(isd_def, trc):
-    ISD.objects.create(**isd_def._asdict(), trc=trc)
+    def create_ases(self, ases):
+        admin_user = User.objects.get(username='admin')
+        for as_def in ases:
+            as_id = 'ffaa:0:%x' % as_def.as_id
+            isd_as_id = '{isd}-{as_id}'.format(isd=as_def.isd_id, as_id=as_id)
+            isd = ISD.objects.get(isd_id=as_def.isd_id)
+            topo = self.loader.topologies[isd_as_id]
+            assert(topo['Core'] == (isd_as_id in self.loader.core_ases_per_isd[as_def.isd_id]))
+            as_ = AS.objects.create(isd=isd,
+                                    as_id=as_id,
+                                    is_core=topo['Core'],
+                                    label=as_def.label,
+                                    mtu=topo["MTU"],
+                                    init_certificates=False,
+                                    owner=admin_user)
+            self._assign_keys(as_)
+            self._assign_services(as_, topo)
+            self._assign_routers(as_, topo)
+        blah=AS.objects.get(as_id='ffaa:0:1107')
+        print(blah.sig_pub_key)
 
-def _create_scionlab_isds():
-    for isd_def in isds:
-        # ISD.objects.create(**isd_def._asdict())
-        _create_isd(isd_def,{})
-    isd_17 = ISD.objects.get(isd_id=17)
-    print(isd_17)
+    def _assign_keys(self, as_):
+        isd_as_id = as_.isd_as_str()
+        json_cert = self.loader.certs[isd_as_id]
+        as_.certificate_chain = json_cert
+        cert = json.loads(json_cert)
+        assert(cert['0']['Subject'] == isd_as_id)
+        as_.sig_pub_key = cert['0']['SubjectSignKey']
+        as_.enc_pub_key = cert['0']['SubjectEncKey']
+        as_.sig_priv_key = self.loader.keys_sig[isd_as_id]
+        as_.enc_priv_key = self.loader.keys_decrypt[isd_as_id]
+        # TODO: do we have both master0 and master1 here?
+        as_.master_as_key = self.loader.master0s[isd_as_id]
+        if as_.is_core:
+            as_.core_sig_pub_key = cert['1']['SubjectSignKey']
+            as_.core_sig_priv_key = self.loader.core_keys_sig[isd_as_id]
+            as_.core_certificate = json.dumps(cert['1'])
+        as_.save()
 
+    def _assign_services(self, as_, topo):
+        for service_type in SERVICE_TYPES_CONTROL_PLANE:
+            serv = topo[TYPES_TO_KEYS[service_type]]
+            serv = next(iter(serv.values()))
+            public = serv['Addrs']['IPv4']['Public']
+            public_ip = public['Addr']
+            public_port = public['L4Port']
+            bind = serv['Addrs']['IPv4'].get('Bind')
+            bind_ip = bind['Addr'] if bind else None
+            bind_port = bind['L4Port'] if bind else public_port
+            assert(bind_port == public_port)
+            host, _ = Host.objects.get_or_create(AS=as_,
+                                                 public_ip=public_ip,
+                                                 bind_ip=bind_ip,
+                                                 internal_ip=public_ip)
+            Service.objects.create(host=host, type=service_type, port=public_port)
+        serv = topo[TYPES_TO_KEYS[Service.ZK]]['1']
+        public_ip = serv['Addr']
+        public_port = serv['L4Port']
+        host, _ = Host.objects.get_or_create(AS=as_,
+                                             public_ip=public_ip,
+                                             bind_ip=None,
+                                             internal_ip=DEFAULT_HOST_INTERNAL_IP)
+        Service.objects.create(host=host, type=Service.ZK, port=public_port)
+
+    def _assign_routers(self, as_, topo):
+        brs = topo['BorderRouters']
+        for brname, br in sorted(brs.items()):
+            internal = br['InternalAddrs']['IPv4']
+            public_ip = internal['PublicOverlay']['Addr']
+            internal_port = internal['PublicOverlay']['OverlayPort']
+            bind_ip = internal['BindOverlay']['Addr'] if 'BindOverlay' in internal else None
+            
+            ifs = br['Interfaces']
+            assert(len(ifs) == 1)
+            iface = next(iter(ifs.values()))
 
 def build_scionlab_topology(scionlab_old_gen_path):
-    loader = Loader(scionlab_old_gen_path)
-    _create_scionlab_isds()
+    gen = Generator(scionlab_old_gen_path)
+    gen.create_isds(isds)
+    gen.create_ases(ases)
     print('done')
 
 
-
-
-
-if __name__ == '__main__':
-    def print_help():
-        print('Arguments:\n\told_gen:\t'
-              'Path to the old gen folder containing the definitions for all infrastructure'
-              ' (it came from scion-web)')
-    if len(sys.argv) != 2:
-        print_help()
-        sys.exit(1)
-    build_scionlab_topology(sys.argv[1])
-
+# if __name__ == '__main__':
+#     def print_help():
+#         print('Arguments:\n\told_gen:\t'
+#               'Path to the old gen folder containing the definitions for all infrastructure'
+#               ' (it came from scion-web)')
+#     if len(sys.argv) != 2:
+#         print_help()
+#         sys.exit(1)
+#     build_scionlab_topology(sys.argv[1])
