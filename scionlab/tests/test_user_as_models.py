@@ -37,7 +37,7 @@ from scionlab.openvpn_config import write_vpn_ca_config
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 
 # Some test data:
-test_public_ip = '192.0.2.111'
+test_public_ip = '172.31.0.111'
 test_public_port = 54321
 test_bind_ip = '192.168.1.2'
 test_bind_port = 6666
@@ -241,7 +241,7 @@ def _get_random_useras_params(seed, force_public_ip=False, force_bind_ip=False, 
     kwargs.setdefault('attachment_point', r.choice(candidate_APs))
     kwargs.setdefault('owner', get_testuser())
 
-    public_ip = '192.0.2.%i' % r.randint(10, 254)
+    public_ip = '172.31.0.%i' % r.randint(10, 254)
     public_port = r.choice(range(DEFAULT_PUBLIC_PORT, DEFAULT_PUBLIC_PORT + 20))
     if _randbool() or not use_vpn or force_public_ip:
         kwargs.setdefault('public_ip', public_ip)

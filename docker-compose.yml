@@ -1,0 +1,132 @@
+version: "2"
+
+networks:
+  as_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.31.0.0/16
+
+services:
+  coord:
+    image:  circleci/python:3.6.1
+    container_name: coord
+    working_dir: /home/circleci/repo
+    environment:
+      PYTHONPATH: /tmp/scion/python
+    volumes:
+      - "/tmp/coord/:/tmp/coord/"
+      - "/tmp/vi:/tmp/vi"
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.10
+    entrypoint: /bin/bash -c "sleep 10; ./scionlab/.circleci/setup/coord.sh"
+
+  zookeeper:
+    image: zookeeper:latest
+    container_name: zookeeper
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.11
+    restart: always
+
+  coreAS110:
+    image: ethznetsec/scion_base:latest
+    container_name: coreAS110
+    depends_on:
+      - zookeeper
+      - coord
+    working_dir: /home/scion/go/src/github.com/scionproto/scion
+    networks:
+      as_net:
+        ipv4_address: ${coreAS110IP}
+    user: scion
+    environment:
+      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
+      GOPATH: "/home/scion/go"
+      SC: "/home/scion/go/src/github.com/scionproto/scion"
+      CUSER: "5"
+      # fixture secret
+      CSECRET: "c8CtMx5_ZUE1pAr_8sw3nw"
+    entrypoint: /bin/bash -c "sleep 30; /tmp/existingAS_full.sh; sleep 40; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
+
+  infraAS111:
+    image: ethznetsec/scion_base:latest
+    container_name: infraAS111
+    depends_on:
+      - zookeeper
+      - coreAS110
+    working_dir: /home/scion/go/src/github.com/scionproto/scion
+    networks:
+      as_net:
+        ipv4_address: ${infraAS111IP}
+    user: scion
+    environment:
+      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
+      GOPATH: "/home/scion/go"
+      SC: "/home/scion/go/src/github.com/scionproto/scion"
+      CUSER: "7"
+      # fixture secret
+      CSECRET: "kuA3OhfG0eLjoMeAsoZrgQ"
+    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 50; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 111;"
+
+  infraAS112:
+    image: ethznetsec/scion_base:latest
+    container_name: infraAS112
+    depends_on:
+      - zookeeper
+      - coreAS110
+    working_dir: /home/scion/go/src/github.com/scionproto/scion
+    networks:
+      as_net:
+        ipv4_address: ${infraAS112IP}
+    user: scion
+    environment:
+      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
+      GOPATH: "/home/scion/go"
+      SC: "/home/scion/go/src/github.com/scionproto/scion"
+      CUSER: "9"
+      # fixture secret
+      CSECRET: "jpuwJ8uzcu1mL8Rrbiw_9Q"
+    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 50; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; exit 112;"
+
+  coreAS113:
+    image: ethznetsec/scion_base:latest
+    container_name: coreAS113
+    depends_on:
+      - zookeeper
+    working_dir: /home/scion/go/src/github.com/scionproto/scion
+    networks:
+      as_net:
+        ipv4_address: ${coreAS113IP}
+    user: scion
+    environment:
+      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
+      GOPATH: "/home/scion/go"
+      SC: "/home/scion/go/src/github.com/scionproto/scion"
+      CUSER: "10"
+      # fixture secret
+      CSECRET: "Ch2eAP9F36OzSrrmOiTAkg"
+    entrypoint: /bin/bash -c "sleep 20; /tmp/existingAS_full.sh; sleep 360; exit 113;"
+
+  infraAS114:
+    image: ethznetsec/scion_base:latest
+    container_name: infraAS114
+    depends_on:
+      - zookeeper
+      - coreAS113
+    working_dir: /home/scion/go/src/github.com/scionproto/scion
+    networks:
+      as_net:
+        ipv4_address: ${infraAS114IP}
+    user: scion
+    privileged: true
+    environment:
+      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
+      GOPATH: "/home/scion/go"
+      SC: "/home/scion/go/src/github.com/scionproto/scion"
+      CUSER: "14"
+      # fixture secret
+      CSECRET: "aPRjKwCAI5_eqYPXu7MlFA"
+    entrypoint: /bin/bash -c "sleep 20; /tmp/VPNexistingAS.sh; sleep 3600; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]; exit 114;"

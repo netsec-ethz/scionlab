@@ -1,4 +1,4 @@
-# Copyright 2018 ETH Zurich
+# Copyright 2019 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,16 +20,7 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: circleci/python:3.6.1
-      #- image: scionproto/scion_base@sha256:975646f75df9db5a0dd882a4bc6bac36dd63201e0aff920f7ee711053b1ca48e
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
     working_directory: ~/repo
 
     steps:
@@ -45,6 +36,12 @@ jobs:
       - run:
           name: install dependencies
           command: |
+            [ -d /tmp/scion ] || git clone https://github.com/netsec-ethz/netsec-scion.git /tmp/scion
+            cd /tmp/scion
+            git fetch && git checkout scionlab && git reset --hard origin/scionlab
+            if [[ ${CIRCLE_BRANCH} != *"_local"* ]]; then
+              exit 0
+            fi
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
@@ -63,6 +60,10 @@ jobs:
       - run:
           name: run flake8 style checker
           command: |
+            if [[ ${CIRCLE_BRANCH} != *"_local"* ]]; then
+              echo "Skipped: run flake8 style checker"
+              exit 0
+            fi
             . /tmp/venv/bin/activate
             mkdir -p test-reports/flake8/
             flake8 --config=flake8.ini --format junit-xml --output-file=test-reports/flake8/results.xml
@@ -71,6 +72,9 @@ jobs:
       - run:
           name: run tests
           command: |
+            if [[ ${CIRCLE_BRANCH} != *"_local"* ]]; then
+              exit 0
+            fi
             . /tmp/venv/bin/activate
             mkdir -p test-reports/django/
             # Create migrations, otherwise test DB will not be initialised properly
@@ -79,10 +83,105 @@ jobs:
             PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
+      - setup_remote_docker
+
+      - run:
+          name: Build latest scion binaries for scionlab
+          command: |
+            #cd /tmp/scion
+            #sudo apt update
+            #./env/deps
+            #./scion.sh build
+
+            # Use builder container, to build once when not using local image
+            sudo docker run --name scion_builder --rm -d\
+              --entrypoint /bin/bash ethznetsec/scion_base -c "sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev; git clone https://github.com/netsec-ethz/netsec-scion /home/scion/go/src/github.com/scionproto/scion; cd /home/scion/go/src/github.com/scionproto/scion; ./env/deps; make; until [ -e ./done ]; do sleep 10; done;"
+            echo "Started builder"
+            sudo docker exec scion_builder /bin/bash -c "until [ -e /home/scion/go/src/github.com/scionproto/scion/bin/sig ]; do sleep 10; done;"
+            echo "Build completed"
+            sudo docker cp scion_builder:/home/scion/go/src/github.com/scionproto/scion/bin /tmp/scion
+            sudo docker cp scion_builder:/home/scion/go/src/github.com/scionproto/scion/proto /tmp/scion
+            echo "Finished copying"
+            sudo docker exec scion_builder /bin/bash -c "touch /home/scion/go/src/github.com/scionproto/scion/done"
+            sudo docker stop scion_builder
+
+            # use local cache to speedup local execution until packages are available
+            # add $SC/bin and $SC/proto to your the cache directory and source it
+            #mv ./cache/bin/* /tmp/scion/bin/
+            #mv ./cache/proto/* /tmp/scion/proto/
+            
+      # Start integration tests
+      - run:
+          name: Start containers and verify they are working
+          command: |
+            set -x
+            # docker-compose will start 5 containers, the one with the coordinator will be named `coord`
+            # Then we have one core AS container coreAS110, two infra ASes infraAS111 and infraAS112 and 
+            # a zookeeper instance they share.
+            
+            sudo docker-compose -f ./docker-compose.yml up -d coord
+            sudo docker cp ./ coord:/home/circleci/repo/scionlab
+            # We start another container with curl in the same network as `coord` to check `coord` is ready. 
+            # All exposed ports from `coord` are available on `localhost` in this new container.
+            sleep 120 # Avoid log spam
+            sudo docker run --net repo_as_net --name curl_test\
+              --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/user/login/; do echo 'Coord unreachable, retrying...'; sleep 5; done"
+            export coreAS110IP=172.31.0.110 infraAS111IP=172.31.0.111 infraAS112IP=172.31.0.112 
+            sudo -E coreAS110IP=172.31.0.110 infraAS111IP=172.31.0.111 infraAS112IP=172.31.0.112 docker-compose -f ./docker-compose.yml up -d zookeeper coreAS110 infraAS111 infraAS112
+
+            # speedup deployment until we have binary packages
+            for dst_AS in coreAS110 infraAS111 infraAS112; do
+                for src_dir in bin supervisor python proto env; do
+                    sudo docker cp /tmp/scion/${src_dir} ${dst_AS}:/home/scion/go/src/github.com/scionproto/scion
+                done
+                sudo docker cp .circleci/setup/existingAS_full.sh ${dst_AS}:/tmp/existingAS_full.sh
+            done
+
+            # We capture the exit codes from the infraAS containers
+            E111=$(sudo docker wait infraAS111)
+            E112=$(sudo docker wait infraAS112)
+            echo -e "Exit codes:\n\t\tinfraAS111: ${E111}\n\t\tinfraAS112: ${E112}"
+
+      - run:
+          name: Start VPN containers and verify the connection over VPN works 
+          command: |
+            set -x
+            # Skip if not running on a local branch, since CircleCI does not support docker privileged
+            if [[ ${CIRCLE_BRANCH} == *"_local"* ]]; then
+              exit 0
+            fi
+            echo "Start containers required for VPN AP and verify they are working"
+            export coreAS113IP=172.31.0.113 infraAS114IP=172.31.0.114
+            sudo -E coreAS113IP=172.31.0.113 infraAS114IP=172.31.0.114 docker-compose -f ./docker-compose.yml up -d coreAS113 infraAS114
+
+            # speedup deployment until we have binary packages
+            for dst_AS in coreAS113 infraAS114; do
+                for src_dir in bin supervisor python proto env; do
+                    sudo docker cp /tmp/scion/${src_dir} ${dst_AS}:/home/scion/go/src/github.com/scionproto/scion
+                done
+                sudo docker cp .circleci/setup/existingAS_full.sh ${dst_AS}:/tmp/existingAS_full.sh
+            done
+
+            sudo docker cp .circleci/setup/VPNexistingAS.sh infraAS114:/tmp/VPNexistingAS.sh
+            sleep 120 # Wait for AP to be set up
+            # Start user AS container, create user AS and connect:
+            sudo docker run --net repo_as_net --privileged --name userAS1\
+              --rm --entrypoint /bin/bash scionlab/tmp_scion_installed:running -c 'sudo apt-get install -y openvpn; sudo mkdir -p /dev/net; sudo mknod /dev/net/tun c 10 20; sudo chmod 600 /dev/net/tun; curl https://gist.githubusercontent.com/FR4NK-W/87e9a47b5e7c156edc23bc461f0f792d/raw/ad271828a729e1663f39a26d0f15513eff19d5df/create_useras.py -o /tmp/create_useras.py; pip3 install --user requests; python3 /tmp/create_useras.py; export SC=/tmp/go/src/github.com/scionproto/scion; tar -C $SC/ -xf /tmp/host_config.tar; cd $SC; ZK_IP=$(dig +short zookeeper A); for f in $(find $SC/gen/ -name topology.json); do jq ".ZookeeperService[]|=({Addr:\"$ZK_IP\", L4Port:.L4Port})" $f | sponge $f; done; sudo cp client.conf /etc/openvpn/; sudo openvpn --daemon ovpn-client --cd /etc/openvpn --config /etc/openvpn/client.conf; ./supervisor/supervisor.sh reload; ./supervisor/supervisor.sh start all;'
+            
+
+      - run:
+          name: Wind down the containers
+          command: |
+            for i in $(seq 1 300); do
+              echo ${i}
+              sleep 500
+            done
+            sudo docker-compose -f ./docker-compose.yml down
+
       - store_test_results:
           path: test-reports
 
       - store_artifacts:
           path: test-reports
           destination: test-reports
-
+      
