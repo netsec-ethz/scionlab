@@ -209,6 +209,13 @@ class ASManager(models.Manager):
         )
         return as_
 
+    def get_with_isd_as(self, isd_as):
+        groups = isd_as.split('-')
+        if len(groups) != 2:
+            raise ValueError('Invalid IA %s' % isd_as)
+        all = list(super().all())
+        return super().get(isd__isd_id=int(groups[0]), as_id=groups[1])
+
 
 class AS(TimestampedModel):
     isd = models.ForeignKey(

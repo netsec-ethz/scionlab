@@ -31,7 +31,7 @@ from scionlab.fixtures.testtopo import (
     makeASdef, makeLinkDef
 )
 from scionlab.models import (
-    ISD, AS, Link, AttachmentPoint, Host, Service,
+    ISD, AS, Link, AttachmentPoint, Host, Service, BorderRouter,
     User,
     DEFAULT_HOST_INTERNAL_IP,
 )
@@ -64,23 +64,55 @@ isds = [
 
 # SCIONLab ASes
 ases = [
+    # AWS
+    ASDef(16, 0x1001, 'AWS Frankfurt'),
+    ASDef(16, 0x1002, 'AWS Ireland'),
+    ASDef(16, 0x1003, 'AWS US N. Virginia'),
+    ASDef(16, 0x1004, 'AWS US Ohio'),
+    ASDef(16, 0x1005, 'AWS US Oregon'),
+    ASDef(16, 0x1006, 'AWS Japan'),
+    ASDef(16, 0x1007, 'AWS Singapore'),
+    ASDef(16, 0x1008, 'AWS Australia'),
     # ch
     ASDef(17, 0x1101, 'SCMN'),
     ASDef(17, 0x1102, 'ETHZ'),
     ASDef(17, 0x1103, 'SWTH'),
+    ASDef(17, 0x1104, 'BIT'),
     ASDef(17, 0x1107, 'ETHZ-AP'),
+    ASDef(17, 0x110a, 'PCEngines'),
+    ASDef(17, 0x110b, 'Odroid XU4'),
+    ASDef(17, 0x110c, 'Odroid C1'),
+    # US
+    ASDef(18, 0x1201, 'CMU'),
+    ASDef(18, 0x1202, 'WISC'),
+    ASDef(18, 0x1203, 'Columbia'),
+    ASDef(18, 0x1204, 'ISG(Toronto)'),
+    ASDef(18, 0x1205, 'ISG(Otawa)'),
     # eu
     ASDef(19, 0x1301, 'Magdeburg core'),
     ASDef(19, 0x1302, 'GEANT'),
     ASDef(19, 0x1303, 'Magdeburg AP'),
     ASDef(19, 0x1304, 'FR@Linode'),
-    ASDef(19, 0x1305, 'Darmstadt'),
-    # korea (Kompletely made up)
-    ASDef(20, 0x1401, 'K_core1'),
-    ASDef(20, 0x1402, 'K_core2'),
-    ASDef(20, 0x1403, 'K_L1'),
-    ASDef(20, 0x1404, 'K_AP1'),
-    ASDef(20, 0x1405, 'K_AP2'),
+    ASDef(19, 0x1305, 'SIDN'),
+    ASDef(19, 0x1306, 'Deutsche Telekom'),
+    ASDef(19, 0x1307, 'TW Wien'),
+    ASDef(19, 0x1308, 'PV'),
+    # S. korea
+    ASDef(20, 0x1401, 'KISTI Djn'),
+    ASDef(20, 0x1402, 'KISTI Seoul'),
+    ASDef(20, 0x1403, 'KAIST'),
+    ASDef(20, 0x1404, 'KU'),
+    ASDef(20, 0x1405, 'ETRI'),
+    # Japan
+    ASDef(21, 0x1501, 'KDDI'),
+    # Taiwan
+    ASDef(22, 0x1601, 'NTU'),
+    # Singapore
+    ASDef(23, 0x1701, 'NUS'),
+    # Australia
+    ASDef(24, 0x1801, 'OpenSystems'),
+    # China
+    ASDef(25, 0x1901, 'THU'),
 ]
 
 
@@ -163,8 +195,6 @@ class Generator:
     def create_isds(self, isds):
         for isd_def in isds:
             self._create_isd(isd_def)
-        isd_17 = ISD.objects.get(isd_id=17)
-        print(isd_17)
 
     def _create_isd(self, isd_def):
         isd_id = isd_def.isd_id
@@ -190,9 +220,12 @@ class Generator:
                                     owner=admin_user)
             self._assign_keys(as_)
             self._assign_services(as_, topo)
+        # once we have all ASes, do BRs and links
+        for as_def in ases:
+            as_id = 'ffaa:0:%x' % as_def.as_id
+            as_ = AS.objects.get(isd__isd_id=as_def.isd_id, as_id=as_id)
+            topo = self.loader.topologies[as_.isd_as_str()]
             self._assign_routers(as_, topo)
-        blah=AS.objects.get(as_id='ffaa:0:1107')
-        print(blah.sig_pub_key)
 
     def _assign_keys(self, as_):
         isd_as_id = as_.isd_as_str()
@@ -243,11 +276,50 @@ class Generator:
             internal = br['InternalAddrs']['IPv4']
             public_ip = internal['PublicOverlay']['Addr']
             internal_port = internal['PublicOverlay']['OverlayPort']
-            bind_ip = internal['BindOverlay']['Addr'] if 'BindOverlay' in internal else None
-            
+            # bind_ip = internal['BindOverlay']['Addr'] if 'BindOverlay' in internal else None
+            if 'BindOverlay' in internal:
+                bind_ip = internal['BindOverlay']['Addr']
+                assert(internal['BindOverlay']['OverlayPort'] == internal_port)
+            else:
+                bind_ip = None
+            control = br['CtrlAddr']['IPv4']
+            assert(control['Public']['Addr'] == public_ip)
+            control_port = control['Public']['L4Port']
+            if bind_ip:
+                assert(control['Bind']['Addr'] == bind_ip)
+                assert(control['Bind']['L4Port'] == control_port)
+            # TODO: BR setup:
+            # - bind IP
+            # - internal port
+            # - control port
             ifs = br['Interfaces']
-            assert(len(ifs) == 1)
+            if len(ifs) != 1:
+                print('Assign BRs, skip BR %s (more than 1 interface in BR)' % brname)
+                continue
             iface = next(iter(ifs.values()))
+            if iface['Overlay'] != 'UDP/IPv4':
+                print('Assign BRs, skip BR %s (non IPv4 overlay)' % brname)
+                continue
+            host_here, _ = Host.objects.get_or_create(AS=as_,
+                                                      public_ip=public_ip,
+                                                      internal_ip=public_ip)
+            # br_here = BorderRouter.objects.first_or_create(host_here)
+            host_there, _ = Host.objects.get_or_create(AS=AS.objects.get_with_isd_as(iface['ISD_AS']),
+                public_ip=iface['PublicOverlay']['Addr'], internal_ip=public_ip)
+            # br_there = BorderRouter.objects.first_or_create(host_there)
+            if iface['LinkTo'] == 'CORE':
+                type = Link.CORE
+            elif iface['LinkTo'] == 'PARENT':
+                type = Link.PROVIDER
+            elif iface['LinkTo'] == 'CHILD':
+                type = Link.PROVIDER
+                host_here, host_there = host_there, host_here
+            elif iface['LinkTo'] == 'PEER':
+                type = Link.PEER
+            else:
+                raise Exception('Unknown link type')
+            Link.objects.create_from_hosts(type, host_here, host_there, active=True, bandwidth=iface['Bandwidth'], mtu=iface['MTU'])
+
 
 def build_scionlab_topology(scionlab_old_gen_path):
     gen = Generator(scionlab_old_gen_path)
