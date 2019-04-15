@@ -69,7 +69,7 @@ TEMPLATES = [
 STATIC_URL = '/static/'
 
 # ##### AUTH CONFIGURATION ################################
-AUTHENTICATION_BACKENDS = ['scionlab.auth_backends.ProxyModelBackend', ]
+AUTH_USER_MODEL = 'scionlab.User'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'user'
 
