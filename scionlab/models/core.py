@@ -636,7 +636,8 @@ class InterfaceManager(models.Manager):
                public_ip=None,
                public_port=None,
                bind_ip=None,
-               bind_port=None):
+               bind_port=None,
+               interface_id=None):
         """
         Create an Interface
         :param BorderRouter border_router: The border router process running responsible for this
@@ -648,7 +649,7 @@ class InterfaceManager(models.Manager):
         """
         host = border_router.host
         as_ = host.AS
-        ifid = as_.find_interface_id()
+        ifid = interface_id or as_.find_interface_id()
 
         effective_public_ip = public_ip or host.public_ip
         effective_bind_ip = bind_ip if public_ip else host.bind_ip
