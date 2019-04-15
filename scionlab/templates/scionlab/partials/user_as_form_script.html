@@ -3,15 +3,21 @@
 <script>
 $(document).ready(function () {
   // Only enable save button when form is dirty:
-  // Disable Save button on page load. Reset 
-  $(".savebtn").attr('disabled', 'disabled');
-  // Reset form to avoid stale dirty entries after page reload (firefox)
-  document.getElementById("id_user_as_form").reset()
-  // Enable Save button when any input field changes
-  $(":input ").change(function(){
-    $(".savebtn").removeAttr('disabled');
+  // Check if the form is already dirty due to server side validation:
+  var has_invalid_fields = $("form-group.has-danger, form div.alert.alert-block").length > 0;
+  if(!has_invalid_fields){
+    // Disable Save button
+    $(".savebtn").prop('disabled', true);
+    // Reset form to avoid stale dirty entries after page reload (firefox)
+    document.getElementById("id_user_as_form").reset();
+    // Enable Save button when any input field changes
+    $(":input ").change(function(){
+      $(".savebtn").removeAttr('disabled');
+      window.onbeforeunload = function() { return ""; }
+    });
+  } else {
     window.onbeforeunload = function() { return ""; }
-  });
+  }
   // When save button is clicked, don't show the navigate away warning
   $(".savebtn ").click(function(){
     window.onbeforeunload = null;
