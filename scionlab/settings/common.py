@@ -25,7 +25,6 @@ INSTALLED_APPS = [
     'django_registration',  # used for two-step user account activation (Email verification)
     'snowpenguin.django.recaptcha2',  # used for human verification (no bot)
     'crispy_forms',
-    'widget_tweaks',  # used to control form widget in the template
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
