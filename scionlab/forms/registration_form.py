@@ -16,6 +16,10 @@ from django_registration.forms import RegistrationForm
 from snowpenguin.django.recaptcha2.fields import ReCaptchaField
 from snowpenguin.django.recaptcha2.widgets import ReCaptchaWidget
 
+from scionlab.models.user import User
+
 
 class RegistrationFormWithCaptcha(RegistrationForm):
+    class Meta(RegistrationForm.Meta):
+        model = User
     captcha = ReCaptchaField(widget=ReCaptchaWidget(explicit=True, container_id='recaptcha-id'))

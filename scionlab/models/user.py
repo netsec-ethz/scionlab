@@ -16,6 +16,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
@@ -60,6 +61,8 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+    objects = UserManager()
 
     def max_num_ases(self):
         if self.is_staff:

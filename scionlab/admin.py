@@ -33,21 +33,36 @@ from scionlab.models.core import (
     BorderRouter,
     Service,
 )
-from scionlab.models.user_as import (
-    UserAS,
-    AttachmentPoint,
-)
-from scionlab.models.vpn import (
-    VPN,
-    VPNClient,
-)
+from scionlab.models.user import User
+from scionlab.models.user_as import UserAS, AttachmentPoint
+from scionlab.models.vpn import VPN, VPNClient
 from scionlab.util.http import HttpResponseAttachment
 from scionlab import config_tar
 from scionlab.tasks import deploy_host_config
+# Needs to be after import of scionlab.models.user.User
+from django.contrib.auth.admin import UserAdmin as auth_UserAdmin
 
-admin.site.register([
-    AttachmentPoint,
-])
+
+# TODO(matzf): This User model shows up under scionlab now in the admin index page, pitty.
+@admin.register(User)
+class UserAdmin(auth_UserAdmin):
+    """Define admin model for custom User model with no email field."""
+
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
+    )
+    list_display = ('email', 'first_name', 'last_name', 'is_staff')
+    search_fields = ('email', 'first_name', 'last_name')
+    ordering = ('email',)
+
 
 
 class _AlwaysChangedModelForm(forms.ModelForm):
@@ -686,3 +701,8 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
         """
         for host in queryset.filter(managed=True).iterator():
             deploy_host_config(host)
+
+
+admin.site.register([
+    AttachmentPoint,
+])
