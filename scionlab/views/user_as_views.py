@@ -23,7 +23,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django import forms
 from django.conf import settings
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Row, Column
+from crispy_forms.layout import Layout, Row, Column
 from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT
