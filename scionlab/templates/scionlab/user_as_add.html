@@ -7,6 +7,9 @@
 {% block content %}
 <div class="form-box">
   {% crispy form %}
-  <button type="submit" form="id_user_as_form" class="btn btn-primary">Create AS</button>
+  <button type="submit" form="id_user_as_form" class="btn btn-primary savebtn">Create AS</button>
 </div>
+
+{% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}
+
 {% endblock content %}

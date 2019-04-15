@@ -48,21 +48,33 @@ class UserASForm(forms.ModelForm):
         )
         labels = {
             'label': "Label",
-            'attachment_point': "Attachment point to connect to",
-            'public_ip': "My host's public IP address",
+            'attachment_point': "Attachment Point",
+            'public_ip': "Public IP address",
+            'bind_ip': "Bind IP address",
+            'bind_port': "Bind Port",
+        }
+        help_texts = {
+            'label': "Optional short label for your AS",
+            'attachment_point': "This SCIONLab-infrastructure AS will be the provider for your AS.",
+            'public_ip': "The attachment point will use this IP for the overlay link to your AS.",
+            'bind_ip': "(Optional) Specify the local IP/port "
+                       "if your border router is behind a NAT/firewall etc.",
         }
         widgets = {
             'installation_type': forms.RadioSelect(),
         }
     use_vpn = forms.BooleanField(
         required=False,
-        label="Use OpenVPN connection for this AS"
+        label="Use VPN",
+        help_text="Use an OpenVPN connection for the overlay link between the attachment point "
+                  "and the border router of my AS."
     )
     public_port = forms.IntegerField(
         min_value=1024,
         max_value=MAX_PORT,
         initial=50000,
-        label="Port where this AS accepts traffic"
+        label="Public Port (UDP)",
+        help_text="The attachment point will use this port for the overlay link to your AS."
     )
 
     def __init__(self, *args, **kwargs):
