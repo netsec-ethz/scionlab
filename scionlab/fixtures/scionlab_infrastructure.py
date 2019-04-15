@@ -25,25 +25,19 @@ import re
 import json
 from collections import defaultdict, namedtuple
 from lib.packet.scion_addr import ISD_AS
+from django.db.models import Q
 
 from scionlab.fixtures.testtopo import (
     ISDdef, LinkDef,
     makeASdef, makeLinkDef
 )
 from scionlab.models import (
-    ISD, AS, Link, AttachmentPoint, Host, Service, BorderRouter,
+    ISD, AS, Link, AttachmentPoint, Host, Service, BorderRouter, Interface,
     User,
     DEFAULT_HOST_INTERNAL_IP,
 )
 from scionlab.scion_config import SERVICE_TYPES_CONTROL_PLANE
-from scionlab.util.local_config_util import (
-    # KEY_BR,
-    # KEY_BS,
-    # KEY_CS,
-    # KEY_PS,
-    # KEY_ZK,
-    TYPES_TO_KEYS
-)
+from scionlab.util.local_config_util import TYPES_TO_KEYS
 
 ASDef = namedtuple('ASDef', ['isd_id', 'as_id', 'label'])
 
@@ -121,6 +115,7 @@ class Loader:
     as_re = re.compile(r'^AS(ffaa.+)$')
     trc_re = re.compile(r'^ISD\d+-V\d+.trc$')
     cert_re = re.compile(r'^ISD\d+-AS.+-V\d+.crt$')
+
     def __init__(self, gen_path):
         # load TRC
         self.core_ases_per_isd = defaultdict(list)
@@ -154,11 +149,11 @@ class Loader:
                         groups = self.trc_re.match(cert)
                         if groups:
                             with open(os.path.join(dir_certs, cert)) as f:
-                                trc = f.read()
+                                trc = json.load(f)
                     groups = self.cert_re.match(cert)
                     if groups:
                         with open(os.path.join(dir_certs, cert)) as f:
-                            self.certs[isd_as_id] = f.read()
+                            self.certs[isd_as_id] = json.load(f)
                 dir_keys = os.path.join(dir_endhost, 'keys')
                 for key in os.listdir(dir_keys):
                     with open(os.path.join(dir_keys, key)) as f:
@@ -188,8 +183,8 @@ class Loader:
 class Generator:
     def __init__(self, scionlab_old_gen_path):
         self.loader = Loader(scionlab_old_gen_path)
-        # TODO: remove the check user admin exists or create
         if User.objects.filter(username='admin').count() == 0:
+            print('Warning: user "admin" not found. Created one')
             User.objects.create_superuser('admin', 'scionlab@scionlab.org', 'admin')
 
     def create_isds(self, isds):
@@ -226,12 +221,18 @@ class Generator:
             as_ = AS.objects.get(isd__isd_id=as_def.isd_id, as_id=as_id)
             topo = self.loader.topologies[as_.isd_as_str()]
             self._assign_routers(as_, topo)
+        # and once we have all BRs and interfaces, create links
+        for as_def in ases:
+            as_id = 'ffaa:0:%x' % as_def.as_id
+            as_ = AS.objects.get(isd__isd_id=as_def.isd_id, as_id=as_id)
+            topo = self.loader.topologies[as_.isd_as_str()]
+            self._assign_links(as_, topo)
 
     def _assign_keys(self, as_):
         isd_as_id = as_.isd_as_str()
-        json_cert = self.loader.certs[isd_as_id]
-        as_.certificate_chain = json_cert
-        cert = json.loads(json_cert)
+        cert = self.loader.certs[isd_as_id]
+        as_.certificate_chain = cert
+        # cert = json.loads(json_cert)
         assert(cert['0']['Subject'] == isd_as_id)
         as_.sig_pub_key = cert['0']['SubjectSignKey']
         as_.enc_pub_key = cert['0']['SubjectEncKey']
@@ -252,6 +253,8 @@ class Generator:
             public = serv['Addrs']['IPv4']['Public']
             public_ip = public['Addr']
             public_port = public['L4Port']
+            # if as_.as_id == 'ffaa:0:1004':
+            #     print('gotcha!')
             bind = serv['Addrs']['IPv4'].get('Bind')
             bind_ip = bind['Addr'] if bind else None
             bind_port = bind['L4Port'] if bind else public_port
@@ -264,19 +267,19 @@ class Generator:
         serv = topo[TYPES_TO_KEYS[Service.ZK]]['1']
         public_ip = serv['Addr']
         public_port = serv['L4Port']
-        host, _ = Host.objects.get_or_create(AS=as_,
-                                             public_ip=public_ip,
-                                             bind_ip=None,
-                                             internal_ip=DEFAULT_HOST_INTERNAL_IP)
+        # ZK is always deployed on an existing machine:
+        host = Host.objects.get(Q(AS=as_) and (Q(bind_ip=public_ip) | Q(public_ip=public_ip)))
         Service.objects.create(host=host, type=Service.ZK, port=public_port)
 
     def _assign_routers(self, as_, topo):
+        """
+        Creates the local BRs for each entry. Also works for peer connections
+        """
         brs = topo['BorderRouters']
         for brname, br in sorted(brs.items()):
             internal = br['InternalAddrs']['IPv4']
             public_ip = internal['PublicOverlay']['Addr']
             internal_port = internal['PublicOverlay']['OverlayPort']
-            # bind_ip = internal['BindOverlay']['Addr'] if 'BindOverlay' in internal else None
             if 'BindOverlay' in internal:
                 bind_ip = internal['BindOverlay']['Addr']
                 assert(internal['BindOverlay']['OverlayPort'] == internal_port)
@@ -288,37 +291,62 @@ class Generator:
             if bind_ip:
                 assert(control['Bind']['Addr'] == bind_ip)
                 assert(control['Bind']['L4Port'] == control_port)
-            # TODO: BR setup:
-            # - bind IP
-            # - internal port
-            # - control port
             ifs = br['Interfaces']
-            if len(ifs) != 1:
-                print('Assign BRs, skip BR %s (more than 1 interface in BR)' % brname)
-                continue
-            iface = next(iter(ifs.values()))
-            if iface['Overlay'] != 'UDP/IPv4':
-                print('Assign BRs, skip BR %s (non IPv4 overlay)' % brname)
-                continue
-            host_here, _ = Host.objects.get_or_create(AS=as_,
-                                                      public_ip=public_ip,
-                                                      internal_ip=public_ip)
-            # br_here = BorderRouter.objects.first_or_create(host_here)
-            host_there, _ = Host.objects.get_or_create(AS=AS.objects.get_with_isd_as(iface['ISD_AS']),
-                public_ip=iface['PublicOverlay']['Addr'], internal_ip=public_ip)
-            # br_there = BorderRouter.objects.first_or_create(host_there)
-            if iface['LinkTo'] == 'CORE':
-                type = Link.CORE
-            elif iface['LinkTo'] == 'PARENT':
-                type = Link.PROVIDER
-            elif iface['LinkTo'] == 'CHILD':
-                type = Link.PROVIDER
-                host_here, host_there = host_there, host_here
-            elif iface['LinkTo'] == 'PEER':
-                type = Link.PEER
-            else:
-                raise Exception('Unknown link type')
-            Link.objects.create_from_hosts(type, host_here, host_there, active=True, bandwidth=iface['Bandwidth'], mtu=iface['MTU'])
+            for ifacenum, iface in ifs.items():
+                if iface['Overlay'] != 'UDP/IPv4':
+                    print('Warning: assigning BRs, skip BR %s (non IPv4 overlay)' % brname)
+                    continue
+                host_here, _ = Host.objects.get_or_create(AS=as_,
+                                                          public_ip=public_ip,
+                                                          internal_ip=public_ip)
+                br_here, _ = BorderRouter.objects.get_or_create(AS=as_,
+                                                                host=host_here,
+                                                                internal_port=internal_port,
+                                                                control_port=control_port)
+                bind_ip = iface['BindOverlay']['Addr'] if 'BindOverlay' in iface else None
+                bind_port = iface['BindOverlay']['OverlayPort'] if 'BindOverlay' in iface else None
+                Interface.objects.create(border_router=br_here,
+                                         public_ip=iface['PublicOverlay']['Addr'],
+                                         public_port=iface['PublicOverlay']['OverlayPort'],
+                                         bind_ip=bind_ip,
+                                         bind_port=bind_port,
+                                         interface_id=ifacenum)
+
+    def _assign_links(self, as_, topo):
+        """
+        Will assign interfaces and links once the BRs for the local side have been created
+        """
+        brs = topo['BorderRouters']
+        for brname, br in sorted(brs.items()):
+            internal = br['InternalAddrs']['IPv4']
+            public_ip = internal['PublicOverlay']['Addr']
+            internal_port = internal['PublicOverlay']['OverlayPort']
+            ifs = br['Interfaces']
+            for ifacenum, iface in ifs.items():
+                if iface['LinkTo'] == 'CHILD':
+                    # CHILD links are the reverse of PARENT; skip them and do only PARENT
+                    continue
+                if iface['Overlay'] != 'UDP/IPv4':
+                    continue
+                br_here = BorderRouter.objects.get(AS=as_,
+                                                   host__internal_ip=public_ip,
+                                                   internal_port=internal_port)
+                iface_here = Interface.objects.get(border_router=br_here, public_ip=iface['PublicOverlay']['Addr'], public_port=iface['PublicOverlay']['OverlayPort'])
+                assert(iface_here.interface_id == int(ifacenum))
+                remote_as = AS.objects.get_with_isd_as(iface['ISD_AS'])
+                iface_there = Interface.objects.get(AS=remote_as,public_ip=iface['RemoteOverlay']['Addr'], public_port=iface['RemoteOverlay']['OverlayPort'])
+                if iface['LinkTo'] == 'CORE':
+                    type = Link.CORE
+                elif iface['LinkTo'] == 'PARENT':
+                    type = Link.PROVIDER
+                elif iface['LinkTo'] == 'PEER':
+                    type = Link.PEER
+                else:
+                    raise Exception('Unknown link type')
+                if Link.objects.filter(interfaceA=iface_there, interfaceB=iface_here).exists():
+                    # this is a reverse link to an existing one, no need to do anything
+                    continue
+                Link.objects.create(type=type, interfaceA=iface_here, interfaceB=iface_there, bandwidth=iface['Bandwidth'], mtu=iface['MTU'])
 
 
 def build_scionlab_topology(scionlab_old_gen_path):
