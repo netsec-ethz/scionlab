@@ -16,12 +16,10 @@ import random
 from unittest.mock import patch
 from parameterized import parameterized
 from django.test import TestCase
-from scionlab.models.core import (
-    AttachmentPoint,
-    VPN,
-    Host,
-    UserAS,
-    Link,
+from scionlab.models.core import Host, Link
+from scionlab.models.user_as import AttachmentPoint, UserAS
+from scionlab.models.vpn import VPN
+from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
     DEFAULT_HOST_INTERNAL_IP,
@@ -288,22 +286,22 @@ class GenerateUserASIDTests(TestCase):
         self.assertEqual(as_id_int, USER_AS_ID_BEGIN)
         self.assertEqual(as_ids.format(as_id_int), 'ffaa:1:1')
 
-    @patch('scionlab.models.UserAS.objects._max_id', return_value=USER_AS_ID_BEGIN)
+    @patch('scionlab.models.user_as.UserAS.objects._max_id', return_value=USER_AS_ID_BEGIN)
     def test_second(self, mock):
         as_id_int = UserAS.objects.get_next_id()
         self.assertEqual(as_id_int, USER_AS_ID_BEGIN+1)
 
-    @patch('scionlab.models.UserAS.objects._max_id', return_value=USER_AS_ID_END-1)
+    @patch('scionlab.models.user_as.UserAS.objects._max_id', return_value=USER_AS_ID_END-1)
     def test_last(self, mock):
         as_id_int = UserAS.objects.get_next_id()
         self.assertEqual(as_id_int, USER_AS_ID_END)
 
-    @patch('scionlab.models.UserAS.objects._max_id', return_value=USER_AS_ID_END)
+    @patch('scionlab.models.user_as.UserAS.objects._max_id', return_value=USER_AS_ID_END)
     def test_exhausted(self, mock):
         with self.assertRaises(RuntimeError):
             UserAS.objects.get_next_id()
 
-    @patch('scionlab.models.UserAS.objects._max_id', return_value=1)
+    @patch('scionlab.models.user_as.UserAS.objects._max_id', return_value=1)
     def test_corrupted_max_id(self, mock):
         as_id_int = UserAS.objects.get_next_id()
         self.assertEqual(as_id_int, USER_AS_ID_BEGIN)
@@ -346,7 +344,7 @@ class CreateUserASTests(TestCase):
                                 use_vpn=True,
                                 public_port=test_public_port)
 
-    @patch('scionlab.models.User.max_num_ases', return_value=32)
+    @patch('scionlab.models.user.User.max_num_ases', return_value=32)
     def test_create_mixed(self, mock):
         r = random.Random()
         r.seed(5)

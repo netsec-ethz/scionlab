@@ -204,7 +204,9 @@ class DeleteASTests(TestCase):
     fixtures = ['testtopo-ases-links']
 
     def setUp(self):
-        patcher = patch('scionlab.models.AS._pre_delete', side_effect=AS._pre_delete, autospec=True)
+        patcher = patch('scionlab.models.core.AS._pre_delete',
+                        side_effect=AS._pre_delete,
+                        autospec=True)
         self.mock_as_pre_delete = patcher.start()
         self.addCleanup(patcher.stop)
 
