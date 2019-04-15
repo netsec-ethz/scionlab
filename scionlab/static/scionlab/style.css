@@ -46,13 +46,6 @@ main {
   background-color: #fff;
 }
 
-#login-register-callout {
-  border: 1px solid #d8dee2;
-  border-radius: 5px;
-  padding: 15px 20px;
-  font-weight: 300;
-}
-
 .text-lighter {
   font-weight: 300;
 }
