@@ -104,19 +104,24 @@ class UserASForm(forms.ModelForm):
                     code='missing_public_ip_no_vpn'
                 )
             ip_addr = ipaddress.ip_address(public_ip)
-            if (not settings.DEBUG and (not ip_addr.is_global or ip_addr.is_loopback)) or \
-               ip_addr.is_multicast or \
-               ip_addr.is_reserved or \
-               ip_addr.is_link_local or \
-               (ip_addr.version == 6 and ip_addr.is_site_local) or \
-               ip_addr.is_unspecified:
-                raise ValidationError("IP address cannot be used as public address",
-                                      code='invalid_public_ip')
+
             ap = cleaned_data['attachment_point']
             if ip_addr.version not in ap.supported_ip_versions():
                 raise ValidationError('IP version {ipv} not supported by the selected '
                                       'attachment point'.format(ipv=ip_addr.version),
                                       code='unsupported_ip_version')
+
+            if (not settings.DEBUG and (not ip_addr.is_global or ip_addr.is_loopback)) or \
+                    ip_addr.is_multicast or \
+                    ip_addr.is_reserved or \
+                    ip_addr.is_link_local or \
+                    (ip_addr.version == 6 and ip_addr.is_site_local) or \
+                    ip_addr.is_unspecified:
+                self.add_error('public_ip',
+                               ValidationError("Public IP address must be a publically routable "
+                                               "address. It cannot be a multicast, loopback or "
+                                               "otherwise reserved address.",
+                                               code='invalid_public_ip'))
         return cleaned_data
 
     def save(self, commit=True):

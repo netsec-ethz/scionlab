@@ -20,10 +20,17 @@ main {
   background-color: #f5f5f5;
 }
 
-/* red asterisk for required fields */
+/* red asterisk for required fields for crispy-forms */
 .asteriskField {
   color: #cb2431;
   padding-left: 3px;
+}
+
+/* hack to unhide feedback for invalid form fields in crispy/bootstrap-4.
+ * Issue caused by weird output by crispy and bug/missing feature in bootstrap-4.
+ * (see https://github.com/twbs/bootstrap/issues/23454). */
+.invalid-feedback {
+  display: block;
 }
 
 /* add sleek border for forms, give them a fixed max size so they don't span the entire main container */
