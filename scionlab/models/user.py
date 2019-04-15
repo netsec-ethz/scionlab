@@ -16,8 +16,6 @@ from django.contrib.auth.models import User as auth_User
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from scionlab.models.user_as import UserAS
-
 
 class User(auth_User):
     class Meta:
@@ -29,7 +27,7 @@ class User(auth_User):
         return settings.MAX_ASES_USER
 
     def num_ases(self):
-        return UserAS.objects.filter(owner=self).count()
+        return self.ases.count()
 
     def check_as_quota(self):
         """

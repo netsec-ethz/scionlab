@@ -16,9 +16,7 @@ import ipaddress
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
-from scionlab.models.network import (
-    Host
-)
+from scionlab.models.core import Host
 from scionlab.openvpn_config import (
     generate_vpn_client_key_material,
     generate_vpn_server_key_material,

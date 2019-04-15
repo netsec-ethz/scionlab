@@ -24,16 +24,20 @@ from scionlab.defines import (
     MAX_PORT,
     DEFAULT_HOST_INTERNAL_IP,
 )
-from scionlab.models import (
+from scionlab.models.core import (
     ISD,
     AS,
-    UserAS,
-    AttachmentPoint,
     Host,
     Interface,
     Link,
     BorderRouter,
     Service,
+)
+from scionlab.models.user_as import (
+    UserAS,
+    AttachmentPoint,
+)
+from scionlab.models.vpn import (
     VPN,
     VPNClient,
 )

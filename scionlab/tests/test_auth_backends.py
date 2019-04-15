@@ -15,7 +15,7 @@
 from django.test import TestCase, override_settings
 from django.urls import path
 from django.http import HttpResponse
-from scionlab.models import User
+from scionlab.models.user import User
 from scionlab.fixtures.testuser import (
     TESTUSER_EMAIL,
     TESTUSER_PWD

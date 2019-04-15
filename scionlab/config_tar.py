@@ -20,7 +20,7 @@ from contextlib import closing
 
 from django.conf import settings
 from scionlab import scion_config
-from scionlab.models import UserAS
+from scionlab.models.user_as import UserAS
 from scionlab.openvpn_config import (
     generate_vpn_client_config,
     generate_vpn_server_config,

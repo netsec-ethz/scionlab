@@ -19,7 +19,7 @@ import pathlib
 from string import Template
 
 # SCION
-from scionlab.models import Service
+from scionlab.models.core import Service
 from lib.crypto.asymcrypto import (
     get_core_sig_key_file_path,
     get_enc_key_file_path,

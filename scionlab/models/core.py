@@ -226,6 +226,7 @@ class AS(models.Model):
 
     owner = models.ForeignKey(
         User,
+        related_name='ases',
         on_delete=models.CASCADE,
         null=True,
         blank=True

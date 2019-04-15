@@ -15,11 +15,11 @@
 from django.test import TestCase
 from django_webtest import WebTest
 from django.forms.models import modelform_factory
-from scionlab.models import AS, Link
+from scionlab.models.core import AS, Link
 from scionlab.tests import utils
 from scionlab.admin import ASCreationForm, LinkAdminForm
 from scionlab.fixtures.testuser import TESTUSER_ADMIN_EMAIL
-from scionlab.models import ISD
+from scionlab.models.core import ISD
 
 
 class ASAdminTests(TestCase):

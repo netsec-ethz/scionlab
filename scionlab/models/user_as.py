@@ -20,13 +20,13 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 
 import scionlab.tasks
-from scionlab.models.network import (
+from scionlab.models.core import (
     AS,
     Interface,
     Link,
     BorderRouter,
-    VPNClient,
 )
+from scionlab.models.vpn import VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,

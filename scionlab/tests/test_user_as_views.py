@@ -18,7 +18,10 @@ from django.test import TestCase
 from parameterized import parameterized, param
 from django.urls import reverse
 from django_webtest import WebTest
-from scionlab.models import User, UserAS, AttachmentPoint, VPN, DEFAULT_PUBLIC_PORT
+from scionlab.models.user import User
+from scionlab.models.user_as import UserAS, AttachmentPoint
+from scionlab.models.vpn import VPN
+from scionlab.defines import DEFAULT_PUBLIC_PORT
 from scionlab.fixtures.testuser import get_testuser, TESTUSER_EMAIL
 from scionlab.fixtures import testtopo
 from scionlab.openvpn_config import write_vpn_ca_config

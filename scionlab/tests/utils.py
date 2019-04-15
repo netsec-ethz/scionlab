@@ -21,7 +21,8 @@ import tarfile
 import lib.crypto.asymcrypto
 from collections import namedtuple, Counter, OrderedDict
 from scionlab.defines import MAX_PORT
-from scionlab.models import AS, Service, Interface, Link, UserAS
+from scionlab.models.core import AS, Service, Interface, Link
+from scionlab.models.user_as import UserAS
 
 
 def check_topology(testcase):

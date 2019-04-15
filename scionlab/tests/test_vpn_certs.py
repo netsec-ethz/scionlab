@@ -29,7 +29,8 @@ from django.test import TestCase, override_settings
 from django.conf import settings
 
 from scionlab.fixtures.testuser import get_testuser
-from scionlab.models import VPN, AttachmentPoint, UserAS
+from scionlab.models.user_as import AttachmentPoint, UserAS
+from scionlab.models.vpn import VPN
 from scionlab.openvpn_config import write_vpn_ca_config, generate_vpn_client_config, \
     load_ca_cert, _generate_private_key, load_ca_key, _generate_root_ca_cert, \
     generate_vpn_server_config, ccd_config

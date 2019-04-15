@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ipaddress
+
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse, reverse_lazy
@@ -20,10 +22,9 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django import forms
 from django.conf import settings
-import ipaddress
 
 from scionlab.defines import MAX_PORT
-from scionlab.models import UserAS
+from scionlab.models.user_as import UserAS
 from scionlab.util.http import HttpResponseAttachment
 from scionlab import config_tar
 

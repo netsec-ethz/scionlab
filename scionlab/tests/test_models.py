@@ -14,7 +14,7 @@
 
 from unittest.mock import patch
 from django.test import TestCase
-from scionlab.models import ISD, AS, Link, Host, Interface, BorderRouter, Service
+from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
 from scionlab.tests import utils
 
 

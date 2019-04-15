@@ -24,7 +24,7 @@ from django.http import (
 )
 
 from scionlab import config_tar
-from scionlab.models import Host
+from scionlab.models.core import Host
 from scionlab.util.http import HttpResponseAttachment, basicauth
 
 

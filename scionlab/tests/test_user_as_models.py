@@ -16,7 +16,7 @@ import random
 from unittest.mock import patch
 from parameterized import parameterized
 from django.test import TestCase
-from scionlab.models import (
+from scionlab.models.core import (
     AttachmentPoint,
     VPN,
     Host,

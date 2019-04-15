@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from django.test import TestCase
-from scionlab.models import Host
+from scionlab.models.core import Host
 from scionlab.tests import utils
 import base64
 

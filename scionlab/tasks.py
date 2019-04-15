@@ -78,7 +78,7 @@ def _deploy_host_config(ssh_host, host_id, host_secret):
 
 
 def _check_host_needs_config_deployment(host_id):
-    from scionlab.models import Host
+    from scionlab.models.core import Host
     return Host.objects.get(id=host_id).needs_config_deployment()
 
 

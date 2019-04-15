@@ -16,7 +16,7 @@
 Metadata and object creation procedure for the fixtures `testuser.yaml` and `testuser-admin.yaml`
 """
 
-from scionlab.models import User
+from scionlab.models.user import User
 
 TESTUSER_EMAIL = 'scion@scionlab.org'
 TESTUSER_PWD = 'scion'
