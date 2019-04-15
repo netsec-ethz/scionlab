@@ -319,7 +319,11 @@ class UserASCreateTests(_WebTestHack):
         self._fill_form(create_page.form, **kwargs)
         response = create_page.form.submit()
         self.assertEqual(response.status_code, 200)
-        response.mustcontain('errorlist')
+
+        nonfield_error_marker = b'<div class="alert alert-block alert-danger">'
+        field_error_marker_re = br'<span id="error_\d+_[^"]*" class="invalid-feedback">'
+        self.assertTrue(nonfield_error_marker in response.body
+                        or re.search(field_error_marker_re, response.body))
 
     def test_get_create_form_no_quota(self):
         """ Getting the create page with quota exceeded is not allowed """
