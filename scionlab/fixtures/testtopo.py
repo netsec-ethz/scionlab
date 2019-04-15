@@ -15,7 +15,8 @@
 import random
 from unittest.mock import patch
 from collections import namedtuple
-from scionlab.models import ISD, AS, Link, AttachmentPoint, Host, Service
+from scionlab.models.core import ISD, AS, Link, Host, Service
+from scionlab.models.user_as import AttachmentPoint
 
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.

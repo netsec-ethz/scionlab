@@ -13,39 +13,30 @@
 # limitations under the License.
 
 import base64
-import ipaddress
 import jsonfield
 import os
 
-from django import urls
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-from django.contrib.auth.models import User as auth_User
 from django.dispatch import receiver
 from django.db import models
-from django.db.models import F, Max
+from django.db.models import F
 from django.db.models.signals import pre_delete, post_delete
 
 import lib.crypto.asymcrypto
 
-import scionlab.tasks
+from scionlab.models.user import User
 from scionlab.certificates import (
     generate_trc,
     generate_core_certificate,
     generate_as_certificate_chain,
 )
-from scionlab.openvpn_config import (
-    generate_vpn_client_key_material,
-    generate_vpn_server_key_material,
-)
 from scionlab.util import as_ids
+from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.defines import (
     MAX_PORT,
     MAX_INTERFACE_ID,
-    USER_AS_ID_BEGIN,
-    USER_AS_ID_END,
     DEFAULT_PUBLIC_PORT,
     DEFAULT_INTERNAL_PORT,
     DEFAULT_CONTROL_PORT,
@@ -70,28 +61,6 @@ _MAX_LEN_KEYS = 255
 
 _placeholder = object()
 """ Placeholder value for optional parameters, different from None """
-
-
-class User(auth_User):
-    class Meta:
-        proxy = True
-
-    def max_num_ases(self):
-        if self.is_staff:
-            return settings.MAX_ASES_ADMIN
-        return settings.MAX_ASES_USER
-
-    def num_ases(self):
-        return UserAS.objects.filter(owner=self).count()
-
-    def check_as_quota(self):
-        """
-        Check if the user is allowed to create another AS.
-        :raises: Validation error if quota is exceeded
-        """
-        if self.num_ases() >= self.max_num_ases():
-            raise ValidationError("UserAS quota exceeded",
-                                  code='user_as_quota_exceeded')
 
 
 class ISD(models.Model):
@@ -257,6 +226,7 @@ class AS(models.Model):
 
     owner = models.ForeignKey(
         User,
+        related_name='ases',
         on_delete=models.CASCADE,
         null=True,
         blank=True
@@ -416,7 +386,7 @@ class AS(models.Model):
         """
         Find an unused interface id
         """
-        existing_ids = _value_set(self.interfaces, 'interface_id')
+        existing_ids = value_set(self.interfaces, 'interface_id')
         for candidate_id in range(1, MAX_INTERFACE_ID):
             if candidate_id not in existing_ids:
                 return candidate_id
@@ -456,323 +426,6 @@ class AS(models.Model):
         self.core_sig_pub_key, self.core_sig_priv_key = _gen_sig_keypair()
         self.core_online_pub_key, self.core_online_priv_key = _gen_sig_keypair()
         self.core_offline_pub_key, self.core_offline_priv_key = _gen_sig_keypair()
-
-
-class UserASManager(models.Manager):
-    def create(self,
-               owner,
-               attachment_point,
-               public_port,
-               installation_type,
-               label=None,
-               use_vpn=False,
-               public_ip=None,
-               bind_ip=None,
-               bind_port=None):
-        """
-        Create a UserAS attached to the given attachment point.
-
-        :param User owner: owner of this UserAS
-        :param AttachmentPoint attachment_point: the attachment point (AP) to connect to
-        :param int public_port: the public port for the connection to the AP
-        :param str label: optional label
-        :param bool use_vpn: use VPN for the connection to the AP
-        :param str public_ip: the public IP for the connection to the AP.
-                              Must be specified if use_vpn is not enabled.
-        :param str bind_ip: the bind IP for the connection to the AP (for NAT)
-        :param str bind_port: the bind port for the connection to the AP (for NAT port remapping)
-        :returns: UserAS
-        """
-        owner.check_as_quota()
-
-        isd = attachment_point.AS.isd
-        as_id_int = self.get_next_id()
-        user_as = UserAS(
-            owner=owner,
-            label=label,
-            isd=isd,
-            as_id=as_ids.format(as_id_int),
-            as_id_int=as_id_int,
-            attachment_point=attachment_point,
-            public_ip=public_ip,
-            bind_ip=bind_ip,
-            bind_port=bind_port,
-            installation_type=installation_type,
-        )
-
-        user_as.init_keys()
-        user_as.init_certificates()
-        user_as.save()
-        user_as.init_default_services(
-            public_ip=public_ip,
-            bind_ip=bind_ip,
-        )
-
-        host = user_as.hosts.get()
-
-        if use_vpn:
-            vpn_client = attachment_point.vpn.create_client(host=host,
-                                                            active=True)
-
-            interface_client = Interface.objects.create(
-                border_router=BorderRouter.objects.first_or_create(host),
-                public_ip=vpn_client.ip,
-                public_port=public_port,
-            )
-            interface_ap = Interface.objects.create(
-                border_router=attachment_point.get_border_router_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip()
-            )
-        else:
-            interface_client = Interface.objects.create(
-                border_router=BorderRouter.objects.first_or_create(host),
-                public_port=public_port,
-                bind_port=bind_port
-            )
-            interface_ap = Interface.objects.create(
-                border_router=attachment_point.get_border_router_for_useras_interface(),
-            )
-
-        Link.objects.create(
-            type=Link.PROVIDER,
-            interfaceA=interface_ap,
-            interfaceB=interface_client
-        )
-
-        attachment_point.trigger_deployment()
-
-        return user_as
-
-    def get_next_id(self):
-        """
-        Get the next available UserAS id.
-        """
-        max_id = self._max_id()
-        if max_id is not None:
-            if max_id >= USER_AS_ID_END:
-                raise RuntimeError('UserAS-ID range exhausted')
-            return max(USER_AS_ID_BEGIN, max_id + 1)
-        else:
-            return USER_AS_ID_BEGIN
-
-    def _max_id(self):
-        """
-        :returns: the max `as_id_int` of all UserASes, or None
-        """
-        return next(iter(self.aggregate(Max('as_id_int')).values()), None)
-
-
-class UserAS(AS):
-    VM = 'VM'
-    DEDICATED = 'DEDICATED'
-    INSTALLATION_TYPES = (
-        (VM, 'Install inside a virtual machine'),
-        (DEDICATED, 'Install on a dedicated system (for experts)')
-    )
-
-    attachment_point = models.ForeignKey(
-        'AttachmentPoint',
-        related_name='user_ases',
-        on_delete=models.SET_NULL,
-        null=True,  # Null on deletion of AP
-        blank=False,
-        default=''  # Invalid default avoids rendering a '----' selection choice
-    )
-    # These fields are redundant for the network model
-    # They are here to retain the values entered by the user
-    # if she switches to VPN and back.
-    public_ip = models.GenericIPAddressField(null=True, blank=True)
-    bind_ip = models.GenericIPAddressField(null=True, blank=True)
-    bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
-
-    installation_type = models.CharField(
-        choices=INSTALLATION_TYPES,
-        max_length=_MAX_LEN_CHOICES_DEFAULT,
-        default=VM
-    )
-
-    objects = UserASManager()
-
-    class Meta:
-        verbose_name = 'User AS'
-        verbose_name_plural = 'User ASes'
-
-    def get_absolute_url(self):
-        return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
-
-    def update(self,
-               label,
-               attachment_point,
-               use_vpn,
-               public_ip,
-               public_port,
-               bind_ip,
-               bind_port,
-               installation_type):
-        """
-        Update this UserAS instance and immediately `save`.
-        Updates the related host, interface and link instances and will trigger
-        a configuration bump for the hosts of the affected attachment point(s).
-        """
-        prev_ap = self.attachment_point
-
-        host = self.hosts.get()   # UserAS always has only one host
-
-        if self.isd != attachment_point.AS.isd:
-            self._change_isd(attachment_point.AS.isd)
-
-        host.update(
-            public_ip=public_ip,
-            bind_ip=bind_ip
-        )
-
-        link = self._get_ap_link()
-        interface_ap = link.interfaceA
-        interface_user = link.interfaceB
-        if use_vpn:
-            vpn_client = self._create_or_activate_vpn_client(attachment_point.vpn)
-            interface_user.update(
-                public_ip=vpn_client.ip,
-                public_port=public_port,
-                bind_port=None
-            )
-            interface_ap.update(
-                border_router=attachment_point.get_border_router_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip(),
-                public_port=None,
-            )
-        else:
-            host.vpn_clients.update(active=False)   # deactivate all vpn clients
-            interface_user.update(
-                public_ip=None,
-                public_port=public_port,
-                bind_ip=None,
-                bind_port=bind_port
-            )
-            interface_ap.update(
-                border_router=attachment_point.get_border_router_for_useras_interface(),
-                public_ip=None,
-                public_port=None,
-            )
-
-        self.attachment_point = attachment_point
-        self.installation_type = installation_type
-        self.public_ip = public_ip
-        self.bind_ip = bind_ip
-        self.bind_port = bind_port
-        self.save()
-
-        if self.attachment_point != prev_ap:
-            prev_ap.trigger_deployment()
-        self.attachment_point.trigger_deployment()
-
-    def is_use_vpn(self):
-        """
-        Is this UserAS currently configured with VPN?
-        """
-        return VPNClient.objects.filter(host__AS=self, active=True).exists()
-
-    def is_active(self):
-        """
-        Is this UserAS currently active?
-        """
-        return self.interfaces.get().link().active
-
-    def get_public_port(self):
-        return self.interfaces.get().public_port
-
-    def set_active(self, active):
-        """
-        Set the UserAS to be active/inactive.
-        This will trigger a deployment of the attachment point configuration.
-        """
-        self.interfaces.get().link().set_active(active)
-        self.attachment_point.trigger_deployment()
-
-    def _get_ap_link(self):
-        # FIXME(matzf): find the correct link to the AP if multiple links present!
-        return self.interfaces.get().link()
-
-    def _create_or_activate_vpn_client(self, vpn):
-        """
-        Get or create the VPN client config for the given VPN.
-        Deactivate all other VPN clients configured on this host.
-        :param VPN vpn:
-        :returns: VPNClient
-        """
-        host = self.hosts.get()
-        host.vpn_clients.exclude(vpn=vpn).update(active=False)
-        vpn_client = host.vpn_clients.filter(vpn=vpn).first()
-        if vpn_client:
-            if not vpn_client.active:
-                vpn_client.active = True
-                vpn_client.save()
-            return vpn_client
-        else:
-            return vpn.create_client(host, True)
-
-
-class AttachmentPoint(models.Model):
-    AS = models.OneToOneField(
-        AS,
-        related_name='attachment_point_info',
-        on_delete=models.CASCADE,
-    )
-    vpn = models.OneToOneField(
-        'VPN',
-        null=True,
-        blank=True,
-        related_name='+',
-        on_delete=models.SET_NULL
-    )
-
-    def __str__(self):
-        return str(self.AS)
-
-    def get_border_router_for_useras_interface(self):
-        """
-        Selects the preferred border router on which the Interfaces to UserASes should be configured
-        :returns: a `BorderRouter` of the related `AS`
-        """
-        host = self._get_host_for_useras_attachment()
-        return BorderRouter.objects.first_or_create(host)
-
-    def check_vpn_available(self):
-        """
-        Raise ValidationError if the attachment point does not support VPN.
-        """
-        if self.vpn is None:
-            raise ValidationError("Selected attachment point does not support VPN",
-                                  code='attachment_point_no_vpn')
-
-    def trigger_deployment(self):
-        """
-        Trigger the deployment for the attachment point configuration.
-
-        The deployment is rate limited, max rate controlled by
-        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD.
-        """
-        delay = settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD
-        for host in self.AS.hosts.iterator():
-            scionlab.tasks.deploy_host_config(host, delay=delay)
-
-    def supported_ip_versions(self):
-        """
-        Returns the IP versions for the host where the user ASes will attach to
-        """
-        host = self._get_host_for_useras_attachment()
-        return {ipaddress.ip_address(host.public_ip).version}
-
-    def _get_host_for_useras_attachment(self):
-        """
-        Finds the host where user ASes would attach to
-        """
-        if self.vpn is not None:
-            assert(self.vpn.server.AS == self.AS)
-            host = self.vpn.server
-        else:
-            host = self.AS.hosts.filter(public_ip__isnull=False)[0]
-        return host
 
 
 class HostManager(models.Manager):
@@ -1601,138 +1254,6 @@ class Service(models.Model):
             host.bump_config()
 
 
-class VPNManager(models.Manager):
-    def create(self, server, server_port, subnet):
-        vpn = VPN(
-            server=server,
-            server_port=server_port,
-            subnet=subnet,
-        )
-        vpn.init_key()
-        vpn.save()
-        return vpn
-
-
-class VPN(models.Model):
-    server = models.ForeignKey(
-        Host,
-        related_name='vpn_servers',
-        on_delete=models.CASCADE
-    )
-    server_port = models.PositiveSmallIntegerField()
-
-    subnet = models.CharField(max_length=15)
-    private_key = models.TextField(null=True, blank=True)
-    cert = models.TextField(null=True, blank=True)
-
-    objects = VPNManager()
-
-    class Meta:
-        verbose_name = 'VPN'
-        verbose_name_plural = 'VPNs'
-
-    def _pre_delete(self):
-        """
-        Called by the pre_delete signal handler `_vpn_server_pre_delete`.
-        """
-        self.server.bump_config()
-
-    def init_key(self):
-        key, cert = generate_vpn_server_key_material(self.server)
-        self.private_key = key
-        self.cert = cert
-
-    def create_client(self, host, active):
-        client_ip = str(self._find_client_ip())
-        return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, active=active)
-
-    def server_vpn_ip(self):
-        """
-        :return: str: VPN server IP
-        """
-        subnet = ipaddress.ip_network(self.subnet)
-        # Use first address in the VPN subnet for the VPN server IP
-        return str(next(subnet.hosts()))
-
-    def vpn_subnet(self):
-        return ipaddress.ip_network(self.subnet)
-
-    def vpn_subnet_min_max_client_ips(self):
-        subnet = self.vpn_subnet()
-        # First host IP in the VPN subnet is the server IP
-        # return first and last client IP in the subnet
-        _, min_ip, *_, max_ip = subnet.hosts()
-        return min_ip, max_ip
-
-    def _find_client_ip(self):
-        last_client = self.clients.last()
-        used_ips = {self.server_vpn_ip()} | \
-            _value_set(VPNClient.objects.filter(vpn=self), 'ip')
-        if last_client:
-            last_assigned_ip = ipaddress.ip_address(last_client.ip)
-            # assign consecutive IPs to clients in the same VPN
-            candidate_ip = last_assigned_ip + 1
-            _, max_ip = self.vpn_subnet_min_max_client_ips()
-            if candidate_ip <= max_ip and str(candidate_ip) not in used_ips:
-                return candidate_ip
-        # try to find an unused IP from a removed client
-        subnet = ipaddress.ip_network(self.subnet)
-        for ip in subnet.hosts():
-            if str(ip) not in used_ips:
-                return ip
-        raise RuntimeError('No free client IP available')
-
-
-class VPNClientManager(models.Manager):
-    def create(self, vpn, host, ip, active):
-        client = VPNClient(
-            vpn=vpn,
-            host=host,
-            ip=ip,
-            active=active
-        )
-        client.init_key()
-        client.save()
-        host.bump_config()
-        vpn.server.bump_config()
-        return client
-
-
-class VPNClient(models.Model):
-    vpn = models.ForeignKey(
-        VPN,
-        related_name='clients',
-        on_delete=models.CASCADE
-    )
-    host = models.ForeignKey(
-        Host,
-        related_name='vpn_clients',
-        on_delete=models.CASCADE
-    )
-    ip = models.GenericIPAddressField()
-    active = models.BooleanField(default=True)
-    private_key = models.TextField(null=True, blank=True)
-    cert = models.TextField(null=True, blank=True)
-
-    objects = VPNClientManager()
-
-    class Meta:
-        verbose_name = 'VPN Client'
-        verbose_name_plural = 'VPN Clients'
-
-    def _pre_delete(self):
-        """
-        Called by the pre_delete signal handler `_vpn_client_pre_delete`.
-        """
-        self.host.bump_config()
-        self.vpn.server.bump_config()
-
-    def init_key(self):
-        key, cert = generate_vpn_client_key_material(self.host.AS)
-        self.private_key = key
-        self.cert = cert
-
-
 @receiver(pre_delete, sender=AS, dispatch_uid='as_delete_callback')
 def _as_pre_delete(sender, instance, using, **kwargs):
     instance._pre_delete()
@@ -1753,16 +1274,6 @@ def _service_pre_delete(sender, instance, using, **kwargs):
     instance._pre_delete()
 
 
-@receiver(pre_delete, sender=VPN, dispatch_uid='vpn_delete_callback')
-def _vpn_pre_delete(sender, instance, using, **kwargs):
-    instance._pre_delete()
-
-
-@receiver(pre_delete, sender=VPNClient, dispatch_uid='vpn_client_delete_callback')
-def _vpn_client_pre_delete(sender, instance, using, **kwargs):
-    instance._pre_delete()
-
-
 def _base64encode(key):
     return base64.b64encode(key).decode()
 
@@ -1777,10 +1288,3 @@ def _gen_sig_keypair():
 
 def _gen_enc_keypair():
     return _base64encode_tuple(lib.crypto.asymcrypto.generate_enc_keypair())
-
-
-def _value_set(query_set, field_name):
-    """
-    Short-hand for creating a set out of a values-query for a single model field
-    """
-    return set(query_set.values_list(field_name, flat=True))

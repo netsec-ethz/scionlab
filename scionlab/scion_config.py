@@ -14,7 +14,7 @@
 
 import ipaddress
 
-from scionlab.models import Service, Link
+from scionlab.models.core import Service, Link
 import scionlab.util.local_config_util as generator
 
 

@@ -14,7 +14,7 @@
 
 import json
 from django.test import TestCase
-from scionlab.models import ISD
+from scionlab.models.core import ISD
 from scionlab.tests import utils
 
 from lib.crypto.trc import TRC

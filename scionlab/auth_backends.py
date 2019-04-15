@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from django.contrib.auth.backends import ModelBackend
-from scionlab.models import User
+from scionlab.models.user import User
 
 
 class ProxyModelBackend(ModelBackend):
