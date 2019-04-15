@@ -13,13 +13,6 @@
 # limitations under the License.
 
 
-# # TODO: remove this
-# import os
-# import django
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scionlab.settings.development')
-# django.setup()
-
-
 import os
 import re
 import json
@@ -27,14 +20,9 @@ from collections import defaultdict, namedtuple
 from lib.packet.scion_addr import ISD_AS
 from django.db.models import Q
 
-from scionlab.fixtures.testtopo import (
-    ISDdef, LinkDef,
-    makeASdef, makeLinkDef
-)
+from scionlab.fixtures.testtopo import ISDdef
 from scionlab.models import (
-    ISD, AS, Link, AttachmentPoint, Host, Service, BorderRouter, Interface,
-    User,
-    DEFAULT_HOST_INTERNAL_IP,
+    ISD, AS, Link, AttachmentPoint, Host, Service, BorderRouter, Interface, User,
 )
 from scionlab.scion_config import SERVICE_TYPES_CONTROL_PLANE
 from scionlab.util.local_config_util import TYPES_TO_KEYS
@@ -107,6 +95,13 @@ ases = [
     ASDef(24, 0x1801, 'OpenSystems'),
     # China
     ASDef(25, 0x1901, 'THU'),
+]
+
+attachment_points = [
+    0x1107,
+    0x1202,
+    0x1303,
+    0x1404,
 ]
 
 
@@ -253,22 +248,19 @@ class Generator:
             public = serv['Addrs']['IPv4']['Public']
             public_ip = public['Addr']
             public_port = public['L4Port']
-            # if as_.as_id == 'ffaa:0:1004':
-            #     print('gotcha!')
-            bind = serv['Addrs']['IPv4'].get('Bind')
-            bind_ip = bind['Addr'] if bind else None
-            bind_port = bind['L4Port'] if bind else public_port
-            assert(bind_port == public_port)
+            if 'Bind' in serv['Addrs']['IPv4']:
+                internal_ip = serv['Addrs']['IPv4']['Bind']['Addr']
+            else:
+                internal_ip = public_ip
             host, _ = Host.objects.get_or_create(AS=as_,
                                                  public_ip=public_ip,
-                                                 bind_ip=bind_ip,
-                                                 internal_ip=public_ip)
+                                                 internal_ip=internal_ip)
             Service.objects.create(host=host, type=service_type, port=public_port)
         serv = topo[TYPES_TO_KEYS[Service.ZK]]['1']
         public_ip = serv['Addr']
         public_port = serv['L4Port']
         # ZK is always deployed on an existing machine:
-        host = Host.objects.get(Q(AS=as_) and (Q(bind_ip=public_ip) | Q(public_ip=public_ip)))
+        host = Host.objects.get(Q(AS=as_) and (Q(internal_ip=public_ip) | Q(public_ip=public_ip)))
         Service.objects.create(host=host, type=Service.ZK, port=public_port)
 
     def _assign_routers(self, as_, topo):
@@ -281,16 +273,13 @@ class Generator:
             public_ip = internal['PublicOverlay']['Addr']
             internal_port = internal['PublicOverlay']['OverlayPort']
             if 'BindOverlay' in internal:
-                bind_ip = internal['BindOverlay']['Addr']
+                internal_ip = internal['BindOverlay']['Addr']
                 assert(internal['BindOverlay']['OverlayPort'] == internal_port)
             else:
-                bind_ip = None
+                internal_ip = public_ip
             control = br['CtrlAddr']['IPv4']
             assert(control['Public']['Addr'] == public_ip)
             control_port = control['Public']['L4Port']
-            if bind_ip:
-                assert(control['Bind']['Addr'] == bind_ip)
-                assert(control['Bind']['L4Port'] == control_port)
             ifs = br['Interfaces']
             for ifacenum, iface in ifs.items():
                 if iface['Overlay'] != 'UDP/IPv4':
@@ -298,7 +287,7 @@ class Generator:
                     continue
                 host_here, _ = Host.objects.get_or_create(AS=as_,
                                                           public_ip=public_ip,
-                                                          internal_ip=public_ip)
+                                                          internal_ip=internal_ip)
                 br_here, _ = BorderRouter.objects.get_or_create(AS=as_,
                                                                 host=host_here,
                                                                 internal_port=internal_port,
@@ -319,7 +308,7 @@ class Generator:
         brs = topo['BorderRouters']
         for brname, br in sorted(brs.items()):
             internal = br['InternalAddrs']['IPv4']
-            public_ip = internal['PublicOverlay']['Addr']
+            internal_ip = (internal.get('BindOverlay') or internal['PublicOverlay'])['Addr']
             internal_port = internal['PublicOverlay']['OverlayPort']
             ifs = br['Interfaces']
             for ifacenum, iface in ifs.items():
@@ -329,7 +318,7 @@ class Generator:
                 if iface['Overlay'] != 'UDP/IPv4':
                     continue
                 br_here = BorderRouter.objects.get(AS=as_,
-                                                   host__internal_ip=public_ip,
+                                                   host__internal_ip=internal_ip,
                                                    internal_port=internal_port)
                 iface_here = Interface.objects.get(border_router=br_here, public_ip=iface['PublicOverlay']['Addr'], public_port=iface['PublicOverlay']['OverlayPort'])
                 assert(iface_here.interface_id == int(ifacenum))
@@ -349,19 +338,13 @@ class Generator:
                 Link.objects.create(type=type, interfaceA=iface_here, interfaceB=iface_there, bandwidth=iface['Bandwidth'], mtu=iface['MTU'])
 
 
+def _create_attachmentpoints(ap_list):
+    pass
+
+
 def build_scionlab_topology(scionlab_old_gen_path):
     gen = Generator(scionlab_old_gen_path)
     gen.create_isds(isds)
     gen.create_ases(ases)
+    _create_attachmentpoints(attachment_points)
     print('done')
-
-
-# if __name__ == '__main__':
-#     def print_help():
-#         print('Arguments:\n\told_gen:\t'
-#               'Path to the old gen folder containing the definitions for all infrastructure'
-#               ' (it came from scion-web)')
-#     if len(sys.argv) != 2:
-#         print_help()
-#         sys.exit(1)
-#     build_scionlab_topology(sys.argv[1])
