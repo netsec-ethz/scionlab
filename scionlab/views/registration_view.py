@@ -22,7 +22,7 @@ from scionlab.forms.registration_form import RegistrationFormWithCaptcha
 
 
 class UserRegistrationView(RegistrationView):
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('registration_confirm')
     form_class = RegistrationFormWithCaptcha
 
     def register(self, form):

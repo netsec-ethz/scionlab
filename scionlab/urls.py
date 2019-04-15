@@ -37,6 +37,15 @@ urlpatterns = [
     # django.contrib.auth: auth views for logout, password reset/change
     path('user/', include('django.contrib.auth.urls')),
 
+    # django-registration patterns
+    path('registration/register/',
+         UserRegistrationView.as_view(template_name='django_registration/registration_form.html'),
+         name='registration_form'),
+    path('registration/', include('django_registration.backends.activation.urls')),
+    path('registration/confirm',
+         TemplateView.as_view(template_name='django_registration/registration_confirm.html'),
+         name='registration_confirm'),
+
     # user pages
     path('user/', login_required(UserASesView.as_view()), name='user'),
     path('user/as/add', login_required(UserASCreateView.as_view()), name='user_as_add'),
@@ -60,10 +69,4 @@ urlpatterns = [
     # API:
     path('api/host/<int:pk>/config', GetHostConfig.as_view()),
     path('api/host/<int:pk>/deployed_config_version', PostHostDeployedConfigVersion.as_view()),
-
-    # django-registration patterns
-    path('registration/register/',
-         UserRegistrationView.as_view(template_name='django_registration/registration_form.html'),
-         name='registration_form'),
-    path('registration/', include('django_registration.backends.activation.urls')),
 ]
