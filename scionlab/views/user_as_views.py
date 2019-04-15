@@ -89,7 +89,8 @@ class UserASForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        self.user.check_as_quota()
+        if self.instance.pk is None:
+            self.user.check_as_quota()
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
         elif 'public_ip' in self.errors:
