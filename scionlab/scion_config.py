@@ -136,7 +136,7 @@ def _topo_add_interface(router_entry, interface):
             "Addr": interface.get_public_ip(),
             "OverlayPort": interface.public_port
         },
-        "MTU": interface.link().bandwidth,
+        "MTU": interface.link().mtu,
         "RemoteOverlay": {
             "Addr": remote_interface.get_public_ip(),
             "OverlayPort": remote_interface.public_port
