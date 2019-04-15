@@ -608,7 +608,7 @@ class Host(models.Model):
         for interface in self.interfaces.iterator():
             portmap.add(interface.get_public_ip(), interface.public_port)
             if interface.get_bind_ip():
-                portmap.add(interface.get_bind_ip(), interface.bind_ip)
+                portmap.add(interface.get_bind_ip(), interface.bind_port)
 
         for port, in self.services.values_list('port'):
             portmap.add(self.internal_ip, port)
