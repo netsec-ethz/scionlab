@@ -213,7 +213,6 @@ class ASManager(models.Manager):
         groups = isd_as.split('-')
         if len(groups) != 2:
             raise ValueError('Invalid IA %s' % isd_as)
-        all = list(super().all())
         return super().get(isd__isd_id=int(groups[0]), as_id=groups[1])
 
 

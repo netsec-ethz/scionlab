@@ -191,7 +191,7 @@ class Generator:
     def _create_isd(self, isd_def):
         isd_id = isd_def.isd_id
         trc = self.loader.trcs[isd_id]
-        trc_priv_keys = {isd_as_id: self.loader.core_keys_sig[isd_as_id] 
+        trc_priv_keys = {isd_as_id: self.loader.core_keys_sig[isd_as_id]
                          for isd_as_id in self.loader.core_ases_per_isd[isd_id]}
         ISD.objects.create(**isd_def._asdict(), trc=trc, trc_priv_keys=trc_priv_keys)
 
@@ -322,10 +322,16 @@ class Generator:
                 br_here = BorderRouter.objects.get(AS=as_,
                                                    host__internal_ip=internal_ip,
                                                    internal_port=internal_port)
-                iface_here = Interface.objects.get(border_router=br_here, public_ip=iface['PublicOverlay']['Addr'], public_port=iface['PublicOverlay']['OverlayPort'])
+                iface_here = Interface.objects.get(
+                    border_router=br_here,
+                    public_ip=iface['PublicOverlay']['Addr'],
+                    public_port=iface['PublicOverlay']['OverlayPort'])
                 assert(iface_here.interface_id == int(ifacenum))
                 remote_as = AS.objects.get_with_isd_as(iface['ISD_AS'])
-                iface_there = Interface.objects.get(AS=remote_as,public_ip=iface['RemoteOverlay']['Addr'], public_port=iface['RemoteOverlay']['OverlayPort'])
+                iface_there = Interface.objects.get(
+                    AS=remote_as,
+                    public_ip=iface['RemoteOverlay']['Addr'],
+                    public_port=iface['RemoteOverlay']['OverlayPort'])
                 if iface['LinkTo'] == 'CORE':
                     type = Link.CORE
                 elif iface['LinkTo'] == 'PARENT':
@@ -337,7 +343,11 @@ class Generator:
                 if Link.objects.filter(interfaceA=iface_there, interfaceB=iface_here).exists():
                     # this is a reverse link to an existing one, no need to do anything
                     continue
-                Link.objects.create(type=type, interfaceA=iface_here, interfaceB=iface_there, bandwidth=iface['Bandwidth'], mtu=iface['MTU'])
+                Link.objects.create(type=type,
+                                    interfaceA=iface_here,
+                                    interfaceB=iface_there,
+                                    bandwidth=iface['Bandwidth'],
+                                    mtu=iface['MTU'])
 
 
 def _create_attachmentpoints(ap_list):
