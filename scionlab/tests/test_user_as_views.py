@@ -18,7 +18,6 @@ from django.test import TestCase
 from parameterized import parameterized, param
 from django.urls import reverse
 from django_webtest import WebTest
-from scionlab.models.user import User
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.models.vpn import VPN
 from scionlab.defines import DEFAULT_PUBLIC_PORT
@@ -187,33 +186,7 @@ class UserASFormTests(TestCase):
         return {key: field.initial for (key, field) in form.fields.items()}
 
 
-class _WebTestHack(WebTest):
-    # XXX(matzf): temporary HACK!
-    # See ProxyModelBackend for background.
-    # Override UserModel with our User model, because django-webtest registers
-    # their own auth-backend, effectively disabling our ProxyModelBackend.
-    # By overriding django.contrib.auth.backends.UserModel, the
-    # django-webtest's backend returns our ProxyModel and everything works.
-    # Notes:
-    #   Temporariliy setting AUTH_USER_MODEL = 'scionlab.User' almost works,
-    #   but it looks like this value is cached somewhere...
-    def _setup_auth(self):
-        import django.contrib.auth.backends
-        django.contrib.auth.backends.UserModel = User
-        super()._setup_auth()
-
-    def _patch_settings(self):
-        import django.contrib.auth.backends
-        self._UserModel = django.contrib.auth.backends.UserModel
-        super()._patch_settings()
-
-    def _unpatch_settings(self):
-        import django.contrib.auth.backends
-        django.contrib.auth.backends.UserModel = self._UserModel
-        super()._unpatch_settings()
-
-
-class UserASPageTests(_WebTestHack):
+class UserASPageTests(WebTest):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def test_create_as_button(self):
@@ -265,7 +238,7 @@ class UserASPageTests(_WebTestHack):
         self.assertFalse(_NO_USER_AS_MESSAGE in user_page, user_page)
 
 
-class UserASCreateTests(_WebTestHack):
+class UserASCreateTests(WebTest):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     @staticmethod
@@ -349,7 +322,7 @@ class UserASCreateTests(_WebTestHack):
             form[key] = value
 
 
-class UserASActivateTests(_WebTestHack):
+class UserASActivateTests(WebTest):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def test_cycle_active(self):
