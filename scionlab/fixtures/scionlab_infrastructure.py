@@ -21,10 +21,11 @@ from lib.packet.scion_addr import ISD_AS
 from django.db.models import Q
 
 from scionlab.fixtures.testtopo import ISDdef
-from scionlab.models import (
+from scionlab.models.core import (
     ISD, AS, Link, Host, Service, BorderRouter, Interface, User,
-    AttachmentPoint, VPN,
 )
+from scionlab.models.user_as import AttachmentPoint
+from scionlab.models.vpn import VPN
 from scionlab.scion_config import SERVICE_TYPES_CONTROL_PLANE
 from scionlab.util.local_config_util import TYPES_TO_KEYS
 
