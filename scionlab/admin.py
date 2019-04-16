@@ -384,7 +384,7 @@ class ASCreationForm(_CreateUpdateModelForm):
 @admin.register(AS)
 class ASAdmin(admin.ModelAdmin):
     inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
-    actions = ['update_keys', 'trigger_config_deployment']
+    actions = ['update_keys', 'update_core_keys', 'trigger_config_deployment']
     list_display = ('isd', 'as_id', 'label', 'is_core', 'is_ap', 'is_userAS')
     list_display_links = ('as_id', 'label')
     list_filter = ('isd', 'is_core')
@@ -474,6 +474,13 @@ class ASAdmin(admin.ModelAdmin):
         """
         for as_ in queryset.iterator():
             as_.update_keys()
+
+    def update_core_keys(self, request, queryset):
+        """
+        Updates the core keys
+        """
+        for as_ in queryset.iterator():
+            as_.update_core_keys()
 
     def trigger_config_deployment(self, request, queryset):
         """

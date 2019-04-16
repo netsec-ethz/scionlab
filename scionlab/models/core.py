@@ -106,7 +106,7 @@ class ISD(models.Model):
             self._update_as_certificates(as_)
             as_.save()
 
-    def update_trc_and_core_certificates(self, cached_ases=[]):
+    def update_trc_and_core_certificates(self):
         """
         Update the TRC and the Core AS Certificates for all the core-ASes in this ISD.
 
@@ -117,13 +117,9 @@ class ISD(models.Model):
         """
         self._generate_trc()
 
-        cached_as_pks = [as_.pk for as_ in cached_ases]
-        for as_ in self.ases.exclude(pk__in=cached_as_pks).filter(is_core=True).iterator():
+        for as_ in self.ases.filter(is_core=True):
             self._update_coreas_certificates(as_)
             as_.save()
-        for as_ in cached_ases:
-            if as_.isd_id == self.pk and as_.is_core:
-                self._update_coreas_certificates(as_)
 
     def _generate_trc(self):
         self.trc, self.trc_priv_keys = generate_trc(self)
@@ -164,9 +160,10 @@ class ASManager(models.Manager):
             owner=owner,
         )
         as_.init_keys()
+        as_.save()
         if init_certificates:
             as_.init_certificates()
-        as_.save()
+        as_.refresh_from_db()
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
@@ -315,7 +312,7 @@ class AS(models.Model):
         If this is a core AS, also update the TRC and core AS certificates.
         """
         if self.is_core:
-            self.isd.update_trc_and_core_certificates(cached_ases=[self])
+            self.isd.update_trc_and_core_certificates()
         else:
             self.update_certificate_chain()
 
@@ -336,8 +333,9 @@ class AS(models.Model):
         Bumps the configuration version on all affected hosts.
         """
         self._gen_core_keys()
+        self.save()
         if self.is_core:
-            self.isd.update_trc_and_core_certificates(cached_ases=[self])
+            self.isd.update_trc_and_core_certificates()
 
     def update_certificate_chain(self):
         """
@@ -358,6 +356,7 @@ class AS(models.Model):
 
         if issuer:  # Skip if failed to find a core AS as issuer
             self.certificate_chain = generate_as_certificate_chain(self, issuer)
+        self.save()
 
     def update_core_certificate(self):
         """
