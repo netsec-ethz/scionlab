@@ -26,12 +26,12 @@ TESTUSER_ADMIN_PWD = 'scion53cure'
 
 def get_testuser():
     """ Return the User object for testuser """
-    return User.objects.get(username=TESTUSER_EMAIL)
+    return User.objects.get(email=TESTUSER_EMAIL)
 
 
 def get_testuser_admin():
     """ Return the User object for testuser """
-    return User.objects.get(username=TESTUSER_EMAIL)
+    return User.objects.get(email=TESTUSER_EMAIL)
 
 
 # Explicitly make `get_testuser` and `get_testuser_admin` not a test;
