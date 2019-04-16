@@ -22,7 +22,8 @@ from django.db.models import Q
 
 from scionlab.fixtures.testtopo import ISDdef
 from scionlab.models import (
-    ISD, AS, Link, AttachmentPoint, Host, Service, BorderRouter, Interface, User,
+    ISD, AS, Link, Host, Service, BorderRouter, Interface, User,
+    AttachmentPoint, VPN,
 )
 from scionlab.scion_config import SERVICE_TYPES_CONTROL_PLANE
 from scionlab.util.local_config_util import TYPES_TO_KEYS
@@ -339,7 +340,13 @@ class Generator:
 
 
 def _create_attachmentpoints(ap_list):
-    pass
+    for short_id in ap_list:
+        as_id = 'ffaa:0:%x' % short_id
+        as_ = AS.objects.get(as_id=as_id)
+        host = Host.objects.get(AS=as_)
+        host.update(managed=True)
+        vpn = VPN.objects.create(host, 1194, subnet='10.0.8.0/24')
+        AttachmentPoint.objects.create(AS=as_, vpn=vpn)
 
 
 def build_scionlab_topology(scionlab_old_gen_path):
