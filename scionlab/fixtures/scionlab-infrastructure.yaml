@@ -1,0 +1,6488 @@
+- model: scionlab.isd
+  pk: 1
+  fields:
+    isd_id: 16
+    label: AWS
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 16","CertLogs":{},"QuorumTRC":4,"Version":1,"ISD":16,"RootCAs":{},"Signatures":{"16-ffaa:0:1007":"4hyS2H0kTBhm8+9Gp60Iol09vo/5D95LNskEK6zdDIEwuxZRXIay08Q+6oe8Utw1HIwm2bcIx/sj9h6xtoBhCA==","16-ffaa:0:1002":"EUFNKGRM1t/WqPxwGITD6WYFJ+v9yTrFtdOPZg7cs2H28LqphBbCWs12A5A0cM0d8Pz+/e+UzL5SYvWjWQGvAg==","16-ffaa:0:1008":"lA0hS64E2BxUXK4jUfu1squIquolGEqBdPsLGPIRinewc22iBI97GdxP+NAJFnX/nEY1dkf9wpGQI1J2fuwNDw==","16-ffaa:0:1001":"QOp9D+BdzyxytkCgWEt6PjGrnOiAEt5Tg5Recgp6OFJZJWI6rQIEXIqF4XMhNUdY4pAMXl48f22w0DcfGwElCA==","16-ffaa:0:1006":"jY6btLHLC0aFeTPtOX0JiPkatp0Yjo2SDZdUFeMmvJRbG2i+Cn2SXFLLL0zIPWQl2f52Zh/5ZWlTBOG3SE0NCA==","16-ffaa:0:1003":"Rf7YXUlXw4/GkYwX9JQIvguO34k/YxnlLEzuCEABHGj9W9m/mw4u+73B4h0xOoxQ3Y9raPvCgQ+PY8pLQ1N0Dg==","16-ffaa:0:1004":"E3m7uIT9GOYQ6PqOSie6NhYUwCyUCYCslKzzP9jUAzEeeoW9Vy+yDT6E9ha9/OqGuXHAKmFOK/Pp/13OSujtCg==","16-ffaa:0:1005":"DlpJ8tWO7RdI4/zlOxW0FhZ4g7iWTmG7U2WIZg0wp/StWmCCYIOu0fU0raYltxHVkmbFJI2vP91vD0pV12N6BA=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"16-ffaa:0:1007":{"OnlineKey":"jkXsJ9KS6/2seO8ou05DOy5aMX/JzvAa6OUTyBme2iQ=","OfflineKey":"VIbfHwJaPUmmBm/2Fxr6smHk3McEVfu+WGlceDNAmyg=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"},"16-ffaa:0:1002":{"OnlineKey":"XKUwTMLw29yKMKwMmL0YV1Mfv2N8qRFue8oTtub/lQc=","OfflineKey":"ee0wCiqkSXxyX1zkSUnIvrX4GYnE3S/Gpa8mW4uqYyo=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"},"16-ffaa:0:1008":{"OnlineKey":"TdneWz8VBMg4Fb0DHY/w2OlNyNit2a9n8gXTZjc4MQ8=","OfflineKey":"xqYBod/C94J/8N5v59m5i+rwy0tZFzbJXxgHJqU1sVI=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"},"16-ffaa:0:1001":{"OnlineKey":"sQoZjjH0FVfTMC9Uz0NCg3ebKtrmPI5/RVGUqeaIZEM=","OfflineKey":"Kdyp2vyWdMOiYPOe4ZQn0h41IVPBHUwGFeg0llVJMJc=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"},"16-ffaa:0:1006":{"OnlineKey":"cnlIPCCCN4p1IqfRP6QKUD3Lbpt3ENgYScazSTUQxCE=","OfflineKey":"EoCRDiMVXMvmsFCiDdtaNZLgrPaZ0uK50eBxkrPrRy4=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"},"16-ffaa:0:1003":{"OnlineKey":"bvXZIb9RmMu2p7I3TixiSmeQKAfvP+n51ngKIJCJPoY=","OfflineKey":"/V0n1tpaAhR1DUZn6Tz78P4P6tNDb2vrNeL9EoMwIN0=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"},"16-ffaa:0:1004":{"OnlineKey":"9e7DqsenJch0+UCpib1q4Y+y3keREw8b0MLn9RLBe7s=","OfflineKey":"6tHFg8fyj/waj7aBMMG3V+woWiqIQtlbSqy2iBWDbmE=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"},"16-ffaa:0:1005":{"OnlineKey":"fb1f+QjO5VZVvIgeKoEDtPt7Nny7mG8Tez3J5OGUqSg=","OfflineKey":"hIvGVekE9uFQzYw0iV1S1BSLGnkiu5MHI0sp7w095Ck=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"16-ffaa:0:1007":"611wkUeuHnQ1EHG/mbri6skBmcuCBED1839BnoQLc60=","16-ffaa:0:1002":"DjBgdZv/akxM61IDVLtJ5fWydfSPNZF+mlH7QxklibA=","16-ffaa:0:1008":"ZfHFpc9qZXZw7A2N9geYwhV5oJIxSP5Lmiy0m//BfEs=","16-ffaa:0:1001":"0+vGg3wTTzIZD8zecx8Bx1SdjVgzwPbTa7T+wm2Jf+Q=","16-ffaa:0:1006":"zhYjwttPFNxWFuoyIl+ulz4DW01n5xF1A2Ik6gW9UOw=","16-ffaa:0:1003":"wMeOI45Bxg26kvyO0RlhNsfWoUCmyfFqjm4VAY+mUdg=","16-ffaa:0:1004":"2Saoo7DCtsF2hqZTpmccZg9wpUhOE5rUlrjemzK5gKk=","16-ffaa:0:1005":"cP11YoZTqzWkOHALcIyR7hzSidiI679nGc/RdnEgT+M="}'
+- model: scionlab.isd
+  pk: 2
+  fields:
+    isd_id: 17
+    label: Switzerland
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 17","CertLogs":{},"QuorumTRC":1,"Version":1,"ISD":17,"RootCAs":{},"Signatures":{"17-ffaa:0:1101":"WQij07Q8TvB1NUjF6msLhS4O8zm6ihX3j6w/fro5TdzU08cpoEF+GGateWs2I0QSTBji+AHJafPJUQ4Dla2vCQ=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"17-ffaa:0:1101":{"OnlineKey":"o/hQB8UTSKm0odqGkoQINmhYOK+QNwl1NjpO58A/XqE=","OfflineKey":"cGaofvORPNDh2CasvxicB8W9mxWnGeHJscGy78mX5m4=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"17-ffaa:0:1101":"ag/6KYn3rz++eIJABQQUFd8WFRJpoF5EIgI81MogOps="}'
+- model: scionlab.isd
+  pk: 3
+  fields:
+    isd_id: 18
+    label: North America
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 18","CertLogs":{},"QuorumTRC":1,"Version":1,"ISD":18,"RootCAs":{},"Signatures":{"18-ffaa:0:1201":"q1MbJnLpUB7BDVY+9/Y3Q7XpgQoPqA0H52n7jltR58fMYuX1D8ZwYVlKG/tUl5QPM1ClHnQ0MdnRIqpIF143CA=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"18-ffaa:0:1201":{"OnlineKey":"FbTFY6bIf84avq8nHrZveyKVbfSATMT/AHClJhgKJgo=","OfflineKey":"2KsGqg0tJdyFSI/KCa/TrrmQYlr2lYSjc4nikUzSVkk=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"18-ffaa:0:1201":"rvzrnjx85TigV/iAWg/9F7XO5NjjHs9KXZaQBYf9sRs="}'
+- model: scionlab.isd
+  pk: 4
+  fields:
+    isd_id: 19
+    label: EU
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 19","CertLogs":{},"QuorumTRC":2,"Version":1,"ISD":19,"RootCAs":{},"Signatures":{"19-ffaa:0:1301":"p5WOj29wYC6UQCes+1q4R39EUHUhzP4aQc8qAdFcshYcQZ2zSAwgYjAASd58L+i5i4kPjbG2U1A4X73s7SNiBg==","19-ffaa:0:1302":"w55KzfIRNQ1iuJ3mssCXVR1lPdFH2uVGOLf4WdFCVLSrNOenFjapmLm5pf9SHdXGYgq9SxuquL6846RtRrB/CQ=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"19-ffaa:0:1301":{"OnlineKey":"vgfKAtFtT5bRrDJebaVfOMCPQCVafUafi1PKAbkDIWU=","OfflineKey":"EMtsYraLs2vd/Yu+7t2fXDvwjohp3oV0KWeQdI5v4ik=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"},"19-ffaa:0:1302":{"OnlineKey":"Rg6ELdwb0nWtka7sz8UORsSJD/Q99WkUFSMCHVd2o5s=","OfflineKey":"5hNyJsBl0iHuGUCiaDk3BhsfWOePXJXT0+xEDx9A8vA=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"19-ffaa:0:1301":"0Y+BQp6FoKkuwhll/lTtAROFnpMwUDAwbE3LD4Zc0eQ=","19-ffaa:0:1302":"Qi6yGRy1HG7hYYvIZlzECV47/V+jkoTk2rJ9mTTNH/k="}'
+- model: scionlab.isd
+  pk: 5
+  fields:
+    isd_id: 20
+    label: Korea
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 20","CertLogs":{},"QuorumTRC":1,"Version":1,"ISD":20,"RootCAs":{},"Signatures":{"20-ffaa:0:1401":"LGJhRi+c6J/qyr3xssg9Ezdl8shgvenF7gE+UgQGto0rK0evOnAXj7gdEUxkjMMr/heIH50hJtXp6jO5hx9qBQ=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"20-ffaa:0:1401":{"OnlineKey":"qqMQ93fu7Ghv6LRVp28trRNbIPCxdWh0j/r6SASZf+s=","OfflineKey":"My18UClLI7TJLPFjMecouhNX3uTvkb0vi4ZvpBAevPs=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"20-ffaa:0:1401":"i3KHZelt1xXlpgwy8ooR1johErJzLo0YMrokYjiEWUA="}'
+- model: scionlab.isd
+  pk: 6
+  fields:
+    isd_id: 21
+    label: Japan
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 21","CertLogs":{},"QuorumTRC":1,"Version":1,"ISD":21,"RootCAs":{},"Signatures":{"21-ffaa:0:1501":"pyOQUE2YqtmVhwS94kRC2L6gG3DNOWz+Z7DvBkgpRlsOX6GiZwqg7P2X0luac4v20UleN55Bf7Sqerm9kdfICw=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"21-ffaa:0:1501":{"OnlineKey":"bMXroHGdFTIGCPg44PgZJAbaVvRx/j3bbWXKwelrzpU=","OfflineKey":"aNQm2yBDJn6Pj9QFgQW/OkftTrPNErJWuCDcMV2p0VQ=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"21-ffaa:0:1501":"tOR2Z/nbuJG5OC8eYBv4GJiuG2E3iYJn7pY+B9+qQt0="}'
+- model: scionlab.isd
+  pk: 7
+  fields:
+    isd_id: 22
+    label: Taiwan
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 22","CertLogs":{},"QuorumTRC":1,"Version":1,"ISD":22,"RootCAs":{},"Signatures":{"22-ffaa:0:1601":"9/gY7jwL8sHw3v0Dw2PjflkW0PIX8JOREAq4lLSSzywwJPcRBiJAPlFB81LqX21teVhmtCs6qnm9dvbMQGWfCQ=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"22-ffaa:0:1601":{"OnlineKey":"iJagGzikczruqbgO3NLiyIwKk2rigIYehv//J/H0lpU=","OfflineKey":"MDPm8KkBqS+yZs8QYJaA4DV1ht/xzn5PbVIFEvjHYWQ=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"22-ffaa:0:1601":"rSQRK+yXrZ3KgovfIS+dNtUzr1UZ5KrlQayrpHPI3ug="}'
+- model: scionlab.isd
+  pk: 8
+  fields:
+    isd_id: 23
+    label: Singapore
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 23","CertLogs":{},"QuorumTRC":1,"Version":1,"ISD":23,"RootCAs":{},"Signatures":{"23-ffaa:0:1701":"HUmoKZk5EethUbMXvL2tRz7jpf8GuDHYLkq67tANaXlfK7lnYAfIeM+s+H8JGouAl+0a08cc6kkHaCJcQAfeCw=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"23-ffaa:0:1701":{"OnlineKey":"K9+bTIXgxNd+SxucVjGgg/xrLyPQzrN0mz9jKafvKG0=","OfflineKey":"vdT3ZdDaJWEkEUcp0aiyfqcvsLH3PcXgmYH69jQ/zdM=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"23-ffaa:0:1701":"Anfip93XGP0ixPL17a/Gdpdnb8qyeh82lS1Q+NIJ/5E="}'
+- model: scionlab.isd
+  pk: 9
+  fields:
+    isd_id: 24
+    label: Australia
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 24","CertLogs":{},"QuorumTRC":1,"Version":1,"ISD":24,"RootCAs":{},"Signatures":{"24-ffaa:0:1801":"fEl0FIdfk8/6ST1EZvlTHENWvTFm0hCNWy79K8KPedIHycpEZQNG4BS4hUcCAVR6naCFePcizcTpriXk7/WiBg=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"24-ffaa:0:1801":{"OnlineKey":"x7V7Npsc6MoLB1LcQ5igOap/OJwGB7Y0Xp/A2Dzs1xA=","OfflineKey":"6eSEydLQZgYosO5pFStFClVWo4se2zJJDWY6EVjbZMA=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"24-ffaa:0:1801":"zsqzr+1+1jN3xi74LbTWyF1LdgcWi8nXUTeRqfNu11E="}'
+- model: scionlab.isd
+  pk: 10
+  fields:
+    isd_id: 25
+    label: China
+    trc: '{"Quarantine":false,"ThresholdEEPKI":0,"RAINS":{},"Description":"ISD 25","CertLogs":{},"QuorumTRC":1,"Version":1,"ISD":25,"RootCAs":{},"Signatures":{"25-ffaa:0:1901":"kXXt1/hhNTcTv54QkmFiVdzSZ3vkm4ab5vRgfYnaHWveALSnfwsn6myl/UGtzr/Xq032afqRwRkfpi8oa45hDg=="},"ExpirationTime":1561560759,"QuorumCAs":0,"GracePeriod":0,"CoreASes":{"25-ffaa:0:1901":{"OnlineKey":"ZKjgpktYaAFnfkreJL3QTDDev06lYfk47BdBxTKvVdY=","OfflineKey":"a2qKHT2MaDxeE3iSFS6iLwQ/Reulsp553BG2JPRYRl8=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519"}},"CreationTime":1530024759}'
+    trc_priv_keys: '{"25-ffaa:0:1901":"NkJtmKk3+gZWgM7Z9izQYgif6xvkM3ILKyAuh/glxjk="}'
+- model: scionlab.as
+  pk: 1
+  fields:
+    isd: 1
+    as_id: ffaa:0:1001
+    as_id_int: 281105609527297
+    label: AWS Frankfurt
+    mtu: 1472
+    owner: 1
+    sig_pub_key: RSWh+VLYLwbNesua886UvWUBu2PnhoSYS6qoqtLK8Q8=
+    sig_priv_key: Jua5RuXXeiYPPpR1K0vO5cI9MiXLL0c1YSaKETnN+LQ=
+    enc_pub_key: kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=
+    enc_priv_key: uF9MKim6fSAzgrn7CJAAVNlTl7B1jEttEXLx8RBkVFQ=
+    master_as_key: q2O31zyHR5Y3Y6DHhSyXUQ==
+    is_core: true
+    core_sig_priv_key: 0+vGg3wTTzIZD8zecx8Bx1SdjVgzwPbTa7T+wm2Jf+Q=
+    core_sig_pub_key: eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=
+    core_online_priv_key: wydozb8EUgKbpaA/uRtzmjiYJ+yFctpCUykeGarKQ9s=
+    core_online_pub_key: sO+BOC3rFMApHkwa5RJpcExys6Wr205uA566uUD4dtQ=
+    core_offline_priv_key: 2M3+AnazukUM+810ZfErjR1+D22i+NAFzR5+o3xWzeM=
+    core_offline_pub_key: mD3C59G7wvFQHbakLqBlCNjRVcEnPwt7o3hlNbvARFg=
+    certificate_chain: '{"1":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=","Subject":"16-ffaa:0:1001","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"Npq6YdVxTmf3aHeyAA7DMzpqF8plMe6l9oKzqG3ZxVJjC4Q5FPNnx7gPsqcgl7NX3Up/diClnoE47JV58A4kAg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"RSWh+VLYLwbNesua886UvWUBu2PnhoSYS6qoqtLK8Q8=","Subject":"16-ffaa:0:1001","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"16-ffaa:0:1001\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=\",
+      \"Signature\": \"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==\",
+      \"Version\": 1, \"Issuer\": \"16-ffaa:0:1001\", \"SubjectEncKey\": \"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=\"}"'
+- model: scionlab.as
+  pk: 2
+  fields:
+    isd: 1
+    as_id: ffaa:0:1002
+    as_id_int: 281105609527298
+    label: AWS Ireland
+    mtu: 1472
+    owner: 1
+    sig_pub_key: SU9iFsi6xop2zA+pXGdSaADNeoFvpbbDgeJ90+ZnrDs=
+    sig_priv_key: LPEpmZOiV3nmeFAgfk0Ty7trOEGDyGJNpLFsFJkzhGw=
+    enc_pub_key: +jCyU7PtIRB+9/IXLlGrNFKcZgAfiCnnwcA2tHwE+jA=
+    enc_priv_key: yHMu/bi54FM9i2HkN72TJocv6Pd6sfErCM+YClVpUPk=
+    master_as_key: FFPUOy07drmK8DQx86B6Fg==
+    is_core: true
+    core_sig_priv_key: DjBgdZv/akxM61IDVLtJ5fWydfSPNZF+mlH7QxklibA=
+    core_sig_pub_key: eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=
+    core_online_priv_key: uH3FGoLVTDBVb81mSyMZrzoS1EtNpnezOyRFOwAFpNs=
+    core_online_pub_key: X7BeKqp9nq30PeWxKJVV0AGrLULR11tjdsYNz7I+1ic=
+    core_offline_priv_key: gxQ++QAryr3BD2C5DoK9rZo1+k9vt3iQ+sJFbtLTLXo=
+    core_offline_pub_key: iowlxz+xtMxPxgGQvLGA11kV2+HbjynLj3/47hSaCO4=
+    certificate_chain: '{"1":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=","Subject":"16-ffaa:0:1001","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"+jCyU7PtIRB+9/IXLlGrNFKcZgAfiCnnwcA2tHwE+jA=","Signature":"7eFaMl0GEQm/3kHOn7clRmXeRqu68B1LP1YAiGy425aJvMA3qT08hOeEhBGmurwzJ4na8evIjIFOYeLrJG1iAg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"SU9iFsi6xop2zA+pXGdSaADNeoFvpbbDgeJ90+ZnrDs=","Subject":"16-ffaa:0:1002","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"16-ffaa:0:1001\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=\",
+      \"Signature\": \"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==\",
+      \"Version\": 1, \"Issuer\": \"16-ffaa:0:1001\", \"SubjectEncKey\": \"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=\"}"'
+- model: scionlab.as
+  pk: 3
+  fields:
+    isd: 1
+    as_id: ffaa:0:1003
+    as_id_int: 281105609527299
+    label: AWS US N. Virginia
+    mtu: 1472
+    owner: 1
+    sig_pub_key: fuL+hVSWSf5y+JURu+yt7kqbmAEvgUXT85UbElv+SUg=
+    sig_priv_key: p+dbzbRNz/wqE5YRXMpifqL8fVkK/lGZmTsgFUIvDDM=
+    enc_pub_key: dxATVJJXFOlRo0eMPdHqbnZam4b8hleeJF5yNrPq0Gg=
+    enc_priv_key: XuR52h7ERJaMYcMsqOG0HTFkeaEIAfB698o6684n+rg=
+    master_as_key: nluK0jSQTOAyObHkVjpgMg==
+    is_core: true
+    core_sig_priv_key: wMeOI45Bxg26kvyO0RlhNsfWoUCmyfFqjm4VAY+mUdg=
+    core_sig_pub_key: eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=
+    core_online_priv_key: RXWJpkT29J3q3hbuLWFcOrODCftV5r1aG10niqK3+zI=
+    core_online_pub_key: 1fJ3u7fNJbqdOTGJTcRMjvnrE9k8kIANRrzsnGUdItI=
+    core_offline_priv_key: K8a/U4dqvh90rWpQLOsOGb0Df/Z/B798K1QvyrJKzr8=
+    core_offline_pub_key: iB1OAlMzz4TcLtqFoJ5au6ogRcKSmANgKBC4txZ+b1M=
+    certificate_chain: '{"1":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=","Subject":"16-ffaa:0:1001","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"dxATVJJXFOlRo0eMPdHqbnZam4b8hleeJF5yNrPq0Gg=","Signature":"hWpFKQ8sfQXEDMjJpiXBXyb2mGl6sFnHPjqqYlUUgGtLVbupLiQakOnyUZgww2d3qUeam32UTANer1JdEqQkDg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"fuL+hVSWSf5y+JURu+yt7kqbmAEvgUXT85UbElv+SUg=","Subject":"16-ffaa:0:1003","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"16-ffaa:0:1001\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=\",
+      \"Signature\": \"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==\",
+      \"Version\": 1, \"Issuer\": \"16-ffaa:0:1001\", \"SubjectEncKey\": \"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=\"}"'
+- model: scionlab.as
+  pk: 4
+  fields:
+    isd: 1
+    as_id: ffaa:0:1004
+    as_id_int: 281105609527300
+    label: AWS US Ohio
+    mtu: 1472
+    owner: 1
+    sig_pub_key: 8jveAntIPAw35bKb5eLkPFr3QDgor2PwGfqHXyEVT1w=
+    sig_priv_key: nok77dkGvGwNNycvR1EIMlECSy3y7xV5d3ZQWyN5aZU=
+    enc_pub_key: yoYWQGiXZssBZAgA6SAD88LYqg/y+qRJZIFrF+LAVG0=
+    enc_priv_key: 9vEIjKH2S0HpnVVlCW75O9q6jEjYBvBIo8vJCznEUD4=
+    master_as_key: AO1FlG2IWtTKBkId0vl2Hw==
+    is_core: true
+    core_sig_priv_key: 2Saoo7DCtsF2hqZTpmccZg9wpUhOE5rUlrjemzK5gKk=
+    core_sig_pub_key: eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=
+    core_online_priv_key: ZqAnQH+tquuHKNikdDLGESuT5Jo/2WgKv9cwMpkik50=
+    core_online_pub_key: +ngBeXKdE0Dxigzfoh0LzMLAOYBHkIidLtLwrNW9/Cc=
+    core_offline_priv_key: OIJvSZ8ZDf/dunqE1NHIeiMTF6op0/5M0B8J2utJ10o=
+    core_offline_pub_key: Rk92frqVcCujLx4q37Ph4VmqLbTBiZtnXr0g++jVdSU=
+    certificate_chain: '{"1":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=","Subject":"16-ffaa:0:1001","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"yoYWQGiXZssBZAgA6SAD88LYqg/y+qRJZIFrF+LAVG0=","Signature":"aqS9m8cSud3ScL+futmi3p4rEjpKANxhIS3v6s/s7laU+yAQFitdd+GcWsLG1fw/yc6IO07r+vXJoyTQHwViAg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"8jveAntIPAw35bKb5eLkPFr3QDgor2PwGfqHXyEVT1w=","Subject":"16-ffaa:0:1004","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"16-ffaa:0:1001\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=\",
+      \"Signature\": \"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==\",
+      \"Version\": 1, \"Issuer\": \"16-ffaa:0:1001\", \"SubjectEncKey\": \"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=\"}"'
+- model: scionlab.as
+  pk: 5
+  fields:
+    isd: 1
+    as_id: ffaa:0:1005
+    as_id_int: 281105609527301
+    label: AWS US Oregon
+    mtu: 1472
+    owner: 1
+    sig_pub_key: 2f/0R6d5G2gN8dOq8zqdCzY0QBfT+9J0Fk+kGcKu8ZY=
+    sig_priv_key: 7czxxx+kzJvf2aUoT6WEQAfNjx8YvobtxKYu+U7Gngo=
+    enc_pub_key: 5sQWl1Eq4L46CWt7e6Gh+Qn9tM3+17n69HwwGw5Vtx8=
+    enc_priv_key: MQ4ECeP7tGeEG3QF+NoQqcyuUkDs5UvqP4O2arvS2Ew=
+    master_as_key: EZNOFCXB3NV0rLo/oEUHAg==
+    is_core: true
+    core_sig_priv_key: cP11YoZTqzWkOHALcIyR7hzSidiI679nGc/RdnEgT+M=
+    core_sig_pub_key: eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=
+    core_online_priv_key: tJmeV7l2tgwnKF4Vh8BrJd5QA3Ou1iPBD4RCOlKmqxs=
+    core_online_pub_key: Fp+v9cZB3u+c41tHg1gZglvPTXjuJWBmZi3pijgwktU=
+    core_offline_priv_key: 6tOCj8Msjzh5lldTl4G5zDhnkx8FFq3d5VfHwABw0fk=
+    core_offline_pub_key: ZimHzvgbd1MNY9q2Qt/SLqPvFasLDHitgpoDEOeyChw=
+    certificate_chain: '{"1":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=","Subject":"16-ffaa:0:1001","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"5sQWl1Eq4L46CWt7e6Gh+Qn9tM3+17n69HwwGw5Vtx8=","Signature":"TNPFGOELKVo7jmnPb1xOjL++wgetvbikAhDcs13pJF1/Rnh3tms69ssv1/RvBNnr2B7xElk/OXJpwMEFuDdSBA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"2f/0R6d5G2gN8dOq8zqdCzY0QBfT+9J0Fk+kGcKu8ZY=","Subject":"16-ffaa:0:1005","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"16-ffaa:0:1001\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=\",
+      \"Signature\": \"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==\",
+      \"Version\": 1, \"Issuer\": \"16-ffaa:0:1001\", \"SubjectEncKey\": \"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=\"}"'
+- model: scionlab.as
+  pk: 6
+  fields:
+    isd: 1
+    as_id: ffaa:0:1006
+    as_id_int: 281105609527302
+    label: AWS Japan
+    mtu: 1472
+    owner: 1
+    sig_pub_key: AUMfWP7GQbFTzwBksFBWjLo4sB1R8V60df/BI4FMkNU=
+    sig_priv_key: HRXs3MdeATnm5q/BK1jAB4b4/J8BfvE27AZRF3ayIKA=
+    enc_pub_key: 8FbAkfR6dGgLi6GbWdjpDTotmfD/YMu+5ycbmi1puAE=
+    enc_priv_key: OLN57hXkR5JIFUbIcPJl5ywF2zyy6EjVB0r1MHELzvk=
+    master_as_key: mTxF/fysnFLnsCbjMNeafQ==
+    is_core: true
+    core_sig_priv_key: zhYjwttPFNxWFuoyIl+ulz4DW01n5xF1A2Ik6gW9UOw=
+    core_sig_pub_key: eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=
+    core_online_priv_key: jooRz6PHpu90tfWEsi0WsfTj5bO4vgF091bkG2nmZUw=
+    core_online_pub_key: OBOPt0a3VTzg/ED/LLtTLk6UIfBT7G0FMzRbrj54G68=
+    core_offline_priv_key: QPWUHcKVOWEOSTW+HAYFyLe0iH1Rvyp6W7Ba7c+y8kE=
+    core_offline_pub_key: 47ZrxOYG0Cnhlhu9WFAc96yNQN5yHtqBu2kCeI2PLew=
+    certificate_chain: '{"1":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=","Subject":"16-ffaa:0:1001","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"8FbAkfR6dGgLi6GbWdjpDTotmfD/YMu+5ycbmi1puAE=","Signature":"cZEX5fIcYzcAwZVJAet2jaG9tHBFuq5JrTEmnUmyCXdDVn1T/SaVaEZjmhpJkIsIEkThPn8EUuPN/IQS1nMaBg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"AUMfWP7GQbFTzwBksFBWjLo4sB1R8V60df/BI4FMkNU=","Subject":"16-ffaa:0:1006","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"16-ffaa:0:1001\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=\",
+      \"Signature\": \"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==\",
+      \"Version\": 1, \"Issuer\": \"16-ffaa:0:1001\", \"SubjectEncKey\": \"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=\"}"'
+- model: scionlab.as
+  pk: 7
+  fields:
+    isd: 1
+    as_id: ffaa:0:1007
+    as_id_int: 281105609527303
+    label: AWS Singapore
+    mtu: 1472
+    owner: 1
+    sig_pub_key: khS3hCMhYcFJm4IUxD/kR8jPZlS7aUxDlKArHuovlLk=
+    sig_priv_key: zDFy4ojkgeew+CNqVWj0jostcT5ppfqQCPpChBPHbcw=
+    enc_pub_key: 7jR7n4x53nmP2vAcEL1svUeyzNCOHwEqIGmhbCIJaHs=
+    enc_priv_key: tXdxQ39c1FY4Ux/sU/Gx1Cj2dNXWHMfNhPRh4p+OvbY=
+    master_as_key: SbTR2sZ747KXpMYGzLF79g==
+    is_core: true
+    core_sig_priv_key: 611wkUeuHnQ1EHG/mbri6skBmcuCBED1839BnoQLc60=
+    core_sig_pub_key: eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=
+    core_online_priv_key: jWOi9ihOC0u/yA3oZ+aWPF0lxdA2car8xAtMJNFc7j0=
+    core_online_pub_key: qBFnOGjpL+N839iwm5y7Opy7aOB9/x502R2HTc/6CgY=
+    core_offline_priv_key: QNImIzX6uHLaoo0qD4CQ/jYweNwCt1NuV+pC5SSdjsE=
+    core_offline_pub_key: +AB4e3tTzWuG0K/yjCoxooKpCITkpe/P3G9Y9KWSna8=
+    certificate_chain: '{"1":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=","Subject":"16-ffaa:0:1001","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"7jR7n4x53nmP2vAcEL1svUeyzNCOHwEqIGmhbCIJaHs=","Signature":"Sn9mrGuzmzXlx2Ad2mYHUSSFzxBLqxcDB9mTy2ocVmVL65mDjx5yjkowcrQtBmcF84gJx47XImxH1hmDPXTYDQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"khS3hCMhYcFJm4IUxD/kR8jPZlS7aUxDlKArHuovlLk=","Subject":"16-ffaa:0:1007","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"16-ffaa:0:1001\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=\",
+      \"Signature\": \"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==\",
+      \"Version\": 1, \"Issuer\": \"16-ffaa:0:1001\", \"SubjectEncKey\": \"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=\"}"'
+- model: scionlab.as
+  pk: 8
+  fields:
+    isd: 1
+    as_id: ffaa:0:1008
+    as_id_int: 281105609527304
+    label: AWS Australia
+    mtu: 1472
+    owner: 1
+    sig_pub_key: xANonFJTGB68Fs5j/cwHhuyqQ8hTHOVy7end6MmZegA=
+    sig_priv_key: NOGYKP44kGR93miSW51tihoj6hzGbUbqJOAf1hW4grk=
+    enc_pub_key: i7tRt8qiGMWtkXLpthOyhxDv6K1xZoR0OoAtqV3VwS8=
+    enc_priv_key: 2Zls8rbiAoV3wxJI5XdE3bcZn33HnYApr5YSMrtdjM0=
+    master_as_key: kHRM4pKI1+pzpafjae8JAA==
+    is_core: true
+    core_sig_priv_key: ZfHFpc9qZXZw7A2N9geYwhV5oJIxSP5Lmiy0m//BfEs=
+    core_sig_pub_key: eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=
+    core_online_priv_key: Lr0xpWPAqr60ZmyFHHznzbLNSwMeECqY1fSeg67lS60=
+    core_online_pub_key: /9fcrdXl+ZZfTcIzuqJ4zaDmVgxctMWskq/YScTqTGQ=
+    core_offline_priv_key: dV7WeEWWLLkkJNi7CPuBG7yrZ49e2nC2YOwQIdOscCA=
+    core_offline_pub_key: D2Lw369eJ9y7IlEdBn0c1e9yyprdeYXbVhkMheZec7g=
+    certificate_chain: '{"1":{"SubjectEncKey":"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=","Signature":"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=","Subject":"16-ffaa:0:1001","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"i7tRt8qiGMWtkXLpthOyhxDv6K1xZoR0OoAtqV3VwS8=","Signature":"wLPoCIjf3uIzpmhJWCpMJ10314zW2nCP8/wv6IxyL9trpeUiqDAJqan4oYIuwozVI9gVTRCkjxXjYAK3qFI/Cw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"16-ffaa:0:1001","SubjectSignKey":"xANonFJTGB68Fs5j/cwHhuyqQ8hTHOVy7end6MmZegA=","Subject":"16-ffaa:0:1008","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"16-ffaa:0:1001\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"eRNMtctlikuUhufvEJlzOuS1MTLsHYiNXV9yd+vvHVM=\",
+      \"Signature\": \"+UIB/oeHtG/3BRU3HB7MrNHGDzNDm02o8QgRL6toipWBZ6KyPQlONePQTzYp1xvyms+xfz8F8IFZmBw1fxEYBw==\",
+      \"Version\": 1, \"Issuer\": \"16-ffaa:0:1001\", \"SubjectEncKey\": \"kKh1zbRS6Sl/meQGNJ+tdWSgSyQe1ABLGz5LKo2bbR0=\"}"'
+- model: scionlab.as
+  pk: 9
+  fields:
+    isd: 2
+    as_id: ffaa:0:1101
+    as_id_int: 281105609527553
+    label: SCMN
+    mtu: 1472
+    owner: 1
+    sig_pub_key: GGY60a4qTd7lBXKXMPmkHvKApkAh6lKgKEq3J1VdQeQ=
+    sig_priv_key: VQLyEZ9/Q30sApQvYRYjSlUUigP0AI49VNpHwsvge4U=
+    enc_pub_key: rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=
+    enc_priv_key: sMfytXWBYzT8KVnzhJ+XTlWtM4Nm5k8ths2/i6xrD+Q=
+    master_as_key: 2sqleXAHMAjfXysxY+420g==
+    is_core: true
+    core_sig_priv_key: ag/6KYn3rz++eIJABQQUFd8WFRJpoF5EIgI81MogOps=
+    core_sig_pub_key: bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=
+    core_online_priv_key: 3WZPvGZHZEYgUrsWHItvRT8hidvigTYpHLj7K+yzMCA=
+    core_online_pub_key: mq1Q02k8WT4/0BZGOadNrVhqRRteP5j/ogOsz17Mnx8=
+    core_offline_priv_key: mm2u8uvedW8iDfe2hoRnK8zBdI97DQc/TA+0mlGluKE=
+    core_offline_pub_key: XD0oln+LdWe0lJR0eLWD4NYjny0Jk0qh+AGomor32mc=
+    certificate_chain: '{"1":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=","Subject":"17-ffaa:0:1101","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"FVXXhRn6FJYFXCw/wu+XG3FrWdj7TsSusRm9/COBIUS4fgrNiqjjc5rL2i5Fzd4quCalCHT/0L7t4kSWVwnZBQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"GGY60a4qTd7lBXKXMPmkHvKApkAh6lKgKEq3J1VdQeQ=","Subject":"17-ffaa:0:1101","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"17-ffaa:0:1101\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=\",
+      \"Signature\": \"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==\",
+      \"Version\": 1, \"Issuer\": \"17-ffaa:0:1101\", \"SubjectEncKey\": \"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=\"}"'
+- model: scionlab.as
+  pk: 10
+  fields:
+    isd: 2
+    as_id: ffaa:0:1102
+    as_id_int: 281105609527554
+    label: ETHZ
+    mtu: 1472
+    owner: 1
+    sig_pub_key: Yt4vbCBpswLjMNclZslK+t2dz24UZTOG/MUZMvBf4Uk=
+    sig_priv_key: KJrg9BKJUO+d3nQP7LPRF/MkAoxAvgxyknXUaqq0pyk=
+    enc_pub_key: 2YP8GxnDW6lYEoWXTctgIcyOKFe0LpQHSp0ckAP3IU4=
+    enc_priv_key: opeyHB8S3yQTRo5azXJP6b5fTvUX0mqRTSuekhgqXYY=
+    master_as_key: IVbHCYsoe9pEpEl9lN47tg==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=","Subject":"17-ffaa:0:1101","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"2YP8GxnDW6lYEoWXTctgIcyOKFe0LpQHSp0ckAP3IU4=","Signature":"FmeKgBnxDKwNxr/KDCSpILxlhRBZLd3NCnmAZjPIfJ8BLRyWymIXXj1UWCDZCpe1E0bX7a8QZoS5WvTmti7+Ag==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"Yt4vbCBpswLjMNclZslK+t2dz24UZTOG/MUZMvBf4Uk=","Subject":"17-ffaa:0:1102","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 11
+  fields:
+    isd: 2
+    as_id: ffaa:0:1103
+    as_id_int: 281105609527555
+    label: SWTH
+    mtu: 1472
+    owner: 1
+    sig_pub_key: yJXFSFN+chkVZqI7AMyW4161Mbu+5i4fb2sU0eRrE9A=
+    sig_priv_key: rtyZqVOfD7NqF93oBHyaUOu4GnX67nL1TueZfZ98oKM=
+    enc_pub_key: MiqhDObbXQb/hCoFLyab0fQuB5XQRqhhuMhnA0AsYiU=
+    enc_priv_key: 72bw1taBzouX0V3QU44IyduJrB5AOkfSLxHcuC+XqeU=
+    master_as_key: NK7yeU0ncCj7aH9LefAJ8g==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=","Subject":"17-ffaa:0:1101","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"MiqhDObbXQb/hCoFLyab0fQuB5XQRqhhuMhnA0AsYiU=","Signature":"mdvCbBwQ7lLz5gHeKWPNkWi1xFJN3pOdJ/6lVp8BKgR6sV/A3NNHCvZ2lh7Bpc750laG0xaYHfkBTzxAqSt7Bw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"yJXFSFN+chkVZqI7AMyW4161Mbu+5i4fb2sU0eRrE9A=","Subject":"17-ffaa:0:1103","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 12
+  fields:
+    isd: 2
+    as_id: ffaa:0:1104
+    as_id_int: 281105609527556
+    label: BIT
+    mtu: 1472
+    owner: 1
+    sig_pub_key: Lwh8dg8hb9R9vyNR3sugujI/ChcsFljzk+8PhzXJi2c=
+    sig_priv_key: xCjpVZatto/m4/pBVs6udZvb3g5QKuewt+u+WZvIKF0=
+    enc_pub_key: iAdtcsOAbUkTB6rA3RFpSzR6sapJ8+z2mVxaofrD/24=
+    enc_priv_key: 1eLwJlmJuyIjA6b5ZiqVg4TQQUYEgZhUgT1l/6jF8e4=
+    master_as_key: hooVgogfzaiEFOBphQHsNw==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=","Subject":"17-ffaa:0:1101","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"iAdtcsOAbUkTB6rA3RFpSzR6sapJ8+z2mVxaofrD/24=","Signature":"u2l1AL+TYPaQro7qHcxIrbV7Nk5lq5AXC/osgkpSl8V2B4OnK+xs+g/M2OkCmjO2iW8P6joYeGfJFxhxTU8BDw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"Lwh8dg8hb9R9vyNR3sugujI/ChcsFljzk+8PhzXJi2c=","Subject":"17-ffaa:0:1104","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 13
+  fields:
+    isd: 2
+    as_id: ffaa:0:1107
+    as_id_int: 281105609527559
+    label: ETHZ-AP
+    mtu: 1472
+    owner: 1
+    sig_pub_key: OWlVmSwDptwVGGtQQmW5HdBFngCAZ14SfcH+ohvY3IA=
+    sig_priv_key: MQjnhdC4UQ55k+9jRrcQ11NEpo0zq33Qk6BVmA0i4/o=
+    enc_pub_key: vwNNORp6PJc3Mlum3fXRnV2mbn2GFtaPlpn4Yct3DSw=
+    enc_priv_key: lV6FbsqnPSBBpRFYThv0PwqMN35b8rELQVkCKDi3pro=
+    master_as_key: OTjRhhHiiD6qgYywwRjzvA==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=","Subject":"17-ffaa:0:1101","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"vwNNORp6PJc3Mlum3fXRnV2mbn2GFtaPlpn4Yct3DSw=","Signature":"zokWQlWiYSFeCF18EFLErDE9/bEhGwF61iygIC5b8XLhEIWBP1GsC2FFbtWbRCvRY/SJwbZVsX1v1nL5dPatDQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"OWlVmSwDptwVGGtQQmW5HdBFngCAZ14SfcH+ohvY3IA=","Subject":"17-ffaa:0:1107","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 14
+  fields:
+    isd: 2
+    as_id: ffaa:0:110a
+    as_id_int: 281105609527562
+    label: PCEngines
+    mtu: 1472
+    owner: 1
+    sig_pub_key: EouxExbNx9OqbwRKr7f6gsIPrK7O9cWdW1uPeT+pnOs=
+    sig_priv_key: v4rh6prb+bPc3YFufOAZs93nV/U7FZDovpcZOnSSAV0=
+    enc_pub_key: FZtslC1xrAFqTwaRqQ1ErJlAzu4OS8O3DgES8a6JrTs=
+    enc_priv_key: Ph0Z7U3XnNqhujTr2O5i29s3jMmBW2VqjIxzIpHMFOY=
+    master_as_key: SSyefsZ6vgFELb769i10FA==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=","Subject":"17-ffaa:0:1101","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"FZtslC1xrAFqTwaRqQ1ErJlAzu4OS8O3DgES8a6JrTs=","Signature":"3mjBKSIPdo94GQdPCcrHJgPCPORQVZtZQFZKiHld/JgaGz/O+HfpxldFrVGOdY4qiRT8Qpi6vpyoiiArOsidBg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"EouxExbNx9OqbwRKr7f6gsIPrK7O9cWdW1uPeT+pnOs=","Subject":"17-ffaa:0:110a","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 15
+  fields:
+    isd: 2
+    as_id: ffaa:0:110b
+    as_id_int: 281105609527563
+    label: Odroid XU4
+    mtu: 1472
+    owner: 1
+    sig_pub_key: ZQQCfIsh+Cukj4bq4ZoCJLwqRDFo4000MHgHPMCVFc8=
+    sig_priv_key: LSVzb1UBdbofi3pv2NLaDHoqbO7TjLxSL8lvMPLNE9U=
+    enc_pub_key: PIwPIpcrssuH0TBUZNYAYfD53SKT5a5dQOG/bwj9r38=
+    enc_priv_key: KQSosQm8wtR3Gr/TlGJKPsUTv9eKBGIWPJSgxdQ5Qp8=
+    master_as_key: wD7mMPiI8QBc+8gacpLiNw==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=","Subject":"17-ffaa:0:1101","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"PIwPIpcrssuH0TBUZNYAYfD53SKT5a5dQOG/bwj9r38=","Signature":"Cyaq89lzPl6cKHVfkLMoxF99bRrtvC4uxqtviE8UsHsIhonwzZgfrYwH7d77W6t19wm85rFhrFQVYZ4t8tM2DQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"ZQQCfIsh+Cukj4bq4ZoCJLwqRDFo4000MHgHPMCVFc8=","Subject":"17-ffaa:0:110b","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 16
+  fields:
+    isd: 2
+    as_id: ffaa:0:110c
+    as_id_int: 281105609527564
+    label: Odroid C1
+    mtu: 1472
+    owner: 1
+    sig_pub_key: ywmlQ3G66uWmR+2aSi4p0DmzwYc7L3cN6IhT86mye6Q=
+    sig_priv_key: GbMp2h2ycNqe3fFsKvLJKBnUMSsE7BYmoak+h/GfvSg=
+    enc_pub_key: rJGkAAL9d/RKWaOi37vdwd3mMgo4LuXyz7bSiSaN0B0=
+    enc_priv_key: J/rSBzZ3fwMmCPwqmfZpYYw4b1T46gTQSfiy6fxhERY=
+    master_as_key: ZqMo6EhC3690HP3KkD1o3Q==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"rtCgQv0qyShOol0EW/ULU41qLvqA6urn+C/tHoDwkwY=","Signature":"Y8zhfe4nvgX54s8njHojeO2aDYJPE6e5UrgKys/0zF9KJTCW5VwdPTnmx4u5c9BLqxdrj7YKOibbimCAAcmVCQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"bXbDRwVSWU4YhjE5eSYWWC8AtqG0zyo+8rcsx3p0v6U=","Subject":"17-ffaa:0:1101","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"rJGkAAL9d/RKWaOi37vdwd3mMgo4LuXyz7bSiSaN0B0=","Signature":"Mi17ca82IW4Eu1zgL8810bfE+XadqEYmlgeA6YZLahyCKdpr224XT/7BbwSCKkHBGBI+2KMvm5QJcNx6g1W8Dg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"ywmlQ3G66uWmR+2aSi4p0DmzwYc7L3cN6IhT86mye6Q=","Subject":"17-ffaa:0:110c","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 17
+  fields:
+    isd: 3
+    as_id: ffaa:0:1201
+    as_id_int: 281105609527809
+    label: CMU
+    mtu: 1472
+    owner: 1
+    sig_pub_key: FJ3hTTM/ZTIuV9vUysWUpl2uvfZ3q3Rx6iNc9/jioSk=
+    sig_priv_key: azpGh9kDREjQYCI7uINhIu+J2PMYhfOHJLfy1Vo88dE=
+    enc_pub_key: lUACwyRs/Ps9vhZG0cwcxdU4FIVt68JfmVEpjRokJz0=
+    enc_priv_key: 4PcvC+GU4x0Ntx3Ud6s6RUk8XELTgzdQ5rxyxOANddw=
+    master_as_key: lgKTqTONpPi+tIqFFH4q/A==
+    is_core: true
+    core_sig_priv_key: rvzrnjx85TigV/iAWg/9F7XO5NjjHs9KXZaQBYf9sRs=
+    core_sig_pub_key: hgU1lM9yAeBdg7G6ArPhLJ1mrSkdn86650nj2eQa9Bk=
+    core_online_priv_key: bmahI1UpV1+y6kFWp80QQ62wr9XoZxxqJ5yfjGyOXoY=
+    core_online_pub_key: Ff6H7m+H7MI5g9jPAwdXJFSzSlVYAMAxiux0jQFMVgY=
+    core_offline_priv_key: 5xhz9gJOjaEZr+nd2OHvWYyM+M9lnaaVNrQsz2yDGeo=
+    core_offline_pub_key: 07oa3amuEeb1PSfrhHwinBCEts3mwBpbUect1r0MTbk=
+    certificate_chain: '{"1":{"SubjectEncKey":"lUACwyRs/Ps9vhZG0cwcxdU4FIVt68JfmVEpjRokJz0=","Signature":"v/pvia3AoSkkiYktqpjAlTnjnLFyqIkO26dEq5f48MBij/2S+vHh8nuD0oOe2xMJz5J6dNf3QS5eo8mu2p5+DA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"hgU1lM9yAeBdg7G6ArPhLJ1mrSkdn86650nj2eQa9Bk=","Subject":"18-ffaa:0:1201","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"lUACwyRs/Ps9vhZG0cwcxdU4FIVt68JfmVEpjRokJz0=","Signature":"EfzJ01sDf/SuIHEj1L6tnjzjSsFelgE0IEW1m48hhI7CZpaA+5DrTHxijOHui+Zqdjy2A9hgVFyf7erJcK1ECQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"FJ3hTTM/ZTIuV9vUysWUpl2uvfZ3q3Rx6iNc9/jioSk=","Subject":"18-ffaa:0:1201","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"18-ffaa:0:1201\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"hgU1lM9yAeBdg7G6ArPhLJ1mrSkdn86650nj2eQa9Bk=\",
+      \"Signature\": \"v/pvia3AoSkkiYktqpjAlTnjnLFyqIkO26dEq5f48MBij/2S+vHh8nuD0oOe2xMJz5J6dNf3QS5eo8mu2p5+DA==\",
+      \"Version\": 1, \"Issuer\": \"18-ffaa:0:1201\", \"SubjectEncKey\": \"lUACwyRs/Ps9vhZG0cwcxdU4FIVt68JfmVEpjRokJz0=\"}"'
+- model: scionlab.as
+  pk: 18
+  fields:
+    isd: 3
+    as_id: ffaa:0:1202
+    as_id_int: 281105609527810
+    label: WISC
+    mtu: 1472
+    owner: 1
+    sig_pub_key: dAVd6jmpUqDw/RZ37PRwzeZuncsp9zGY7qlwFLjiI1E=
+    sig_priv_key: j/teo65L8WztzXy5M6EiYextxCcm9E6Xc7UR87ertZs=
+    enc_pub_key: UDNy9PbB3E57lxkSkuqo8PvYtJuMzgLo8s8+7Jdb21w=
+    enc_priv_key: Tfi7u0DKj4yI3JrL4tHtE+Sj6pFR5VZfkSB/6DIfntU=
+    master_as_key: OD3sY66MtsZ5AJbdDCUW0g==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"lUACwyRs/Ps9vhZG0cwcxdU4FIVt68JfmVEpjRokJz0=","Signature":"v/pvia3AoSkkiYktqpjAlTnjnLFyqIkO26dEq5f48MBij/2S+vHh8nuD0oOe2xMJz5J6dNf3QS5eo8mu2p5+DA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"hgU1lM9yAeBdg7G6ArPhLJ1mrSkdn86650nj2eQa9Bk=","Subject":"18-ffaa:0:1201","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"UDNy9PbB3E57lxkSkuqo8PvYtJuMzgLo8s8+7Jdb21w=","Signature":"+Rkd5eL16CuI8LlE8ayT2SndrJjtTHfp0n+hZowv2b5YZZ2yBpYRcm7gmQ3Jv86y3gKChvAgvyMevUQxEZ0jDA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"dAVd6jmpUqDw/RZ37PRwzeZuncsp9zGY7qlwFLjiI1E=","Subject":"18-ffaa:0:1202","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 19
+  fields:
+    isd: 3
+    as_id: ffaa:0:1203
+    as_id_int: 281105609527811
+    label: Columbia
+    mtu: 1472
+    owner: 1
+    sig_pub_key: yQRnSPTOnDG9p9AyiYcGCmiHVu0Fxf4wFc4cStaF2Kk=
+    sig_priv_key: i1jpD/xuOpOqZXwztvPMTHYKQ3qo12q0VCWjs3UU0/s=
+    enc_pub_key: MPsJPXYbqkIF0xlNtROQ45p6Js9A/uIOOvw0Lxr8I1U=
+    enc_priv_key: g4s6wHvFXydVFKOsnvO8HXb9hIdcKuu0Vwq0GOYixcg=
+    master_as_key: b0pFayo/eCV8FVdwVdhkIg==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"lUACwyRs/Ps9vhZG0cwcxdU4FIVt68JfmVEpjRokJz0=","Signature":"v/pvia3AoSkkiYktqpjAlTnjnLFyqIkO26dEq5f48MBij/2S+vHh8nuD0oOe2xMJz5J6dNf3QS5eo8mu2p5+DA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"hgU1lM9yAeBdg7G6ArPhLJ1mrSkdn86650nj2eQa9Bk=","Subject":"18-ffaa:0:1201","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"MPsJPXYbqkIF0xlNtROQ45p6Js9A/uIOOvw0Lxr8I1U=","Signature":"VRi8pt0f1OgWJTsd5VUqYsL3C1q7GQEGk8VVyX1mm+WyNiXWfRAaFOhg4XAQFWfdZXLlBE7LcxcZ8QPi7OTrBA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"yQRnSPTOnDG9p9AyiYcGCmiHVu0Fxf4wFc4cStaF2Kk=","Subject":"18-ffaa:0:1203","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 20
+  fields:
+    isd: 3
+    as_id: ffaa:0:1204
+    as_id_int: 281105609527812
+    label: ISG(Toronto)
+    mtu: 1472
+    owner: 1
+    sig_pub_key: znut/rRa6WkdP3Rr+ieG77Ti30ifFq0pIYEeDyC90Cs=
+    sig_priv_key: yGzBs7MF7EaP1eAnh9ICC6/lFjZ7COVYVpgovkhTawY=
+    enc_pub_key: KpgumoxyfhBUakD3YQnYFgpDBwZnJhT2uAXaRdwYyWY=
+    enc_priv_key: Xp+X8P5+BxXGSZbYK2i4VJ68OR4bgHEbJmTW/I7nNTA=
+    master_as_key: KBVD5VHRHDljfM9THZ6L1g==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"lUACwyRs/Ps9vhZG0cwcxdU4FIVt68JfmVEpjRokJz0=","Signature":"v/pvia3AoSkkiYktqpjAlTnjnLFyqIkO26dEq5f48MBij/2S+vHh8nuD0oOe2xMJz5J6dNf3QS5eo8mu2p5+DA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"hgU1lM9yAeBdg7G6ArPhLJ1mrSkdn86650nj2eQa9Bk=","Subject":"18-ffaa:0:1201","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"KpgumoxyfhBUakD3YQnYFgpDBwZnJhT2uAXaRdwYyWY=","Signature":"yGK/JY+W8uRZANpkyvYNhYk2S6ElNZQChxBnT0/hMynLZYBtPqJ+PmMBXNWRnS+Hwy0FwOgAGrWb0uViIov0DQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"znut/rRa6WkdP3Rr+ieG77Ti30ifFq0pIYEeDyC90Cs=","Subject":"18-ffaa:0:1204","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 21
+  fields:
+    isd: 3
+    as_id: ffaa:0:1205
+    as_id_int: 281105609527813
+    label: ISG(Otawa)
+    mtu: 1472
+    owner: 1
+    sig_pub_key: eKyT63IjwsyP80uaoRhpS8RKCDy2o1+zzIv/FbwTtOs=
+    sig_priv_key: peOVToiAnSVTCFyKnpV4MAAfQl7zmBuRAcAxeSeQ488=
+    enc_pub_key: m2P+9UepKf4JSA8bx5oMUi2656+QiuiaqtnrPJ6kLHg=
+    enc_priv_key: GHvroHsBEgKVg4uHqLQYXiZ2Ku8YjMyMpwvR3/xwGAQ=
+    master_as_key: P+3DsNYzfBq2Aai8/IaARw==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"lUACwyRs/Ps9vhZG0cwcxdU4FIVt68JfmVEpjRokJz0=","Signature":"v/pvia3AoSkkiYktqpjAlTnjnLFyqIkO26dEq5f48MBij/2S+vHh8nuD0oOe2xMJz5J6dNf3QS5eo8mu2p5+DA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"hgU1lM9yAeBdg7G6ArPhLJ1mrSkdn86650nj2eQa9Bk=","Subject":"18-ffaa:0:1201","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"m2P+9UepKf4JSA8bx5oMUi2656+QiuiaqtnrPJ6kLHg=","Signature":"Jil5CqGp0QdF5wSQWCqQ8NwdAQTxdcUkdRAeqDH0q6DRYYuWaO1UhrZFzMeAjnYEIajtkeBWFJqbuTnrByefCA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"18-ffaa:0:1201","SubjectSignKey":"eKyT63IjwsyP80uaoRhpS8RKCDy2o1+zzIv/FbwTtOs=","Subject":"18-ffaa:0:1205","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 22
+  fields:
+    isd: 4
+    as_id: ffaa:0:1301
+    as_id_int: 281105609528065
+    label: Magdeburg core
+    mtu: 1472
+    owner: 1
+    sig_pub_key: kkR+sYxsY1SQMyRn+tWIeIJJ/MKt5vC7gjQVlx22kUs=
+    sig_priv_key: kFOybZTjuQIzUvKdqL9MttFAdrhyhD1xX0+jK40qQto=
+    enc_pub_key: yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=
+    enc_priv_key: y+LBeMGeCou7rqVnPkgH2zvrJ9Uu6JoBVb09VXBmtZ8=
+    master_as_key: kOyCZVVIjGlddTDHIdy+Fg==
+    is_core: true
+    core_sig_priv_key: 0Y+BQp6FoKkuwhll/lTtAROFnpMwUDAwbE3LD4Zc0eQ=
+    core_sig_pub_key: 7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=
+    core_online_priv_key: gy58h1gN+oU4tbZGEPzXZytJXffOD6z98QaKqr+TMj4=
+    core_online_pub_key: knvE50YYd79CP2oPsUe1pG0PV/k20h8I0ERvstMZjUY=
+    core_offline_priv_key: SnfBVQ8SAFTZJEO8lZpw8GA84Rf4YFZYzh2eEYMgNw8=
+    core_offline_pub_key: INsEaRY4KrOtpLv5u839N02QV/FPBmeApRzT3uXa/i4=
+    certificate_chain: '{"1":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=","Subject":"19-ffaa:0:1301","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"dIyB4iFG/oCyrvHUWlPQc2aygEoMCj5f4RRiLB1MvTze8d8sF3nrOTnxEFW1hIfDxddiV2O1yEPXze+1/FuCBg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"kkR+sYxsY1SQMyRn+tWIeIJJ/MKt5vC7gjQVlx22kUs=","Subject":"19-ffaa:0:1301","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"19-ffaa:0:1301\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=\",
+      \"Signature\": \"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==\",
+      \"Version\": 1, \"Issuer\": \"19-ffaa:0:1301\", \"SubjectEncKey\": \"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=\"}"'
+- model: scionlab.as
+  pk: 23
+  fields:
+    isd: 4
+    as_id: ffaa:0:1302
+    as_id_int: 281105609528066
+    label: GEANT
+    mtu: 1472
+    owner: 1
+    sig_pub_key: 1aoBMtoZAAuq4teV6cMLng0cAxKUtae6g06J15NPzDk=
+    sig_priv_key: Z0klnDTdp371o2bj2u3/pggaKwYtd9RVJw+wIdtAkZM=
+    enc_pub_key: 4EjIrC2zX9o9s+8dX/oU/LCUfhhHdwoJicymSH4N7nY=
+    enc_priv_key: XrUHxkQ84PycF/kq27+Le5oenIg7jemSstbS/I8Ww7s=
+    master_as_key: Uwg8pdDnEbgaj5GyGZIT/Q==
+    is_core: true
+    core_sig_priv_key: Qi6yGRy1HG7hYYvIZlzECV47/V+jkoTk2rJ9mTTNH/k=
+    core_sig_pub_key: 7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=
+    core_online_priv_key: 2Vn9FZZgTGUHuHErt2a0+3CvS2WYaFfDR23RYr5UhQM=
+    core_online_pub_key: +4SNrX9JMb8hDO3Zoy6OAKhXCPQylVRSi1/dsQMNB3U=
+    core_offline_priv_key: e3jqbuklFcIFBV2oQ08ked0Yj8W0Xi4JEhXn6e+QgYI=
+    core_offline_pub_key: 6mwBr9puyOs3YO8CTGcBF/dgWndBMShdaRhXW5PgfTk=
+    certificate_chain: '{"1":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=","Subject":"19-ffaa:0:1301","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"4EjIrC2zX9o9s+8dX/oU/LCUfhhHdwoJicymSH4N7nY=","Signature":"siXlSippba9IB/w29rDduFER1xexn0WRGs0JCrxWqtzsWVYl/Z+d7nvwORePHo3R62nGXU0bpIoZgIgGcwDoCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"1aoBMtoZAAuq4teV6cMLng0cAxKUtae6g06J15NPzDk=","Subject":"19-ffaa:0:1302","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"19-ffaa:0:1301\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=\",
+      \"Signature\": \"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==\",
+      \"Version\": 1, \"Issuer\": \"19-ffaa:0:1301\", \"SubjectEncKey\": \"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=\"}"'
+- model: scionlab.as
+  pk: 24
+  fields:
+    isd: 4
+    as_id: ffaa:0:1303
+    as_id_int: 281105609528067
+    label: Magdeburg AP
+    mtu: 1472
+    owner: 1
+    sig_pub_key: 7fWA3k0xQxtf5f5tIRKFwUPhqNHwk6g1JvxzlLPZnlk=
+    sig_priv_key: 7uugFa7itXivCwJ3WuAnDmStIyXKEVVE9ZahlwfGrow=
+    enc_pub_key: QZ7Nte1O+EY9dcd1UiXPt8MzMXPxsQ9NXU2oLOo9+TU=
+    enc_priv_key: wpR6uM1RGmv6dseewhf2Sn3pK3kqvdJELWmHcH2sxNE=
+    master_as_key: aCaAD6kBmUqDppab1U5EFg==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=","Subject":"19-ffaa:0:1301","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"QZ7Nte1O+EY9dcd1UiXPt8MzMXPxsQ9NXU2oLOo9+TU=","Signature":"I4pPpsABPlo/uhoSoI90SNT56aba1MUbvuwC5IGGpIemve4CWKSba24eAEWzJ7Ab5NfhXe0NV7BwBwSU+SPBCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7fWA3k0xQxtf5f5tIRKFwUPhqNHwk6g1JvxzlLPZnlk=","Subject":"19-ffaa:0:1303","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 25
+  fields:
+    isd: 4
+    as_id: ffaa:0:1304
+    as_id_int: 281105609528068
+    label: FR@Linode
+    mtu: 1472
+    owner: 1
+    sig_pub_key: s3tkVA0Qb9Xz8QuE9tQnye5rH0N6R+sAX3CfUKd3njo=
+    sig_priv_key: f6rn/HxN7fi5g/ixtkJySfHljxUlSA6w07hDCWhgOrw=
+    enc_pub_key: WGz5JI9UIia4qdkcV2//JG1iZrixFT2WP09cl3YGcxg=
+    enc_priv_key: bCcNc7LZVj07wSWWh9fcQzHwxgCuCUTXLHsMw3GfHQo=
+    master_as_key: /0ffZoasvNZJLrRHO1BXAw==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=","Subject":"19-ffaa:0:1301","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"WGz5JI9UIia4qdkcV2//JG1iZrixFT2WP09cl3YGcxg=","Signature":"AJaPi9sw5VQ7wf22k+rm+C5Ditxnh0RVYIwBd9PKfc+LgfzU5uu44Ezw7DkUMVrxvDdW9y93RNVVIaKXlI6jAQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"s3tkVA0Qb9Xz8QuE9tQnye5rH0N6R+sAX3CfUKd3njo=","Subject":"19-ffaa:0:1304","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 26
+  fields:
+    isd: 4
+    as_id: ffaa:0:1305
+    as_id_int: 281105609528069
+    label: SIDN
+    mtu: 1472
+    owner: 1
+    sig_pub_key: 2FAZ6MW7rjdb12BqTy67XK2/9rCZGh6GZNxwATDJKps=
+    sig_priv_key: 3txfRHj976UguSfqNuF4fnrdqZOKtfi4q7LO9uaRUrg=
+    enc_pub_key: WNQ017GNri6lk1pJIP3T1T+Uv5dpVXT+if9axyysUxw=
+    enc_priv_key: 8Lc1IwAip+dxKHXmMYruOAM2owo0dH3jiYwBVLqiGyA=
+    master_as_key: lHUGzLT7baVSitjjktughw==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=","Subject":"19-ffaa:0:1301","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"WNQ017GNri6lk1pJIP3T1T+Uv5dpVXT+if9axyysUxw=","Signature":"K1xL2ixT9Y4fdHowhIz6ifKDdu7ps9uzPNCa22UnMkoxQIjQwi9EsiNnOV6Kx25WzU5qMR4ciDb2OTcTuP7FAg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"2FAZ6MW7rjdb12BqTy67XK2/9rCZGh6GZNxwATDJKps=","Subject":"19-ffaa:0:1305","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 27
+  fields:
+    isd: 4
+    as_id: ffaa:0:1306
+    as_id_int: 281105609528070
+    label: Deutsche Telekom
+    mtu: 1472
+    owner: 1
+    sig_pub_key: 2hPgDwzHWe4WZ/GKijoNUsdBL03+jPHl4eo31nQP8cM=
+    sig_priv_key: r9LDod+gKs1eMQsrVGapXmFIZkWv/4zYxkI1cylk78o=
+    enc_pub_key: tqnt+BXlODEquS17tbizNyDU9MdeyHyhw4BEDwOiQws=
+    enc_priv_key: nTW9XhpS4MprH+HbmDAbS/Pkbqb8PjWEYW9i1dou9Gw=
+    master_as_key: Ig6wPf4sOnfMXaH9FwkJQw==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=","Subject":"19-ffaa:0:1301","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"tqnt+BXlODEquS17tbizNyDU9MdeyHyhw4BEDwOiQws=","Signature":"vPvMPbMrUSaiAVj/yo7bigrixQY1z+hw/zW83wUtwROy0Gx2Q64oJayzSmTjz6P46/RGJlB4eT8acywRFQwjCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"2hPgDwzHWe4WZ/GKijoNUsdBL03+jPHl4eo31nQP8cM=","Subject":"19-ffaa:0:1306","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 28
+  fields:
+    isd: 4
+    as_id: ffaa:0:1307
+    as_id_int: 281105609528071
+    label: TW Wien
+    mtu: 1472
+    owner: 1
+    sig_pub_key: CNM1c4AraQSTXt+FEYWJLlxUNOLe1RPEaL+nunTOmo8=
+    sig_priv_key: ZFju7HJNmFOEfcWCIlp3NjKNcgF0Sd473tjFFLOarD8=
+    enc_pub_key: SFCYviEfiWKLM+j26rC3XWULsccN7E5RKz8g8RAcMVc=
+    enc_priv_key: GQWWDE0GSC+xtfusnVwChBwW1mGXcBiQfuo0V7xzEXQ=
+    master_as_key: 9qpiHoGBgC6LeWcyZCLXlg==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=","Subject":"19-ffaa:0:1301","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"SFCYviEfiWKLM+j26rC3XWULsccN7E5RKz8g8RAcMVc=","Signature":"HO4Zw3zO83TjVWlm0uYeSOdoya0pDEUjNzcJo61HdYsbE6h2CIM6sj3tJXLSq4RxS3doxMLSaW0W2LuvGLYIAg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"CNM1c4AraQSTXt+FEYWJLlxUNOLe1RPEaL+nunTOmo8=","Subject":"19-ffaa:0:1307","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 29
+  fields:
+    isd: 4
+    as_id: ffaa:0:1308
+    as_id_int: 281105609528072
+    label: PV
+    mtu: 1472
+    owner: 1
+    sig_pub_key: 1hqMFyu3Iok2wZ7QA/ONoAMEFI2UeW241aeM5BCxGQs=
+    sig_priv_key: 3ob4PBZ5jO1ZdKH+bFVA7zSCli7kDJWytF0Act+wsZQ=
+    enc_pub_key: sPFYDaG5itD1tTp6K7ZL8xKubewl6Vb0xTaPliwfqxM=
+    enc_priv_key: DuGwDusQtm5CQ614t9h2f87HAHWQ/HuQNjjV2Jj+n4c=
+    master_as_key: pM1mbxAYFq5ei65ZCrlI1g==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"yyeu38ddvsZ2yHRXBmKB6yMaoyxWhX4X7wSb5YpRKiA=","Signature":"6TlK8yH/4ZppfhHBphKPsr07CULrL9zzv+8B3K0pgi2IT7qbzOGY7gvlk8A+n235OSB4G/24Qb5w29Bdm5LgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"7Hn20C9ldaK0i1Ees8ieozxjzBKorSTbufci7sh0W/w=","Subject":"19-ffaa:0:1301","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"sPFYDaG5itD1tTp6K7ZL8xKubewl6Vb0xTaPliwfqxM=","Signature":"VkWtqEb3E84YS1cDq4tZUzCja8Qb22iT6i8fYbtOr1a+365/hsATxDGUd5eR6SuPsXOtwg6seR31j5EvChK7AA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"1hqMFyu3Iok2wZ7QA/ONoAMEFI2UeW241aeM5BCxGQs=","Subject":"19-ffaa:0:1308","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 30
+  fields:
+    isd: 5
+    as_id: ffaa:0:1401
+    as_id_int: 281105609528321
+    label: KISTI Djn
+    mtu: 1472
+    owner: 1
+    sig_pub_key: Pl2TAx7FjpWa5IymUQN5GvtryndXOB7MNuKsTdPUiOs=
+    sig_priv_key: ZNwix6x/N8Q+UDVNPA1U2gcI8E6VUGrzfrNXvL+H628=
+    enc_pub_key: ho4CN/A4MdVc1mUX/IGmQunGNksUmoCIPl9qfgEwiH0=
+    enc_priv_key: X/SBTyaW8KgOmcqPzOa0X+4QPdecygSRd3bF9+UC3mk=
+    master_as_key: +EhsEnvbAO+UIPTalumTSQ==
+    is_core: true
+    core_sig_priv_key: i3KHZelt1xXlpgwy8ooR1johErJzLo0YMrokYjiEWUA=
+    core_sig_pub_key: w5fqPnLGCEpKZbZukz5gDk+58AGB2P47PrMPJP3iJwQ=
+    core_online_priv_key: 2L59UV9VluBHC5WXBz8fpnnmV481j+gdJLZSOaUyHLQ=
+    core_online_pub_key: 6wIiOajmW01hl9aEJKqfpfGYuOM/UZsXhUfZt4Xk5qQ=
+    core_offline_priv_key: l3hUggcW4u/VrlNr8ZmMDJXlH01RbZ6UR4SJFshngUM=
+    core_offline_pub_key: jUZ19yW9QmbZnW8yDyEy88Jl3KA2LLoKbQOYS/Ju4MM=
+    certificate_chain: '{"1":{"SubjectEncKey":"ho4CN/A4MdVc1mUX/IGmQunGNksUmoCIPl9qfgEwiH0=","Signature":"xo2SHMIcmY+X5Q3yVvKzZTE5j5PKqvVBKs4D38wkvL4QIXgvk13xRVdwgrorkRsW8HPlxzTFf1DLcdZxxajgCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"w5fqPnLGCEpKZbZukz5gDk+58AGB2P47PrMPJP3iJwQ=","Subject":"20-ffaa:0:1401","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"ho4CN/A4MdVc1mUX/IGmQunGNksUmoCIPl9qfgEwiH0=","Signature":"69hHbjJblBHFjrJkdGvSMujfyxvoSWDZaBt1NpMKSYfrwphqtI28Wmds/ZQf+85186/IyKrsb5H/FRW+oe/0BA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"Pl2TAx7FjpWa5IymUQN5GvtryndXOB7MNuKsTdPUiOs=","Subject":"20-ffaa:0:1401","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"20-ffaa:0:1401\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"w5fqPnLGCEpKZbZukz5gDk+58AGB2P47PrMPJP3iJwQ=\",
+      \"Signature\": \"xo2SHMIcmY+X5Q3yVvKzZTE5j5PKqvVBKs4D38wkvL4QIXgvk13xRVdwgrorkRsW8HPlxzTFf1DLcdZxxajgCg==\",
+      \"Version\": 1, \"Issuer\": \"20-ffaa:0:1401\", \"SubjectEncKey\": \"ho4CN/A4MdVc1mUX/IGmQunGNksUmoCIPl9qfgEwiH0=\"}"'
+- model: scionlab.as
+  pk: 31
+  fields:
+    isd: 5
+    as_id: ffaa:0:1402
+    as_id_int: 281105609528322
+    label: KISTI Seoul
+    mtu: 1472
+    owner: 1
+    sig_pub_key: Fh9nDcvnKMXp3NG9ZaKpkeucP5vtPcE+8FLM+a8fyLg=
+    sig_priv_key: /9w1gZA9CTPI8oDkj0scj7BXvwCuEtjf7kp8wYFuceg=
+    enc_pub_key: b+m9vMkRBGEAAn0wuP0JsjV1fDP+iEYP+h78jXGlTUc=
+    enc_priv_key: iSg/mA3BvPGzLdPJ4P1xgegXuZtgRLTx2GoPrROF8bQ=
+    master_as_key: 02Fm/R7D6e1QdKWKR2X/bw==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"ho4CN/A4MdVc1mUX/IGmQunGNksUmoCIPl9qfgEwiH0=","Signature":"xo2SHMIcmY+X5Q3yVvKzZTE5j5PKqvVBKs4D38wkvL4QIXgvk13xRVdwgrorkRsW8HPlxzTFf1DLcdZxxajgCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"w5fqPnLGCEpKZbZukz5gDk+58AGB2P47PrMPJP3iJwQ=","Subject":"20-ffaa:0:1401","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"b+m9vMkRBGEAAn0wuP0JsjV1fDP+iEYP+h78jXGlTUc=","Signature":"KRzF9MrS4/3D7SigqJm2eX/wO8onL3t7xT6gbO9wBlPali8Af/orYrEUiPcQT79SbNX6bxrfFAeUW09lvyXWCw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"Fh9nDcvnKMXp3NG9ZaKpkeucP5vtPcE+8FLM+a8fyLg=","Subject":"20-ffaa:0:1402","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 32
+  fields:
+    isd: 5
+    as_id: ffaa:0:1403
+    as_id_int: 281105609528323
+    label: KAIST
+    mtu: 1472
+    owner: 1
+    sig_pub_key: BscENJjrnaHxu71RfDFLgPm0EbRZLGDn+9wBC9dwE5c=
+    sig_priv_key: N/8yUdU8otFU0jFyrS45bpp3dwP7a9HEyyPj2G1kZBA=
+    enc_pub_key: NME+hbiGE44SPHSdmvlL0zHzMjJqP8j1l/WvphH8QDw=
+    enc_priv_key: R1u62BOAhQ+r7zntJjVyjwGK/p3JnP0M4tKX+5WnsWY=
+    master_as_key: ewC6wFg5o/tGo+D2OuoAjA==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"ho4CN/A4MdVc1mUX/IGmQunGNksUmoCIPl9qfgEwiH0=","Signature":"xo2SHMIcmY+X5Q3yVvKzZTE5j5PKqvVBKs4D38wkvL4QIXgvk13xRVdwgrorkRsW8HPlxzTFf1DLcdZxxajgCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"w5fqPnLGCEpKZbZukz5gDk+58AGB2P47PrMPJP3iJwQ=","Subject":"20-ffaa:0:1401","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"NME+hbiGE44SPHSdmvlL0zHzMjJqP8j1l/WvphH8QDw=","Signature":"bPe1Eiy1pymuxA49wTIZ6zmQv/OqQnLDopOsiDJUO64jK5MfavuyCFoWJZm+rAMqIpz5tpAeAp1n4dQmQgzgAA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"BscENJjrnaHxu71RfDFLgPm0EbRZLGDn+9wBC9dwE5c=","Subject":"20-ffaa:0:1403","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 33
+  fields:
+    isd: 5
+    as_id: ffaa:0:1404
+    as_id_int: 281105609528324
+    label: KU
+    mtu: 1472
+    owner: 1
+    sig_pub_key: ybWfrC2zC3OhuO1Um091jG7q1g3gegeTqwKdLhnKRJo=
+    sig_priv_key: q0KoljMDufGBQFfh4kmZud7m93eq6OY2eo643dwo+1k=
+    enc_pub_key: 1ooe8S0b+EzytWZs0rs82qYLx7Jdn1hJzbq+9GhfSkQ=
+    enc_priv_key: yFaDHUZsVB03VPjY9TrUXOXDHRF+A3N9FuueIaiRxGA=
+    master_as_key: DraJDYBZDWnEZLueSppRKw==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"ho4CN/A4MdVc1mUX/IGmQunGNksUmoCIPl9qfgEwiH0=","Signature":"xo2SHMIcmY+X5Q3yVvKzZTE5j5PKqvVBKs4D38wkvL4QIXgvk13xRVdwgrorkRsW8HPlxzTFf1DLcdZxxajgCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"w5fqPnLGCEpKZbZukz5gDk+58AGB2P47PrMPJP3iJwQ=","Subject":"20-ffaa:0:1401","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"1ooe8S0b+EzytWZs0rs82qYLx7Jdn1hJzbq+9GhfSkQ=","Signature":"uWbNsm/ifyScrQEk4lE7TfMei96x65OKaFlVOYRCcEvgpXU5YiXhotzLSGKXDaXKPHhBwg6T7DX4u/AX4+z5CQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"ybWfrC2zC3OhuO1Um091jG7q1g3gegeTqwKdLhnKRJo=","Subject":"20-ffaa:0:1404","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 34
+  fields:
+    isd: 5
+    as_id: ffaa:0:1405
+    as_id_int: 281105609528325
+    label: ETRI
+    mtu: 1472
+    owner: 1
+    sig_pub_key: t/tbvZ2Da/f1NLPw8Ol/dGx3oHK7nepWctiPjTJPDdQ=
+    sig_priv_key: AwyRDBgFRyLr1x52D+iOIw1S6mgWrwMzmZFmZ02bKDA=
+    enc_pub_key: TpPUvyuDa+6sQISuzJNphsiMv1c8DyVJuvEeKp7/cTU=
+    enc_priv_key: ZIpKMmunbmOsnE+DFt4qOur8yhDDWLMg2w9gl+9RKX8=
+    master_as_key: 4eqxBOGWSgEPyW6HIXCMlA==
+    is_core: false
+    core_sig_priv_key: null
+    core_sig_pub_key: null
+    core_online_priv_key: null
+    core_online_pub_key: null
+    core_offline_priv_key: null
+    core_offline_pub_key: null
+    certificate_chain: '{"1":{"SubjectEncKey":"ho4CN/A4MdVc1mUX/IGmQunGNksUmoCIPl9qfgEwiH0=","Signature":"xo2SHMIcmY+X5Q3yVvKzZTE5j5PKqvVBKs4D38wkvL4QIXgvk13xRVdwgrorkRsW8HPlxzTFf1DLcdZxxajgCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"w5fqPnLGCEpKZbZukz5gDk+58AGB2P47PrMPJP3iJwQ=","Subject":"20-ffaa:0:1401","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"TpPUvyuDa+6sQISuzJNphsiMv1c8DyVJuvEeKp7/cTU=","Signature":"SGiAFgyNP4OBmSxrxkox8iEy6EuacEIsw4x1LavXTHtWL84Ib+PKc3tMhu2M3Icr0/GtHoEjQUTiHuT9mDoXBg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"t/tbvZ2Da/f1NLPw8Ol/dGx3oHK7nepWctiPjTJPDdQ=","Subject":"20-ffaa:0:1405","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: null
+- model: scionlab.as
+  pk: 35
+  fields:
+    isd: 6
+    as_id: ffaa:0:1501
+    as_id_int: 281105609528577
+    label: KDDI
+    mtu: 1472
+    owner: 1
+    sig_pub_key: FYfJGxZ+LAT3vOWWCmHlThTcwgrx8u+QvFpAQ4+Q0Do=
+    sig_priv_key: WyiM2PU+0nnzBARyBaDehgWG3PX9xQaxAe9wcY5SvBo=
+    enc_pub_key: LUNAW1uZvPb4ag4+YUzgqJOj84fzBnV0tjnE3CN+n3s=
+    enc_priv_key: U9VWDjDJ96Sy198DE3XBy776YlGQ334w3sR12eq/2/s=
+    master_as_key: eG6OzW9pgPBovWwrLVpCAQ==
+    is_core: true
+    core_sig_priv_key: tOR2Z/nbuJG5OC8eYBv4GJiuG2E3iYJn7pY+B9+qQt0=
+    core_sig_pub_key: z09JY1/YzEq14SPr2LHiQj9QHKKWx/fSdk0CO6zR/+o=
+    core_online_priv_key: 0HgU8A67Fhh0AKw4IsTH95fwXw899dLDee/w0T+7ejk=
+    core_online_pub_key: fByIRn/1Hw+IIpP9R/idhSMcgUJJ6cn6AMGvuW8p+xs=
+    core_offline_priv_key: yDxue9XkvCO09JWCsQyJzi60wSGYv0QJJ0MkZp120vw=
+    core_offline_pub_key: 3QUIYBs4cwdvqEcyqmNvwIbmqJWNIvUxyydm7WzeI4A=
+    certificate_chain: '{"1":{"SubjectEncKey":"LUNAW1uZvPb4ag4+YUzgqJOj84fzBnV0tjnE3CN+n3s=","Signature":"u8EfI4y+Om/2EiinHonZDpMhRdVjqdYcPLC2exTe5NnGkC1KSgo19MLelZ70QhuTka4V5s/PMD8f7AFPP1t+Cg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"21-ffaa:0:1501","SubjectSignKey":"z09JY1/YzEq14SPr2LHiQj9QHKKWx/fSdk0CO6zR/+o=","Subject":"21-ffaa:0:1501","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"LUNAW1uZvPb4ag4+YUzgqJOj84fzBnV0tjnE3CN+n3s=","Signature":"FmN7JmvLgBV/botoXG+hc+f9TiafMvwBv3Q63Fe/o8Ti9FY3JgznGIKFcWnLvklqSoa/jPd5Xo1630yTfxN9Dg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"21-ffaa:0:1501","SubjectSignKey":"FYfJGxZ+LAT3vOWWCmHlThTcwgrx8u+QvFpAQ4+Q0Do=","Subject":"21-ffaa:0:1501","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"21-ffaa:0:1501\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"z09JY1/YzEq14SPr2LHiQj9QHKKWx/fSdk0CO6zR/+o=\",
+      \"Signature\": \"u8EfI4y+Om/2EiinHonZDpMhRdVjqdYcPLC2exTe5NnGkC1KSgo19MLelZ70QhuTka4V5s/PMD8f7AFPP1t+Cg==\",
+      \"Version\": 1, \"Issuer\": \"21-ffaa:0:1501\", \"SubjectEncKey\": \"LUNAW1uZvPb4ag4+YUzgqJOj84fzBnV0tjnE3CN+n3s=\"}"'
+- model: scionlab.as
+  pk: 36
+  fields:
+    isd: 7
+    as_id: ffaa:0:1601
+    as_id_int: 281105609528833
+    label: NTU
+    mtu: 1472
+    owner: 1
+    sig_pub_key: GiokHlWUbUC8+W6/f1o0i46m5B2GQrSe0BCDXEHfoxs=
+    sig_priv_key: J/XecJGbPVHY8k49yOjb6c0+Z7FaoEaVYK5UoiHdog4=
+    enc_pub_key: Izjx4ZQ4TSp5VvYLmSrqc5i19fRxiQfpmvanIwACZwg=
+    enc_priv_key: E/2DYKdm9TCbnHoFsfIz9kJHPATycTwL0PaM9AMLvdo=
+    master_as_key: HD8voTJw8YP/9zzBfwimdg==
+    is_core: true
+    core_sig_priv_key: rSQRK+yXrZ3KgovfIS+dNtUzr1UZ5KrlQayrpHPI3ug=
+    core_sig_pub_key: 7W4QMzTGi9xncKMamq3+XuBM386XtVQY3lo2tgQDQtg=
+    core_online_priv_key: IdcNCJ4XQxJs+iQcFnLK11fl6st9F+jbYVu/Urr3z0w=
+    core_online_pub_key: 8e92MjM8B267C3YlN3oY+hSGlmnDl/MOAWfdgXJv9A0=
+    core_offline_priv_key: NYtkVH0iTgmvukSbHrHpkn7KvJKK8kGgXvDI/tq2tms=
+    core_offline_pub_key: nHn1+KjgBMk1h1A2rMk+F6ijnGfM8ZDDRe47ZvFKhLM=
+    certificate_chain: '{"1":{"SubjectEncKey":"Izjx4ZQ4TSp5VvYLmSrqc5i19fRxiQfpmvanIwACZwg=","Signature":"lA/NtvmW8KJ8xAnwM/f5IfjUIA2c7LrH3+qSyQVSWMwcRq4LxB1bykD+uQDaAy3+8IVmusYQ+Z8UaDsPCBv7Cw==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"22-ffaa:0:1601","SubjectSignKey":"7W4QMzTGi9xncKMamq3+XuBM386XtVQY3lo2tgQDQtg=","Subject":"22-ffaa:0:1601","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"Izjx4ZQ4TSp5VvYLmSrqc5i19fRxiQfpmvanIwACZwg=","Signature":"Em8UYH0Z0NyOmdEEgQm4A5nUzVTZSAJu6QOwbJvF3A14VQqjDVobRED0P8bJGX40f4vYCElmfip/Xoi+vsWHCg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"22-ffaa:0:1601","SubjectSignKey":"GiokHlWUbUC8+W6/f1o0i46m5B2GQrSe0BCDXEHfoxs=","Subject":"22-ffaa:0:1601","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"22-ffaa:0:1601\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"7W4QMzTGi9xncKMamq3+XuBM386XtVQY3lo2tgQDQtg=\",
+      \"Signature\": \"lA/NtvmW8KJ8xAnwM/f5IfjUIA2c7LrH3+qSyQVSWMwcRq4LxB1bykD+uQDaAy3+8IVmusYQ+Z8UaDsPCBv7Cw==\",
+      \"Version\": 1, \"Issuer\": \"22-ffaa:0:1601\", \"SubjectEncKey\": \"Izjx4ZQ4TSp5VvYLmSrqc5i19fRxiQfpmvanIwACZwg=\"}"'
+- model: scionlab.as
+  pk: 37
+  fields:
+    isd: 8
+    as_id: ffaa:0:1701
+    as_id_int: 281105609529089
+    label: NUS
+    mtu: 1472
+    owner: 1
+    sig_pub_key: Gul+5OhQCaOdkVwqGKwPLE0Jfb6V36gz6XoRiwxqkLE=
+    sig_priv_key: ZphDUza5kIwzoLFQ/Vn7e8YXpJ2ktfVlCS7ybmxXIyg=
+    enc_pub_key: LrghjtfqgsmwGQmu5Cyp4bGZtiGJBWBlZlIdxb6cOQM=
+    enc_priv_key: ZhBG5jMxeT3Rxmp14ATm5bV3OhUarIC3KQ3E2aaw5PA=
+    master_as_key: 2y9BLnoEVCkxAAEQ4jk5Fw==
+    is_core: true
+    core_sig_priv_key: Anfip93XGP0ixPL17a/Gdpdnb8qyeh82lS1Q+NIJ/5E=
+    core_sig_pub_key: BzDg3vBKDsQDxCUKk6LNVyG8JKisHL8RzHy8t6bm0ds=
+    core_online_priv_key: vb/uwObMBZhOwjV+xbm00rqeAzdKwOUq5cqZhADchYs=
+    core_online_pub_key: afW9d3RXoIQokneWRVryePq+xxHJbqTGm1bacZasAmE=
+    core_offline_priv_key: lZj+FVkZs1Ioxj/MZk+bJG0vTHbtmUydRpgFhxGjQGE=
+    core_offline_pub_key: yKdosvKeawOB2yAYxe86EvOC3M6bM40pRW3+AQCW+Pk=
+    certificate_chain: '{"1":{"SubjectEncKey":"LrghjtfqgsmwGQmu5Cyp4bGZtiGJBWBlZlIdxb6cOQM=","Signature":"ISsfF69BRKnJkT411TUJYn35tbqS9xRLqqDETN3HqyPy9fcNy2g3wpTC07KMa/enxOAtyxeiqkqrJhg/Fbc1CA==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"23-ffaa:0:1701","SubjectSignKey":"BzDg3vBKDsQDxCUKk6LNVyG8JKisHL8RzHy8t6bm0ds=","Subject":"23-ffaa:0:1701","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"LrghjtfqgsmwGQmu5Cyp4bGZtiGJBWBlZlIdxb6cOQM=","Signature":"KfR6QpC4PRoG0nobre3JZc0J8jHyjRUqhRJmLWvfz7xHLKldcWUM+K/nmv6jv29C1vXdn9ezVR0c+tANxhGmBg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"23-ffaa:0:1701","SubjectSignKey":"Gul+5OhQCaOdkVwqGKwPLE0Jfb6V36gz6XoRiwxqkLE=","Subject":"23-ffaa:0:1701","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"23-ffaa:0:1701\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"BzDg3vBKDsQDxCUKk6LNVyG8JKisHL8RzHy8t6bm0ds=\",
+      \"Signature\": \"ISsfF69BRKnJkT411TUJYn35tbqS9xRLqqDETN3HqyPy9fcNy2g3wpTC07KMa/enxOAtyxeiqkqrJhg/Fbc1CA==\",
+      \"Version\": 1, \"Issuer\": \"23-ffaa:0:1701\", \"SubjectEncKey\": \"LrghjtfqgsmwGQmu5Cyp4bGZtiGJBWBlZlIdxb6cOQM=\"}"'
+- model: scionlab.as
+  pk: 38
+  fields:
+    isd: 9
+    as_id: ffaa:0:1801
+    as_id_int: 281105609529345
+    label: OpenSystems
+    mtu: 1472
+    owner: 1
+    sig_pub_key: cn0PJTsBQcQqYPNNOK0jdYQG5I/Acv8cutANGZ0g01Q=
+    sig_priv_key: ZzYlY5jsX3GyWHSzFbkNyOQX8+oXmWVTwdCZOhr7cJ8=
+    enc_pub_key: ymRCBU5aXkC3Nal/E5yigmFn/2YFYknjMXDJzFpLUlk=
+    enc_priv_key: zCHzyhJelRFfHPemsamleKfxoUXrOBInYgAM0sZne68=
+    master_as_key: 01RZ1hp6VSYIBdCvsBXHJw==
+    is_core: true
+    core_sig_priv_key: zsqzr+1+1jN3xi74LbTWyF1LdgcWi8nXUTeRqfNu11E=
+    core_sig_pub_key: 37t4AjQJk1tglcNl+mNEtl4RcNYSUyhl7/SlNA1gFNg=
+    core_online_priv_key: ElhEYTSxUkAlQS9EK2RSCw8UwSr5jInFxQLkKuN7Zb8=
+    core_online_pub_key: HCVGK8mQdUv5cgQZwNZZw0xb15rQVfSjW8AsL08PLX0=
+    core_offline_priv_key: d7Esloa+ac/Fn8RvKGgFUAER4wjkADDVEABOHrg6BcY=
+    core_offline_pub_key: XYohJNnUVyAXK0/afJRTHU/arxJ+SvGrCTiZsadThPw=
+    certificate_chain: '{"1":{"SubjectEncKey":"ymRCBU5aXkC3Nal/E5yigmFn/2YFYknjMXDJzFpLUlk=","Signature":"F0SP+dKSxF67tfyagVY2RKs7Lu+M/+dJrOmEg1y/NZ8/m4pq/KvQQvzy8kiJMi2kQ8qDDDgt1fbi/DVJztn7CQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"24-ffaa:0:1801","SubjectSignKey":"37t4AjQJk1tglcNl+mNEtl4RcNYSUyhl7/SlNA1gFNg=","Subject":"24-ffaa:0:1801","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"ymRCBU5aXkC3Nal/E5yigmFn/2YFYknjMXDJzFpLUlk=","Signature":"g9PCevNt15CwyG6+M/DhNqYSfWjJC/Oj/ny7Z28qqgWlZ2jWRqLxJiPDCzlgI9BP33ae4wEpQyMJJJXzop6xDQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"24-ffaa:0:1801","SubjectSignKey":"cn0PJTsBQcQqYPNNOK0jdYQG5I/Acv8cutANGZ0g01Q=","Subject":"24-ffaa:0:1801","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"24-ffaa:0:1801\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"37t4AjQJk1tglcNl+mNEtl4RcNYSUyhl7/SlNA1gFNg=\",
+      \"Signature\": \"F0SP+dKSxF67tfyagVY2RKs7Lu+M/+dJrOmEg1y/NZ8/m4pq/KvQQvzy8kiJMi2kQ8qDDDgt1fbi/DVJztn7CQ==\",
+      \"Version\": 1, \"Issuer\": \"24-ffaa:0:1801\", \"SubjectEncKey\": \"ymRCBU5aXkC3Nal/E5yigmFn/2YFYknjMXDJzFpLUlk=\"}"'
+- model: scionlab.as
+  pk: 39
+  fields:
+    isd: 10
+    as_id: ffaa:0:1901
+    as_id_int: 281105609529601
+    label: THU
+    mtu: 1472
+    owner: 1
+    sig_pub_key: TM9TcE596FOK4NGfc9C2yATvoHJ05PSNYi2jq96Lpgw=
+    sig_priv_key: UucI9qAj3siOMx9JiiQsas1PPu3/Pz+PFKSJ1kZ/YU8=
+    enc_pub_key: pEYJKNocNr9gf9KTw0tWuOszq/0p+95saA4SWzcOLjI=
+    enc_priv_key: B7sQ4MCINQQlIZBOKBjy5boAXDggqnt/zhfhYCxYPCA=
+    master_as_key: SFf/dIRH+hqDb3lVoTglJQ==
+    is_core: true
+    core_sig_priv_key: NkJtmKk3+gZWgM7Z9izQYgif6xvkM3ILKyAuh/glxjk=
+    core_sig_pub_key: GIfglQ4WG1F+LXLqYbpyg38aibRB3FDEZmuIkRNoMXs=
+    core_online_priv_key: /LLDl6ou982Nc1NjdqH/Wj0DLsbXP6O25CG6J1RWCxo=
+    core_online_pub_key: 5J0yAhGhzNuzGtAXjFPwOOkE3FJAJTzpoz+Hp3YtePc=
+    core_offline_priv_key: uO2cAXOnI/Z+dh/1LPfR9olT0d+yAprmxUmnBzSNWeI=
+    core_offline_pub_key: 2F9o81ywuHp0Vlc+BYj7qnyxPdwOGJizV70U35Yj7hQ=
+    certificate_chain: '{"1":{"SubjectEncKey":"pEYJKNocNr9gf9KTw0tWuOszq/0p+95saA4SWzcOLjI=","Signature":"uyoymkfl/iFGM1z+vO2pHmMnK8YyIn821haZzUKuwTE8P6ObVBVWs3tx44RP5QrWvph7m/pnCZ0GfkDhID8mDg==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"25-ffaa:0:1901","SubjectSignKey":"GIfglQ4WG1F+LXLqYbpyg38aibRB3FDEZmuIkRNoMXs=","Subject":"25-ffaa:0:1901","CanIssue":true,"ExpirationTime":1561474359,"Comment":"Core
+      AS Certificate","IssuingTime":1530024759},"0":{"SubjectEncKey":"pEYJKNocNr9gf9KTw0tWuOszq/0p+95saA4SWzcOLjI=","Signature":"Qal33smEnuxBSi9dlfc+sk0XOPBiSXhmg+mDJ1FFZRO6rRYcZmuGT0wAKJo35BHIMsPXaWyIhqTLukSWNwowAQ==","SignAlgorithm":"ed25519","TRCVersion":1,"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"Issuer":"25-ffaa:0:1901","SubjectSignKey":"TM9TcE596FOK4NGfc9C2yATvoHJ05PSNYi2jq96Lpgw=","Subject":"25-ffaa:0:1901","CanIssue":false,"ExpirationTime":1561387959,"Comment":"AS
+      Certificate","IssuingTime":1530024759}}'
+    core_certificate: '"{\"ExpirationTime\": 1561474359, \"TRCVersion\": 1, \"EncAlgorithm\":
+      \"curve25519xsalsa20poly1305\", \"Comment\": \"Core AS Certificate\", \"IssuingTime\":
+      1530024759, \"SignAlgorithm\": \"ed25519\", \"Subject\": \"25-ffaa:0:1901\",
+      \"CanIssue\": true, \"SubjectSignKey\": \"GIfglQ4WG1F+LXLqYbpyg38aibRB3FDEZmuIkRNoMXs=\",
+      \"Signature\": \"uyoymkfl/iFGM1z+vO2pHmMnK8YyIn821haZzUKuwTE8P6ObVBVWs3tx44RP5QrWvph7m/pnCZ0GfkDhID8mDg==\",
+      \"Version\": 1, \"Issuer\": \"25-ffaa:0:1901\", \"SubjectEncKey\": \"pEYJKNocNr9gf9KTw0tWuOszq/0p+95saA4SWzcOLjI=\"}"'
+- model: scionlab.host
+  pk: 1
+  fields:
+    AS: 1
+    internal_ip: 172.31.0.23
+    public_ip: 35.159.11.215
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 13
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 2
+  fields:
+    AS: 2
+    internal_ip: 172.31.43.7
+    public_ip: 52.31.237.103
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 10
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 3
+  fields:
+    AS: 3
+    internal_ip: 172.31.19.144
+    public_ip: 34.234.70.88
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 10
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 4
+  fields:
+    AS: 4
+    internal_ip: 172.31.0.28
+    public_ip: 13.59.138.44
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 9
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 5
+  fields:
+    AS: 5
+    internal_ip: 172.31.26.94
+    public_ip: 54.213.21.148
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 10
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 6
+  fields:
+    AS: 6
+    internal_ip: 172.31.15.116
+    public_ip: 13.115.33.191
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 13
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 7
+  fields:
+    AS: 7
+    internal_ip: 172.31.21.177
+    public_ip: 13.229.107.141
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 10
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 8
+  fields:
+    AS: 8
+    internal_ip: 172.31.33.229
+    public_ip: 13.211.240.55
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 9
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 9
+  fields:
+    AS: 9
+    internal_ip: 193.247.172.130
+    public_ip: 193.247.172.130
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 15
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 10
+  fields:
+    AS: 10
+    internal_ip: 129.132.55.211
+    public_ip: 129.132.55.211
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 11
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 11
+  fields:
+    AS: 11
+    internal_ip: 10.0.235.43
+    public_ip: 86.119.37.2
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 9
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 12
+  fields:
+    AS: 11
+    internal_ip: 10.0.235.42
+    public_ip: 86.119.37.200
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 8
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 13
+  fields:
+    AS: 11
+    internal_ip: 10.0.235.44
+    public_ip: 86.119.36.144
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 7
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 14
+  fields:
+    AS: 12
+    internal_ip: 162.23.11.3
+    public_ip: 162.23.11.3
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 15
+  fields:
+    AS: 13
+    internal_ip: 192.33.93.195
+    public_ip: 192.33.93.195
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 16
+  fields:
+    AS: 14
+    internal_ip: 192.33.93.161
+    public_ip: 192.33.93.161
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 17
+  fields:
+    AS: 15
+    internal_ip: 192.33.93.147
+    public_ip: 192.33.93.147
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 18
+  fields:
+    AS: 16
+    internal_ip: 192.33.93.174
+    public_ip: 192.33.93.174
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 19
+  fields:
+    AS: 17
+    internal_ip: 128.237.152.165
+    public_ip: 128.237.152.165
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 12
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 20
+  fields:
+    AS: 18
+    internal_ip: 128.105.21.208
+    public_ip: 128.105.21.208
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 21
+  fields:
+    AS: 19
+    internal_ip: 128.59.22.198
+    public_ip: 128.59.22.198
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 8
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 22
+  fields:
+    AS: 20
+    internal_ip: 10.32.7.47
+    public_ip: 173.237.218.138
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 23
+  fields:
+    AS: 21
+    internal_ip: 10.64.7.21
+    public_ip: 173.239.151.139
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 24
+  fields:
+    AS: 22
+    internal_ip: 141.44.17.129
+    public_ip: 141.44.17.129
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 13
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 25
+  fields:
+    AS: 23
+    internal_ip: 192.168.1.1
+    public_ip: 192.168.1.1
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 9
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 26
+  fields:
+    AS: 24
+    internal_ip: 141.44.25.144
+    public_ip: 141.44.25.144
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 11
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 27
+  fields:
+    AS: 25
+    internal_ip: 172.104.242.254
+    public_ip: 172.104.242.254
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 7
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 28
+  fields:
+    AS: 26
+    internal_ip: 94.198.159.66
+    public_ip: 94.198.159.66
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 7
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 29
+  fields:
+    AS: 27
+    internal_ip: 172.16.0.1
+    public_ip: 172.16.0.1
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 7
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 30
+  fields:
+    AS: 28
+    internal_ip: 131.130.124.76
+    public_ip: 131.130.124.76
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 9
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 31
+  fields:
+    AS: 29
+    internal_ip: 141.85.227.185
+    public_ip: 141.85.227.185
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 32
+  fields:
+    AS: 30
+    internal_ip: 134.75.250.114
+    public_ip: 134.75.250.114
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 14
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 33
+  fields:
+    AS: 31
+    internal_ip: 210.119.43.50
+    public_ip: 210.119.43.50
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 7
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 34
+  fields:
+    AS: 32
+    internal_ip: 143.248.239.18
+    public_ip: 143.248.239.18
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 7
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 35
+  fields:
+    AS: 33
+    internal_ip: 203.230.60.98
+    public_ip: 203.230.60.98
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 36
+  fields:
+    AS: 34
+    internal_ip: 116.89.184.251
+    public_ip: 116.89.184.251
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 37
+  fields:
+    AS: 35
+    internal_ip: 202.255.44.48
+    public_ip: 202.255.44.48
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 8
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 38
+  fields:
+    AS: 36
+    internal_ip: 140.112.31.108
+    public_ip: 140.112.31.108
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 8
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 39
+  fields:
+    AS: 37
+    internal_ip: 137.132.83.252
+    public_ip: 137.132.83.252
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 10
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 40
+  fields:
+    AS: 38
+    internal_ip: 203.44.193.212
+    public_ip: 203.44.193.212
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 8
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 41
+  fields:
+    AS: 39
+    internal_ip: 166.111.68.234
+    public_ip: 166.111.68.234
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 7
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 42
+  fields:
+    AS: 6
+    internal_ip: 172.31.4.22
+    public_ip: 54.238.249.167
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 9
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 43
+  fields:
+    AS: 9
+    internal_ip: 193.247.172.150
+    public_ip: 193.247.172.150
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 10
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 44
+  fields:
+    AS: 9
+    internal_ip: 193.247.172.154
+    public_ip: 193.247.172.154
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 9
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 45
+  fields:
+    AS: 9
+    internal_ip: 193.247.172.134
+    public_ip: 193.247.172.134
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 5
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 46
+  fields:
+    AS: 9
+    internal_ip: 193.247.172.142
+    public_ip: 193.247.172.142
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 3
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 47
+  fields:
+    AS: 10
+    internal_ip: 192.33.92.146
+    public_ip: 192.33.92.146
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 7
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 48
+  fields:
+    AS: 10
+    internal_ip: 192.33.92.68
+    public_ip: 192.33.92.68
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 6
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 49
+  fields:
+    AS: 10
+    internal_ip: 192.33.93.190
+    public_ip: 192.33.93.190
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 5
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 50
+  fields:
+    AS: 10
+    internal_ip: 192.33.93.194
+    public_ip: 192.33.93.194
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 4
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 51
+  fields:
+    AS: 11
+    internal_ip: 195.176.0.229
+    public_ip: 195.176.0.229
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 5
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 52
+  fields:
+    AS: 11
+    internal_ip: 195.176.0.237
+    public_ip: 195.176.0.237
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 4
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 53
+  fields:
+    AS: 11
+    internal_ip: 195.176.0.11
+    public_ip: 195.176.0.11
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 3
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 54
+  fields:
+    AS: 11
+    internal_ip: 195.176.28.157
+    public_ip: 195.176.28.157
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 2
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 55
+  fields:
+    AS: 12
+    internal_ip: 162.23.11.2
+    public_ip: 162.23.11.2
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 2
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 56
+  fields:
+    AS: 17
+    internal_ip: 128.237.152.180
+    public_ip: 128.237.152.180
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 8
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 57
+  fields:
+    AS: 23
+    internal_ip: 192.168.1.2
+    public_ip: 192.168.1.2
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 3
+    config_version_deployed: 0
+- model: scionlab.host
+  pk: 58
+  fields:
+    AS: 27
+    internal_ip: 172.16.0.2
+    public_ip: 172.16.0.2
+    bind_ip: null
+    label: null
+    managed: false
+    management_ip: null
+    secret: null
+    config_version: 2
+    config_version_deployed: 0
+- model: scionlab.interface
+  pk: 1
+  fields:
+    AS: 1
+    interface_id: 1
+    host: 1
+    border_router: 1
+    public_ip: 35.159.11.215
+    public_port: 50000
+    bind_ip: 172.31.0.23
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 2
+  fields:
+    AS: 1
+    interface_id: 2
+    host: 1
+    border_router: 2
+    public_ip: 35.159.11.215
+    public_port: 50001
+    bind_ip: 172.31.0.23
+    bind_port: 50001
+- model: scionlab.interface
+  pk: 3
+  fields:
+    AS: 1
+    interface_id: 3
+    host: 1
+    border_router: 3
+    public_ip: 35.159.11.215
+    public_port: 50002
+    bind_ip: 172.31.0.23
+    bind_port: 50002
+- model: scionlab.interface
+  pk: 4
+  fields:
+    AS: 1
+    interface_id: 4
+    host: 1
+    border_router: 4
+    public_ip: 35.159.11.215
+    public_port: 50003
+    bind_ip: 172.31.0.23
+    bind_port: 50003
+- model: scionlab.interface
+  pk: 5
+  fields:
+    AS: 1
+    interface_id: 5
+    host: 1
+    border_router: 5
+    public_ip: 35.159.11.215
+    public_port: 50004
+    bind_ip: 172.31.0.23
+    bind_port: 50004
+- model: scionlab.interface
+  pk: 6
+  fields:
+    AS: 1
+    interface_id: 6
+    host: 1
+    border_router: 6
+    public_ip: 35.159.11.215
+    public_port: 50005
+    bind_ip: 172.31.0.23
+    bind_port: 50005
+- model: scionlab.interface
+  pk: 7
+  fields:
+    AS: 1
+    interface_id: 7
+    host: 1
+    border_router: 7
+    public_ip: 35.159.11.215
+    public_port: 50006
+    bind_ip: 172.31.0.23
+    bind_port: 50006
+- model: scionlab.interface
+  pk: 8
+  fields:
+    AS: 1
+    interface_id: 8
+    host: 1
+    border_router: 8
+    public_ip: 35.159.11.215
+    public_port: 50007
+    bind_ip: 172.31.0.23
+    bind_port: 50007
+- model: scionlab.interface
+  pk: 9
+  fields:
+    AS: 2
+    interface_id: 1
+    host: 2
+    border_router: 9
+    public_ip: 52.31.237.103
+    public_port: 50000
+    bind_ip: 172.31.43.7
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 10
+  fields:
+    AS: 2
+    interface_id: 2
+    host: 2
+    border_router: 10
+    public_ip: 52.31.237.103
+    public_port: 50001
+    bind_ip: 172.31.43.7
+    bind_port: 50001
+- model: scionlab.interface
+  pk: 11
+  fields:
+    AS: 2
+    interface_id: 3
+    host: 2
+    border_router: 11
+    public_ip: 52.31.237.103
+    public_port: 50002
+    bind_ip: 172.31.43.7
+    bind_port: 50002
+- model: scionlab.interface
+  pk: 12
+  fields:
+    AS: 2
+    interface_id: 4
+    host: 2
+    border_router: 12
+    public_ip: 52.31.237.103
+    public_port: 50003
+    bind_ip: 172.31.43.7
+    bind_port: 50003
+- model: scionlab.interface
+  pk: 13
+  fields:
+    AS: 2
+    interface_id: 5
+    host: 2
+    border_router: 13
+    public_ip: 52.31.237.103
+    public_port: 50004
+    bind_ip: 172.31.43.7
+    bind_port: 50004
+- model: scionlab.interface
+  pk: 14
+  fields:
+    AS: 3
+    interface_id: 1
+    host: 3
+    border_router: 14
+    public_ip: 34.234.70.88
+    public_port: 50000
+    bind_ip: 172.31.19.144
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 15
+  fields:
+    AS: 3
+    interface_id: 2
+    host: 3
+    border_router: 15
+    public_ip: 34.234.70.88
+    public_port: 50001
+    bind_ip: 172.31.19.144
+    bind_port: 50001
+- model: scionlab.interface
+  pk: 16
+  fields:
+    AS: 3
+    interface_id: 3
+    host: 3
+    border_router: 16
+    public_ip: 34.234.70.88
+    public_port: 50002
+    bind_ip: 172.31.19.144
+    bind_port: 50002
+- model: scionlab.interface
+  pk: 17
+  fields:
+    AS: 3
+    interface_id: 4
+    host: 3
+    border_router: 17
+    public_ip: 34.234.70.88
+    public_port: 50003
+    bind_ip: 172.31.19.144
+    bind_port: 50003
+- model: scionlab.interface
+  pk: 18
+  fields:
+    AS: 3
+    interface_id: 5
+    host: 3
+    border_router: 18
+    public_ip: 34.234.70.88
+    public_port: 50004
+    bind_ip: 172.31.19.144
+    bind_port: 50004
+- model: scionlab.interface
+  pk: 19
+  fields:
+    AS: 4
+    interface_id: 1
+    host: 4
+    border_router: 19
+    public_ip: 13.59.138.44
+    public_port: 50000
+    bind_ip: 172.31.0.28
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 20
+  fields:
+    AS: 4
+    interface_id: 2
+    host: 4
+    border_router: 20
+    public_ip: 13.59.138.44
+    public_port: 50001
+    bind_ip: 172.31.0.28
+    bind_port: 50001
+- model: scionlab.interface
+  pk: 21
+  fields:
+    AS: 4
+    interface_id: 3
+    host: 4
+    border_router: 21
+    public_ip: 13.59.138.44
+    public_port: 50002
+    bind_ip: 172.31.0.28
+    bind_port: 50002
+- model: scionlab.interface
+  pk: 22
+  fields:
+    AS: 4
+    interface_id: 4
+    host: 4
+    border_router: 22
+    public_ip: 13.59.138.44
+    public_port: 50003
+    bind_ip: 172.31.0.28
+    bind_port: 50003
+- model: scionlab.interface
+  pk: 23
+  fields:
+    AS: 5
+    interface_id: 1
+    host: 5
+    border_router: 23
+    public_ip: 54.213.21.148
+    public_port: 50000
+    bind_ip: 172.31.26.94
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 24
+  fields:
+    AS: 5
+    interface_id: 2
+    host: 5
+    border_router: 24
+    public_ip: 54.213.21.148
+    public_port: 50001
+    bind_ip: 172.31.26.94
+    bind_port: 50001
+- model: scionlab.interface
+  pk: 25
+  fields:
+    AS: 5
+    interface_id: 3
+    host: 5
+    border_router: 25
+    public_ip: 54.213.21.148
+    public_port: 50002
+    bind_ip: 172.31.26.94
+    bind_port: 50002
+- model: scionlab.interface
+  pk: 26
+  fields:
+    AS: 5
+    interface_id: 4
+    host: 5
+    border_router: 26
+    public_ip: 54.213.21.148
+    public_port: 50003
+    bind_ip: 172.31.26.94
+    bind_port: 50003
+- model: scionlab.interface
+  pk: 27
+  fields:
+    AS: 5
+    interface_id: 5
+    host: 5
+    border_router: 27
+    public_ip: 54.213.21.148
+    public_port: 50004
+    bind_ip: 172.31.26.94
+    bind_port: 50004
+- model: scionlab.interface
+  pk: 28
+  fields:
+    AS: 6
+    interface_id: 1
+    host: 42
+    border_router: 28
+    public_ip: 54.238.249.167
+    public_port: 50000
+    bind_ip: 172.31.4.22
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 29
+  fields:
+    AS: 6
+    interface_id: 2
+    host: 42
+    border_router: 29
+    public_ip: 54.238.249.167
+    public_port: 50001
+    bind_ip: 172.31.4.22
+    bind_port: 50001
+- model: scionlab.interface
+  pk: 30
+  fields:
+    AS: 6
+    interface_id: 3
+    host: 42
+    border_router: 30
+    public_ip: 54.238.249.167
+    public_port: 50002
+    bind_ip: 172.31.4.22
+    bind_port: 50002
+- model: scionlab.interface
+  pk: 31
+  fields:
+    AS: 6
+    interface_id: 4
+    host: 42
+    border_router: 31
+    public_ip: 54.238.249.167
+    public_port: 50003
+    bind_ip: 172.31.4.22
+    bind_port: 50003
+- model: scionlab.interface
+  pk: 32
+  fields:
+    AS: 6
+    interface_id: 5
+    host: 42
+    border_router: 32
+    public_ip: 54.238.249.167
+    public_port: 50004
+    bind_ip: 172.31.4.22
+    bind_port: 50004
+- model: scionlab.interface
+  pk: 33
+  fields:
+    AS: 6
+    interface_id: 6
+    host: 42
+    border_router: 33
+    public_ip: 54.238.249.167
+    public_port: 50005
+    bind_ip: 172.31.4.22
+    bind_port: 50005
+- model: scionlab.interface
+  pk: 34
+  fields:
+    AS: 6
+    interface_id: 7
+    host: 42
+    border_router: 34
+    public_ip: 54.238.249.167
+    public_port: 50006
+    bind_ip: 172.31.4.22
+    bind_port: 50006
+- model: scionlab.interface
+  pk: 35
+  fields:
+    AS: 6
+    interface_id: 8
+    host: 42
+    border_router: 35
+    public_ip: 54.238.249.167
+    public_port: 50007
+    bind_ip: 172.31.4.22
+    bind_port: 50007
+- model: scionlab.interface
+  pk: 36
+  fields:
+    AS: 7
+    interface_id: 1
+    host: 7
+    border_router: 36
+    public_ip: 13.229.107.141
+    public_port: 50000
+    bind_ip: 172.31.21.177
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 37
+  fields:
+    AS: 7
+    interface_id: 2
+    host: 7
+    border_router: 37
+    public_ip: 13.229.107.141
+    public_port: 50001
+    bind_ip: 172.31.21.177
+    bind_port: 50001
+- model: scionlab.interface
+  pk: 38
+  fields:
+    AS: 7
+    interface_id: 3
+    host: 7
+    border_router: 38
+    public_ip: 13.229.107.141
+    public_port: 50002
+    bind_ip: 172.31.21.177
+    bind_port: 50002
+- model: scionlab.interface
+  pk: 39
+  fields:
+    AS: 7
+    interface_id: 4
+    host: 7
+    border_router: 39
+    public_ip: 13.229.107.141
+    public_port: 50003
+    bind_ip: 172.31.21.177
+    bind_port: 50003
+- model: scionlab.interface
+  pk: 40
+  fields:
+    AS: 7
+    interface_id: 5
+    host: 7
+    border_router: 40
+    public_ip: 13.229.107.141
+    public_port: 50004
+    bind_ip: 172.31.21.177
+    bind_port: 50004
+- model: scionlab.interface
+  pk: 41
+  fields:
+    AS: 8
+    interface_id: 1
+    host: 8
+    border_router: 41
+    public_ip: 13.211.240.55
+    public_port: 50000
+    bind_ip: 172.31.33.229
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 42
+  fields:
+    AS: 8
+    interface_id: 2
+    host: 8
+    border_router: 42
+    public_ip: 13.211.240.55
+    public_port: 50001
+    bind_ip: 172.31.33.229
+    bind_port: 50001
+- model: scionlab.interface
+  pk: 43
+  fields:
+    AS: 8
+    interface_id: 3
+    host: 8
+    border_router: 43
+    public_ip: 13.211.240.55
+    public_port: 50002
+    bind_ip: 172.31.33.229
+    bind_port: 50002
+- model: scionlab.interface
+  pk: 44
+  fields:
+    AS: 8
+    interface_id: 4
+    host: 8
+    border_router: 44
+    public_ip: 13.211.240.55
+    public_port: 50003
+    bind_ip: 172.31.33.229
+    bind_port: 50003
+- model: scionlab.interface
+  pk: 45
+  fields:
+    AS: 9
+    interface_id: 1
+    host: 9
+    border_router: 45
+    public_ip: 193.247.172.130
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 46
+  fields:
+    AS: 9
+    interface_id: 10
+    host: 43
+    border_router: 46
+    public_ip: 193.247.172.150
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 47
+  fields:
+    AS: 9
+    interface_id: 11
+    host: 44
+    border_router: 47
+    public_ip: 10.0.8.1
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 48
+  fields:
+    AS: 9
+    interface_id: 2
+    host: 9
+    border_router: 48
+    public_ip: 193.247.172.130
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 49
+  fields:
+    AS: 9
+    interface_id: 3
+    host: 9
+    border_router: 49
+    public_ip: 193.247.172.130
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 50
+  fields:
+    AS: 9
+    interface_id: 4
+    host: 9
+    border_router: 50
+    public_ip: 193.247.172.130
+    public_port: 50003
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 51
+  fields:
+    AS: 9
+    interface_id: 5
+    host: 45
+    border_router: 51
+    public_ip: 193.247.172.134
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 52
+  fields:
+    AS: 9
+    interface_id: 6
+    host: 44
+    border_router: 52
+    public_ip: 193.247.172.154
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 53
+  fields:
+    AS: 9
+    interface_id: 7
+    host: 46
+    border_router: 53
+    public_ip: 169.254.1.1
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 54
+  fields:
+    AS: 9
+    interface_id: 8
+    host: 44
+    border_router: 54
+    public_ip: 169.254.1.10
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 55
+  fields:
+    AS: 10
+    interface_id: 2
+    host: 47
+    border_router: 55
+    public_ip: 169.254.1.2
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 56
+  fields:
+    AS: 10
+    interface_id: 3
+    host: 48
+    border_router: 56
+    public_ip: 192.33.92.68
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 57
+  fields:
+    AS: 10
+    interface_id: 4
+    host: 49
+    border_router: 57
+    public_ip: 192.33.93.190
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 58
+  fields:
+    AS: 10
+    interface_id: 5
+    host: 50
+    border_router: 58
+    public_ip: 192.33.93.194
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 59
+  fields:
+    AS: 10
+    interface_id: 6
+    host: 50
+    border_router: 59
+    public_ip: 192.33.93.194
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 60
+  fields:
+    AS: 10
+    interface_id: 7
+    host: 50
+    border_router: 60
+    public_ip: 192.33.93.194
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 61
+  fields:
+    AS: 11
+    interface_id: 1
+    host: 51
+    border_router: 61
+    public_ip: 169.254.1.2
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 62
+  fields:
+    AS: 11
+    interface_id: 2
+    host: 52
+    border_router: 62
+    public_ip: 169.254.1.1
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 63
+  fields:
+    AS: 11
+    interface_id: 3
+    host: 53
+    border_router: 63
+    public_ip: 192.33.92.69
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 64
+  fields:
+    AS: 11
+    interface_id: 4
+    host: 54
+    border_router: 64
+    public_ip: 169.254.1.11
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 65
+  fields:
+    AS: 12
+    interface_id: 1
+    host: 55
+    border_router: 65
+    public_ip: 162.23.11.2
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 66
+  fields:
+    AS: 13
+    interface_id: 1
+    host: 15
+    border_router: 66
+    public_ip: 192.33.93.195
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 67
+  fields:
+    AS: 14
+    interface_id: 1
+    host: 16
+    border_router: 67
+    public_ip: 192.33.93.161
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 68
+  fields:
+    AS: 15
+    interface_id: 1
+    host: 17
+    border_router: 68
+    public_ip: 192.33.93.147
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 69
+  fields:
+    AS: 16
+    interface_id: 1
+    host: 18
+    border_router: 69
+    public_ip: 192.33.93.174
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 70
+  fields:
+    AS: 17
+    interface_id: 1
+    host: 56
+    border_router: 70
+    public_ip: 128.237.152.180
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 71
+  fields:
+    AS: 17
+    interface_id: 2
+    host: 56
+    border_router: 71
+    public_ip: 128.237.152.180
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 72
+  fields:
+    AS: 17
+    interface_id: 3
+    host: 56
+    border_router: 72
+    public_ip: 128.237.152.180
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 73
+  fields:
+    AS: 17
+    interface_id: 4
+    host: 56
+    border_router: 73
+    public_ip: 128.237.152.180
+    public_port: 50003
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 74
+  fields:
+    AS: 17
+    interface_id: 5
+    host: 56
+    border_router: 74
+    public_ip: 128.237.152.180
+    public_port: 50004
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 75
+  fields:
+    AS: 17
+    interface_id: 6
+    host: 56
+    border_router: 75
+    public_ip: 128.237.152.180
+    public_port: 50005
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 76
+  fields:
+    AS: 17
+    interface_id: 7
+    host: 56
+    border_router: 76
+    public_ip: 128.237.152.180
+    public_port: 50006
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 77
+  fields:
+    AS: 18
+    interface_id: 1
+    host: 20
+    border_router: 77
+    public_ip: 128.105.21.208
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 78
+  fields:
+    AS: 19
+    interface_id: 1
+    host: 21
+    border_router: 78
+    public_ip: 128.59.22.198
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 79
+  fields:
+    AS: 19
+    interface_id: 2
+    host: 21
+    border_router: 79
+    public_ip: 128.59.22.198
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 80
+  fields:
+    AS: 19
+    interface_id: 3
+    host: 21
+    border_router: 80
+    public_ip: 128.59.22.198
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 81
+  fields:
+    AS: 20
+    interface_id: 1
+    host: 22
+    border_router: 81
+    public_ip: 173.237.218.138
+    public_port: 50000
+    bind_ip: 10.32.7.47
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 82
+  fields:
+    AS: 21
+    interface_id: 1
+    host: 23
+    border_router: 82
+    public_ip: 173.239.151.139
+    public_port: 50000
+    bind_ip: 10.64.7.21
+    bind_port: 50000
+- model: scionlab.interface
+  pk: 83
+  fields:
+    AS: 22
+    interface_id: 1
+    host: 24
+    border_router: 83
+    public_ip: 141.44.17.129
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 84
+  fields:
+    AS: 22
+    interface_id: 2
+    host: 24
+    border_router: 84
+    public_ip: 141.44.17.129
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 85
+  fields:
+    AS: 22
+    interface_id: 3
+    host: 24
+    border_router: 85
+    public_ip: 141.44.17.129
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 86
+  fields:
+    AS: 22
+    interface_id: 4
+    host: 24
+    border_router: 86
+    public_ip: 141.44.17.129
+    public_port: 50003
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 87
+  fields:
+    AS: 22
+    interface_id: 5
+    host: 24
+    border_router: 87
+    public_ip: 141.44.17.129
+    public_port: 50004
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 88
+  fields:
+    AS: 22
+    interface_id: 6
+    host: 24
+    border_router: 88
+    public_ip: 141.44.17.129
+    public_port: 50005
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 89
+  fields:
+    AS: 22
+    interface_id: 7
+    host: 24
+    border_router: 89
+    public_ip: 10.0.9.1
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 90
+  fields:
+    AS: 22
+    interface_id: 8
+    host: 24
+    border_router: 90
+    public_ip: 141.44.17.129
+    public_port: 50007
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 91
+  fields:
+    AS: 23
+    interface_id: 1
+    host: 25
+    border_router: 91
+    public_ip: 10.0.9.20
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 92
+  fields:
+    AS: 23
+    interface_id: 2
+    host: 25
+    border_router: 92
+    public_ip: 10.0.7.30
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 93
+  fields:
+    AS: 23
+    interface_id: 3
+    host: 57
+    border_router: 93
+    public_ip: 10.0.8.10
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 94
+  fields:
+    AS: 23
+    interface_id: 4
+    host: 57
+    border_router: 94
+    public_ip: 10.0.10.30
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 95
+  fields:
+    AS: 24
+    interface_id: 1
+    host: 26
+    border_router: 95
+    public_ip: 141.44.25.144
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 96
+  fields:
+    AS: 24
+    interface_id: 2
+    host: 26
+    border_router: 96
+    public_ip: 141.44.25.144
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 97
+  fields:
+    AS: 24
+    interface_id: 3
+    host: 26
+    border_router: 97
+    public_ip: 10.4.0.1
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 98
+  fields:
+    AS: 24
+    interface_id: 4
+    host: 26
+    border_router: 98
+    public_ip: 10.4.0.1
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 99
+  fields:
+    AS: 24
+    interface_id: 5
+    host: 26
+    border_router: 99
+    public_ip: 10.0.7.1
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 100
+  fields:
+    AS: 24
+    interface_id: 6
+    host: 26
+    border_router: 100
+    public_ip: 141.44.25.144
+    public_port: 50005
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 101
+  fields:
+    AS: 25
+    interface_id: 1
+    host: 27
+    border_router: 101
+    public_ip: 172.104.242.254
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 102
+  fields:
+    AS: 25
+    interface_id: 2
+    host: 27
+    border_router: 102
+    public_ip: 172.104.242.254
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 103
+  fields:
+    AS: 26
+    interface_id: 1
+    host: 28
+    border_router: 103
+    public_ip: 94.198.159.66
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 104
+  fields:
+    AS: 26
+    interface_id: 2
+    host: 28
+    border_router: 104
+    public_ip: 94.198.159.66
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 105
+  fields:
+    AS: 27
+    interface_id: 1
+    host: 29
+    border_router: 105
+    public_ip: 10.4.0.11
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 106
+  fields:
+    AS: 27
+    interface_id: 2
+    host: 58
+    border_router: 106
+    public_ip: 10.4.0.12
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 107
+  fields:
+    AS: 28
+    interface_id: 1
+    host: 30
+    border_router: 107
+    public_ip: 10.0.10.1
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 108
+  fields:
+    AS: 28
+    interface_id: 2
+    host: 30
+    border_router: 108
+    public_ip: 131.130.124.76
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 109
+  fields:
+    AS: 28
+    interface_id: 3
+    host: 30
+    border_router: 109
+    public_ip: 131.130.124.76
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 110
+  fields:
+    AS: 28
+    interface_id: 4
+    host: 30
+    border_router: 110
+    public_ip: 131.130.124.76
+    public_port: 50003
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 111
+  fields:
+    AS: 29
+    interface_id: 1
+    host: 31
+    border_router: 111
+    public_ip: 141.85.227.185
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 112
+  fields:
+    AS: 30
+    interface_id: 1
+    host: 32
+    border_router: 112
+    public_ip: 134.75.250.114
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 113
+  fields:
+    AS: 30
+    interface_id: 2
+    host: 32
+    border_router: 113
+    public_ip: 134.75.250.114
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 114
+  fields:
+    AS: 30
+    interface_id: 3
+    host: 32
+    border_router: 114
+    public_ip: 134.75.250.114
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 115
+  fields:
+    AS: 30
+    interface_id: 4
+    host: 32
+    border_router: 115
+    public_ip: 134.75.250.114
+    public_port: 50003
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 116
+  fields:
+    AS: 30
+    interface_id: 5
+    host: 32
+    border_router: 116
+    public_ip: 134.75.250.114
+    public_port: 50004
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 117
+  fields:
+    AS: 30
+    interface_id: 6
+    host: 32
+    border_router: 117
+    public_ip: 134.75.250.114
+    public_port: 50005
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 118
+  fields:
+    AS: 30
+    interface_id: 7
+    host: 32
+    border_router: 118
+    public_ip: 134.75.250.114
+    public_port: 50006
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 119
+  fields:
+    AS: 30
+    interface_id: 8
+    host: 32
+    border_router: 119
+    public_ip: 134.75.250.114
+    public_port: 50007
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 120
+  fields:
+    AS: 30
+    interface_id: 9
+    host: 32
+    border_router: 120
+    public_ip: 134.75.250.114
+    public_port: 50008
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 121
+  fields:
+    AS: 31
+    interface_id: 1
+    host: 33
+    border_router: 121
+    public_ip: 210.119.43.50
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 122
+  fields:
+    AS: 31
+    interface_id: 2
+    host: 33
+    border_router: 122
+    public_ip: 210.119.43.50
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 123
+  fields:
+    AS: 32
+    interface_id: 1
+    host: 34
+    border_router: 123
+    public_ip: 143.248.239.18
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 124
+  fields:
+    AS: 32
+    interface_id: 2
+    host: 34
+    border_router: 124
+    public_ip: 143.248.239.18
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 125
+  fields:
+    AS: 33
+    interface_id: 1
+    host: 35
+    border_router: 125
+    public_ip: 203.230.60.98
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 126
+  fields:
+    AS: 34
+    interface_id: 1
+    host: 36
+    border_router: 126
+    public_ip: 116.89.184.251
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 127
+  fields:
+    AS: 35
+    interface_id: 1
+    host: 37
+    border_router: 127
+    public_ip: 202.255.44.48
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 128
+  fields:
+    AS: 35
+    interface_id: 2
+    host: 37
+    border_router: 128
+    public_ip: 202.255.44.48
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 129
+  fields:
+    AS: 35
+    interface_id: 3
+    host: 37
+    border_router: 129
+    public_ip: 202.255.44.48
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 130
+  fields:
+    AS: 36
+    interface_id: 1
+    host: 38
+    border_router: 130
+    public_ip: 140.112.31.108
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 131
+  fields:
+    AS: 36
+    interface_id: 2
+    host: 38
+    border_router: 131
+    public_ip: 140.112.31.108
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 132
+  fields:
+    AS: 36
+    interface_id: 3
+    host: 38
+    border_router: 132
+    public_ip: 140.112.31.108
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 133
+  fields:
+    AS: 37
+    interface_id: 1
+    host: 39
+    border_router: 133
+    public_ip: 137.132.83.252
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 134
+  fields:
+    AS: 37
+    interface_id: 2
+    host: 39
+    border_router: 134
+    public_ip: 137.132.83.252
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 135
+  fields:
+    AS: 37
+    interface_id: 3
+    host: 39
+    border_router: 135
+    public_ip: 137.132.83.252
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 136
+  fields:
+    AS: 37
+    interface_id: 4
+    host: 39
+    border_router: 136
+    public_ip: 137.132.83.252
+    public_port: 50003
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 137
+  fields:
+    AS: 37
+    interface_id: 5
+    host: 39
+    border_router: 137
+    public_ip: 137.132.83.252
+    public_port: 50004
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 138
+  fields:
+    AS: 38
+    interface_id: 1
+    host: 40
+    border_router: 138
+    public_ip: 203.44.193.212
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 139
+  fields:
+    AS: 38
+    interface_id: 2
+    host: 40
+    border_router: 139
+    public_ip: 203.44.193.212
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 140
+  fields:
+    AS: 38
+    interface_id: 3
+    host: 40
+    border_router: 140
+    public_ip: 203.44.193.212
+    public_port: 50002
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 141
+  fields:
+    AS: 39
+    interface_id: 1
+    host: 41
+    border_router: 141
+    public_ip: 166.111.68.234
+    public_port: 50000
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 142
+  fields:
+    AS: 39
+    interface_id: 2
+    host: 41
+    border_router: 142
+    public_ip: 166.111.68.234
+    public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.link
+  pk: 1
+  fields:
+    interfaceA: 1
+    interfaceB: 45
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 2
+  fields:
+    interfaceA: 2
+    interfaceB: 83
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 3
+  fields:
+    interfaceA: 3
+    interfaceB: 13
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 4
+  fields:
+    interfaceA: 4
+    interfaceB: 17
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 5
+  fields:
+    interfaceA: 5
+    interfaceB: 21
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 6
+  fields:
+    interfaceA: 6
+    interfaceB: 32
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 7
+  fields:
+    interfaceA: 7
+    interfaceB: 37
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 8
+  fields:
+    interfaceA: 8
+    interfaceB: 43
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 9
+  fields:
+    interfaceA: 9
+    interfaceB: 48
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 10
+  fields:
+    interfaceA: 10
+    interfaceB: 84
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 11
+  fields:
+    interfaceA: 11
+    interfaceB: 18
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 12
+  fields:
+    interfaceA: 12
+    interfaceB: 33
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 13
+  fields:
+    interfaceA: 14
+    interfaceB: 70
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 14
+  fields:
+    interfaceA: 15
+    interfaceB: 22
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 15
+  fields:
+    interfaceA: 16
+    interfaceB: 26
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 16
+  fields:
+    interfaceA: 19
+    interfaceB: 71
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 17
+  fields:
+    interfaceA: 20
+    interfaceB: 27
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 18
+  fields:
+    interfaceA: 23
+    interfaceB: 44
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 19
+  fields:
+    interfaceA: 24
+    interfaceB: 34
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 20
+  fields:
+    interfaceA: 25
+    interfaceB: 38
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 21
+  fields:
+    interfaceA: 28
+    interfaceB: 112
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 22
+  fields:
+    interfaceA: 29
+    interfaceB: 127
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 23
+  fields:
+    interfaceA: 30
+    interfaceB: 130
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 24
+  fields:
+    interfaceA: 31
+    interfaceB: 39
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 25
+  fields:
+    interfaceA: 35
+    interfaceB: 42
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 26
+  fields:
+    interfaceA: 36
+    interfaceB: 133
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 27
+  fields:
+    interfaceA: 40
+    interfaceB: 141
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 28
+  fields:
+    interfaceA: 41
+    interfaceB: 138
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 29
+  fields:
+    interfaceA: 47
+    interfaceB: 93
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 30
+  fields:
+    interfaceA: 49
+    interfaceB: 113
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 31
+  fields:
+    interfaceA: 50
+    interfaceB: 134
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 32
+  fields:
+    interfaceA: 51
+    interfaceB: 73
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 33
+  fields:
+    interfaceA: 52
+    interfaceB: 86
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 34
+  fields:
+    interfaceA: 55
+    interfaceB: 62
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 35
+  fields:
+    interfaceA: 56
+    interfaceB: 63
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 36
+  fields:
+    interfaceA: 61
+    interfaceB: 53
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 37
+  fields:
+    interfaceA: 64
+    interfaceB: 54
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 38
+  fields:
+    interfaceA: 65
+    interfaceB: 46
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 39
+  fields:
+    interfaceA: 66
+    interfaceB: 57
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 40
+  fields:
+    interfaceA: 67
+    interfaceB: 58
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 41
+  fields:
+    interfaceA: 68
+    interfaceB: 59
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 42
+  fields:
+    interfaceA: 69
+    interfaceB: 60
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 43
+  fields:
+    interfaceA: 72
+    interfaceB: 116
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 44
+  fields:
+    interfaceA: 74
+    interfaceB: 85
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 45
+  fields:
+    interfaceA: 77
+    interfaceB: 75
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 46
+  fields:
+    interfaceA: 78
+    interfaceB: 76
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 47
+  fields:
+    interfaceA: 81
+    interfaceB: 79
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 48
+  fields:
+    interfaceA: 82
+    interfaceB: 80
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 49
+  fields:
+    interfaceA: 89
+    interfaceB: 91
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 50
+  fields:
+    interfaceA: 95
+    interfaceB: 87
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 51
+  fields:
+    interfaceA: 99
+    interfaceB: 92
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 52
+  fields:
+    interfaceA: 100
+    interfaceB: 109
+    type: PEER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 53
+  fields:
+    interfaceA: 101
+    interfaceB: 88
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 54
+  fields:
+    interfaceA: 103
+    interfaceB: 96
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 55
+  fields:
+    interfaceA: 104
+    interfaceB: 102
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 56
+  fields:
+    interfaceA: 105
+    interfaceB: 97
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 57
+  fields:
+    interfaceA: 106
+    interfaceB: 98
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 58
+  fields:
+    interfaceA: 107
+    interfaceB: 94
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 59
+  fields:
+    interfaceA: 108
+    interfaceB: 90
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 60
+  fields:
+    interfaceA: 111
+    interfaceB: 110
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 61
+  fields:
+    interfaceA: 114
+    interfaceB: 136
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 62
+  fields:
+    interfaceA: 115
+    interfaceB: 129
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 63
+  fields:
+    interfaceA: 119
+    interfaceB: 140
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 64
+  fields:
+    interfaceA: 120
+    interfaceB: 142
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 65
+  fields:
+    interfaceA: 121
+    interfaceB: 117
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 66
+  fields:
+    interfaceA: 123
+    interfaceB: 118
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 67
+  fields:
+    interfaceA: 125
+    interfaceB: 122
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 68
+  fields:
+    interfaceA: 126
+    interfaceB: 124
+    type: PROVIDER
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 69
+  fields:
+    interfaceA: 128
+    interfaceB: 132
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 70
+  fields:
+    interfaceA: 131
+    interfaceB: 135
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.link
+  pk: 71
+  fields:
+    interfaceA: 137
+    interfaceB: 139
+    type: CORE
+    active: true
+    bandwidth: 1000
+    mtu: 1472
+- model: scionlab.borderrouter
+  pk: 1
+  fields:
+    AS: 1
+    host: 1
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 2
+  fields:
+    AS: 1
+    host: 1
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 3
+  fields:
+    AS: 1
+    host: 1
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 4
+  fields:
+    AS: 1
+    host: 1
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 5
+  fields:
+    AS: 1
+    host: 1
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 6
+  fields:
+    AS: 1
+    host: 1
+    internal_port: 31050
+    control_port: 30050
+- model: scionlab.borderrouter
+  pk: 7
+  fields:
+    AS: 1
+    host: 1
+    internal_port: 31051
+    control_port: 30051
+- model: scionlab.borderrouter
+  pk: 8
+  fields:
+    AS: 1
+    host: 1
+    internal_port: 31052
+    control_port: 30052
+- model: scionlab.borderrouter
+  pk: 9
+  fields:
+    AS: 2
+    host: 2
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 10
+  fields:
+    AS: 2
+    host: 2
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 11
+  fields:
+    AS: 2
+    host: 2
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 12
+  fields:
+    AS: 2
+    host: 2
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 13
+  fields:
+    AS: 2
+    host: 2
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 14
+  fields:
+    AS: 3
+    host: 3
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 15
+  fields:
+    AS: 3
+    host: 3
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 16
+  fields:
+    AS: 3
+    host: 3
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 17
+  fields:
+    AS: 3
+    host: 3
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 18
+  fields:
+    AS: 3
+    host: 3
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 19
+  fields:
+    AS: 4
+    host: 4
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 20
+  fields:
+    AS: 4
+    host: 4
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 21
+  fields:
+    AS: 4
+    host: 4
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 22
+  fields:
+    AS: 4
+    host: 4
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 23
+  fields:
+    AS: 5
+    host: 5
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 24
+  fields:
+    AS: 5
+    host: 5
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 25
+  fields:
+    AS: 5
+    host: 5
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 26
+  fields:
+    AS: 5
+    host: 5
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 27
+  fields:
+    AS: 5
+    host: 5
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 28
+  fields:
+    AS: 6
+    host: 42
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 29
+  fields:
+    AS: 6
+    host: 42
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 30
+  fields:
+    AS: 6
+    host: 42
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 31
+  fields:
+    AS: 6
+    host: 42
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 32
+  fields:
+    AS: 6
+    host: 42
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 33
+  fields:
+    AS: 6
+    host: 42
+    internal_port: 31050
+    control_port: 30050
+- model: scionlab.borderrouter
+  pk: 34
+  fields:
+    AS: 6
+    host: 42
+    internal_port: 31051
+    control_port: 30051
+- model: scionlab.borderrouter
+  pk: 35
+  fields:
+    AS: 6
+    host: 42
+    internal_port: 31052
+    control_port: 30052
+- model: scionlab.borderrouter
+  pk: 36
+  fields:
+    AS: 7
+    host: 7
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 37
+  fields:
+    AS: 7
+    host: 7
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 38
+  fields:
+    AS: 7
+    host: 7
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 39
+  fields:
+    AS: 7
+    host: 7
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 40
+  fields:
+    AS: 7
+    host: 7
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 41
+  fields:
+    AS: 8
+    host: 8
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 42
+  fields:
+    AS: 8
+    host: 8
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 43
+  fields:
+    AS: 8
+    host: 8
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 44
+  fields:
+    AS: 8
+    host: 8
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 45
+  fields:
+    AS: 9
+    host: 9
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 46
+  fields:
+    AS: 9
+    host: 43
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 47
+  fields:
+    AS: 9
+    host: 44
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 48
+  fields:
+    AS: 9
+    host: 9
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 49
+  fields:
+    AS: 9
+    host: 9
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 50
+  fields:
+    AS: 9
+    host: 9
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 51
+  fields:
+    AS: 9
+    host: 45
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 52
+  fields:
+    AS: 9
+    host: 44
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 53
+  fields:
+    AS: 9
+    host: 46
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 54
+  fields:
+    AS: 9
+    host: 44
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 55
+  fields:
+    AS: 10
+    host: 47
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 56
+  fields:
+    AS: 10
+    host: 48
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 57
+  fields:
+    AS: 10
+    host: 49
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 58
+  fields:
+    AS: 10
+    host: 50
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 59
+  fields:
+    AS: 10
+    host: 50
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 60
+  fields:
+    AS: 10
+    host: 50
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 61
+  fields:
+    AS: 11
+    host: 51
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 62
+  fields:
+    AS: 11
+    host: 52
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 63
+  fields:
+    AS: 11
+    host: 53
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 64
+  fields:
+    AS: 11
+    host: 54
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 65
+  fields:
+    AS: 12
+    host: 55
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 66
+  fields:
+    AS: 13
+    host: 15
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 67
+  fields:
+    AS: 14
+    host: 16
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 68
+  fields:
+    AS: 15
+    host: 17
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 69
+  fields:
+    AS: 16
+    host: 18
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 70
+  fields:
+    AS: 17
+    host: 56
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 71
+  fields:
+    AS: 17
+    host: 56
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 72
+  fields:
+    AS: 17
+    host: 56
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 73
+  fields:
+    AS: 17
+    host: 56
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 74
+  fields:
+    AS: 17
+    host: 56
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 75
+  fields:
+    AS: 17
+    host: 56
+    internal_port: 31050
+    control_port: 30050
+- model: scionlab.borderrouter
+  pk: 76
+  fields:
+    AS: 17
+    host: 56
+    internal_port: 31051
+    control_port: 30051
+- model: scionlab.borderrouter
+  pk: 77
+  fields:
+    AS: 18
+    host: 20
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 78
+  fields:
+    AS: 19
+    host: 21
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 79
+  fields:
+    AS: 19
+    host: 21
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 80
+  fields:
+    AS: 19
+    host: 21
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 81
+  fields:
+    AS: 20
+    host: 22
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 82
+  fields:
+    AS: 21
+    host: 23
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 83
+  fields:
+    AS: 22
+    host: 24
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 84
+  fields:
+    AS: 22
+    host: 24
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 85
+  fields:
+    AS: 22
+    host: 24
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 86
+  fields:
+    AS: 22
+    host: 24
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 87
+  fields:
+    AS: 22
+    host: 24
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 88
+  fields:
+    AS: 22
+    host: 24
+    internal_port: 31050
+    control_port: 30050
+- model: scionlab.borderrouter
+  pk: 89
+  fields:
+    AS: 22
+    host: 24
+    internal_port: 31051
+    control_port: 30051
+- model: scionlab.borderrouter
+  pk: 90
+  fields:
+    AS: 22
+    host: 24
+    internal_port: 31052
+    control_port: 30052
+- model: scionlab.borderrouter
+  pk: 91
+  fields:
+    AS: 23
+    host: 25
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 92
+  fields:
+    AS: 23
+    host: 25
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 93
+  fields:
+    AS: 23
+    host: 57
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 94
+  fields:
+    AS: 23
+    host: 57
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 95
+  fields:
+    AS: 24
+    host: 26
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 96
+  fields:
+    AS: 24
+    host: 26
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 97
+  fields:
+    AS: 24
+    host: 26
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 98
+  fields:
+    AS: 24
+    host: 26
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 99
+  fields:
+    AS: 24
+    host: 26
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 100
+  fields:
+    AS: 24
+    host: 26
+    internal_port: 31050
+    control_port: 30050
+- model: scionlab.borderrouter
+  pk: 101
+  fields:
+    AS: 25
+    host: 27
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 102
+  fields:
+    AS: 25
+    host: 27
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 103
+  fields:
+    AS: 26
+    host: 28
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 104
+  fields:
+    AS: 26
+    host: 28
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 105
+  fields:
+    AS: 27
+    host: 29
+    internal_port: 31045
+    control_port: 31045
+- model: scionlab.borderrouter
+  pk: 106
+  fields:
+    AS: 27
+    host: 58
+    internal_port: 31046
+    control_port: 31046
+- model: scionlab.borderrouter
+  pk: 107
+  fields:
+    AS: 28
+    host: 30
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 108
+  fields:
+    AS: 28
+    host: 30
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 109
+  fields:
+    AS: 28
+    host: 30
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 110
+  fields:
+    AS: 28
+    host: 30
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 111
+  fields:
+    AS: 29
+    host: 31
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 112
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 113
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 114
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 115
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 116
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 117
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31050
+    control_port: 30050
+- model: scionlab.borderrouter
+  pk: 118
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31051
+    control_port: 30051
+- model: scionlab.borderrouter
+  pk: 119
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31052
+    control_port: 30052
+- model: scionlab.borderrouter
+  pk: 120
+  fields:
+    AS: 30
+    host: 32
+    internal_port: 31053
+    control_port: 30053
+- model: scionlab.borderrouter
+  pk: 121
+  fields:
+    AS: 31
+    host: 33
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 122
+  fields:
+    AS: 31
+    host: 33
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 123
+  fields:
+    AS: 32
+    host: 34
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 124
+  fields:
+    AS: 32
+    host: 34
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 125
+  fields:
+    AS: 33
+    host: 35
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 126
+  fields:
+    AS: 34
+    host: 36
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 127
+  fields:
+    AS: 35
+    host: 37
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 128
+  fields:
+    AS: 35
+    host: 37
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 129
+  fields:
+    AS: 35
+    host: 37
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 130
+  fields:
+    AS: 36
+    host: 38
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 131
+  fields:
+    AS: 36
+    host: 38
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 132
+  fields:
+    AS: 36
+    host: 38
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 133
+  fields:
+    AS: 37
+    host: 39
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 134
+  fields:
+    AS: 37
+    host: 39
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 135
+  fields:
+    AS: 37
+    host: 39
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 136
+  fields:
+    AS: 37
+    host: 39
+    internal_port: 31048
+    control_port: 30048
+- model: scionlab.borderrouter
+  pk: 137
+  fields:
+    AS: 37
+    host: 39
+    internal_port: 31049
+    control_port: 30049
+- model: scionlab.borderrouter
+  pk: 138
+  fields:
+    AS: 38
+    host: 40
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 139
+  fields:
+    AS: 38
+    host: 40
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.borderrouter
+  pk: 140
+  fields:
+    AS: 38
+    host: 40
+    internal_port: 31047
+    control_port: 30047
+- model: scionlab.borderrouter
+  pk: 141
+  fields:
+    AS: 39
+    host: 41
+    internal_port: 31045
+    control_port: 30045
+- model: scionlab.borderrouter
+  pk: 142
+  fields:
+    AS: 39
+    host: 41
+    internal_port: 31046
+    control_port: 30046
+- model: scionlab.service
+  pk: 1
+  fields:
+    AS: 1
+    host: 1
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 2
+  fields:
+    AS: 1
+    host: 1
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 3
+  fields:
+    AS: 1
+    host: 1
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 4
+  fields:
+    AS: 1
+    host: 1
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 5
+  fields:
+    AS: 2
+    host: 2
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 6
+  fields:
+    AS: 2
+    host: 2
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 7
+  fields:
+    AS: 2
+    host: 2
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 8
+  fields:
+    AS: 2
+    host: 2
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 9
+  fields:
+    AS: 3
+    host: 3
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 10
+  fields:
+    AS: 3
+    host: 3
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 11
+  fields:
+    AS: 3
+    host: 3
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 12
+  fields:
+    AS: 3
+    host: 3
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 13
+  fields:
+    AS: 4
+    host: 4
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 14
+  fields:
+    AS: 4
+    host: 4
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 15
+  fields:
+    AS: 4
+    host: 4
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 16
+  fields:
+    AS: 4
+    host: 4
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 17
+  fields:
+    AS: 5
+    host: 5
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 18
+  fields:
+    AS: 5
+    host: 5
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 19
+  fields:
+    AS: 5
+    host: 5
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 20
+  fields:
+    AS: 5
+    host: 5
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 21
+  fields:
+    AS: 6
+    host: 6
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 22
+  fields:
+    AS: 6
+    host: 6
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 23
+  fields:
+    AS: 6
+    host: 6
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 24
+  fields:
+    AS: 6
+    host: 6
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 25
+  fields:
+    AS: 7
+    host: 7
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 26
+  fields:
+    AS: 7
+    host: 7
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 27
+  fields:
+    AS: 7
+    host: 7
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 28
+  fields:
+    AS: 7
+    host: 7
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 29
+  fields:
+    AS: 8
+    host: 8
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 30
+  fields:
+    AS: 8
+    host: 8
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 31
+  fields:
+    AS: 8
+    host: 8
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 32
+  fields:
+    AS: 8
+    host: 8
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 33
+  fields:
+    AS: 9
+    host: 9
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 34
+  fields:
+    AS: 9
+    host: 9
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 35
+  fields:
+    AS: 9
+    host: 9
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 36
+  fields:
+    AS: 9
+    host: 9
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 37
+  fields:
+    AS: 10
+    host: 10
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 38
+  fields:
+    AS: 10
+    host: 10
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 39
+  fields:
+    AS: 10
+    host: 10
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 40
+  fields:
+    AS: 10
+    host: 10
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 41
+  fields:
+    AS: 11
+    host: 11
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 42
+  fields:
+    AS: 11
+    host: 12
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 43
+  fields:
+    AS: 11
+    host: 13
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 44
+  fields:
+    AS: 11
+    host: 11
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 45
+  fields:
+    AS: 12
+    host: 14
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 46
+  fields:
+    AS: 12
+    host: 14
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 47
+  fields:
+    AS: 12
+    host: 14
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 48
+  fields:
+    AS: 12
+    host: 14
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 49
+  fields:
+    AS: 13
+    host: 15
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 50
+  fields:
+    AS: 13
+    host: 15
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 51
+  fields:
+    AS: 13
+    host: 15
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 52
+  fields:
+    AS: 13
+    host: 15
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 53
+  fields:
+    AS: 14
+    host: 16
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 54
+  fields:
+    AS: 14
+    host: 16
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 55
+  fields:
+    AS: 14
+    host: 16
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 56
+  fields:
+    AS: 14
+    host: 16
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 57
+  fields:
+    AS: 15
+    host: 17
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 58
+  fields:
+    AS: 15
+    host: 17
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 59
+  fields:
+    AS: 15
+    host: 17
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 60
+  fields:
+    AS: 15
+    host: 17
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 61
+  fields:
+    AS: 16
+    host: 18
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 62
+  fields:
+    AS: 16
+    host: 18
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 63
+  fields:
+    AS: 16
+    host: 18
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 64
+  fields:
+    AS: 16
+    host: 18
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 65
+  fields:
+    AS: 17
+    host: 19
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 66
+  fields:
+    AS: 17
+    host: 19
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 67
+  fields:
+    AS: 17
+    host: 19
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 68
+  fields:
+    AS: 17
+    host: 19
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 69
+  fields:
+    AS: 18
+    host: 20
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 70
+  fields:
+    AS: 18
+    host: 20
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 71
+  fields:
+    AS: 18
+    host: 20
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 72
+  fields:
+    AS: 18
+    host: 20
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 73
+  fields:
+    AS: 19
+    host: 21
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 74
+  fields:
+    AS: 19
+    host: 21
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 75
+  fields:
+    AS: 19
+    host: 21
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 76
+  fields:
+    AS: 19
+    host: 21
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 77
+  fields:
+    AS: 20
+    host: 22
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 78
+  fields:
+    AS: 20
+    host: 22
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 79
+  fields:
+    AS: 20
+    host: 22
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 80
+  fields:
+    AS: 20
+    host: 22
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 81
+  fields:
+    AS: 21
+    host: 23
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 82
+  fields:
+    AS: 21
+    host: 23
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 83
+  fields:
+    AS: 21
+    host: 23
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 84
+  fields:
+    AS: 21
+    host: 23
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 85
+  fields:
+    AS: 22
+    host: 24
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 86
+  fields:
+    AS: 22
+    host: 24
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 87
+  fields:
+    AS: 22
+    host: 24
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 88
+  fields:
+    AS: 22
+    host: 24
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 89
+  fields:
+    AS: 23
+    host: 25
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 90
+  fields:
+    AS: 23
+    host: 25
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 91
+  fields:
+    AS: 23
+    host: 25
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 92
+  fields:
+    AS: 23
+    host: 25
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 93
+  fields:
+    AS: 24
+    host: 26
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 94
+  fields:
+    AS: 24
+    host: 26
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 95
+  fields:
+    AS: 24
+    host: 26
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 96
+  fields:
+    AS: 24
+    host: 26
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 97
+  fields:
+    AS: 25
+    host: 27
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 98
+  fields:
+    AS: 25
+    host: 27
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 99
+  fields:
+    AS: 25
+    host: 27
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 100
+  fields:
+    AS: 25
+    host: 27
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 101
+  fields:
+    AS: 26
+    host: 28
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 102
+  fields:
+    AS: 26
+    host: 28
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 103
+  fields:
+    AS: 26
+    host: 28
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 104
+  fields:
+    AS: 26
+    host: 28
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 105
+  fields:
+    AS: 27
+    host: 29
+    port: 31039
+    type: BS
+- model: scionlab.service
+  pk: 106
+  fields:
+    AS: 27
+    host: 29
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 107
+  fields:
+    AS: 27
+    host: 29
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 108
+  fields:
+    AS: 27
+    host: 29
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 109
+  fields:
+    AS: 28
+    host: 30
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 110
+  fields:
+    AS: 28
+    host: 30
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 111
+  fields:
+    AS: 28
+    host: 30
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 112
+  fields:
+    AS: 28
+    host: 30
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 113
+  fields:
+    AS: 29
+    host: 31
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 114
+  fields:
+    AS: 29
+    host: 31
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 115
+  fields:
+    AS: 29
+    host: 31
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 116
+  fields:
+    AS: 29
+    host: 31
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 117
+  fields:
+    AS: 30
+    host: 32
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 118
+  fields:
+    AS: 30
+    host: 32
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 119
+  fields:
+    AS: 30
+    host: 32
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 120
+  fields:
+    AS: 30
+    host: 32
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 121
+  fields:
+    AS: 31
+    host: 33
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 122
+  fields:
+    AS: 31
+    host: 33
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 123
+  fields:
+    AS: 31
+    host: 33
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 124
+  fields:
+    AS: 31
+    host: 33
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 125
+  fields:
+    AS: 32
+    host: 34
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 126
+  fields:
+    AS: 32
+    host: 34
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 127
+  fields:
+    AS: 32
+    host: 34
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 128
+  fields:
+    AS: 32
+    host: 34
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 129
+  fields:
+    AS: 33
+    host: 35
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 130
+  fields:
+    AS: 33
+    host: 35
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 131
+  fields:
+    AS: 33
+    host: 35
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 132
+  fields:
+    AS: 33
+    host: 35
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 133
+  fields:
+    AS: 34
+    host: 36
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 134
+  fields:
+    AS: 34
+    host: 36
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 135
+  fields:
+    AS: 34
+    host: 36
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 136
+  fields:
+    AS: 34
+    host: 36
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 137
+  fields:
+    AS: 35
+    host: 37
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 138
+  fields:
+    AS: 35
+    host: 37
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 139
+  fields:
+    AS: 35
+    host: 37
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 140
+  fields:
+    AS: 35
+    host: 37
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 141
+  fields:
+    AS: 36
+    host: 38
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 142
+  fields:
+    AS: 36
+    host: 38
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 143
+  fields:
+    AS: 36
+    host: 38
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 144
+  fields:
+    AS: 36
+    host: 38
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 145
+  fields:
+    AS: 37
+    host: 39
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 146
+  fields:
+    AS: 37
+    host: 39
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 147
+  fields:
+    AS: 37
+    host: 39
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 148
+  fields:
+    AS: 37
+    host: 39
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 149
+  fields:
+    AS: 38
+    host: 40
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 150
+  fields:
+    AS: 38
+    host: 40
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 151
+  fields:
+    AS: 38
+    host: 40
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 152
+  fields:
+    AS: 38
+    host: 40
+    port: 2181
+    type: ZK
+- model: scionlab.service
+  pk: 153
+  fields:
+    AS: 39
+    host: 41
+    port: 31041
+    type: BS
+- model: scionlab.service
+  pk: 154
+  fields:
+    AS: 39
+    host: 41
+    port: 31042
+    type: CS
+- model: scionlab.service
+  pk: 155
+  fields:
+    AS: 39
+    host: 41
+    port: 31043
+    type: PS
+- model: scionlab.service
+  pk: 156
+  fields:
+    AS: 39
+    host: 41
+    port: 2181
+    type: ZK
+- model: scionlab.vpn
+  pk: 1
+  fields:
+    server: 15
+    server_port: 1194
+    subnet: 10.0.8.0/24
+    private_key: '-----BEGIN RSA PRIVATE KEY-----
+
+      MIICXQIBAAKBgQCxznJ8+gDH0iWVXXuV1gL0OWxJSJeH/GTtsFKQfalF5YmE0ClP
+
+      J4LpelyDA1QTA2YaZo+YiJ9to3mwoP5f+rrZExhhB6HWl0a6+BO/DA5fkUdmhwXX
+
+      h7wR7Jr5+jbEGKdMviJ5F/zRLCwnlcvdX6pDZfpQqlZrqj1wLnAguEvyRQIDAQAB
+
+      AoGARHhAhDntlQUqreMK1T9Nceiu92V53MbnwtQUZ0nMpnrmwvs5/R40/l29REJC
+
+      3POBHQeDonRyGFFMaiUE78borkwRkKPmxWLMTCTSALHZLFdhpKwyuYg/YYIbqX6d
+
+      us549OmkaCs1wZSTJJz1ie93zM+J2dRZbZl8XUnCv15dNH0CQQDoLeSpX/gg3xKg
+
+      jyQLqopXYR4hLkrO+wmfOn3mQA5XZyPSH79eTd6kYitfRatJJkuR67Pzo52j4v7D
+
+      91bTYp6/AkEAxAx4enaQNQqO2/64zj18vvoIRST1xYQPcEUcSXMrqi+Z6HUCA6H5
+
+      vUUmVtx4VX26DyDJQ2vZYwSBudY7e9Xz+wJAKs9rfh+H7Oe0044RI2WKpJnvqEaU
+
+      3J1FJOrwE+hzvIH0BOZ9rrHE/6JqROLftlktTfab86yTgIh2WUPd6pQgmQJBAKT5
+
+      TYTYMr+/s7ni3scGrOvUYZM15++fEpLKRWR1mz/qMJyRofFGo26nOv0LJ+PhGenT
+
+      ECpBHjyZtUSZx5KM13MCQQC0qX7yKxNeq/jRUySTbEaqyQlFAWw86oD9hjnlIe/i
+
+      8rq8v744d5HrtB7KNXEQtQQfzxqGRLuSUOzoMnCdumuU
+
+      -----END RSA PRIVATE KEY-----
+
+      '
+    cert: '-----BEGIN CERTIFICATE-----
+
+      MIIDOTCCAuOgAwIBAgIUTyAIonftMW4hy6GZgOY8dHDClAIwDQYJKoZIhvcNAQEL
+
+      BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
+
+      MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
+
+      MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
+
+      aW5mLmV0aHouY2gwHhcNMTkwNDE2MDcxNTAxWhcNMjEwNDE1MDcxNTAxWjCBrTEL
+
+      MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
+
+      BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMSYwJAYDVQQDDB0xNy1mZmFhXzBfMTEw
+
+      N19fMTkyLjMzLjkzLjE5NTERMA8GA1UEKQwIU0NJT05WUE4xJjAkBgkqhkiG9w0B
+
+      CQEWF3NjaW9uQGxpc3RzLmluZi5ldGh6LmNoMIGfMA0GCSqGSIb3DQEBAQUAA4GN
+
+      ADCBiQKBgQCxznJ8+gDH0iWVXXuV1gL0OWxJSJeH/GTtsFKQfalF5YmE0ClPJ4Lp
+
+      elyDA1QTA2YaZo+YiJ9to3mwoP5f+rrZExhhB6HWl0a6+BO/DA5fkUdmhwXXh7wR
+
+      7Jr5+jbEGKdMviJ5F/zRLCwnlcvdX6pDZfpQqlZrqj1wLnAguEvyRQIDAQABo4Gr
+
+      MIGoMDAGA1UdEQQpMCeCJXNjaW9ubGFiQHNjaW9ubGFiLm9yZ19fMTctZmZhYV8w
+
+      XzExMDcwHwYDVR0jBBgwFoAU2dKlaZmWqwQIkBoypd9rmz5AJT8wHQYDVR0OBBYE
+
+      FFF9xJZoKYq62Nn9jjcOVJgz/YouMA4GA1UdDwEB/wQEAwIHgDAWBgNVHSUBAf8E
+
+      DDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBCwUAA0EACBJu
+
+      dCYM1iI8Va9B75gDltgQ99g0/vqui6c1AywZ+WXzei+X/FZiCoIYekdI6iZoi69D
+
+      vLeNPNPx4cN4QcyycQ==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.vpn
+  pk: 2
+  fields:
+    server: 20
+    server_port: 1194
+    subnet: 10.0.8.0/24
+    private_key: '-----BEGIN RSA PRIVATE KEY-----
+
+      MIICXgIBAAKBgQDjNCft5D9tl6ipi7hNIPX6IvldpZAH33r6ofw982MkCeJE3gLk
+
+      qzpdK1b6Z3Lm/xBe7vLHslNY7gqv7TXeVQqjMoCt7MQHhscpQ6LqgVd0c3fGF7nC
+
+      Tzf1YfJqqmwsdbfgNUnFifmwlbqG35MmVEyW700A0BrndzoHzqxmlXvRTQIDAQAB
+
+      AoGAfirTVYZfNpN2RJhjAumfzoSnZzpuLgELAKz9LsW+MyAN92I1xxfStDRB+5GA
+
+      vAe95onYZc5//C1L3//g3xLocUVs7JGfmq/VK/v1AVAm2nDXQR4Mb9XGkaWRqi+z
+
+      nmzXFWXPSfo0O7Tfq0BK3eM1kc2pSNuTrqenkk1OZUOH6UECQQD/OmZlW0M1EX5S
+
+      x2iMowwxJraGE+Rup7gK/WnRwj4tXnkzjvxCelkXBUeOOaHe65NM2r2GkzTlsubp
+
+      VWRq7WKxAkEA4+QPKobg7LgKIqkXPLMmpvANAZ3HLth1P1rOQo2C4R/BI2QcYRgF
+
+      tpQ2mj7ZWu08ei5n+OC3GKCdOKZCmBYnXQJBAJ+9s3zYg9XhHwk8WUk8e1MAAdkk
+
+      9iHzwxLNzL9GLZhDuuP0KBqLbNslqMVxeMiG9OhzN4/U7pSdRjzf/zuVW+ECQQC3
+
+      +s1Xqu55jZb5JoPRCF0jFteZP3Sn2C7ICBpO1oocD5PQa6kRpeAu53cxjZ3Sb4aM
+
+      qVxdK6YF5t0m9+r5d6EtAkEA52HUv2YwVjCAO6UIry4ciGpx67UMIfykEHraSgAz
+
+      +usAT9aKjxHwVMTtqsa7bGXJKJrWax2p8MsB7IIdGSnDpA==
+
+      -----END RSA PRIVATE KEY-----
+
+      '
+    cert: '-----BEGIN CERTIFICATE-----
+
+      MIIDOjCCAuSgAwIBAgIUJx1JIv0cATdjhgKcO9aJVfUEvyowDQYJKoZIhvcNAQEL
+
+      BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
+
+      MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
+
+      MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
+
+      aW5mLmV0aHouY2gwHhcNMTkwNDE2MDcxNTAxWhcNMjEwNDE1MDcxNTAxWjCBrjEL
+
+      MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
+
+      BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMScwJQYDVQQDDB4xOC1mZmFhXzBfMTIw
+
+      Ml9fMTI4LjEwNS4yMS4yMDgxETAPBgNVBCkMCFNDSU9OVlBOMSYwJAYJKoZIhvcN
+
+      AQkBFhdzY2lvbkBsaXN0cy5pbmYuZXRoei5jaDCBnzANBgkqhkiG9w0BAQEFAAOB
+
+      jQAwgYkCgYEA4zQn7eQ/bZeoqYu4TSD1+iL5XaWQB996+qH8PfNjJAniRN4C5Ks6
+
+      XStW+mdy5v8QXu7yx7JTWO4Kr+013lUKozKArezEB4bHKUOi6oFXdHN3xhe5wk83
+
+      9WHyaqpsLHW34DVJxYn5sJW6ht+TJlRMlu9NANAa53c6B86sZpV70U0CAwEAAaOB
+
+      qzCBqDAwBgNVHREEKTAngiVzY2lvbmxhYkBzY2lvbmxhYi5vcmdfXzE4LWZmYWFf
+
+      MF8xMjAyMB8GA1UdIwQYMBaAFNnSpWmZlqsECJAaMqXfa5s+QCU/MB0GA1UdDgQW
+
+      BBSLdPtXPoUO9OFz9ew4ePARQH24ezAOBgNVHQ8BAf8EBAMCB4AwFgYDVR0lAQH/
+
+      BAwwCgYIKwYBBQUHAwEwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0BAQsFAANBAEro
+
+      V1KDwxjRO2TShvFGATaXf2c0L4aThSc/d9DjXwnA1THCT6uKb/iUTkl2Af5QO14Z
+
+      5k/NPCjMVLbiTMCqRcU=
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.vpn
+  pk: 3
+  fields:
+    server: 26
+    server_port: 1194
+    subnet: 10.0.8.0/24
+    private_key: '-----BEGIN RSA PRIVATE KEY-----
+
+      MIICXAIBAAKBgQDi6eLBpgBlZ6VVBsFTQvG3ydavF8at9l8uCR9uq2XjFs8VQslk
+
+      RBnfyV5VQAw8HB3cuHUiab6os6scI1AEmsH6HEO/m2o8S8NLcaFuwCsxWHnrblaC
+
+      dahLFg3H/sgFkrVaH8ZWUiT9pbzinpw0LemHgE34eJjAkyummpSZYpXdxwIDAQAB
+
+      AoGAUzNq/5I8hvIP/zMw47SiKL+LRjwzj0nM8HZL3ipee3u7hpIsgeUuj42oVx3a
+
+      3pd4o5vG501aqUTnsrOH/Yg5IylDfGqmCA+/tf5g674a2W7VZLmy9arigz2Sfev4
+
+      HTvvKjwcr39WR3krQmoUukbjGIwdayuMvhq9bGmo5MkgzQECQQDz0u5bQrDDf0cn
+
+      bdN0l3XOzCh7m/oZoZScvGR73xo6h7YzAE7YAT6Nb+Waj1X9FnwRa3HHDh+R27mf
+
+      Xp/0xJwHAkEA7j7Fd3DKOAxjQLtOxZ2UyMfIHTI9jaXJiuCjmNWEdDE9RuQeUVGB
+
+      LvwMcusM5iwiTbtksvLdb7qCxvPwq/PAQQJAf9Fvyr+nUpUChBT66QANbh9wiXw3
+
+      HACsm43XT2iho1VJmmrq6imc1SB3yRKjDU4gNDGTL7qjqh75rCY6zGHVOQJAXD3V
+
+      en8i7DxvmTpsLzrpxisDobo39sW/mJONA7l3hP0jenUL//QMjkJsF3pGDj/8MBhj
+
+      zp0VexK9W4ZLImhHgQJBANQyHwGbmBfP0CWmS9FMM/W7a8yJLT/HOWvTM1KrkNq0
+
+      yeuJgFf6mTM2CqRrSHK2qwdso1A8U4z6L5SW6xo8E4w=
+
+      -----END RSA PRIVATE KEY-----
+
+      '
+    cert: '-----BEGIN CERTIFICATE-----
+
+      MIIDOTCCAuOgAwIBAgIUCpK6cY4d9r8zYVvFcHenqPy1YmIwDQYJKoZIhvcNAQEL
+
+      BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
+
+      MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
+
+      MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
+
+      aW5mLmV0aHouY2gwHhcNMTkwNDE2MDcxNTAxWhcNMjEwNDE1MDcxNTAxWjCBrTEL
+
+      MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
+
+      BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMSYwJAYDVQQDDB0xOS1mZmFhXzBfMTMw
+
+      M19fMTQxLjQ0LjI1LjE0NDERMA8GA1UEKQwIU0NJT05WUE4xJjAkBgkqhkiG9w0B
+
+      CQEWF3NjaW9uQGxpc3RzLmluZi5ldGh6LmNoMIGfMA0GCSqGSIb3DQEBAQUAA4GN
+
+      ADCBiQKBgQDi6eLBpgBlZ6VVBsFTQvG3ydavF8at9l8uCR9uq2XjFs8VQslkRBnf
+
+      yV5VQAw8HB3cuHUiab6os6scI1AEmsH6HEO/m2o8S8NLcaFuwCsxWHnrblaCdahL
+
+      Fg3H/sgFkrVaH8ZWUiT9pbzinpw0LemHgE34eJjAkyummpSZYpXdxwIDAQABo4Gr
+
+      MIGoMDAGA1UdEQQpMCeCJXNjaW9ubGFiQHNjaW9ubGFiLm9yZ19fMTktZmZhYV8w
+
+      XzEzMDMwHwYDVR0jBBgwFoAU2dKlaZmWqwQIkBoypd9rmz5AJT8wHQYDVR0OBBYE
+
+      FDfvmW/jPEW1P4Az6g3juL2ioXrvMA4GA1UdDwEB/wQEAwIHgDAWBgNVHSUBAf8E
+
+      DDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBCwUAA0EADMGZ
+
+      dItD6JvoDg+bzQUnDVL1RB2zqjPQ6Mnes8TeApr/9TycdgNcIA7KCBLvHfKgqsn2
+
+      dUiuOU7SupFRwVK2BA==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.vpn
+  pk: 4
+  fields:
+    server: 35
+    server_port: 1194
+    subnet: 10.0.8.0/24
+    private_key: '-----BEGIN RSA PRIVATE KEY-----
+
+      MIICXAIBAAKBgQDTl5RHD0ZYGC9fzeEr9XQICF616YZUyomWqqhI5OwAkQ+TdLLx
+
+      U4CblmGDiRYZvhI5lURSZTo0+dZrPkbCCKFAnUN7KG5wz+0Eb8fG4vUGXGWHZ7JD
+
+      WXXy2Uk4244ClPHzTLVvXJyzNLc8YyzfUugtlXSDfSPPP08RlKGcuXgIAQIDAQAB
+
+      AoGABiaEz9/4ynzBe8ZvQijbW5RqtFz6Y6KTh0akp6HH3mhZDI862Fr2BQ/E+97T
+
+      PqJQw028c6yvmXSdr/Zadi9sCHg1JC7srRvfBYjOE7xRwAF3rRAwFB5wEuAkITy/
+
+      e91Etrzq8JxSoponCB4vTD6NfniHU67xSGoQG9dZM/kpXAECQQD9qC4Kh6glrAJn
+
+      JQZdMGInHqoE/FJutO/djNjOWA09l9Y190Lg017ht+53+J1Z1n7oNeaJqDJ2a/SP
+
+      mj444hShAkEA1Yvt1IwSGV8OJsowJEZpdBOX7YJuXIz2l1nSSzLrbh6UvUl1SLAT
+
+      T6/Y+e4vt4Z1SsTVWxjK91A+0qEPb5vXYQJAadhK1gQDayzal9XAURSGcJKAGbJ8
+
+      Z0vDJ6zFL11YsRHxxfUWiCBLYF7S+GbaqgkyTY1oVJrF69piY6XWPwA/4QJBAJ9y
+
+      ecRoSeNTzFc+RK/xOzAGqTwYVZsZTc44rQKlJJD2mIy1WrNJdUHcxR/orwxTgySu
+
+      z7fTTUlYS3At/j6RmEECQG9D840kMvN7POQRAO2XZLHGfWJRTsTIJidrr1LpzIKj
+
+      9986iOECV/KfpS6v+gI2YuaLOQLenpTW0YK7UOgut2E=
+
+      -----END RSA PRIVATE KEY-----
+
+      '
+    cert: '-----BEGIN CERTIFICATE-----
+
+      MIIDOTCCAuOgAwIBAgIUJ3y/Nq3NUor1bAfO8o9CVUqZOCMwDQYJKoZIhvcNAQEL
+
+      BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
+
+      MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
+
+      MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
+
+      aW5mLmV0aHouY2gwHhcNMTkwNDE2MDcxNTAxWhcNMjEwNDE1MDcxNTAxWjCBrTEL
+
+      MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
+
+      BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMSYwJAYDVQQDDB0yMC1mZmFhXzBfMTQw
+
+      NF9fMjAzLjIzMC42MC45ODERMA8GA1UEKQwIU0NJT05WUE4xJjAkBgkqhkiG9w0B
+
+      CQEWF3NjaW9uQGxpc3RzLmluZi5ldGh6LmNoMIGfMA0GCSqGSIb3DQEBAQUAA4GN
+
+      ADCBiQKBgQDTl5RHD0ZYGC9fzeEr9XQICF616YZUyomWqqhI5OwAkQ+TdLLxU4Cb
+
+      lmGDiRYZvhI5lURSZTo0+dZrPkbCCKFAnUN7KG5wz+0Eb8fG4vUGXGWHZ7JDWXXy
+
+      2Uk4244ClPHzTLVvXJyzNLc8YyzfUugtlXSDfSPPP08RlKGcuXgIAQIDAQABo4Gr
+
+      MIGoMDAGA1UdEQQpMCeCJXNjaW9ubGFiQHNjaW9ubGFiLm9yZ19fMjAtZmZhYV8w
+
+      XzE0MDQwHwYDVR0jBBgwFoAU2dKlaZmWqwQIkBoypd9rmz5AJT8wHQYDVR0OBBYE
+
+      FEQ35KPtibiSPtd6YeUC1m2XSX4lMA4GA1UdDwEB/wQEAwIHgDAWBgNVHSUBAf8E
+
+      DDAKBggrBgEFBQcDATAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBCwUAA0EAaaNz
+
+      VYN6blkIGespLKi7p7/Fuwt42lMsWWBmrgFmcd1HSsT+McdBaqy/1twpitqbMW9B
+
+      UTxiHrjuI+TLb9e9KA==
+
+      -----END CERTIFICATE-----
+
+      '
