@@ -173,6 +173,10 @@ def write_ia_file(archive, as_):
     archive.write_text('gen/ia', as_.isd_as_path_str())
 
 
+def write_overlay_file(archive):
+    archive.write_text('gen/overlay', 'UDP/IPv4')
+
+
 def _make_supervisord_conf(name, cmd, envs, priority=100):
     config = configparser.ConfigParser()
     config['program:' + name] = {
