@@ -477,10 +477,9 @@ class ASAdmin(admin.ModelAdmin):
 
     def update_core_keys(self, request, queryset):
         """
-        Updates the core keys
+        Updates the core keys and update the corresponding TRCs and certificates.
         """
-        for as_ in queryset.iterator():
-            as_.update_core_keys()
+        AS.update_core_as_keys(queryset)
 
     def trigger_config_deployment(self, request, queryset):
         """

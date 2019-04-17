@@ -97,44 +97,39 @@ class ISD(models.Model):
         first.
         All updated objects are saved.
         """
-        self._generate_trc()
+        self._update_trc()
         for as_ in self.ases.filter(is_core=True).iterator():
             self._update_coreas_certificates(as_)
-            as_.save()
 
         for as_ in self.ases.filter(is_core=False).iterator():
             self._update_as_certificates(as_)
-            as_.save()
 
     def update_trc_and_core_certificates(self):
         """
         Update the TRC and the Core AS Certificates for all the core-ASes in this ISD.
 
-        All AS objects not in `cached_ases` are saved. The ISD object is saved.
-
-        :param iterable[AS] cached_ases: AS objects previously retrieved from the DB. Updated but
-                                         not saved by this function.
+        All updated objects are saved.
         """
-        self._generate_trc()
-
+        self._update_trc()
         for as_ in self.ases.filter(is_core=True):
             self._update_coreas_certificates(as_)
-            as_.save()
 
-    def _generate_trc(self):
+    def _update_trc(self):
         self.trc, self.trc_priv_keys = generate_trc(self)
         self.save()
 
     @staticmethod
     def _update_as_certificates(as_):
-        as_.update_certificate_chain()
+        as_.generate_certificate_chain()
         as_.hosts.bump_config()
+        as_.save()
 
     @staticmethod
     def _update_coreas_certificates(as_):
-        as_.update_core_certificate()
-        as_.update_certificate_chain()
+        as_.generate_core_certificate()
+        as_.generate_certificate_chain()
         as_.hosts.bump_config()
+        as_.save()
 
 
 class ASManager(models.Manager):
@@ -160,10 +155,13 @@ class ASManager(models.Manager):
             owner=owner,
         )
         as_.init_keys()
+        if init_certificates and not is_core:
+            as_.generate_certificate_chain()
         as_.save()
-        if init_certificates:
-            as_.init_certificates()
-        as_.refresh_from_db()
+
+        if init_certificates and is_core:
+            isd.update_trc_and_core_certificates()
+            as_.refresh_from_db()
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
@@ -260,15 +258,14 @@ class AS(models.Model):
         else:
             return self.isd_as_str()
 
-    def _pre_delete(self):
+    def _post_delete(self):
         """
-        Called by the pre_delete signal handler `_as_pre_delete`.
+        Called by the pre_delete signal handler `_as_post_delete`.
         Note: the pre_delete signal has the advantage that it is called
         also for bulk deletion, while this `delete()` method is not.
         """
         if self.is_core:
-            self.is_core = False
-            self.isd.update_trc_and_core_certificates(cached_ases=[self])
+            self.isd.update_trc_and_core_certificates()
         self.hosts.bump_config()
 
     def is_infrastructure_AS(self):
@@ -306,16 +303,6 @@ class AS(models.Model):
         if self.is_core:
             self._gen_core_keys()
 
-    def init_certificates(self):
-        """
-        Generate certificates for the current set of AS keys.
-        If this is a core AS, also update the TRC and core AS certificates.
-        """
-        if self.is_core:
-            self.isd.update_trc_and_core_certificates()
-        else:
-            self.update_certificate_chain()
-
     def update_keys(self):
         """
         Generate new signing and encryption key pairs. Update the certificate.
@@ -323,28 +310,34 @@ class AS(models.Model):
         """
         # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
-        self.update_certificate_chain()
+        self.generate_certificate_chain()
         self.hosts.bump_config()
+        self.save()
 
-    def update_core_keys(self):
+    @staticmethod
+    def update_core_as_keys(queryset):
         """
-        Generate new core AS signing key pairs. Update the TRC and subsequently all core
-        certificates.
+        For all ASes in the given queryset, generate new core AS signing key pairs.
+        Update the TRC and subsequently all core certificates.
         Bumps the configuration version on all affected hosts.
         """
-        self._gen_core_keys()
-        self.save()
-        if self.is_core:
-            self.isd.update_trc_and_core_certificates()
+        isds = set()
+        for as_ in queryset.filter(is_core=True):
+            isds.add(as_.isd)
+            as_._gen_core_keys()
+            as_.save()
 
-    def update_certificate_chain(self):
+        for isd in isds:
+            isd.update_trc_and_core_certificates()
+
+    def generate_certificate_chain(self):
         """
         Create or update the AS Certificate chain.
 
         Requires that the TRC in this ISD exists/is up to date.
 
         Requires that a Core AS in this ISD with existing/up to date Core AS Certificate exists;
-        for core ASes, `update_core_certificate` needs to be called first.
+        for core ASes, `generate_core_certificate` needs to be called first.
         See ASManager.update_certificates, which creates the certificates in the correct order.
         """
         if self.is_core:
@@ -356,9 +349,8 @@ class AS(models.Model):
 
         if issuer:  # Skip if failed to find a core AS as issuer
             self.certificate_chain = generate_as_certificate_chain(self, issuer)
-        self.save()
 
-    def update_core_certificate(self):
+    def generate_core_certificate(self):
         """
         Create or update the Core AS Certificate.
 
@@ -402,7 +394,7 @@ class AS(models.Model):
             raise NotImplementedError
 
         self.isd = isd
-        self.update_certificate_chain()
+        self.generate_certificate_chain()
         self.hosts.bump_config()
 
     def _gen_keys(self):
@@ -1010,7 +1002,7 @@ class Link(models.Model):
             self.interfaceA.AS.hosts.bump_config()
             self.interfaceB.AS.hosts.bump_config()
 
-    def set_active(self, active):
+    def update_active(self, active):
         """
         Set the link to be active/inactive.
         This will trigger a configuration bump for all Hosts in all affected ASes.
@@ -1253,9 +1245,9 @@ class Service(models.Model):
             host.bump_config()
 
 
-@receiver(pre_delete, sender=AS, dispatch_uid='as_delete_callback')
-def _as_pre_delete(sender, instance, using, **kwargs):
-    instance._pre_delete()
+@receiver(post_delete, sender=AS, dispatch_uid='as_delete_callback')
+def _as_post_delete(sender, instance, using, **kwargs):
+    instance._post_delete()
 
 
 @receiver(pre_delete, sender=Interface, dispatch_uid='interface_delete_callback')

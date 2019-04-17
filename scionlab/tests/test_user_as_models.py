@@ -550,7 +550,7 @@ class ActivateUserASTests(TestCase):
         seed = 123
         user_as = create_random_useras(self, seed=seed)
 
-        user_as.set_active(False)
+        user_as.update_active(False)
 
         uplink = Link.objects.get(interfaceB__AS=user_as)
         self.assertFalse(uplink.active)
@@ -565,7 +565,7 @@ class ActivateUserASTests(TestCase):
         )
         mock_deploy.reset_mock()
 
-        user_as.set_active(True)
+        user_as.update_active(True)
 
         uplink = Link.objects.get(interfaceB__AS=user_as)
         self.assertTrue(uplink.active)

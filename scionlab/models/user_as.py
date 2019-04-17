@@ -79,7 +79,7 @@ class UserASManager(models.Manager):
         )
 
         user_as.init_keys()
-        user_as.init_certificates()
+        user_as.generate_certificate_chain()
         user_as.save()
         user_as.init_default_services(
             public_ip=public_ip,
@@ -259,12 +259,12 @@ class UserAS(AS):
     def get_public_port(self):
         return self.interfaces.get().public_port
 
-    def set_active(self, active):
+    def update_active(self, active):
         """
         Set the UserAS to be active/inactive.
         This will trigger a deployment of the attachment point configuration.
         """
-        self.interfaces.get().link().set_active(active)
+        self.interfaces.get().link().update_active(active)
         self.attachment_point.trigger_deployment()
 
     def _get_ap_link(self):
