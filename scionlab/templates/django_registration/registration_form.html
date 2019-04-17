@@ -7,10 +7,9 @@
 {% block content_title %}SCIONLab Registration{% endblock %}
 
 {% block content %}
-  <form method="post" class="form-box mt-4">{% csrf_token %}
-    {{ form|crispy }}
-    <input type="submit" class="btn btn-primary btn-block" value="Register"/>
-  </form>
+  <div class="form-box mt-4">
+    {% crispy form %}
+  </div>
   {% recaptcha_explicit_init 'en' %}
 
 {% endblock content %}

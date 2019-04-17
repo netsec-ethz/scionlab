@@ -22,13 +22,9 @@ rm -r scionlab/migrations/ || true
 python manage.py makemigrations scionlab
 python manage.py migrate
 
-python manage.py loaddata scionlab/fixtures/testuser.yaml
-
-python manage.py createsuperuser --username admin --email admin@scionlab.org --noinput
-python manage.py shell -c 'from scionlab.models.user import User; u = User.objects.get(username="admin"); u.set_password("admin"); u.save()'
-
-python manage.py loaddata scionlab/fixtures/testtopo-ases-links.yaml
-python manage.py loaddata scionlab/fixtures/testuser.yaml
+python manage.py loaddata scionlab/fixtures/testuser-admin.yaml \
+    scionlab/fixtures/testuser.yaml \
+    scionlab/fixtures/testtopo-ases-links.yaml
 
 cp scionlab/fixtures/testtopo_ca_key.pem run/dev_root_ca_key.pem
 cp scionlab/fixtures/testtopo_ca_cert.pem run/dev_root_ca_cert.pem

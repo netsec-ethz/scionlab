@@ -51,8 +51,12 @@ class ActivationRequiredTest(TestCase):
         # Post registration:
         response = self.client.post(
             registration_url,
-            {'email': TESTUSER_EMAIL, 'password1': TESTUSER_PWD, 'password2': TESTUSER_PWD,
-             'username': TESTUSER_EMAIL},
+            {'email': TESTUSER_EMAIL,
+             'first_name': 'Test',
+             'last_name': 'User',
+             'organisation': 'SCIONLab',
+             'password1': TESTUSER_PWD,
+             'password2': TESTUSER_PWD, },
             follow=True
         )
 

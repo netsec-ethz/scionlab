@@ -18,40 +18,49 @@
 
 <body>
   <header class="navbar navbar-expand navbar-light" style="background-color: #e3f2fd;" >
+    {# Home link / logo #}
     <a class="navbar-brand" href="/">
       <img height=32 width=32 src="{% static "scionlab/images/favicon.ico" %}"</img> SCIONLab
     </a>
-    <div class="navbar-nav-scroll">
-      <ul class="navbar-nav bd-navbar-nav flex-row">
-        <li class="navbar-item">
-          <a class="nav-link" href="/">Home</a>
-        </li>
-        {% if user.is_authenticated %}
-          <li class="navbar-item">
-            <a class="nav-link" href="{% url 'user' %}">My ASes</a>
-          </li>
-        {% endif %}
-      </ul>
-    </div>
+
+    {# Left aligned part of navbar #}
     {% if user.is_authenticated %}
-      <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown"><span class="fa fa-user"></span></a>
-          <div class="dropdown-menu dropdown-menu-right">
-            <span class="dropdown-item disabled"/>Signed in as <i>{{user.username}}</i></span>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="{% url 'user' %}">My ASes</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="{% url 'password_change' %}">Change password</a>
-            <a class="dropdown-item" href="{% url 'logout' %}"><span class="fa fa-sign-out"></span>Log out</a>
-          </div>
-        </li>
-      </ul>
-    {% else %}
-      <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
-        <li class="navbar-item"><a class="nav-link" href="{% url 'login' %}"><span class="fa fa-sign-in"></span> Log in</a></li>
-      </ul>
+    <ul class="navbar-nav">
+      <li class="navbar-item">
+        <a class="nav-link" href="{% url 'user' %}">My ASes</a>
+      </li>
+    </ul>
     {% endif %}
+
+    {# Right aligned part of navbar: #}
+    <ul class="navbar-nav flex-row ml-md-auto d-flex">
+      {# External links: #}
+      <li class="navbar-item">
+        <a class="nav-link" href="https://netsec-ethz.github.io/scion-tutorials/" target="_blank"><span class="fa fa-external-link"> Tutorials</a>
+      </li>
+      <li class="navbar-item mr-4">
+        <a class="nav-link" href="https://www.scion-architecture.net/" target="_blank"><span class="fa fa-external-link"> SCION Architecture</a>
+      </li>
+    {% if user.is_authenticated %}
+      {# User drop down menu #}
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown"><span class="fa fa-user"></span></a>
+        <div class="dropdown-menu dropdown-menu-right">
+          <span class="dropdown-item disabled"/>Signed in as <i>{{user.email}}</i></span>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="{% url 'user' %}">My ASes</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="{% url 'password_change' %}">Change password</a>
+          <a class="dropdown-item" href="{% url 'logout' %}"><span class="fa fa-sign-out"></span>Log out</a>
+        </div>
+      </li>
+    {% else %}
+      {# Login link #}
+      <li class="navbar-item">
+        <a class="nav-link" href="{% url 'login' %}"><span class="fa fa-sign-in"></span> Log in</a>
+      </li>
+    {% endif %}
+    </ul>
   </header>
 
   <main class="container" role="main">

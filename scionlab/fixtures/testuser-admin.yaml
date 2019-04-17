@@ -1,10 +1,9 @@
-- model: auth.user
+- model: scionlab.user
   pk: 2
   fields:
     password: pbkdf2_sha256$120000$xHIb0IBWeO59$gjhnjcTUrctMTPC1hYFJY58DvvxkddDpUu9bUardt4I=
     last_login: null
     is_superuser: true
-    username: admin@scionlab.org
     first_name: ''
     last_name: ''
     email: admin@scionlab.org
