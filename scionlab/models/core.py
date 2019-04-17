@@ -174,7 +174,7 @@ class ASManager(models.Manager):
                                      bind_ip=None, internal_ip=None,
                                      init_certificates=True):
         """
-        Create the AS, initialise the required keys and create a default Host object
+        Create the AS, initialise the required keys and create a default sel object
         with default services.
         Create the AS and initialise the required keys
         :param ISD isd:
@@ -503,7 +503,10 @@ class Host(models.Model):
     def __str__(self):
         if self.label:
             return self.label
-        return '%s,[%s]' % (self.AS.isd_as_str(), self.internal_ip)
+        elif self.AS:
+            return '%s,[%s]' % (self.AS.isd_as_str(), self.internal_ip)
+        else:
+            return '<deleted-AS>,[%s]' % self.internal_ip
 
     def update(self,
                internal_ip=_placeholder,

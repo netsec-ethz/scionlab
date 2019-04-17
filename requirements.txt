@@ -70,6 +70,9 @@ cryptography==2.6.1 \
     --hash=sha256:d4afbb0840f489b60f5a580a41a1b9c3622e08ecb5eec8614d4fb4cd914c4460 \
     --hash=sha256:d9ed28030797c00f4bc43c86bf819266c76a5ea61d006cd4078a93ebf7da6bfd \
     --hash=sha256:e603aa7bb52e4e8ed4119a58a03b60323918467ef209e6ff9db3ac382e5cf2c6
+django-crispy-forms==1.7.2 \
+    --hash=sha256:5952bab971110d0b86c278132dae0aa095beee8f723e625c3d3fa28888f1675f \
+    --hash=sha256:705ededc554ad8736157c666681165fe22ead2dec0d5446d65fc9dd976a5a876
 django-extensions==2.1.6 \
     --hash=sha256:109004f80b6f45ad1f56addaa59debca91d94aa0dc1cb19678b9364b4fe9b6f4 \
     --hash=sha256:307766e5e6c1caffe76c5d99239d8115d14ae3f7cab2cd991fcffd763dad904b
@@ -79,9 +82,6 @@ django-recaptcha2==1.4.1 \
 django-registration==3.0 \
     --hash=sha256:0527be82f3f62233c7b7a4fe6b0217832cbde2c6d8ea5008e8233a764f9a2543 \
     --hash=sha256:8f1960d1780804b67afb6b202c98cdfaca030a202bc7a263bf80e32f9c8a6984
-django-widget-tweaks==1.4.3 \
-    --hash=sha256:a69cba6c8a6b98f0cf6eef0535f8212d635e19044ee4533d4d78df700c2e233f \
-    --hash=sha256:bc645ef88307bc4ac269ee8ee9e572be814cd4a125c2bb6edb59ffcdc194982d
 django==2.2 \
     --hash=sha256:7c3543e4fb070d14e10926189a7fcf42ba919263b7473dceaefce34d54e8a119 \
     --hash=sha256:a2814bffd1f007805b19194eb0b9a331933b82bd5da1c3ba3d7b7ba16e06dc4b

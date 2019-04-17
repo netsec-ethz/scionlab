@@ -1,26 +1,27 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block title %}User AS{% endblock %}
 
 {% block content %}
 <h3>AS {{object.as_id }}</h3>
 
-<form id="id_user_as_form" method="post">{% csrf_token %}
-  {% include "scionlab/partials/user_as_form.html" %}
-</form>
 
+{% crispy form %}
+
+<button type="submit" form="id_user_as_form" class="btn btn-primary savebtn">Save Changes</button>
 {% if object.is_active %}
-<form id="id_deactivate_form" method="post" action="{% url 'user_as_deactivate' pk=object.pk %}">{% csrf_token %}
+  <a class="ml-3" href="{% url 'user_as_config' pk=object.pk %}"><span class="fa fa-download"></span> Download configuration</a>
+  <button type="submit" form="id_deactivate_form" class="btn btn-outline-danger pull-right">Deactivate this AS</button>
+  <form id="id_deactivate_form" method="post" action="{% url 'user_as_deactivate' pk=object.pk %}">{% csrf_token %}
 </form>
-<button type="submit" form="id_user_as_form" class="btn btn-primary">Save Changes</button>
-<a class="ml-3" href="{% url 'user_as_config' pk=object.pk %}"><span class="fa fa-download"></span> Download configuration</a>
-<button type="submit" form="id_deactivate_form" class="btn btn-outline-danger pull-right">Deactivate this AS</button>
 {% else %}
-<form id="id_activate_form" method="post" action="{% url 'user_as_activate' pk=object.pk %}">{% csrf_token %}
-</form>
-<button type="submit" form="id_user_as_form" class="btn btn-primary">Save Changes</button>
-<button type="submit" form="id_activate_form" class="btn btn-success pull-right">Activate this AS</button>
+  <button type="submit" form="id_activate_form" class="btn btn-success pull-right">Activate this AS</button>
+  <form id="id_activate_form" method="post" action="{% url 'user_as_activate' pk=object.pk %}">{% csrf_token %}
+  </form>
 {% endif %}
+
+{% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}
 
 {% endblock content %}

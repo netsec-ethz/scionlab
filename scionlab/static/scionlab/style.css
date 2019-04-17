@@ -6,6 +6,7 @@ html {
 }
 body {
   margin-bottom: 50px; /* Margin bottom by footer height */
+  background-color: #fafafa
 }
 main {
   margin-top: 3rem;
@@ -17,4 +18,55 @@ main {
   height: 50px; /* Set the fixed height of the footer here */
   line-height: 50px; /* Vertically center the text there */
   background-color: #f5f5f5;
+}
+
+
+/* Layout helpers for forms
+-------------------------------------------------- */
+/* add sleek border for forms, give them a fixed max size so they don't span
+ * the entire main container */
+.form-box {
+  border: 1px solid #d8dee2;
+  border-radius: 5px;
+  padding: 15px 20px;
+  max-width: 700px;
+  padding: 16px;
+}
+
+/* login form */
+#login-form-panel {
+  max-width: 360px;
+  padding: 16px;
+  margin: auto;
+}
+
+#login-form {
+  background-color: #fff;
+}
+
+.text-lighter {
+  font-weight: 300;
+}
+
+
+/* Tweaks for forms (crispy-forms with bootstrap4 template pack)
+-------------------------------------------------- */
+/* more compact error list */
+.alert.alert-block ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* red asterisk for required fields */
+.asteriskField {
+  color: #cb2431;
+  padding-left: 3px;
+}
+
+/* hack to unhide feedback for invalid form fields in crispy/bootstrap-4.
+ * Issue caused by weird output by crispy and bug/missing feature in bootstrap-4.
+ * (see https://github.com/twbs/bootstrap/issues/23454). */
+.invalid-feedback {
+  display: block;
 }

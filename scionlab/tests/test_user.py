@@ -110,7 +110,7 @@ class PasswordWebTests(WebTest):
         pwd_form['new_password1'] = pwd_form['new_password2'] = new_password
         pwd_changed = pwd_form.submit().follow()
 
-        login_form = pwd_changed.click(linkid='id_login').forms['login_form']
+        login_form = pwd_changed.click(linkid='id_login').form
         login_form['username'] = TESTUSER_EMAIL
         login_form['password'] = new_password
         response = login_form.submit()

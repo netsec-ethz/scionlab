@@ -1,0 +1,67 @@
+{{ attachment_points|json_script:"attachment_points" }}
+
+<script>
+$(document).ready(function () {
+  // Only enable save button when form is dirty:
+  // Check if the form is already dirty due to server side validation:
+  var has_invalid_fields = $("form-group.has-danger, form div.alert.alert-block").length > 0;
+  if(!has_invalid_fields){
+    // Disable Save button
+    $(".savebtn").prop('disabled', true);
+    // Reset form to avoid stale dirty entries after page reload (firefox)
+    document.getElementById("id_user_as_form").reset();
+    // Enable Save button when any input field changes
+    $(":input ").change(function(){
+      $(".savebtn").removeAttr('disabled');
+      window.onbeforeunload = function() { return ""; }
+    });
+  } else {
+    window.onbeforeunload = function() { return ""; }
+  }
+  // When save button is clicked, don't show the navigate away warning
+  $(".savebtn ").click(function(){
+    window.onbeforeunload = null;
+  });
+
+
+  // Handle attachment point VPN availability:
+  update_use_vpn_enable();
+  $("#id_attachment_point").change(update_use_vpn_enable);
+  $("#id_use_vpn").change(update_ip_fields_show);
+});
+
+var attachment_points = JSON.parse(document.getElementById('attachment_points').textContent);
+
+// Enable/disable the use_vpn option depending on whether the selected attachment point
+// supports VPN.
+// This will uncheck the option when disabling it and unhide the IP-fields (see
+// update_ip_fields_show).
+function update_use_vpn_enable() {
+  sel = document.getElementById('id_attachment_point');
+  selected_ap = sel.options[sel.selectedIndex].value;
+  has_vpn = attachment_points[selected_ap].has_vpn;
+
+  toggle = $("#id_use_vpn");
+  if(has_vpn){
+    toggle.prop('disabled', false);
+    toggle.prop('checked', toggle.prop('was-checked'));
+    toggle.removeAttr('was-checked');
+  } else {
+    toggle.prop('was-checked', toggle.prop('checked'));
+    toggle.prop('checked', false);
+    toggle.prop('disabled', true);
+  }
+  update_ip_fields_show();
+}
+
+// hide/show the IP fields depending on whether the VPN option is enabled
+function update_ip_fields_show() {
+  if($("#id_use_vpn").prop("checked")) {
+    $("#div_id_public_ip").hide();
+    $("#row_id_bind_addr").hide();
+  } else {
+    $("#div_id_public_ip").show();
+    $("#row_id_bind_addr").show();
+  }
+}
+</script>
