@@ -3,7 +3,7 @@
 {% load recaptcha2 %}
 
 {% block meta %}{% recaptcha_explicit_support %}{% endblock %}
-{% block title %}SCIONLab Registration{% endblock %}
+{% block title %}{{block.super}} Registration{% endblock %}
 {% block content_title %}SCIONLab Registration{% endblock %}
 
 {% block content %}
