@@ -17,12 +17,11 @@ import os
 import re
 import json
 from collections import defaultdict, namedtuple
-from lib.packet.scion_addr import ISD_AS
 from django.db.models import Q
 
 from scionlab.fixtures.testtopo import ISDdef
 from scionlab.models.core import (
-    ISD, AS, Link, Host, Service, BorderRouter, Interface, User,
+    ISD, AS, Link, Host, Service, BorderRouter, Interface,
 )
 from scionlab.models.user_as import AttachmentPoint
 from scionlab.models.vpn import VPN
@@ -137,8 +136,8 @@ class Loader:
                 groups = self.as_re.match(dir_as)
                 if not groups:
                     continue
-                as_id = groups.group(1)
-                isd_as_id = str(ISD_AS('{isd}-{as_}'.format(isd=isd_id, as_=as_id)))
+                as_id = groups.group(1).replace('_', ':')
+                isd_as_id = '{isd}-{as_}'.format(isd=isd_id, as_=as_id)
                 dir_endhost = os.path.join(dir_isd, dir_as, 'endhost')
                 dir_certs = os.path.join(dir_endhost, 'certs')
                 for cert in os.listdir(dir_certs):
@@ -180,9 +179,6 @@ class Loader:
 class Generator:
     def __init__(self, scionlab_old_gen_path):
         self.loader = Loader(scionlab_old_gen_path)
-        if User.objects.filter(username='admin').count() == 0:
-            print('Warning: user "admin" not found. Created one')
-            User.objects.create_superuser('admin', 'scionlab@scionlab.org', 'admin')
 
     def create_isds(self, isds):
         for isd_def in isds:
@@ -193,23 +189,23 @@ class Generator:
         trc = self.loader.trcs[isd_id]
         trc_priv_keys = {isd_as_id: self.loader.core_keys_sig[isd_as_id]
                          for isd_as_id in self.loader.core_ases_per_isd[isd_id]}
-        ISD.objects.create(**isd_def._asdict(), trc=trc, trc_priv_keys=trc_priv_keys)
+        ISD.objects.create(**isd_def._asdict(), trc=trc,
+                           trc_priv_keys=trc_priv_keys)
 
     def create_ases(self, ases):
-        admin_user = User.objects.get(username='admin')
         for as_def in ases:
             as_id = 'ffaa:0:%x' % as_def.as_id
             isd_as_id = '{isd}-{as_id}'.format(isd=as_def.isd_id, as_id=as_id)
             isd = ISD.objects.get(isd_id=as_def.isd_id)
             topo = self.loader.topologies[isd_as_id]
-            assert(topo['Core'] == (isd_as_id in self.loader.core_ases_per_isd[as_def.isd_id]))
+            assert(topo['Core'] == (
+                isd_as_id in self.loader.core_ases_per_isd[as_def.isd_id]))
             as_ = AS.objects.create(isd=isd,
                                     as_id=as_id,
                                     is_core=topo['Core'],
                                     label=as_def.label,
                                     mtu=topo["MTU"],
-                                    init_certificates=False,
-                                    owner=admin_user)
+                                    init_certificates=False)
             self._assign_keys(as_)
             self._assign_services(as_, topo)
         # once we have all ASes, do BRs and links
@@ -229,18 +225,21 @@ class Generator:
         isd_as_id = as_.isd_as_str()
         cert = self.loader.certs[isd_as_id]
         as_.certificate_chain = cert
-        # cert = json.loads(json_cert)
         assert(cert['0']['Subject'] == isd_as_id)
         as_.sig_pub_key = cert['0']['SubjectSignKey']
         as_.enc_pub_key = cert['0']['SubjectEncKey']
         as_.sig_priv_key = self.loader.keys_sig[isd_as_id]
         as_.enc_priv_key = self.loader.keys_decrypt[isd_as_id]
-        # TODO: do we have both master0 and master1 here?
         as_.master_as_key = self.loader.master0s[isd_as_id]
         if as_.is_core:
             as_.core_sig_pub_key = cert['1']['SubjectSignKey']
             as_.core_sig_priv_key = self.loader.core_keys_sig[isd_as_id]
             as_.core_certificate = json.dumps(cert['1'])
+            trc = self.loader.trcs[as_.isd.isd_id]
+            as_.core_offline_priv_key = self.loader.core_keys_offline[isd_as_id]
+            as_.core_offline_pub_key = trc['CoreASes'][isd_as_id]['OfflineKey']
+            as_.core_online_priv_key = self.loader.core_keys_online[isd_as_id]
+            as_.core_offline_pub_key = trc['CoreASes'][isd_as_id]['OnlineKey']
         as_.save()
 
     def _assign_services(self, as_, topo):
@@ -256,13 +255,15 @@ class Generator:
                 internal_ip = public_ip
             host, _ = Host.objects.get_or_create(AS=as_,
                                                  public_ip=public_ip,
-                                                 internal_ip=internal_ip)
+                                                 internal_ip=internal_ip,
+                                                 managed=True,
+                                                 management_ip=public_ip)
             Service.objects.create(host=host, type=service_type, port=public_port)
         serv = topo[TYPES_TO_KEYS[Service.ZK]]['1']
         public_ip = serv['Addr']
         public_port = serv['L4Port']
         # ZK is always deployed on an existing machine:
-        host = Host.objects.get(Q(AS=as_) and (Q(internal_ip=public_ip) | Q(public_ip=public_ip)))
+        host = as_.hosts.get(Q(internal_ip=public_ip) | Q(public_ip=public_ip))
         Service.objects.create(host=host, type=Service.ZK, port=public_port)
 
     def _assign_routers(self, as_, topo):
@@ -289,19 +290,23 @@ class Generator:
                     continue
                 host_here, _ = Host.objects.get_or_create(AS=as_,
                                                           public_ip=public_ip,
-                                                          internal_ip=internal_ip)
+                                                          internal_ip=internal_ip,
+                                                          managed=True,
+                                                          management_ip=public_ip)
                 br_here, _ = BorderRouter.objects.get_or_create(AS=as_,
                                                                 host=host_here,
                                                                 internal_port=internal_port,
                                                                 control_port=control_port)
                 bind_ip = iface['BindOverlay']['Addr'] if 'BindOverlay' in iface else None
                 bind_port = iface['BindOverlay']['OverlayPort'] if 'BindOverlay' in iface else None
-                Interface.objects.create(border_router=br_here,
-                                         public_ip=iface['PublicOverlay']['Addr'],
-                                         public_port=iface['PublicOverlay']['OverlayPort'],
-                                         bind_ip=bind_ip,
-                                         bind_port=bind_port,
-                                         interface_id=ifacenum)
+                iface_public_ip = iface['PublicOverlay']['Addr']
+                Interface.objects.create(
+                    border_router=br_here,
+                    public_ip=iface_public_ip if iface_public_ip != public_ip else None,
+                    public_port=iface['PublicOverlay']['OverlayPort'],
+                    bind_ip=bind_ip,
+                    bind_port=bind_port,
+                    interface_id=ifacenum)
 
     def _assign_links(self, as_, topo):
         """
@@ -324,14 +329,13 @@ class Generator:
                                                    internal_port=internal_port)
                 iface_here = Interface.objects.get(
                     border_router=br_here,
-                    public_ip=iface['PublicOverlay']['Addr'],
                     public_port=iface['PublicOverlay']['OverlayPort'])
                 assert(iface_here.interface_id == int(ifacenum))
                 remote_as = AS.objects.get_with_isd_as(iface['ISD_AS'])
-                iface_there = Interface.objects.get(
-                    AS=remote_as,
-                    public_ip=iface['RemoteOverlay']['Addr'],
-                    public_port=iface['RemoteOverlay']['OverlayPort'])
+                iface_there = Interface.objects.get_by_address_port(
+                    remote_as,
+                    iface['RemoteOverlay']['Addr'],
+                    iface['RemoteOverlay']['OverlayPort'])
                 if iface['LinkTo'] == 'CORE':
                     type = Link.CORE
                 elif iface['LinkTo'] == 'PARENT':
@@ -355,7 +359,6 @@ def _create_attachmentpoints(ap_list):
         as_id = 'ffaa:0:%x' % short_id
         as_ = AS.objects.get(as_id=as_id)
         host = Host.objects.get(AS=as_)
-        host.update(managed=True)
         vpn = VPN.objects.create(host, 1194, subnet='10.0.8.0/24')
         AttachmentPoint.objects.create(AS=as_, vpn=vpn)
 
