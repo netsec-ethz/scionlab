@@ -261,7 +261,7 @@ class UserASActivateView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         success_url = self.get_success_url()
-        self.object.set_active(self.active)
+        self.object.update_active(self.active)
         return HttpResponseRedirect(success_url)
 
 

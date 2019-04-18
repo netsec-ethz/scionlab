@@ -204,10 +204,10 @@ class DeleteASTests(TestCase):
     fixtures = ['testtopo-ases-links']
 
     def setUp(self):
-        patcher = patch('scionlab.models.core.AS._pre_delete',
-                        side_effect=AS._pre_delete,
+        patcher = patch('scionlab.models.core.AS._post_delete',
+                        side_effect=AS._post_delete,
                         autospec=True)
-        self.mock_as_pre_delete = patcher.start()
+        self.mock_as_post_delete = patcher.start()
         self.addCleanup(patcher.stop)
 
     def test_delete_single_as(self):
@@ -225,7 +225,7 @@ class DeleteASTests(TestCase):
 
         as_.delete()
 
-        self.assertEqual(self.mock_as_pre_delete.call_count, 1)
+        self.assertEqual(self.mock_as_post_delete.call_count, 1)
 
         # Check hosts have not been deleted and `needs_config_deployment`:
         for host_pk in host_pks:
@@ -247,4 +247,4 @@ class DeleteASTests(TestCase):
 
         ases.delete()
 
-        self.assertEqual(self.mock_as_pre_delete.call_count, ases_count)
+        self.assertEqual(self.mock_as_post_delete.call_count, ases_count)

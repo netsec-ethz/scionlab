@@ -14,14 +14,20 @@
 
 import base64
 import io
+import json
 import os
 import pathlib
 import re
 import tarfile
+
 import lib.crypto.asymcrypto
+from lib.crypto.trc import TRC
+from lib.crypto.certificate import Certificate
+from lib.crypto.certificate_chain import CertificateChain
+
 from collections import namedtuple, Counter, OrderedDict
 from scionlab.defines import MAX_PORT
-from scionlab.models.core import AS, Service, Interface, Link
+from scionlab.models.core import ISD, AS, Service, Interface, Link
 from scionlab.models.user_as import UserAS
 
 
@@ -29,6 +35,8 @@ def check_topology(testcase):
     """
     Run all sanity checks for the current state of the models in the DB.
     """
+    for isd in ISD.objects.iterator():
+        check_trc(testcase, isd)
     for as_ in AS.objects.iterator():
         check_as(testcase, as_)
     for link in Link.objects.iterator():
@@ -46,8 +54,10 @@ def check_as(testcase, as_):
 
     check_as_services(testcase, as_)
     check_as_keys(testcase, as_)
+    check_cert_chain(testcase, as_, as_.isd.trc)
     if as_.is_core:
         check_as_core_keys(testcase, as_)
+        check_core_cert(testcase, as_, as_.isd.trc)
 
     testcase.assertIsNotNone(as_.certificate_chain)
     if as_.is_core:
@@ -292,6 +302,98 @@ def _sanity_check_base64(testcase, s):
         r"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
     )
     testcase.assertTrue(base64_pattern.match(s))
+
+
+def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_version=None,
+                        prev_trc=None):
+    """
+    Check the ISD's TRC and return it as a TRC object.
+    Check that the current TRC can be verified with `prev_trc`.
+    Check the certificates for all ASes in the ISD.
+
+    :param int isd_id:
+    :param [str] expected_core_ases: ISD-AS strings for all core ases
+    :param int expected_version: optional, expected version for current TRC.
+    :param TRC prev_trc: optional, previous TRC to verify current TRC.
+    :returns: TRC
+    :rtype: TRC
+    """
+    isd = ISD.objects.get(isd_id=isd_id)
+    trc = check_trc(testcase, isd, expected_core_ases, expected_version, prev_trc)
+    check_core_as_certs(testcase, isd)
+    check_noncore_as_certs(testcase, isd)
+    return trc
+
+
+def check_trc(testcase, isd, expected_core_ases=None, expected_version=None, prev_trc=None):
+    """
+    Check the ISD's TRC and return it as a TRC object.
+    :param ISD isd:
+    :param [str] expected_core_ases: optional, ISD-AS strings for all core ases
+    :param int expected_version: optional, expected version for current TRC.
+    :param TRC prev_trc: optional, previous TRC to verify current TRC.
+    :returns: TRC
+    :rtype: TRC
+    """
+    if expected_core_ases is None:
+        expected_core_ases = set(as_.isd_as_str() for as_ in isd.ases.filter(is_core=True))
+    testcase.assertEqual(set(isd.trc['CoreASes'].keys()), set(expected_core_ases))
+    testcase.assertEqual(set(isd.trc_priv_keys.keys()), set(expected_core_ases))
+
+    for isd_as in isd.trc['CoreASes'].keys():
+        check_sig_keypair(testcase, isd.trc['CoreASes'][isd_as]['OnlineKey'],
+                          isd.trc_priv_keys[isd_as])
+
+    json_trc = json.dumps(isd.trc)  # round trip through json, just to make sure this works
+    trc = TRC.from_raw(json_trc)
+    trc.check_active()
+    if expected_version is not None:
+        testcase.assertEqual(trc.version, expected_version)
+    if prev_trc is not None:
+        trc.verify(prev_trc)
+    return trc
+
+
+def check_core_as_certs(testcase, isd):
+    """
+    Check that all the core AS certificates can be verified with the current TRC.
+    """
+    for as_ in isd.ases.filter(is_core=True).iterator():
+        check_core_cert(testcase, as_, isd.trc)
+        check_cert_chain(testcase, as_, isd.trc)
+
+
+def check_noncore_as_certs(testcase, isd):
+    """
+    Verify certificate if created for latest version. Otherwise, we don't have latest cert
+    and AS is expected to request re-issued certificate from signing core AS.
+    """
+    for as_ in isd.ases.filter(is_core=False).iterator():
+        cert_trc_version = as_.certificate_chain['0']['TRCVersion']
+        trc_version = isd.trc['Version']
+        testcase.assertTrue(cert_trc_version <= trc_version)
+        if cert_trc_version == trc_version:
+            check_cert_chain(testcase, as_, isd.trc)
+
+
+def check_core_cert(testcase, as_, trc):
+    """
+    Check that the AS's core certificate can be verified with the TRC.
+    """
+    testcase.assertIsNotNone(as_.core_certificate)
+    cert = Certificate(as_.core_certificate)
+    isd_as = as_.isd_as_str()
+    cert.verify(isd_as, TRC(trc).core_ases[isd_as]['OnlineKey'])
+
+
+def check_cert_chain(testcase, as_, trc):
+    """
+    Check that the AS's certificate chain can be verified with the TRC.
+    """
+    testcase.assertIsNotNone(as_.certificate_chain)
+    json_cert_chain = json.dumps(as_.certificate_chain)
+    cert_chain = CertificateChain.from_raw(json_cert_chain)
+    cert_chain.verify(as_.isd_as_str(), TRC(trc))
 
 
 def check_tarball_user_as(testcase, response, user_as):
