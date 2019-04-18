@@ -260,8 +260,8 @@ class AS(models.Model):
 
     def _post_delete(self):
         """
-        Called by the pre_delete signal handler `_as_post_delete`.
-        Note: the pre_delete signal has the advantage that it is called
+        Called by the post_delete signal handler `_as_post_delete`.
+        Note: the post_delete signal has the advantage that it is called
         also for bulk deletion, while this `delete()` method is not.
         """
         if self.is_core:
