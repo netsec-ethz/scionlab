@@ -20,7 +20,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.dispatch import receiver
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.db.models.signals import pre_delete, post_delete
 
 import lib.crypto.asymcrypto
@@ -210,10 +210,13 @@ class ASManager(models.Manager):
         return as_
 
     def get_with_isd_as(self, isd_as):
+        """
+        Get the AS given its IA ISD-ASID
+        """
         groups = isd_as.split('-')
         if len(groups) != 2:
             raise ValueError('Invalid IA %s' % isd_as)
-        return super().get(isd__isd_id=int(groups[0]), as_id=groups[1])
+        return self.get(isd__isd_id=int(groups[0]), as_id=groups[1])
 
 
 class AS(TimestampedModel):
@@ -645,6 +648,7 @@ class InterfaceManager(models.Manager):
         :param int public_port: optional, a free port is selected if not specified
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, a free port is selected if bind IP set and not specified
+        :param int interface_id: optional, the interface id for this interface.
         """
         host = border_router.host
         as_ = host.AS
@@ -680,6 +684,15 @@ class InterfaceManager(models.Manager):
         """
         return self.filter(link_as_interfaceA__active=True) |\
             self.filter(link_as_interfaceB__active=True)
+
+    def get_by_address_port(self, as_, public_ip, public_port):
+        """
+        Get the interface by specifying its public IP and port, unique to an AS
+        """
+        return self.get(
+            Q(public_ip=public_ip) | (Q(public_ip=None) & Q(host__public_ip=public_ip)),
+            AS=as_,
+            public_port=public_port)
 
 
 class Interface(models.Model):
