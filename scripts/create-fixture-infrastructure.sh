@@ -31,8 +31,8 @@ mv run/dev.sqlite3 $tempdir
 python manage.py makemigrations scionlab
 python manage.py migrate -v 1
 
-python manage.py createsuperuser --username admin --email admin@scionlab.org --noinput
-python manage.py shell -c 'from scionlab.models.user import User; u = User.objects.get(username="admin"); u.set_password("admin"); u.save()'
+python manage.py createsuperuser --email admin@scionlab.org --noinput
+python manage.py shell -c 'from scionlab.models.user import User; u = User.objects.get(email="admin@scionlab.org"); u.set_password("admin"); u.save()'
 
 # create and dump data for fixture
 python manage.py shell -c "from scionlab.fixtures.scionlab_infrastructure import build_scionlab_topology; build_scionlab_topology(\"$GEN_PATH\")"
