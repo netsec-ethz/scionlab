@@ -18,6 +18,8 @@ import re
 import json
 from collections import defaultdict, namedtuple
 from django.db.models import Q
+from nacl.signing import SigningKey
+import base64
 
 from scionlab.fixtures.testtopo import ISDdef
 from scionlab.models.core import (
@@ -232,14 +234,15 @@ class Generator:
         as_.enc_priv_key = self.loader.keys_decrypt[isd_as_id]
         as_.master_as_key = self.loader.master0s[isd_as_id]
         if as_.is_core:
-            as_.core_sig_pub_key = cert['1']['SubjectSignKey']
             as_.core_sig_priv_key = self.loader.core_keys_sig[isd_as_id]
+            as_.core_sig_pub_key = base64.b64encode(
+                SigningKey(base64.b64decode(as_.core_sig_priv_key)).verify_key._key).decode()
             as_.core_certificate = json.dumps(cert['1'])
             trc = self.loader.trcs[as_.isd.isd_id]
             as_.core_offline_priv_key = self.loader.core_keys_offline[isd_as_id]
             as_.core_offline_pub_key = trc['CoreASes'][isd_as_id]['OfflineKey']
             as_.core_online_priv_key = self.loader.core_keys_online[isd_as_id]
-            as_.core_offline_pub_key = trc['CoreASes'][isd_as_id]['OnlineKey']
+            as_.core_online_pub_key = trc['CoreASes'][isd_as_id]['OnlineKey']
         as_.save()
 
     def _assign_services(self, as_, topo):
@@ -251,11 +254,14 @@ class Generator:
             public_port = public['L4Port']
             if 'Bind' in serv['Addrs']['IPv4']:
                 internal_ip = serv['Addrs']['IPv4']['Bind']['Addr']
+                bind_ip = internal_ip
             else:
                 internal_ip = public_ip
+                bind_ip = None
             host, _ = Host.objects.get_or_create(AS=as_,
                                                  public_ip=public_ip,
                                                  internal_ip=internal_ip,
+                                                 bind_ip=bind_ip,
                                                  managed=True,
                                                  management_ip=public_ip)
             Service.objects.create(host=host, type=service_type, port=public_port)
@@ -288,24 +294,29 @@ class Generator:
                 if iface['Overlay'] != 'UDP/IPv4':
                     print('Warning: assigning BRs, skip BR %s (non IPv4 overlay)' % brname)
                     continue
+                bind_ip = iface['BindOverlay']['Addr'] if 'BindOverlay' in iface else None
                 host_here, _ = Host.objects.get_or_create(AS=as_,
                                                           public_ip=public_ip,
                                                           internal_ip=internal_ip,
+                                                          bind_ip=bind_ip,
                                                           managed=True,
                                                           management_ip=public_ip)
+                assert(Host.objects.filter(AS=as_,
+                                           public_ip=public_ip,
+                                           internal_ip=internal_ip).count() == 1)
                 br_here, _ = BorderRouter.objects.get_or_create(AS=as_,
                                                                 host=host_here,
                                                                 internal_port=internal_port,
                                                                 control_port=control_port)
-                bind_ip = iface['BindOverlay']['Addr'] if 'BindOverlay' in iface else None
                 bind_port = iface['BindOverlay']['OverlayPort'] if 'BindOverlay' in iface else None
                 iface_public_ip = iface['PublicOverlay']['Addr']
+                use_host = (iface_public_ip == public_ip and not bind_ip)
                 Interface.objects.create(
                     border_router=br_here,
-                    public_ip=iface_public_ip if iface_public_ip != public_ip else None,
+                    public_ip=iface_public_ip if not use_host else None,
                     public_port=iface['PublicOverlay']['OverlayPort'],
-                    bind_ip=bind_ip,
-                    bind_port=bind_port,
+                    bind_ip=bind_ip if not use_host else None,
+                    bind_port=bind_port if not use_host else None,
                     interface_id=ifacenum)
 
     def _assign_links(self, as_, topo):
