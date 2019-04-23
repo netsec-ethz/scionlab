@@ -43,12 +43,12 @@ class BaseArchiveWriter:
         """
         raise NotImplementedError()
 
-    def write_json(self, path, content):
+    def write_json(self, path, content, sort_keys=False):
         """
         Format dict as json and write to file at given path.
         :param dict content:
         """
-        self.write_text(path, json.dumps(content, indent=2))
+        self.write_text(path, json.dumps(content, indent=2, sort_keys=sort_keys))
 
     def write_toml(self, path, content):
         """
