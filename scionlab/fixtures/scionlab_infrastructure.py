@@ -21,6 +21,8 @@ from django.db.models import Q
 from nacl.signing import SigningKey
 import base64
 
+from lib.crypto.certificate import Certificate
+
 from scionlab.fixtures.testtopo import ISDdef
 from scionlab.models.core import (
     ISD, AS, Link, Host, Service, BorderRouter, Interface,
@@ -189,7 +191,7 @@ class Generator:
     def _create_isd(self, isd_def):
         isd_id = isd_def.isd_id
         trc = self.loader.trcs[isd_id]
-        trc_priv_keys = {isd_as_id: self.loader.core_keys_sig[isd_as_id]
+        trc_priv_keys = {isd_as_id: self.loader.core_keys_online[isd_as_id]
                          for isd_as_id in self.loader.core_ases_per_isd[isd_id]}
         ISD.objects.create(**isd_def._asdict(), trc=trc,
                            trc_priv_keys=trc_priv_keys)
@@ -225,24 +227,38 @@ class Generator:
 
     def _assign_keys(self, as_):
         isd_as_id = as_.isd_as_str()
-        cert = self.loader.certs[isd_as_id]
-        as_.certificate_chain = cert
-        assert(cert['0']['Subject'] == isd_as_id)
-        as_.sig_pub_key = cert['0']['SubjectSignKey']
-        as_.enc_pub_key = cert['0']['SubjectEncKey']
+        chain = self.loader.certs[isd_as_id]
+        as_.certificate_chain = chain
+        assert(chain['0']['Subject'] == isd_as_id)
+        as_.sig_pub_key = chain['0']['SubjectSignKey']
+        as_.enc_pub_key = chain['0']['SubjectEncKey']
         as_.sig_priv_key = self.loader.keys_sig[isd_as_id]
         as_.enc_priv_key = self.loader.keys_decrypt[isd_as_id]
         as_.master_as_key = self.loader.master0s[isd_as_id]
         if as_.is_core:
-            as_.core_sig_priv_key = self.loader.core_keys_sig[isd_as_id]
-            as_.core_sig_pub_key = base64.b64encode(
-                SigningKey(base64.b64decode(as_.core_sig_priv_key)).verify_key._key).decode()
-            as_.core_certificate = json.dumps(cert['1'])
             trc = self.loader.trcs[as_.isd.isd_id]
             as_.core_offline_priv_key = self.loader.core_keys_offline[isd_as_id]
             as_.core_offline_pub_key = trc['CoreASes'][isd_as_id]['OfflineKey']
             as_.core_online_priv_key = self.loader.core_keys_online[isd_as_id]
             as_.core_online_pub_key = trc['CoreASes'][isd_as_id]['OnlineKey']
+            as_.core_sig_priv_key = self.loader.core_keys_sig[isd_as_id]
+            as_.core_sig_pub_key = base64.b64encode(
+                SigningKey(base64.b64decode(as_.core_sig_priv_key)).verify_key._key).decode()
+            core_cert = Certificate(chain['1'])     # load the one from the json file and adapt it
+            core_cert.subject = as_.isd_as_str()
+            core_cert.issuer = as_.isd_as_str()     # self signed
+            core_cert.subject_enc_key = ''
+            core_cert.subject_sig_key = as_.core_sig_pub_key
+            core_cert.sign(base64.b64decode(as_.core_online_priv_key))
+            as_.core_certificate = core_cert.dict()
+            # redo the AS cert in the chain
+            cert = Certificate(chain['0'])
+            cert.issuer = as_.isd_as_str()
+            cert.sign(base64.b64decode(as_.core_sig_priv_key))
+            as_.certificate_chain = {
+                '0': cert.dict(),
+                '1': core_cert.dict()
+            }
         as_.save()
 
     def _assign_services(self, as_, topo):
