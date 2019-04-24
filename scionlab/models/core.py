@@ -63,7 +63,18 @@ _placeholder = object()
 """ Placeholder value for optional parameters, different from None """
 
 
-class ISD(models.Model):
+class TimestampedModel(models.Model):
+    """
+    Helper model-base-class to include created/modified timestamps.
+    """
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class ISD(TimestampedModel):
     isd_id = models.PositiveIntegerField()
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
@@ -199,7 +210,7 @@ class ASManager(models.Manager):
         return as_
 
 
-class AS(models.Model):
+class AS(TimestampedModel):
     isd = models.ForeignKey(
         ISD,
         related_name='ases',
