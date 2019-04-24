@@ -20,3 +20,17 @@ def grafana_url(request):
     """
     from django.conf import settings
     return {'grafana_url': settings.GRAFANA_URL}
+
+
+def development_mode(request):
+    """
+    Inject a `development_mode` string to indicate development mode.
+    If set, this is rendered into a ribbon in the scionlab/base.html template
+    """
+    from django.conf import settings
+    mode = ''
+    if hasattr(settings, 'DEVELOPMENT_MODE'):
+        mode = settings.DEVELOPMENT_MODE
+    elif settings.DEBUG:
+        mode = 'debug'
+    return {'development_mode': mode}
