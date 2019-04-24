@@ -92,7 +92,7 @@ def generate_core_certificate(as_):
     """
     isd = as_.isd
     assert isd.trc
-    trc_version = isd.trc['Version']
+    trc = TRC(isd.trc)
 
     if as_.core_certificate:
         version = as_.core_certificate['Version'] + 1
@@ -102,11 +102,11 @@ def generate_core_certificate(as_):
     cert = Certificate.from_values(
         subject=as_.isd_as_str(),
         issuer=as_.isd_as_str(),
-        trc_version=trc_version,
+        trc_version=trc.version,
         version=version,
         comment="Core AS Certificate",
         can_issue=True,
-        validity_period=CORE_AS_VALIDITY_PERIOD,
+        validity_period=min(trc.exp_time - int(time.time()) - 1, CORE_AS_VALIDITY_PERIOD),
         subject_enc_key=b"",
         subject_sig_key=base64.b64decode(as_.core_sig_pub_key),
         iss_priv_key=base64.b64decode(as_.core_online_priv_key)
