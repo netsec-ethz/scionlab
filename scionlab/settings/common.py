@@ -73,6 +73,14 @@ AUTH_USER_MODEL = 'scionlab.User'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'user'
 
+PASSWORD_HASHERS = [
+  'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+  'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+  'django.contrib.auth.hashers.Argon2PasswordHasher',
+  'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+  'scionlab.util.hashers.SCryptPasswordHasher',  # to verify passwords imported from old coordinator
+]
+
 # ##### EXTENSIONS CONFIGURATION ##########################
 
 # django_registration
