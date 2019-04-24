@@ -70,7 +70,7 @@ jobs:
             # Create migrations, otherwise test DB will not be initialised properly
             # TODO: remove once migrations are checked in!
             PYTHONPATH=/tmp/scion/python python manage.py makemigrations scionlab
-            exit 0
+            PYTHONPATH=/tmp/scion/python python3 ./manage.py initialize_root_ca
             PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
