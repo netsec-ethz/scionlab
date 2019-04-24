@@ -17,6 +17,7 @@ from django.contrib.auth.hashers import BasePasswordHasher, mask_hash
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext_noop as _
 
+
 class SCryptPasswordHasher(BasePasswordHasher):
     """
     Password hasher using the scrypt algorithm.
@@ -79,8 +80,10 @@ class SCryptPasswordHasher(BasePasswordHasher):
     def _format(self, Nlog2, r, p, salt, hash):
         return "%s$%d$%d$%d$%s$%s" % (self.algorithm, Nlog2, r, p, salt, hash)
 
+
 def _b64enc(bytes):
     return base64.b64encode(bytes).decode('ascii').strip()
+
 
 def _b64dec(string):
     return base64.b64decode(string.encode('ascii'))
