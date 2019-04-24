@@ -71,7 +71,6 @@ class SCryptPasswordHasherTests(TestCase):
         encoded = h.encode(password, salt)
 
         summary = h.safe_summary(encoded)
-        self.assertEqual(type(summary), dict)
         self.assertEqual(summary['algorithm'], 'scrypt')
         self.assertEqual(summary['N'], 2**15)
         self.assertEqual(summary['r'], 8)

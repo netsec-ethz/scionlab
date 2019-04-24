@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+from collections import OrderedDict
 from django.contrib.auth.hashers import BasePasswordHasher, mask_hash
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext_noop as _
@@ -55,14 +56,14 @@ class SCryptPasswordHasher(BasePasswordHasher):
 
     def safe_summary(self, encoded):
         Nlog2, r, p, salt, hash = self._parse(encoded)
-        return {
-            _('algorithm'): self.algorithm,
-            _('N'): 2**Nlog2,
-            _('r'): r,
-            _('p'): p,
-            _('salt'): mask_hash(salt, show=2),
-            _('hash'): mask_hash(hash),
-        }
+        return OrderedDict([
+            (_('algorithm'), self.algorithm),
+            (_('N'), 2**Nlog2),
+            (_('r'), r),
+            (_('p'), p),
+            (_('salt'), mask_hash(salt, show=2)),
+            (_('hash'), mask_hash(hash)),
+        ])
 
     def harden_runtime(self, password, encoded):
         Nlog2, r, p, salt, hash = self._parse(encoded)
