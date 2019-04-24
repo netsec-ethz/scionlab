@@ -18,6 +18,14 @@
 
 <body>
   <header class="navbar navbar-expand navbar-light" style="background-color: #e3f2fd;" >
+
+    {# Ribbon to indicate dev/testing mode #}
+    {% if development_mode == 'debug' %}
+    <div class="ribbon"><span class="ribbon-red">{{ development_mode }}</span></div>
+    {% elif development_mode %}
+    <div class="ribbon"><span class="ribbon-blue">{{ development_mode }}</span></div>
+    {% endif %}
+
     {# Home link / logo #}
     <a class="navbar-brand" href="/">
       <img height=32 width=32 src="{% static "scionlab/images/favicon.ico" %}"</img> SCIONLab
