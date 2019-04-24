@@ -15,11 +15,15 @@
 import base64
 import binascii
 import csv
+import datetime
 import getpass
 import sys
+import os
 from collections import namedtuple
 
-from scionlab.util.hashers import SCryptPasswordHasher
+import django
+
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 def format_password(salt, hash):
@@ -42,38 +46,74 @@ def reencode_password(salt, hash):
     return format_password(salt_b64, hash_b64)
 
 
-UserDef = namedtuple('UserDef', ('email', 'first_name', 'last_name', 'password'))
+UserDef = namedtuple('UserDef',
+                     ('email', 'password', 'first_name', 'last_name', 'organisation',
+                      'created', 'updated'))
 
 
-def load_users(filename):
+def load_users(usertable):
+    """
+    `usertable` is the path to a CSV with the following fields:
+
+        user.*
+        account.organisation
+
+    SELECT user.*, account.organisation FROM user LEFT JOIN account ON user.account_id = account.id;
+    """
+
     users = []
-    with open(filename) as f:
+    with open(usertable) as f:
         reader = csv.reader(f)
         next(reader)  # skip headers
         for row in reader:
-            # id,
-            email = row[1]
-            hash = row[2]
-            # password_invalid,
-            salt = row[4]
-            first_name = row[5]
-            last_name = row[6]
-            is_verified = bool(int(row[7]))
-            is_admin = bool(int(row[8]))
-            # verification_uuid
-            # account_id # TODO
-            # created
-            # updated
+            fields = iter(row)
+            _ = next(fields)  # id
+            email = next(fields)
+            hash = next(fields)
+            password_invalid = bool(int(next(fields)))
+            salt = next(fields)
+            first_name = next(fields)
+            last_name = next(fields)
+            is_verified = bool(int(next(fields)))
+            is_admin = bool(int(next(fields)))
+            _ = next(fields)  # verification_uuid
+            _ = next(fields)  # account_id
+            created = datetime.datetime.strptime(next(fields), DATE_FORMAT)
+            updated = datetime.datetime.strptime(next(fields), DATE_FORMAT)
 
-            if not is_verified or is_admin:  # not importing these...
+            # from user.account:
+            organisation = next(fields)
+
+            if password_invalid or not is_verified or is_admin:  # not importing these...
                 continue
 
             encoded = reencode_password(salt, hash)
-            users.append(UserDef(email, first_name, last_name, encoded))
+            users.append(UserDef(email, encoded, first_name, last_name, organisation,
+                                 created, updated))
+
     return users
 
 
+def create_users(users):
+    from scionlab.models.user import User
+
+    for userdef in users:
+        user = User.objects.create_user(
+            email=userdef.email,
+            password=None,
+            first_name=userdef.first_name,
+            last_name=userdef.last_name,
+            organisation=userdef.organisation,
+            date_joined=userdef.created,
+        )
+        user.password = userdef.password
+        user.is_active = True
+        user.save()
+
+
 def get_and_check_password(users, email):
+    from scionlab.util.hashers import SCryptPasswordHasher
+
     user = next((u for u in users if u.email == email), None)
     if user is None:
         print("User not found")
@@ -88,7 +128,15 @@ def main(argv):
     users = load_users(argv[1])
     if len(argv) >= 3:
         get_and_check_password(users, email=argv[2])
+    else:
+        create_users(users)
 
 
 if __name__ == '__main__':
+    # Mess with PYTHONPATH to include scionlab-root-dir:
+    scionlab_root = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..'))
+    sys.path.append(scionlab_root)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scionlab.settings.development')
+    django.setup()
+
     main(sys.argv)
