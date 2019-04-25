@@ -20,7 +20,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.dispatch import receiver
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.db.models.signals import pre_delete, post_delete
 
 import lib.crypto.asymcrypto
@@ -208,6 +208,15 @@ class ASManager(models.Manager):
             internal_ip=internal_ip
         )
         return as_
+
+    def get_by_isd_as(self, isd_as):
+        """
+        Get the AS given its IA ISD-ASID
+        """
+        groups = isd_as.split('-')
+        if len(groups) != 2:
+            raise ValueError('Invalid IA %s' % isd_as)
+        return self.get(isd__isd_id=int(groups[0]), as_id=groups[1])
 
 
 class AS(TimestampedModel):
@@ -608,7 +617,7 @@ class Host(models.Model):
         for interface in self.interfaces.iterator():
             portmap.add(interface.get_public_ip(), interface.public_port)
             if interface.get_bind_ip():
-                portmap.add(interface.get_bind_ip(), interface.bind_ip)
+                portmap.add(interface.get_bind_ip(), interface.bind_port)
 
         for port, in self.services.values_list('port'):
             portmap.add(self.internal_ip, port)
@@ -629,7 +638,8 @@ class InterfaceManager(models.Manager):
                public_ip=None,
                public_port=None,
                bind_ip=None,
-               bind_port=None):
+               bind_port=None,
+               interface_id=None):
         """
         Create an Interface
         :param BorderRouter border_router: The border router process running responsible for this
@@ -638,10 +648,11 @@ class InterfaceManager(models.Manager):
         :param int public_port: optional, a free port is selected if not specified
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, a free port is selected if bind IP set and not specified
+        :param int interface_id: optional, the interface id for this interface.
         """
         host = border_router.host
         as_ = host.AS
-        ifid = as_.find_interface_id()
+        ifid = interface_id or as_.find_interface_id()
 
         effective_public_ip = public_ip or host.public_ip
         effective_bind_ip = bind_ip if public_ip else host.bind_ip
@@ -673,6 +684,15 @@ class InterfaceManager(models.Manager):
         """
         return self.filter(link_as_interfaceA__active=True) |\
             self.filter(link_as_interfaceB__active=True)
+
+    def get_by_address_port(self, as_, public_ip, public_port):
+        """
+        Get the interface by specifying its public IP and port, unique to an AS
+        """
+        return self.get(
+            Q(public_ip=public_ip) | (Q(public_ip=None) & Q(host__public_ip=public_ip)),
+            AS=as_,
+            public_port=public_port)
 
 
 class Interface(models.Model):
