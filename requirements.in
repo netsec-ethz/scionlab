@@ -9,3 +9,4 @@ pyyaml>=4.2b1  # for fixtures and config generation; high severity vulnerability
 toml
 huey
 scrypt
+psycopg2-binary  # PostgreSQL backend
