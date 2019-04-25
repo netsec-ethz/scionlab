@@ -99,7 +99,7 @@ class UserASManager(models.Manager):
             )
             interface_ap = Interface.objects.create(
                 border_router=attachment_point.get_border_router_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip()
+                public_ip=attachment_point.vpn.server_vpn_ip
             )
         else:
             interface_client = Interface.objects.create(
@@ -216,7 +216,7 @@ class UserAS(AS):
             )
             interface_ap.update(
                 border_router=attachment_point.get_border_router_for_useras_interface(),
-                public_ip=attachment_point.vpn.server_vpn_ip(),
+                public_ip=attachment_point.vpn.server_vpn_ip,
                 public_port=None,
             )
         else:

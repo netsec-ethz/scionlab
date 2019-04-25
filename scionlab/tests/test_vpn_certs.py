@@ -46,6 +46,7 @@ def _setup_vpn_attachment_point():
     ap = AttachmentPoint.objects.first()
     ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
                                 subnet='10.0.8.0/24',
+                                server_vpn_ip='10.0.8.1',
                                 server_port=4321)
     ap.save()
 
