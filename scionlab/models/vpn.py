@@ -16,7 +16,8 @@ import ipaddress
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
-from scionlab.models.core import Host
+from django.core.exceptions import ValidationError
+from scionlab.models.core import _placeholder, Host
 from scionlab.openvpn_config import (
     generate_vpn_client_key_material,
     generate_vpn_server_key_material,
@@ -25,11 +26,12 @@ from scionlab.util.django import value_set
 
 
 class VPNManager(models.Manager):
-    def create(self, server, server_port, subnet):
+    def create(self, server, server_port, subnet, server_vpn_ip):
         vpn = VPN(
             server=server,
             server_port=server_port,
             subnet=subnet,
+            server_vpn_ip=server_vpn_ip
         )
         vpn.init_key()
         vpn.save()
@@ -43,8 +45,8 @@ class VPN(models.Model):
         on_delete=models.CASCADE
     )
     server_port = models.PositiveSmallIntegerField()
-
     subnet = models.CharField(max_length=15)
+    server_vpn_ip = models.GenericIPAddressField()
     private_key = models.TextField(null=True, blank=True)
     cert = models.TextField(null=True, blank=True)
 
@@ -69,14 +71,6 @@ class VPN(models.Model):
         client_ip = str(self._find_client_ip())
         return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, active=active)
 
-    def server_vpn_ip(self):
-        """
-        :return: str: VPN server IP
-        """
-        subnet = ipaddress.ip_network(self.subnet)
-        # Use first address in the VPN subnet for the VPN server IP
-        return str(next(subnet.hosts()))
-
     def vpn_subnet(self):
         return ipaddress.ip_network(self.subnet)
 
@@ -89,7 +83,7 @@ class VPN(models.Model):
 
     def _find_client_ip(self):
         last_client = self.clients.last()
-        used_ips = {self.server_vpn_ip()} | \
+        used_ips = {self.server_vpn_ip} | \
             value_set(VPNClient.objects.filter(vpn=self), 'ip')
         if last_client:
             last_assigned_ip = ipaddress.ip_address(last_client.ip)
@@ -104,6 +98,47 @@ class VPN(models.Model):
             if str(ip) not in used_ips:
                 return ip
         raise RuntimeError('No free client IP available')
+
+    def clean(self):
+        try:
+            subnet = ipaddress.ip_network(self.subnet)
+        except ValueError:
+            raise ValidationError('Invalid subnet', code='vpn_bad_subnet')
+        try:
+            server_vpn_ip = ipaddress.ip_address(self.server_vpn_ip)
+        except ValueError:
+            raise ValidationError('Invalid server VPN IP address', code='vpn_bad_server_vpn_ip')
+        if server_vpn_ip not in subnet:
+            raise ValidationError('Server VPN IP is not inside the specified subnet',
+                                  code='server_vpn_ip_not_in_subnet')
+
+    def save(self, **kwargs):
+        self.clean()
+        super().save(**kwargs)
+
+    def update(self,
+               server=_placeholder,
+               server_port=_placeholder,
+               subnet=_placeholder,
+               server_vpn_ip=_placeholder,
+               private_key=_placeholder,
+               cert=_placeholder):
+        """
+        Updates all/any parameter. It always saves the object even when no changes
+        """
+        if server is not _placeholder:
+            self.server = server
+        if server_port is not _placeholder:
+            self.server_port = server_port
+        if subnet is not _placeholder:
+            self.subnet = subnet
+        if server_vpn_ip is not _placeholder:
+            self.server_vpn_ip = server_vpn_ip
+        if private_key is not _placeholder:
+            self.private_key = private_key
+        if cert is not _placeholder:
+            self.cert = cert
+        self.save()
 
 
 class VPNClientManager(models.Manager):

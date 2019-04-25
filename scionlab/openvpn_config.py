@@ -218,7 +218,7 @@ def generate_vpn_server_config(vpn):
         encoding=serialization.Encoding.PEM).decode()
     server_config_tmpl = pathlib.Path(SERVER_CONFIG_TEMPLATE_PATH).read_text(encoding='utf-8')
     server_vpn_as = vpn.server.AS.as_path_str()
-    server_vpn_ip = vpn.server_vpn_ip()
+    server_vpn_ip = vpn.server_vpn_ip
     server_vpn_port = vpn.server_port
     server_vpn_subnet = vpn.vpn_subnet()
 

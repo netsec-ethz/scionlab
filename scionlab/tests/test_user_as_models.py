@@ -48,6 +48,7 @@ def setup_vpn_attachment_point(ap):
     # TODO(matzf): move to a fixture once the VPN stuff is somewhat stable
     ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
                                 subnet='10.0.8.0/24',
+                                server_vpn_ip='10.0.8.1',
                                 server_port=4321)
     ap.save()
 
@@ -165,7 +166,7 @@ def check_useras(testcase,
         utils.check_link(testcase, link, utils.LinkDescription(
             type=Link.PROVIDER,
             from_as_id=attachment_point.AS.as_id,
-            from_public_ip=attachment_point.vpn.server_vpn_ip(),
+            from_public_ip=attachment_point.vpn.server_vpn_ip,
             from_bind_ip=None,
             from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
             to_public_ip=user_as.hosts.get().vpn_clients.get(active=True).ip,
