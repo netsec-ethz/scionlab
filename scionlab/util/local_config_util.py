@@ -214,11 +214,11 @@ def _trc_filename(isd, version):
 def _write_certs_trc(archive, elem_dir, as_):
     trc_version = as_.isd.trc['Version']
     archive.write_json((elem_dir, CERT_DIR, _trc_filename(as_.isd, trc_version)),
-                       as_.isd.trc, sort_keys=True)
+                       as_.isd.trc)
 
     cert_version = as_.certificate_chain['0']['Version']
     archive.write_json((elem_dir, CERT_DIR, _cert_chain_filename(as_, cert_version)),
-                       as_.certificate_chain, sort_keys=True)
+                       as_.certificate_chain)
 
 
 def _write_keys(archive, elem_dir, as_):

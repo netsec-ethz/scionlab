@@ -209,7 +209,7 @@ class ASManager(models.Manager):
         )
         return as_
 
-    def get_with_isd_as(self, isd_as):
+    def get_by_isd_as(self, isd_as):
         """
         Get the AS given its IA ISD-ASID
         """

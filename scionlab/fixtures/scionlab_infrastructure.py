@@ -358,7 +358,7 @@ class Generator:
                     border_router=br_here,
                     public_port=iface['PublicOverlay']['OverlayPort'])
                 assert(iface_here.interface_id == int(ifacenum))
-                remote_as = AS.objects.get_with_isd_as(iface['ISD_AS'])
+                remote_as = AS.objects.get_by_isd_as(iface['ISD_AS'])
                 iface_there = Interface.objects.get_by_address_port(
                     remote_as,
                     iface['RemoteOverlay']['Addr'],
