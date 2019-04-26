@@ -21,7 +21,7 @@ from scionlab.forms.registration_form import RegistrationFormWithCaptcha, Regist
 class UserRegistrationView(RegistrationView):
     success_url = reverse_lazy('registration_confirm')
     form_class = RegistrationFormWithCaptcha
-    template_name='django_registration/registration_form.html'
+    template_name = 'django_registration/registration_form.html'
 
     def register(self, form):
         return super().register(form)
