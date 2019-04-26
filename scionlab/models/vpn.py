@@ -74,25 +74,8 @@ class VPN(models.Model):
     def vpn_subnet(self):
         return ipaddress.ip_network(self.subnet)
 
-    def vpn_subnet_min_max_client_ips(self):
-        subnet = self.vpn_subnet()
-        # First host IP in the VPN subnet is the server IP
-        # return first and last client IP in the subnet
-        _, min_ip, *_, max_ip = subnet.hosts()
-        return min_ip, max_ip
-
     def _find_client_ip(self):
-        last_client = self.clients.last()
-        used_ips = {self.server_vpn_ip} | \
-            value_set(VPNClient.objects.filter(vpn=self), 'ip')
-        if last_client:
-            last_assigned_ip = ipaddress.ip_address(last_client.ip)
-            # assign consecutive IPs to clients in the same VPN
-            candidate_ip = last_assigned_ip + 1
-            _, max_ip = self.vpn_subnet_min_max_client_ips()
-            if candidate_ip <= max_ip and str(candidate_ip) not in used_ips:
-                return candidate_ip
-        # try to find an unused IP from a removed client
+        used_ips = {self.server_vpn_ip} | value_set(VPNClient.objects.filter(vpn=self), 'ip')
         subnet = ipaddress.ip_network(self.subnet)
         for ip in subnet.hosts():
             if str(ip) not in used_ips:
