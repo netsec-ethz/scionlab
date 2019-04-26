@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from django.forms import Form, EmailField
 from django_registration.forms import RegistrationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
@@ -53,3 +54,7 @@ class RegistrationFormWithCaptcha(RegistrationForm):
             Submit('register', 'Register', css_class='btn-block'),
         )
         return helper
+
+
+class RegistrationResendForm(Form):
+    email = EmailField()
