@@ -57,6 +57,9 @@ class User(AbstractUser):
     """ User model """
 
     username = None
+    # Use longer password field; salts from old coordinator are very long, too long to fit into the
+    # default max_length 128 (as specified in django.contrib.auth.AbstractBaseUser).
+    password = models.CharField(_('password'), max_length=255)
     email = models.EmailField(_('email address'), unique=True)
     organisation = models.CharField(max_length=255, null=False, blank=True)
 
