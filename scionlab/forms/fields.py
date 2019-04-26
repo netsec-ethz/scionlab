@@ -1,4 +1,4 @@
-# Copyright 2018 ETH Zurich
+# Copyright 2019 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@ from django.core.exceptions import ValidationError
 
 
 class GenericIPNetworkField(forms.Field):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('max_length', 0)  # parent is not length aware
+        super().__init__(*args, **kwargs)
+
     def to_python(self, value):
         if not value:
             return None

@@ -313,8 +313,8 @@ class CreateUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
-        Host.objects.reset_needs_config_deployment()
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
+        Host.objects.reset_needs_config_deployment()
 
     @parameterized.expand(zip(range(testtopo_num_attachment_points)))
     def test_create_public_ip(self, ap_index):
@@ -415,8 +415,8 @@ class UpdateUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
-        Host.objects.reset_needs_config_deployment()
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
+        Host.objects.reset_needs_config_deployment()
 
     def test_enable_vpn(self):
         seed = 1
@@ -622,9 +622,8 @@ class ActivateUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
-        Host.objects.reset_needs_config_deployment()
-
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
+        Host.objects.reset_needs_config_deployment()
 
     @patch('scionlab.tasks.deploy_host_config')
     def test_cycle_active(self, mock_deploy):
@@ -667,8 +666,8 @@ class DeleteUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
-        Host.objects.reset_needs_config_deployment()
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
+        Host.objects.reset_needs_config_deployment()
 
     def test_delete_single(self):
         seed = 456

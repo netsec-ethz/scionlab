@@ -511,10 +511,8 @@ class VPNCreationForm(_CreateUpdateModelForm):
     Specialised ModelForm for VPN creation which will initialise key and cert
     """
     class Meta:
-        fields = ('server', 'server_port', 'server_vpn_ip')
-    subnet = GenericIPNetworkField()
-    # TODO: why is this order not applied?
-    field_order = ('server', 'server_port', 'subnet', 'server_vpn_ip')
+        fields = ('server', 'server_port', 'subnet', 'server_vpn_ip')
+        field_classes = {'subnet': GenericIPNetworkField}
 
     def clean(self):
         cleaned_data = super().clean()
@@ -544,8 +542,8 @@ class VPNCreationForm(_CreateUpdateModelForm):
 
 class VPNUpdateForm(VPNCreationForm):
     class Meta:
-        fields = ('server', 'server_port', 'server_vpn_ip', 'private_key', 'cert')
-    subnet = GenericIPNetworkField()
+        fields = ('server', 'server_port', 'subnet', 'server_vpn_ip', 'private_key', 'cert')
+        field_classes = {'subnet': GenericIPNetworkField}
 
     def update(self):
         self.instance.update(
@@ -560,10 +558,9 @@ class VPNUpdateForm(VPNCreationForm):
 
 @admin.register(VPN)
 class VPNAdmin(admin.ModelAdmin):
-    # form = VPNCreationForm
     def get_form(self, request, obj=None, **kwargs):
         """
-        Use different forms for AS creation or update
+        Use different forms for VPN creation or update
         """
         if not obj:
             kwargs['form'] = VPNCreationForm

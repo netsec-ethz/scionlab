@@ -35,6 +35,7 @@ class VPNManager(models.Manager):
         )
         vpn.init_key()
         vpn.save()
+        server.bump_config()
         return vpn
 
 
@@ -107,8 +108,9 @@ class VPN(models.Model):
                private_key=_placeholder,
                cert=_placeholder):
         """
-        Updates all/any parameter. It always saves the object even when no changes
+        Updates all/any parameter. It always saves the object and bumps config, even when no changes
         """
+        oldserver = self.server
         if server is not _placeholder:
             self.server = server
         if server_port is not _placeholder:
@@ -122,6 +124,10 @@ class VPN(models.Model):
         if cert is not _placeholder:
             self.cert = cert
         self.save()
+        if self.server:
+            self.server.bump_config()
+        if oldserver and oldserver != self.server:
+            oldserver.bump_config()
 
 
 class VPNClientManager(models.Manager):
