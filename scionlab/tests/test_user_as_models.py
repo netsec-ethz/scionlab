@@ -309,6 +309,37 @@ class GenerateUserASIDTests(TestCase):
         self.assertEqual(as_id_int, USER_AS_ID_BEGIN)
 
 
+class VPNServerTests(TestCase):
+    fixtures = ['testuser', 'testtopo-ases-links']
+
+    def test_create_new(self):
+        ap = AttachmentPoint.objects.first()
+        prev_version = ap.AS.hosts.first().config_version
+        setup_vpn_attachment_point(ap)
+        self.assertGreater(ap.AS.hosts.first().config_version, prev_version)
+        self.assertEqual(ap.vpn.server, ap.AS.hosts.first())
+
+    def test_update_vpn(self):
+        ap = AttachmentPoint.objects.first()
+        setup_vpn_attachment_point(ap)
+        server = ap.vpn.server
+        prev_version = server.config_version
+        ap.vpn.update(subnet='10.0.8.0/22')
+        self.assertGreater(server.config_version, prev_version)
+
+    def test_change_vpn_server(self):
+        ap = AttachmentPoint.objects.first()
+        setup_vpn_attachment_point(ap)
+        old_server = ap.vpn.server
+        old_server_prev_version = old_server.config_version
+        new_server = Host.objects.create()
+        self.assertNotEqual(new_server, old_server)
+        new_server_prev_version = new_server.config_version
+        ap.vpn.update(server=new_server)
+        self.assertGreater(old_server.config_version, old_server_prev_version)
+        self.assertGreater(new_server.config_version, new_server_prev_version)
+
+
 class CreateUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
