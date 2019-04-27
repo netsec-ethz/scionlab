@@ -560,6 +560,7 @@ class Host(models.Model):
             self.ssh_host = ssh_host or None
         if secret is not _placeholder:
             self.secret = secret or self._gen_secret()
+        self.config_version += 1
         self.save()
 
         bump_internal_ip = (self.internal_ip != prev_internal_ip) and self.services.exists()
