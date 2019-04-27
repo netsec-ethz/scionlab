@@ -26,6 +26,7 @@ from scionlab.views.user_as_views import (
     UserASGetConfigView)
 from scionlab.views.registration_view import UserRegistrationView, UserRegistrationResendView
 from scionlab.views.api import GetHostConfig, PostHostDeployedConfigVersion
+from scionlab.views.topology import topology_png
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='scionlab/home.html'), name='home'),
@@ -68,6 +69,8 @@ urlpatterns = [
     path('user/as/<int:pk>',
          login_required(UserASDetailView.as_view()),
          name='user_as_detail'),
+
+    path('topology.png', topology_png, name='topology.png'),
 
     # API:
     path('api/host/<int:pk>/config', GetHostConfig.as_view()),
