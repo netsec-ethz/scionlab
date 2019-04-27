@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ipaddress
 from django import urls
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
@@ -39,6 +40,7 @@ from scionlab.models.vpn import VPN, VPNClient
 from scionlab.util.http import HttpResponseAttachment
 from scionlab import config_tar
 from scionlab.tasks import deploy_host_config
+from scionlab.forms.fields import GenericIPNetworkField
 # Needs to be after import of scionlab.models.user.User
 from django.contrib.auth.admin import UserAdmin as auth_UserAdmin
 
@@ -509,7 +511,21 @@ class VPNCreationForm(_CreateUpdateModelForm):
     Specialised ModelForm for VPN creation which will initialise key and cert
     """
     class Meta:
-        fields = ('server', 'server_port', 'subnet')
+        fields = ('server', 'server_port', 'subnet', 'server_vpn_ip')
+        field_classes = {'subnet': GenericIPNetworkField}
+
+    def clean(self):
+        cleaned_data = super().clean()
+        subnet = cleaned_data.get('subnet')
+        server_ip = cleaned_data.get('server_vpn_ip')
+        if not subnet or not server_ip:
+            return cleaned_data
+        subnet = ipaddress.ip_network(subnet)
+        server_ip = ipaddress.ip_address(server_ip)
+        if server_ip not in subnet:
+            raise ValidationError('Server VPN IP is not inside the specified subnet',
+                                  code='server_vpn_ip_not_in_subnet')
+        return cleaned_data
 
     def create(self):
         """
@@ -520,7 +536,37 @@ class VPNCreationForm(_CreateUpdateModelForm):
             server=self.cleaned_data['server'],
             server_port=self.cleaned_data['server_port'],
             subnet=self.cleaned_data['subnet'],
+            server_vpn_ip=self.cleaned_data['server_vpn_ip'],
         )
+
+
+class VPNUpdateForm(VPNCreationForm):
+    class Meta:
+        fields = ('server', 'server_port', 'subnet', 'server_vpn_ip', 'private_key', 'cert')
+        field_classes = {'subnet': GenericIPNetworkField}
+
+    def update(self):
+        self.instance.update(
+            server=self.cleaned_data['server'],
+            server_port=self.cleaned_data['server_port'],
+            subnet=self.cleaned_data['subnet'],
+            server_vpn_ip=self.cleaned_data['server_vpn_ip'],
+            private_key=self.cleaned_data['private_key'],
+            cert=self.cleaned_data['cert'],
+        )
+
+
+@admin.register(VPN)
+class VPNAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Use different forms for VPN creation or update
+        """
+        if not obj:
+            kwargs['form'] = VPNCreationForm
+        else:
+            kwargs['form'] = VPNUpdateForm
+        return super().get_form(request, obj, **kwargs)
 
 
 @admin.register(VPNClient)
@@ -548,17 +594,6 @@ class VPNClientCreationForm(_CreateUpdateModelForm):
         vpn = self.cleaned_data['vpn']
         return vpn.create_client(self.cleaned_data['host'],
                                  self.cleaned_data['active'])
-
-
-@admin.register(VPN)
-class VPNAdmin(admin.ModelAdmin):
-    def get_form(self, request, obj=None, **kwargs):
-        """
-        Use custom form during AS creation
-        """
-        if not obj:
-            kwargs['form'] = VPNCreationForm
-        return super().get_form(request, obj, **kwargs)
 
 
 class LinkAdminForm(_CreateUpdateModelForm):

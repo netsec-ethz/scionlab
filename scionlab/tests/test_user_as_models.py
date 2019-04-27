@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import random
+from ipaddress import ip_address, ip_network
 from unittest.mock import patch
 from parameterized import parameterized
 from django.test import TestCase
@@ -48,6 +49,7 @@ def setup_vpn_attachment_point(ap):
     # TODO(matzf): move to a fixture once the VPN stuff is somewhat stable
     ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
                                 subnet='10.0.8.0/24',
+                                server_vpn_ip='10.0.8.1',
                                 server_port=4321)
     ap.save()
 
@@ -165,7 +167,7 @@ def check_useras(testcase,
         utils.check_link(testcase, link, utils.LinkDescription(
             type=Link.PROVIDER,
             from_as_id=attachment_point.AS.as_id,
-            from_public_ip=attachment_point.vpn.server_vpn_ip(),
+            from_public_ip=attachment_point.vpn.server_vpn_ip,
             from_bind_ip=None,
             from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
             to_public_ip=user_as.hosts.get().vpn_clients.get(active=True).ip,
@@ -307,12 +309,43 @@ class GenerateUserASIDTests(TestCase):
         self.assertEqual(as_id_int, USER_AS_ID_BEGIN)
 
 
+class VPNServerTests(TestCase):
+    fixtures = ['testuser', 'testtopo-ases-links']
+
+    def test_create_new(self):
+        ap = AttachmentPoint.objects.first()
+        prev_version = ap.AS.hosts.first().config_version
+        setup_vpn_attachment_point(ap)
+        self.assertGreater(ap.AS.hosts.first().config_version, prev_version)
+        self.assertEqual(ap.vpn.server, ap.AS.hosts.first())
+
+    def test_update_vpn(self):
+        ap = AttachmentPoint.objects.first()
+        setup_vpn_attachment_point(ap)
+        server = ap.vpn.server
+        prev_version = server.config_version
+        ap.vpn.update(subnet='10.0.8.0/22')
+        self.assertGreater(server.config_version, prev_version)
+
+    def test_change_vpn_server(self):
+        ap = AttachmentPoint.objects.first()
+        setup_vpn_attachment_point(ap)
+        old_server = ap.vpn.server
+        old_server_prev_version = old_server.config_version
+        new_server = Host.objects.create()
+        self.assertNotEqual(new_server, old_server)
+        new_server_prev_version = new_server.config_version
+        ap.vpn.update(server=new_server)
+        self.assertGreater(old_server.config_version, old_server_prev_version)
+        self.assertGreater(new_server.config_version, new_server_prev_version)
+
+
 class CreateUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
-        Host.objects.reset_needs_config_deployment()
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
+        Host.objects.reset_needs_config_deployment()
 
     @parameterized.expand(zip(range(testtopo_num_attachment_points)))
     def test_create_public_ip(self, ap_index):
@@ -353,13 +386,68 @@ class CreateUserASTests(TestCase):
                 Host.objects.reset_needs_config_deployment()
             create_random_useras(self, seed=i)
 
+    def test_server_vpn_ip(self):
+        """ Its IP is not at the beginning of the subnet """
+        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        vpn = attachment_point.vpn
+        server_orig_ip = ip_address(vpn.server_vpn_ip)
+        vpn.server_vpn_ip = str(server_orig_ip + 1)
+        vpn.save()
+        # create two clients and check their IP addresses
+        c1 = create_and_check_useras(self,
+                                     owner=get_testuser(),
+                                     attachment_point=attachment_point,
+                                     public_port=50000,
+                                     use_vpn=True).hosts.get().vpn_clients.get()
+        c2 = create_and_check_useras(self,
+                                     owner=get_testuser(),
+                                     attachment_point=attachment_point,
+                                     public_port=50000,
+                                     use_vpn=True).hosts.get().vpn_clients.get()
+        ip1 = ip_address(c1.ip)
+        ip2 = ip_address(c2.ip)
+        self.assertEqual(ip1, server_orig_ip)
+        self.assertEqual(ip2, ip_address(vpn.server_vpn_ip) + 1)
+
+    @patch('scionlab.models.user.User.max_num_ases', return_value=2**16)
+    def test_exhaust_vpn_clients(self, _):
+        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        vpn = attachment_point.vpn
+        vpn.subnet = '10.0.8.0/28'
+        vpn.server_vpn_ip = '10.0.8.10'
+        vpn.save()
+        subnet = ip_network(vpn.subnet)
+        used_ips = list()
+        it = subnet.hosts()
+        next(it)  # skip one for the server
+        for i in it:
+            a = create_and_check_useras(self,
+                                        owner=get_testuser(),
+                                        attachment_point=attachment_point,
+                                        public_port=50000,
+                                        use_vpn=True)
+            used_ips.append(ip_address(a.hosts.get().vpn_clients.get().ip))
+        self.assertEqual(len(used_ips), 13)  # 16 - network, broadcast and server addrs
+        used_ips_set = set(used_ips)
+        self.assertEqual(len(used_ips), len(used_ips_set))
+        self.assertNotIn(ip_address(vpn.server_vpn_ip), used_ips_set)
+        for ip in used_ips:
+            self.assertIn(ip, subnet)
+        # one too many:
+        with self.assertRaises(RuntimeError):
+            a = create_and_check_useras(self,
+                                        owner=get_testuser(),
+                                        attachment_point=attachment_point,
+                                        public_port=50000,
+                                        use_vpn=True)
+
 
 class UpdateUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
-        Host.objects.reset_needs_config_deployment()
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
+        Host.objects.reset_needs_config_deployment()
 
     def test_enable_vpn(self):
         seed = 1
@@ -435,6 +523,30 @@ class UpdateUserASTests(TestCase):
         self.assertEqual(vpn_client.pk, vpn_client_pk)
         self.assertTrue(vpn_client.active)
         self.assertEqual(vpn_client.ip, vpn_client_ip)
+
+    def test_vpn_client_next_ip(self):
+        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        vpn_server = VPN.objects.get()
+        user_as = create_and_check_useras(self,
+                                          attachment_point=attachment_point,
+                                          owner=get_testuser(),
+                                          use_vpn=True,
+                                          public_port=50000)
+        vpn_client = user_as.hosts.get().vpn_clients.get()
+        # consecutive:
+        self.assertEqual(ip_address(vpn_server.server_vpn_ip) + 1,
+                         ip_address(vpn_client.ip))
+        # leave a gap at the beginning
+        former_vpn_ip = ip_address(vpn_client.ip)
+        vpn_client.ip = str(former_vpn_ip + 1)
+        vpn_client.save()
+        user_as = create_and_check_useras(self,
+                                          attachment_point=attachment_point,
+                                          owner=get_testuser(),
+                                          use_vpn=True,
+                                          public_port=50000)
+        vpn_client_new = user_as.hosts.get().vpn_clients.get()
+        self.assertEqual(ip_address(vpn_client_new.ip), former_vpn_ip)
 
     @parameterized.expand(zip(range(testtopo_num_attachment_points)))
     def test_change_ap(self, ap_index):
@@ -541,9 +653,8 @@ class ActivateUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
-        Host.objects.reset_needs_config_deployment()
-
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
+        Host.objects.reset_needs_config_deployment()
 
     @patch('scionlab.tasks.deploy_host_config')
     def test_cycle_active(self, mock_deploy):
@@ -586,8 +697,8 @@ class DeleteUserASTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
-        Host.objects.reset_needs_config_deployment()
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
+        Host.objects.reset_needs_config_deployment()
 
     def test_delete_single(self):
         seed = 456
