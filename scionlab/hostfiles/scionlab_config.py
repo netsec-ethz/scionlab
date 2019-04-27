@@ -284,20 +284,28 @@ def restart_scion():
 
 
 def install_vpn_client_config(tmpdir):
-    # TODO subfolder "vpn_client"?
-    changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
+    exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
     if changed:
-        subprocess.check_call(['sudo', 'systemctl', 'reload-or-restart', 'openvpn@client'])
+        if exists:
+            _run_as_root(['systemctl', 'reload-or-restart', 'openvpn@client'])
+        else:
+            _run_as_root(['systemctl', 'stop', 'openvpn@client'])
 
 
 def install_vpn_server_config(tmpdir):
-    changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
+    exists, changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
     if changed:
-        subprocess.check_call(['sudo', 'systemctl', 'reload-or-restart', 'openvpn@server'])
-    _sudo_mv(os.path.join(tmpdir, 'openvpn_ccd'), '/etc/openvpn')
-    if not os.path.exists('/etc/openvpn/dh.pem'):
-        subprocess.check_call(['sudo', 'openssl', 'dhparam', '-out', 'dh.pem', '2048'],
-                              cwd='/etc/openvpn/')
+        if exists:
+            if not os.path.exists('/etc/openvpn/dh.pem'):
+                _run_as_root(['openssl', 'dhparam', '-out', 'dh.pem', '2048'],
+                             cwd='/etc/openvpn/')
+            _run_as_root(['systemctl', 'reload-or-restart', 'openvpn@server'])
+        else:
+            _run_as_root(['systemctl', 'stop', 'openvpn@server'], check=False)
+
+    if exists:
+        _run_as_root(['rm', '-rf', '/etc/openvpn/ccd/'])
+        _run_as_root(['mv', os.path.join(tmpdir, 'ccd'), '/etc/openvpn/'])
 
 
 def _mv_dir(srcdir, dirname, dstdir):
@@ -307,29 +315,39 @@ def _mv_dir(srcdir, dirname, dstdir):
 
 def _install_file(srcdir, filename, dstdir):
     """
-    Installs the file into the dir at the path.
-    Returns False iff the file was changed.
-    If the member doesn't exist, the file at path will be removed.
+    Installs the file from srcdir into the directory dstdir.
+    If the file doesn't exist in srcdir, the file at dstdir will be removed.
+    :returns:   tuple (exists, changed):
+                    exists indicates whether the file exists now.
+                    changed indicates whether the file was changed.
     """
     srcfilename = os.path.join(srcdir, filename)
-    dstfilename = os.path.join(srcdir, filename)
+    dstfilename = os.path.join(dstdir, filename)
     if not os.path.exists(srcfilename):
         if os.path.exists(dstfilename):
             os.remove(dstfilename)
-            return True
-        return False
+            return (False, True)
+        return (False, False)
 
     try:
         equal = filecmp.cmp(srcfilename, dstfilename, shallow=False)
     except FileNotFoundError:
         equal = False
     if not equal:
-        _sudo_mv(srcfilename, dstfilename)
-    return not equal
+        _run_as_root(['mv', srcfilename, dstfilename])
+    return (True, not equal)
 
 
-def _sudo_mv(src, dst):
-    subprocess.check_call(["sudo", "mv", src, dst])
+def _run_as_root(args, check=True, **kwargs):
+    """
+    Convenience helper: run with sudo unless already running as root
+    Note: if in the future the scion-gen/-folder is also owned by root,
+          it will probably make more sense to simply require running this
+          script as root.
+    """
+    if os.getuid() != 0:
+        args = 'sudo' + args
+    subprocess.run(args, check=check)
 
 
 if __name__ == '__main__':
