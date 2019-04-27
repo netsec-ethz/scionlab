@@ -12,20 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-
 from django.urls import reverse_lazy
-
 from django_registration.backends.activation.views import RegistrationView
-
-from scionlab.forms.registration_form import RegistrationFormWithCaptcha
+from scionlab.models.user import User
+from scionlab.forms.registration_form import RegistrationFormWithCaptcha, RegistrationResendForm
 
 
 class UserRegistrationView(RegistrationView):
     success_url = reverse_lazy('registration_confirm')
     form_class = RegistrationFormWithCaptcha
+    template_name = 'django_registration/registration_form.html'
 
     def register(self, form):
-        logging.debug('Doing the user registration...')
-        super().register(form)
-        return
+        return super().register(form)
+
+
+class UserRegistrationResendView(RegistrationView):
+    success_url = reverse_lazy('registration_confirm')
+    form_class = RegistrationResendForm
+    template_name = 'django_registration/registration_resend.html'
+
+    def register(self, form):
+        email = form.cleaned_data['email']
+        user = User.objects.filter(email=email, is_active=False).first()
+        if not user:
+            return None  # Do nothing, just pretend it's successful.
+        self.send_activation_email(user)
+        return user
