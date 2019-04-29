@@ -13,39 +13,67 @@
 # limitations under the License.
 
 from django.http import HttpResponse
+from django.views.decorators.cache import cache_page, cache_control
 from graphviz import Graph
 
 from scionlab.models.core import ISD, Link
 
-
+@cache_page(1 * 60 * 60)
+@cache_control(public=True, max_age=24 * 60 * 60)
 def topology_png(request):
-    # TODO(matzf): this queries can/should be optimized...
-    # TODO(matzf): this queries can/should be optimized...
-    # TODO(matzf): cache this!?
-    g = Graph()
-    for isd in ISD.objects.iterator():
-        g_isd = _make_isd_graph(isd)
-        for as_ in isd.ases.filter(owner=None):
-            g_isd.node(str(as_.pk), _as_label(as_), _attributes={
-                       'shape': 'box', 'color': _as_color(as_)})
-        g.subgraph(g_isd)
-    for link in Link.objects.iterator():
-        as_a = link.interfaceA.AS
-        as_b = link.interfaceB.AS
-        if as_a.owner or as_b.owner:
-            continue
-        g.edge(str(as_a.pk), str(as_b.pk))
-
-    imgdata = g.pipe(format='png', renderer='cairo', formatter='cairo')
+    g = _topology_graph()
+    imgdata = g.pipe(format='png')
 
     response = HttpResponse(content_type="image/png")
     response.write(imgdata)
     return response
 
 
+def _topology_graph():
+    # TODO(matzf): these queries can/should be optimized...
+    g = Graph(engine='dot')
+    for isd in ISD.objects.iterator():
+        g_isd = _make_isd_graph(isd)
+        if False:
+            # XXX experiment with subgraph for core AS.
+            # Unnecessary if contraint=false for core links.
+            g_isd_core = Graph(name="_ISD_%i_core" % isd.isd_id, graph_attr={'rank': 'min'})
+            for as_ in isd.ases.filter(is_core=True, owner=None):
+                _add_as_node(g_isd_core, as_)
+            g_isd.subgraph(g_isd_core)
+            for as_ in isd.ases.filter(is_core=False, owner=None):
+                _add_as_node(g_isd, as_)
+        else:
+            for as_ in isd.ases.filter(owner=None):
+                _add_as_node(g_isd, as_)
+        g.subgraph(g_isd)
+    for link in Link.objects.iterator():
+        as_a = link.interfaceA.AS
+        as_b = link.interfaceB.AS
+        if as_a.owner or as_b.owner:
+            continue
+        attrs = None
+        if link.type == Link.PEER:
+            attrs = {'style': 'dashed', 'constraint': 'false'}
+        elif link.type == Link.CORE:
+            attrs = {'constraint': 'false'}
+        g.edge(str(as_a.pk), str(as_b.pk), _attributes=attrs)
+
+    return g
+
+
 def _make_isd_graph(isd):
     return Graph("cluster_ISD_%i" % isd.isd_id,
                  graph_attr={'color': 'blue', 'label': _isd_label(isd), 'style': 'rounded'})
+
+
+def _add_as_node(g, as_):
+    g.node(str(as_.pk),
+           _as_label(as_),
+           _attributes={'width': '1',
+                        'fixedsize': 'true',
+                        'shape': 'circle',
+                        'color': _as_color(as_)})
 
 
 def _isd_label(isd):

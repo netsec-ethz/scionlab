@@ -26,11 +26,16 @@ enable realistic experimentation with the unique properties of the SCION archite
 </div>
 
 <div class="col">
-  <img class="img-fluid center-block" src="{% url 'topology.png' %}"/>
+  <figure class="figure">
+    <a href="{% url 'topology.png' %}">{# poor mans image modal #}
+      <img class="img-thumbnail img-fluid center-block" src="{% url 'topology.png' %}"/>
+    </a>
+    <figcaption class="figure-caption">The topology of the SCIONLab infrastructure ASes and the ISD boundaries. Core-ASes are red. SCIONLab-attachment points are green.</figcaption>
+  </figure>
 </div>
 </div>
 
-<hr class="mt-5">
+<hr class="mt-3">
 <h4>About SCION</h4>
 
 <p>
