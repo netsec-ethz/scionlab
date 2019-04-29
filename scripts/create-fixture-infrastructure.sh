@@ -25,7 +25,7 @@ GEN_PATH="$1"
 
 # backup db
 tempdir=`mktemp -d`
-mv run/dev.sqlite3 $tempdir
+mv run/dev.sqlite3 $tempdir || true
 
 # init new db
 python manage.py makemigrations scionlab
@@ -37,4 +37,4 @@ python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/scionlab-in
 
 # get db back
 mv run/dev.sqlite3 run/infrastructure.sqlite3
-mv $tempdir/dev.sqlite3 run/
+[ -f $tempdir/dev.sqlite3 ] && mv $tempdir/dev.sqlite3 run/

@@ -1,4 +1,4 @@
-# Copyright 2018 ETH Zurich
+# Copyright 2019 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -386,7 +386,10 @@ def _create_attachmentpoints(ap_list):
         as_id = 'ffaa:0:%x' % short_id
         as_ = AS.objects.get(as_id=as_id)
         host = Host.objects.get(AS=as_)
-        vpn = VPN.objects.create(host, 1194, subnet='10.0.8.0/24')
+        vpn = VPN.objects.create(server=host,
+                                 server_port=1194,
+                                 subnet='10.0.0.0/16',
+                                 server_vpn_ip='10.0.8.1')
         AttachmentPoint.objects.create(AS=as_, vpn=vpn)
 
 
