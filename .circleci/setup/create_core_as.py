@@ -8,15 +8,17 @@ args = parser.parse_args()
 
 coord_ip = "172.31.0.10"
 client = requests.session()
-client.get("http://"+coord_ip+":8000/user/login/")
+client.get("http://"+coord_ip+":8000/admin/login/?next=/admin/scionlab/as/add/")
 csrftoken = client.cookies['csrftoken']
 
 # Fixture test admin user
-login_data = dict(username="admin", password="admin", csrfmiddlewaretoken=csrftoken)
+login_data = dict(username="admin@scionlab.org",
+                  password="scion53cure",
+                  csrfmiddlewaretoken=csrftoken)
 
-r = client.post("http://"+coord_ip+":8000/user/login/",
+r = client.post("http://"+coord_ip+":8000/admin/login/?next=/admin/scionlab/as/add/",
                 data=login_data,
-                headers=dict(Referer="http://"+coord_ip+":8000/user/login/"))
+                headers=dict(Referer="http://"+coord_ip+":8000/admin/"))
 
 for n in range(args.count):
     as_id = args.prev_ia + n + 1

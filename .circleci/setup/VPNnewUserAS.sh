@@ -15,6 +15,7 @@ python3 /tmp/create_user_as.py
 echo "Created new userAS"
 
 # Configure container for OpenVPN connections
+sudo apt-get update
 sudo apt-get install -y openvpn
 sudo mkdir -p /dev/net
 sudo mknod /dev/net/tun c 10 20

@@ -4,6 +4,7 @@ sleep 10
 /tmp/minimalInstall.sh
 
 # Configure container for OpenVPN connections
+sudo apt-get update
 sudo apt-get install -y openvpn
 sudo mkdir -p /dev/net
 sudo mknod /dev/net/tun c 10 20

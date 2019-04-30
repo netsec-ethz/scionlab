@@ -388,7 +388,7 @@ class CreateUserASTests(TestCase):
 
     def test_server_vpn_ip(self):
         """ Its IP is not at the beginning of the subnet """
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         vpn = attachment_point.vpn
         server_orig_ip = ip_address(vpn.server_vpn_ip)
         vpn.server_vpn_ip = str(server_orig_ip + 1)
@@ -411,7 +411,7 @@ class CreateUserASTests(TestCase):
 
     @patch('scionlab.models.user.User.max_num_ases', return_value=2**16)
     def test_exhaust_vpn_clients(self, _):
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         vpn = attachment_point.vpn
         vpn.subnet = '10.0.8.0/28'
         vpn.server_vpn_ip = '10.0.8.10'
@@ -525,8 +525,8 @@ class UpdateUserASTests(TestCase):
         self.assertEqual(vpn_client.ip, vpn_client_ip)
 
     def test_vpn_client_next_ip(self):
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
-        vpn_server = VPN.objects.get()
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
+        vpn_server = VPN.objects.first()
         user_as = create_and_check_useras(self,
                                           attachment_point=attachment_point,
                                           owner=get_testuser(),

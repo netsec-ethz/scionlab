@@ -15,14 +15,16 @@
 import random
 from unittest.mock import patch
 from collections import namedtuple
-from scionlab.models import AS, AttachmentPoint, Host, ISD, Link, Service, VPN
+from scionlab.models.core import ISD, AS, Link, Host, Service
+from scionlab.models.user_as import AttachmentPoint
+from scionlab.models.vpn import VPN
 
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.
 ISDdef = namedtuple('ISDdef', ['isd_id', 'label'])
 ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'public_ip', 'is_core', 'is_ap'])
 LinkDef = namedtuple('LinkDef', ['type', 'as_id_a', 'as_id_b'])
-VPNDef = namedtuple('VPNDef', ['server', 'server_port', 'subnet', 'AP'])
+VPNDef = namedtuple('VPNDef', ['server', 'vpn_ip', 'vpn_port', 'subnet', 'AP'])
 
 
 def _expand_as_id(as_id_tail):
@@ -110,7 +112,7 @@ extra_services = [
 # VPNs
 vpns = [
    # Asia AP VPN
-   VPNDef(14, 1194, "10.0.8.0/24", "14"),
+   VPNDef(14, "10.0.8.1", 1194, "10.0.0.0/16", "14"),
 ]
 
 
@@ -177,9 +179,9 @@ def _create_as_link(type, as_id_a, as_id_b):
     Link.objects.create_from_ases(type, as_a, as_b)
 
 
-def _create_vpn(server, server_port, subnet, AP):
+def _create_vpn(server, vpn_ip, vpn_port, subnet, AP):
     vpn = VPN.objects.create(server=Host.objects.get(id=server),
-                             server_port=server_port, subnet=subnet)
+                             server_vpn_ip=vpn_ip, server_port=vpn_port, subnet=subnet)
     # Add vpn to AP
     ap = AttachmentPoint.objects.get(AS_id=AP)
     ap.vpn = vpn

@@ -52,9 +52,8 @@ services:
       # fixture secret
       CSECRET: "c8CtMx5_ZUE1pAr_8sw3nw"
     tty: true
-    # waits for binaries and setup script to be loaded, then for SCION to be ready
     entrypoint: /bin/bash
-    command: -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; echo up; cat;"
+    command: -c "/tmp/existingAS.sh; cat;"
 
   infraAS1303:
     image: ethznetsec/scion_base:latest
@@ -75,9 +74,8 @@ services:
       # fixture secret
       CSECRET: "kuA3OhfG0eLjoMeAsoZrgQ"
     tty: true
-    # waits for binaries and setup script to be loaded, then for SCION to be ready
     entrypoint: /bin/bash
-    command: -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; cat;"
+    command: -c "/tmp/existingAS.sh; cat;"
 
   infraAS1305:
     image: ethznetsec/scion_base:latest
@@ -98,9 +96,8 @@ services:
       # fixture secret
       CSECRET: "jpuwJ8uzcu1mL8Rrbiw_9Q"
     tty: true
-    # waits for binaries and setup script to be loaded, then for SCION to be ready
     entrypoint: /bin/bash
-    command: -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; cat;"
+    command: -c "/tmp/existingAS.sh; cat;"
 
   coreAS1401:
     image: ethznetsec/scion_base:latest

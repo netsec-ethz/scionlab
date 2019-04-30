@@ -1,86 +1,108 @@
 - model: scionlab.isd
   pk: 1
   fields:
+    created_date: 2019-04-30 03:30:55.232833
+    modified_date: 2019-04-30 03:30:56.605370
     isd_id: 16
     label: AWS
-    trc: '{"QuorumTRC":0,"Version":1,"CoreASes":{},"ISD":16,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      16 (AWS)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{},"CreationTime":1555073589,"ExpirationTime":1586609589}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":0,"GracePeriod":0,"Version":1,"ISD":16,"CoreASes":{},"ThresholdEEPKI":0,"Signatures":{},"Description":"ISD
+      16 (AWS)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
     trc_priv_keys: '{}'
 - model: scionlab.isd
   pk: 2
   fields:
+    created_date: 2019-04-30 03:30:55.234799
+    modified_date: 2019-04-30 03:30:56.609729
     isd_id: 17
     label: Switzerland
-    trc: '{"QuorumTRC":1,"Version":1,"CoreASes":{"17-ffaa:0:1101":{"OnlineKey":"XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=","OnlineKeyAlg":"ed25519","OfflineKey":"b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=","OfflineKeyAlg":"ed25519"}},"ISD":17,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      17 (Switzerland)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{"17-ffaa:0:1101":"En1jBJ1RKDxNpDz7ePS20aRASuzlMlfreQZQzfxWfG5AILpiAJtNHPxrIiTltymEVXJlJN47JpSAMNRS3orwCA=="},"CreationTime":1555073589,"ExpirationTime":1586609589}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":1,"GracePeriod":0,"Version":1,"ISD":17,"CoreASes":{"17-ffaa:0:1101":{"OnlineKey":"XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc="}},"ThresholdEEPKI":0,"Signatures":{"17-ffaa:0:1101":"39aPVB4I3pnujAUHhdnHUnMtUQ9z2LLMtGIGc0H8Jp9ENPCsqRzDNIwObgS4zRomq//O3Yw7D6JQd/CKu95dBw=="},"Description":"ISD
+      17 (Switzerland)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
     trc_priv_keys: '{"17-ffaa:0:1101":"G02NSrQfjFXQ7Io09syajJZJcReYzGJRkz1KLzDSLwg="}'
 - model: scionlab.isd
   pk: 3
   fields:
+    created_date: 2019-04-30 03:30:55.236143
+    modified_date: 2019-04-30 03:30:56.632258
     isd_id: 18
     label: North America
-    trc: '{"QuorumTRC":0,"Version":1,"CoreASes":{},"ISD":18,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      18 (North America)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{},"CreationTime":1555073589,"ExpirationTime":1586609589}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":0,"GracePeriod":0,"Version":1,"ISD":18,"CoreASes":{},"ThresholdEEPKI":0,"Signatures":{},"Description":"ISD
+      18 (North America)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
     trc_priv_keys: '{}'
 - model: scionlab.isd
   pk: 4
   fields:
+    created_date: 2019-04-30 03:30:55.237733
+    modified_date: 2019-04-30 03:30:56.636847
     isd_id: 19
     label: EU
-    trc: '{"QuorumTRC":2,"Version":1,"CoreASes":{"19-ffaa:0:1302":{"OnlineKey":"nICZKsg16RCuGg3yHp96fYWw0vWn06+UKO1hneOD/tQ=","OnlineKeyAlg":"ed25519","OfflineKey":"3XNhBvzgUgzNS/P7mrLDkNzwmgaXq8scEXp3LKIcCKg=","OfflineKeyAlg":"ed25519"},"19-ffaa:0:1301":{"OnlineKey":"A6bZwIfqNibMdrCsI5/RXIJ4VS/TnT+gdQVHotLtpns=","OnlineKeyAlg":"ed25519","OfflineKey":"AorvZPRBFryuSB8sTQ056vL3OWUWhb2/KKUVC1B7ngo=","OfflineKeyAlg":"ed25519"}},"ISD":19,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      19 (EU)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{"19-ffaa:0:1302":"ztGEvAjlJMjKJDgkFEsJeJJEKioBlyXK7lwVYtSfXp7ejgdBAffunNPzuJqZchUjDCU4invBshwM7NALa4zcAQ==","19-ffaa:0:1301":"A3BGtz9IumzHlV4/nQTGgx9uFqCcoHI37Y0yZsaDlvKDFz6jvH5NZ+mrsTR1nrjjGEcgChyijQ06Rr1Q5LroBQ=="},"CreationTime":1555073589,"ExpirationTime":1586609589}'
-    trc_priv_keys: '{"19-ffaa:0:1302":"ieaZatP4e9jK+GObljvZ3cwFqOIAvS5NgZFBVRB+3EM=","19-ffaa:0:1301":"s39tCU1VvK/kJ+sqoJBgzvn9oxYQzhUyvzgPYgIZZI4="}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":2,"GracePeriod":0,"Version":1,"ISD":19,"CoreASes":{"19-ffaa:0:1301":{"OnlineKey":"A6bZwIfqNibMdrCsI5/RXIJ4VS/TnT+gdQVHotLtpns=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"AorvZPRBFryuSB8sTQ056vL3OWUWhb2/KKUVC1B7ngo="},"19-ffaa:0:1302":{"OnlineKey":"nICZKsg16RCuGg3yHp96fYWw0vWn06+UKO1hneOD/tQ=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"3XNhBvzgUgzNS/P7mrLDkNzwmgaXq8scEXp3LKIcCKg="}},"ThresholdEEPKI":0,"Signatures":{"19-ffaa:0:1301":"Acn789g8spXIusKKICUb8K08gz0Y6TmMh/xEoeacdvsnZIrH2GVIewXsD3ZIgUPmsSx4GYPRocnjiiUHXST2Cg==","19-ffaa:0:1302":"IIaMIz6IR+7XDH4LU1kZu4phgbIZGajTm8tVpuWfPXuLIi1oxyA5ZPfTIZ3onk1/fDKrJ1C7Coy1W+eTY2ZMAw=="},"Description":"ISD
+      19 (EU)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
+    trc_priv_keys: '{"19-ffaa:0:1301":"s39tCU1VvK/kJ+sqoJBgzvn9oxYQzhUyvzgPYgIZZI4=","19-ffaa:0:1302":"ieaZatP4e9jK+GObljvZ3cwFqOIAvS5NgZFBVRB+3EM="}'
 - model: scionlab.isd
   pk: 5
   fields:
+    created_date: 2019-04-30 03:30:55.239234
+    modified_date: 2019-04-30 03:30:56.665068
     isd_id: 20
     label: Korea
-    trc: '{"QuorumTRC":2,"Version":1,"CoreASes":{"20-ffaa:0:1402":{"OnlineKey":"hsZ992fgw6tmMkGqqtifBVG5wuQFMPb9D4WAdMNB2Nk=","OnlineKeyAlg":"ed25519","OfflineKey":"pCZqF/PCLq82i6IHwKqlT2mukBle/MXd17+PTwqZgP8=","OfflineKeyAlg":"ed25519"},"20-ffaa:0:1401":{"OnlineKey":"c+LO/s2rpe6CR2J9f23PFNiD+EYkkZBQKKzVXOc4wOw=","OnlineKeyAlg":"ed25519","OfflineKey":"q6NQNph3vnkNxb8s99KFktHrkR7H7954gXMI3hq7AKM=","OfflineKeyAlg":"ed25519"}},"ISD":20,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      20 (Korea)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{"20-ffaa:0:1402":"XMzo0Ot+TmBTAbRyBjfJ+66d/drgSiYK3fm1RxHY4QLYv6WoMbCAB8YdnwIuXnsD2i9NnbeUmrg/EqowZhOBCg==","20-ffaa:0:1401":"9fiMojJ6zucfk0LMPAcpgPjYBjWf/aspbY2wo+fWTvk6tYaTO5QKdN8ECXMUivxzPRMFe0yU+BXTWt12n5k3DQ=="},"CreationTime":1555073589,"ExpirationTime":1586609589}'
-    trc_priv_keys: '{"20-ffaa:0:1402":"+Jtljus4dDFWmxqb4hXLUVKJdORTQQeFCzBeFDXehlg=","20-ffaa:0:1401":"SnFfkaAjKB+yHmFml3cjj6tMWqF5vmo3en2xgFF+pvU="}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":2,"GracePeriod":0,"Version":1,"ISD":20,"CoreASes":{"20-ffaa:0:1401":{"OnlineKey":"c+LO/s2rpe6CR2J9f23PFNiD+EYkkZBQKKzVXOc4wOw=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"q6NQNph3vnkNxb8s99KFktHrkR7H7954gXMI3hq7AKM="},"20-ffaa:0:1402":{"OnlineKey":"hsZ992fgw6tmMkGqqtifBVG5wuQFMPb9D4WAdMNB2Nk=","OfflineKeyAlg":"ed25519","OnlineKeyAlg":"ed25519","OfflineKey":"pCZqF/PCLq82i6IHwKqlT2mukBle/MXd17+PTwqZgP8="}},"ThresholdEEPKI":0,"Signatures":{"20-ffaa:0:1401":"Qxp/LdiAnvOxKvW98mG4ZNzuCZvEObPf2BVB9+JngSiQHPaU+dZGtp1cpRBbL5nniYpx+4O+fuobCzW/B1MjDg==","20-ffaa:0:1402":"WIDN7mfnQ3VIJ/UxCTh+VZwZY3ESvzP97zOIISEac3j5oe1wiLInH/gGPfC7xkbt6dZhCySu2BctuDZIQgmHAA=="},"Description":"ISD
+      20 (Korea)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
+    trc_priv_keys: '{"20-ffaa:0:1401":"SnFfkaAjKB+yHmFml3cjj6tMWqF5vmo3en2xgFF+pvU=","20-ffaa:0:1402":"+Jtljus4dDFWmxqb4hXLUVKJdORTQQeFCzBeFDXehlg="}'
 - model: scionlab.isd
   pk: 6
   fields:
+    created_date: 2019-04-30 03:30:55.240515
+    modified_date: 2019-04-30 03:30:56.698827
     isd_id: 21
     label: Japan
-    trc: '{"QuorumTRC":0,"Version":1,"CoreASes":{},"ISD":21,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      21 (Japan)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{},"CreationTime":1555073589,"ExpirationTime":1586609589}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":0,"GracePeriod":0,"Version":1,"ISD":21,"CoreASes":{},"ThresholdEEPKI":0,"Signatures":{},"Description":"ISD
+      21 (Japan)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
     trc_priv_keys: '{}'
 - model: scionlab.isd
   pk: 7
   fields:
+    created_date: 2019-04-30 03:30:55.241864
+    modified_date: 2019-04-30 03:30:56.702950
     isd_id: 22
     label: Taiwan
-    trc: '{"QuorumTRC":0,"Version":1,"CoreASes":{},"ISD":22,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      22 (Taiwan)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{},"CreationTime":1555073589,"ExpirationTime":1586609589}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":0,"GracePeriod":0,"Version":1,"ISD":22,"CoreASes":{},"ThresholdEEPKI":0,"Signatures":{},"Description":"ISD
+      22 (Taiwan)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
     trc_priv_keys: '{}'
 - model: scionlab.isd
   pk: 8
   fields:
+    created_date: 2019-04-30 03:30:55.243099
+    modified_date: 2019-04-30 03:30:56.707193
     isd_id: 23
     label: Singapore
-    trc: '{"QuorumTRC":0,"Version":1,"CoreASes":{},"ISD":23,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      23 (Singapore)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{},"CreationTime":1555073589,"ExpirationTime":1586609589}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":0,"GracePeriod":0,"Version":1,"ISD":23,"CoreASes":{},"ThresholdEEPKI":0,"Signatures":{},"Description":"ISD
+      23 (Singapore)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
     trc_priv_keys: '{}'
 - model: scionlab.isd
   pk: 9
   fields:
+    created_date: 2019-04-30 03:30:55.244360
+    modified_date: 2019-04-30 03:30:56.711365
     isd_id: 24
     label: Australia
-    trc: '{"QuorumTRC":0,"Version":1,"CoreASes":{},"ISD":24,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      24 (Australia)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{},"CreationTime":1555073589,"ExpirationTime":1586609589}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":0,"GracePeriod":0,"Version":1,"ISD":24,"CoreASes":{},"ThresholdEEPKI":0,"Signatures":{},"Description":"ISD
+      24 (Australia)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
     trc_priv_keys: '{}'
 - model: scionlab.isd
   pk: 10
   fields:
+    created_date: 2019-04-30 03:30:55.245664
+    modified_date: 2019-04-30 03:30:56.715566
     isd_id: 25
     label: China
-    trc: '{"QuorumTRC":0,"Version":1,"CoreASes":{},"ISD":25,"ThresholdEEPKI":0,"RAINS":{},"QuorumCAs":0,"Description":"ISD
-      25 (China)","Quarantine":false,"CertLogs":{},"RootCAs":{},"GracePeriod":0,"Signatures":{},"CreationTime":1555073589,"ExpirationTime":1586609589}'
+    trc: '{"ExpirationTime":1588149056,"QuorumTRC":0,"GracePeriod":0,"Version":1,"ISD":25,"CoreASes":{},"ThresholdEEPKI":0,"Signatures":{},"Description":"ISD
+      25 (China)","QuorumCAs":0,"Quarantine":false,"CertLogs":{},"CreationTime":1556613056,"RAINS":{},"RootCAs":{}}'
     trc_priv_keys: '{}'
 - model: scionlab.as
   pk: 1
   fields:
+    created_date: 2019-04-30 03:30:56.211834
+    modified_date: 2019-04-30 03:30:56.614093
     isd: 2
     as_id: ffaa:0:1101
     as_id_int: 281105609527553
@@ -99,14 +121,16 @@
     core_online_pub_key: XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=
     core_offline_priv_key: nPuoQnkRFq3BIeAm7AnXFOWz7NSKrmTWtIZGhc882Tc=
     core_offline_pub_key: b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"f0R7WXno9lP8knqc0ipJ+q8RuknWWcryKcFzovYwXJZoyMn7L44dH14gm+WgTsBd8pkr/JKdy9IW8ELpQLpyBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Subject":"17-ffaa:0:1101","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"3ZynUYu41znWz3mFPWJ3bPCO17WIETy/BuNfU+JmeN828CiCB+IYQ06A+ehAdbbMtghr8QFB8SG2OzHQVsG1Dg==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"LRai1PEjkEAwLWZJRghc8ZcHOqftQQeuwfYq7CnIpBM=","Subject":"17-ffaa:0:1101","SubjectEncKey":"pta2eWXWEIV0F8CnPusbRfANYA4S+dOdeQZr0uW7TBk=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
-    core_certificate: '{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"f0R7WXno9lP8knqc0ipJ+q8RuknWWcryKcFzovYwXJZoyMn7L44dH14gm+WgTsBd8pkr/JKdy9IW8ELpQLpyBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Subject":"17-ffaa:0:1101","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Signature":"D3oyKUMshO7Wyi4L4Vs5PG1CYeJ3WwHosjFPrjkOnSCkpCPp7uFGc9TueeSo4dVle19aL92tkngi0eyY+suuCg==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1101","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"LRai1PEjkEAwLWZJRghc8ZcHOqftQQeuwfYq7CnIpBM=","Signature":"JDDvQVhc9HcNKnSiXOiaF3hBu2bk6RFohDHElM/Jeg5ekRhxnJueS5QCeBQKdvjuq8ANm6rA/sEwpG8VWLHhAQ==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1101","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"pta2eWXWEIV0F8CnPusbRfANYA4S+dOdeQZr0uW7TBk=","CanIssue":false}}'
+    core_certificate: '{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Signature":"D3oyKUMshO7Wyi4L4Vs5PG1CYeJ3WwHosjFPrjkOnSCkpCPp7uFGc9TueeSo4dVle19aL92tkngi0eyY+suuCg==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1101","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true}'
 - model: scionlab.as
   pk: 2
   fields:
+    created_date: 2019-04-30 03:30:56.237180
+    modified_date: 2019-04-30 03:30:56.619960
     isd: 2
     as_id: ffaa:0:1102
     as_id_int: 281105609527554
@@ -125,13 +149,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"f0R7WXno9lP8knqc0ipJ+q8RuknWWcryKcFzovYwXJZoyMn7L44dH14gm+WgTsBd8pkr/JKdy9IW8ELpQLpyBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Subject":"17-ffaa:0:1101","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"ZJjIOV8OUCaM1BcSpSxZtpBDRwf5qPHeKqnQIgjfU3xp0Ko/Y17utbxdDKfeE2niA+BF550jwwOrE5drZ8vwBw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"mg9QsOmRjFRe6bcNp0qoZbE+lsvQAQTxvXnFKPmD8OA=","Subject":"17-ffaa:0:1102","SubjectEncKey":"nzj72xX3pZopcGzzmXMdNahSn/74G5FT3Jdm4tb30wQ=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Signature":"D3oyKUMshO7Wyi4L4Vs5PG1CYeJ3WwHosjFPrjkOnSCkpCPp7uFGc9TueeSo4dVle19aL92tkngi0eyY+suuCg==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1101","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"mg9QsOmRjFRe6bcNp0qoZbE+lsvQAQTxvXnFKPmD8OA=","Signature":"3ripkdgZwxFGDFPW7aTjqfjHI1atkMb5GNY7W64Bf0A7BmZ+iP/GL+SQDHm93KR0VOQWG1JTEwcVQe9uU3ncDg==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1102","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"nzj72xX3pZopcGzzmXMdNahSn/74G5FT3Jdm4tb30wQ=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 3
   fields:
+    created_date: 2019-04-30 03:30:56.261600
+    modified_date: 2019-04-30 03:30:56.624681
     isd: 2
     as_id: ffaa:0:1103
     as_id_int: 281105609527555
@@ -150,13 +176,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"f0R7WXno9lP8knqc0ipJ+q8RuknWWcryKcFzovYwXJZoyMn7L44dH14gm+WgTsBd8pkr/JKdy9IW8ELpQLpyBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Subject":"17-ffaa:0:1101","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"51RS6mU1rB+iAF0dSPDrtDOZ5IDpAuch03LQI2WUz2zSW0Gs77iSKE41PtOrdmdf0514EoIGxYQEyIC8eSmzBg==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"l1KAXj/ZJbM9MvLRjGWiQJArQns1TewNazJwHjSfX0M=","Subject":"17-ffaa:0:1103","SubjectEncKey":"EJMcwWdaUaapj8fw88Ra3Ylztddieu9v1Inwx7HENlQ=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Signature":"D3oyKUMshO7Wyi4L4Vs5PG1CYeJ3WwHosjFPrjkOnSCkpCPp7uFGc9TueeSo4dVle19aL92tkngi0eyY+suuCg==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1101","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"l1KAXj/ZJbM9MvLRjGWiQJArQns1TewNazJwHjSfX0M=","Signature":"P9Qs4cUn8hF6+3ujm34sDfFawlhSp3MFEneJjHFjfr0jZsRayDaj01Au7pgqItHW1I94Tj9IjZYCijpl/bkFDg==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1103","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"EJMcwWdaUaapj8fw88Ra3Ylztddieu9v1Inwx7HENlQ=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 4
   fields:
+    created_date: 2019-04-30 03:30:56.287399
+    modified_date: 2019-04-30 03:30:56.629539
     isd: 2
     as_id: ffaa:0:1107
     as_id_int: 281105609527559
@@ -175,13 +203,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"f0R7WXno9lP8knqc0ipJ+q8RuknWWcryKcFzovYwXJZoyMn7L44dH14gm+WgTsBd8pkr/JKdy9IW8ELpQLpyBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Subject":"17-ffaa:0:1101","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"9JlNwsHWCvs7EPUaxKhDguFEi/3I5txsMlO9f9ZM1Z/XHAiAbmWslmLDfMYlfI9cXQcB+adDh+F2wMbvfWmBBg==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"17-ffaa:0:1101","SubjectSignKey":"iFtCBwnrJbMWsD6LOLg/lFwBz28foTqbtmHmY9wTzDA=","Subject":"17-ffaa:0:1107","SubjectEncKey":"U/qbR7Q8xUFtQGKGO2uGSDPVM7yNApsfum+dtZzMX2k=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=","Signature":"D3oyKUMshO7Wyi4L4Vs5PG1CYeJ3WwHosjFPrjkOnSCkpCPp7uFGc9TueeSo4dVle19aL92tkngi0eyY+suuCg==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1101","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"iFtCBwnrJbMWsD6LOLg/lFwBz28foTqbtmHmY9wTzDA=","Signature":"cKk5ISdO6K+FJ49CP1yKZzkl8j3HK+xFrBtgfh62/oFfuQJrasuiqadAp24009eJH2LxzFO5JtGWZzIJNoWOBg==","SignAlgorithm":"ed25519","Issuer":"17-ffaa:0:1101","IssuingTime":1556613056,"Subject":"17-ffaa:0:1107","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"U/qbR7Q8xUFtQGKGO2uGSDPVM7yNApsfum+dtZzMX2k=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 5
   fields:
+    created_date: 2019-04-30 03:30:56.317092
+    modified_date: 2019-04-30 03:30:56.641843
     isd: 4
     as_id: ffaa:0:1301
     as_id_int: 281105609528065
@@ -200,14 +230,16 @@
     core_online_pub_key: A6bZwIfqNibMdrCsI5/RXIJ4VS/TnT+gdQVHotLtpns=
     core_offline_priv_key: hEpy633JlbatN2wVXjj9/0KVxipuMVsdENLd2rMH54Y=
     core_offline_pub_key: AorvZPRBFryuSB8sTQ056vL3OWUWhb2/KKUVC1B7ngo=
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"R1reldLIjw9179wdCqU3/fSy/Tpx/aEPX9mgFEOq8nx8k1js1QVjgj/edSYJHEhpBbuNoGq5rawhowjPBe5xBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Subject":"19-ffaa:0:1301","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"/U1OvruC9tEht+3QiTX7znewEnX9DhvpoW3snKluX2sKuS+iaXtWtp+wP7v9M2d1GvHIl/IsFgKe9g7g7yoIDQ==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"2Ga+zgdJTjkZV96rmkzLGxtx7AL8M1jZRNpfmvBMQdo=","Subject":"19-ffaa:0:1301","SubjectEncKey":"lPB+8CG8zMDyR2g4AKesU17OYq2RsCBciifeUWtobB4=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
-    core_certificate: '{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"R1reldLIjw9179wdCqU3/fSy/Tpx/aEPX9mgFEOq8nx8k1js1QVjgj/edSYJHEhpBbuNoGq5rawhowjPBe5xBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Subject":"19-ffaa:0:1301","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Signature":"RIjGyZoZtZwdk0g0LYUtsle7n+muQ/lEp8q37n1wH0rlQQYM6TPd5lCT3G67hJ9nrpTMv1b71z7vC5WDIJ0lBQ==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1301","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"2Ga+zgdJTjkZV96rmkzLGxtx7AL8M1jZRNpfmvBMQdo=","Signature":"PkT5HGdfCt37Om6tzgEJPPcBD3qscPMKS11k2IMJiyxrpLHpYptg+CLAlenAuWRCRR5y8/KvUvC/bylCypuyDg==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1301","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"lPB+8CG8zMDyR2g4AKesU17OYq2RsCBciifeUWtobB4=","CanIssue":false}}'
+    core_certificate: '{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Signature":"RIjGyZoZtZwdk0g0LYUtsle7n+muQ/lEp8q37n1wH0rlQQYM6TPd5lCT3G67hJ9nrpTMv1b71z7vC5WDIJ0lBQ==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1301","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true}'
 - model: scionlab.as
   pk: 6
   fields:
+    created_date: 2019-04-30 03:30:56.342224
+    modified_date: 2019-04-30 03:30:56.646156
     isd: 4
     as_id: ffaa:0:1302
     as_id_int: 281105609528066
@@ -226,14 +258,16 @@
     core_online_pub_key: nICZKsg16RCuGg3yHp96fYWw0vWn06+UKO1hneOD/tQ=
     core_offline_priv_key: 8dNNxWhiz2IPKaTvID1JutRVDvEJe2okfePdmrcUrLI=
     core_offline_pub_key: 3XNhBvzgUgzNS/P7mrLDkNzwmgaXq8scEXp3LKIcCKg=
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"AbR9Zxv1z4sTGm9j67Hf9zoMQrtnkui9wCLjhHCjYXCCl/AEkbrt9GrSyu0SnOEZ2AMb9wdEYmQAvMkll6QHDQ==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1302","SubjectSignKey":"fdil/2jERpKZpEoT83hJXuxiZOxJjdO02wWENzjSIHI=","Subject":"19-ffaa:0:1302","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"Ap2Sfy9yDjhxsRkowGj0aXU5stqH7N/QXVhCAqHiMPyJfheNRF2dPY9hRPO7ToyKgqnCaEzhZJrbZOgFnHehBg==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1302","SubjectSignKey":"HCnbPxH+m9v+/N96SujsbEhJNQbh82z0lrBiN/G4ZoM=","Subject":"19-ffaa:0:1302","SubjectEncKey":"TRjl4lNgnltGlScdpbqkuC/323aKMtGJlOUVXSOjtXQ=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
-    core_certificate: '{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"AbR9Zxv1z4sTGm9j67Hf9zoMQrtnkui9wCLjhHCjYXCCl/AEkbrt9GrSyu0SnOEZ2AMb9wdEYmQAvMkll6QHDQ==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1302","SubjectSignKey":"fdil/2jERpKZpEoT83hJXuxiZOxJjdO02wWENzjSIHI=","Subject":"19-ffaa:0:1302","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"fdil/2jERpKZpEoT83hJXuxiZOxJjdO02wWENzjSIHI=","Signature":"8mTDLPuBKWdwnM2IyizAg5bk3YkijXtzNNbWxKR9m9Fdq8CxFmLpPkWbC1JI6jlmBeBNERzMuzPyCBOMPWQ2BA==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1302","IssuingTime":1556613056,"Subject":"19-ffaa:0:1302","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"HCnbPxH+m9v+/N96SujsbEhJNQbh82z0lrBiN/G4ZoM=","Signature":"gPkEFjSC3WJcfkpUznu2NXLNns+oHHJD7nM2GbNsCbnLEGmf42VL6IVwWrhFJrCmipcWM+AC7v+rOqLtyFtwBg==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1302","IssuingTime":1556613056,"Subject":"19-ffaa:0:1302","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"TRjl4lNgnltGlScdpbqkuC/323aKMtGJlOUVXSOjtXQ=","CanIssue":false}}'
+    core_certificate: '{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"fdil/2jERpKZpEoT83hJXuxiZOxJjdO02wWENzjSIHI=","Signature":"8mTDLPuBKWdwnM2IyizAg5bk3YkijXtzNNbWxKR9m9Fdq8CxFmLpPkWbC1JI6jlmBeBNERzMuzPyCBOMPWQ2BA==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1302","IssuingTime":1556613056,"Subject":"19-ffaa:0:1302","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true}'
 - model: scionlab.as
   pk: 7
   fields:
+    created_date: 2019-04-30 03:30:56.366580
+    modified_date: 2019-04-30 03:30:56.652058
     isd: 4
     as_id: ffaa:0:1303
     as_id_int: 281105609528067
@@ -252,13 +286,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"R1reldLIjw9179wdCqU3/fSy/Tpx/aEPX9mgFEOq8nx8k1js1QVjgj/edSYJHEhpBbuNoGq5rawhowjPBe5xBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Subject":"19-ffaa:0:1301","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"xlPAd+su5IEXnSsP788Wnfk3MqdRZSzW8IQZ/3zp8zdhvX12vXbyBey39fvR2j0QtgLG/VwKw8vtzqwm2cKbCg==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"kuGy2pnGpBhgBl0k8ZnSAL+2hX6Z+6ojoZpBOkmrL6M=","Subject":"19-ffaa:0:1303","SubjectEncKey":"dEhctPhIoiAw9sq8HlBYB/QTYUqhLfOTd1zSCS6r9gk=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Signature":"RIjGyZoZtZwdk0g0LYUtsle7n+muQ/lEp8q37n1wH0rlQQYM6TPd5lCT3G67hJ9nrpTMv1b71z7vC5WDIJ0lBQ==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1301","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"kuGy2pnGpBhgBl0k8ZnSAL+2hX6Z+6ojoZpBOkmrL6M=","Signature":"nW7lvYAJW8Ujq29fmNZG9dEtsSsSbAXeg5GptqNC1MCwWc5uTrj8t1pciPoUe/crhg/HWk75AOyqF9mc5gYUCw==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1303","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"dEhctPhIoiAw9sq8HlBYB/QTYUqhLfOTd1zSCS6r9gk=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 8
   fields:
+    created_date: 2019-04-30 03:30:56.394772
+    modified_date: 2019-04-30 03:30:56.656941
     isd: 4
     as_id: ffaa:0:1304
     as_id_int: 281105609528068
@@ -277,13 +313,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"R1reldLIjw9179wdCqU3/fSy/Tpx/aEPX9mgFEOq8nx8k1js1QVjgj/edSYJHEhpBbuNoGq5rawhowjPBe5xBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Subject":"19-ffaa:0:1301","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"an5HM2rQkrrsGG7a1nSXdeuqeQfEwll2mDgXadbOA3/RrvgK+mFwOxnVg+wc2RSVPD2cc/7wnHv/m1HByt9VCA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"WjB0G9tDTeNUFMzJ433DG+f4zkwhJVg4vWn/kbdC82I=","Subject":"19-ffaa:0:1304","SubjectEncKey":"ea5nrhhfQNWVYTixnV47/O22Rn2mt5lGj/HipYkLOBg=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Signature":"RIjGyZoZtZwdk0g0LYUtsle7n+muQ/lEp8q37n1wH0rlQQYM6TPd5lCT3G67hJ9nrpTMv1b71z7vC5WDIJ0lBQ==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1301","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"WjB0G9tDTeNUFMzJ433DG+f4zkwhJVg4vWn/kbdC82I=","Signature":"BtbCauGaWUfmiYFDpgxzjGuavg03uo1k1pXHQDpBv1i3SD9s+CUZ2ZaJRfJ4aLATT2OP6MXO1Cc2gJb7sCveBw==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1304","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"ea5nrhhfQNWVYTixnV47/O22Rn2mt5lGj/HipYkLOBg=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 9
   fields:
+    created_date: 2019-04-30 03:30:56.418181
+    modified_date: 2019-04-30 03:30:56.661916
     isd: 4
     as_id: ffaa:0:1305
     as_id_int: 281105609528069
@@ -302,13 +340,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"R1reldLIjw9179wdCqU3/fSy/Tpx/aEPX9mgFEOq8nx8k1js1QVjgj/edSYJHEhpBbuNoGq5rawhowjPBe5xBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Subject":"19-ffaa:0:1301","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"7UcOvtHqFc1VzQjWWQen9LE+WW9sHDX5PFJqsXH+zu+D8NqHkX6n9pHqyos5X8nah+aplheKi2LU0TIPnW4qCw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"19-ffaa:0:1301","SubjectSignKey":"JEWglQDIIdOucJ2CyYAjq70FFJgT23JUlWxvaZdxOo4=","Subject":"19-ffaa:0:1305","SubjectEncKey":"gU8VeV9uYcT1NjnH0slm0hAnpIC957p2Uw/REIC/oEg=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"gKqYNWP8j7ckeEBLNiWVt/C2KlbMjF09dJuG81xl3rg=","Signature":"RIjGyZoZtZwdk0g0LYUtsle7n+muQ/lEp8q37n1wH0rlQQYM6TPd5lCT3G67hJ9nrpTMv1b71z7vC5WDIJ0lBQ==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1301","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"JEWglQDIIdOucJ2CyYAjq70FFJgT23JUlWxvaZdxOo4=","Signature":"eOMDfRzicVtz9oOclICk1XSDwEZjuYYv8r/9AMhHEiBg/vF2+Fq/54U8ifxbrTx1cFfbkbBgrS/G93gy0CfFBA==","SignAlgorithm":"ed25519","Issuer":"19-ffaa:0:1301","IssuingTime":1556613056,"Subject":"19-ffaa:0:1305","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"gU8VeV9uYcT1NjnH0slm0hAnpIC957p2Uw/REIC/oEg=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 10
   fields:
+    created_date: 2019-04-30 03:30:56.442838
+    modified_date: 2019-04-30 03:30:56.669525
     isd: 5
     as_id: ffaa:0:1401
     as_id_int: 281105609528321
@@ -327,14 +367,16 @@
     core_online_pub_key: c+LO/s2rpe6CR2J9f23PFNiD+EYkkZBQKKzVXOc4wOw=
     core_offline_priv_key: D3FMJL5+DeOfNwZaeGTj/gLYhvoRr90Ur/O97KtlAVw=
     core_offline_pub_key: q6NQNph3vnkNxb8s99KFktHrkR7H7954gXMI3hq7AKM=
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"c7+pMQ34NC9Crzvsuzm50vqUIYaM5JbHrkzbR8uF74hNV+/4Zv4Nw4MKeyFmFpKTQV2sX8oYCL/y+8ibIvoJCw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Subject":"20-ffaa:0:1401","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"w2efNsIa1CmiHGaSwGV6ngIjJNJaSt8DVqf1OkMxwqvkLIMQ0gHAqQqx+gAOB1NB6Z4TKKEJnKwuEIII9kqzDQ==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"VznkquG5zL0uhCbdgCgdsN3vWdADY1qBrazlQJ4leU4=","Subject":"20-ffaa:0:1401","SubjectEncKey":"os+0iwyO2/7seOR9DDe2fTycOUDChgDOtdDN4OZP/z4=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
-    core_certificate: '{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"c7+pMQ34NC9Crzvsuzm50vqUIYaM5JbHrkzbR8uF74hNV+/4Zv4Nw4MKeyFmFpKTQV2sX8oYCL/y+8ibIvoJCw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Subject":"20-ffaa:0:1401","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Signature":"q2fvcpn7LSdm5Yme8KdKJMpvQXjvXaJ04Y7vjZIEO80LgOmcvjmOozGRLW88/txn4coFUuNb2Q0mC/ZJ30m0Dw==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1401","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"VznkquG5zL0uhCbdgCgdsN3vWdADY1qBrazlQJ4leU4=","Signature":"aMRvxicu2lp3Nn1r4g+eTVKm+uRSOVqGd/htkw0zINBpXBYY+r5sYV1QIEhsZWbjvZlcjKT7QznpI6zpbGFNAg==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1401","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"os+0iwyO2/7seOR9DDe2fTycOUDChgDOtdDN4OZP/z4=","CanIssue":false}}'
+    core_certificate: '{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Signature":"q2fvcpn7LSdm5Yme8KdKJMpvQXjvXaJ04Y7vjZIEO80LgOmcvjmOozGRLW88/txn4coFUuNb2Q0mC/ZJ30m0Dw==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1401","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true}'
 - model: scionlab.as
   pk: 11
   fields:
+    created_date: 2019-04-30 03:30:56.468329
+    modified_date: 2019-04-30 03:30:56.673608
     isd: 5
     as_id: ffaa:0:1402
     as_id_int: 281105609528322
@@ -353,14 +395,16 @@
     core_online_pub_key: hsZ992fgw6tmMkGqqtifBVG5wuQFMPb9D4WAdMNB2Nk=
     core_offline_priv_key: MNYzQKy6vE1PhNxiQXtY37Y9C07vjRICdX65cAzqz2k=
     core_offline_pub_key: pCZqF/PCLq82i6IHwKqlT2mukBle/MXd17+PTwqZgP8=
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"jJeCknr737t0moe06tQ1TusDUJ26bZX6phCWB024XVc/7tIPWxGWBAly+t33Ekbam6QRlK+iYlHDDu1oPvW2Dw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1402","SubjectSignKey":"VlDgPI7tolHQb49P6N8OB31+Q1s4C2Y0WAVFk1WbyQg=","Subject":"20-ffaa:0:1402","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"OOP2TXiW6GLWBYGkBow5Yd5yC31LwZokwivODvVw6n3tKDna6pe7Or47ePfmVGg+IQZLZcwd6NZohvgTBWg5Cg==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1402","SubjectSignKey":"X8tDJqxMk6qzh1wwAD8RTjMmZ7Ji2/jI++ILQ3UQDI0=","Subject":"20-ffaa:0:1402","SubjectEncKey":"fz1oV0jHmlpRrUGsMcBooofk5229B6lWfdMvZV1iNDI=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
-    core_certificate: '{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"jJeCknr737t0moe06tQ1TusDUJ26bZX6phCWB024XVc/7tIPWxGWBAly+t33Ekbam6QRlK+iYlHDDu1oPvW2Dw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1402","SubjectSignKey":"VlDgPI7tolHQb49P6N8OB31+Q1s4C2Y0WAVFk1WbyQg=","Subject":"20-ffaa:0:1402","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"VlDgPI7tolHQb49P6N8OB31+Q1s4C2Y0WAVFk1WbyQg=","Signature":"6XL/SCvm8xN6hlrfvl66NdlrekHtg7rPjdRxGQlpcX6lA/PV2rTH92eZRW8fc7n/ZyLUwyGYGyp8UELksQqYCA==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1402","IssuingTime":1556613056,"Subject":"20-ffaa:0:1402","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"X8tDJqxMk6qzh1wwAD8RTjMmZ7Ji2/jI++ILQ3UQDI0=","Signature":"O0durrGs7MZCAr5giciWx5FpXBRlN0qYlJG2mbsvK1b1v6E6XdpPpFd1AiwSQkF2wxioLJgZk1acyS7weWLTDg==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1402","IssuingTime":1556613056,"Subject":"20-ffaa:0:1402","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"fz1oV0jHmlpRrUGsMcBooofk5229B6lWfdMvZV1iNDI=","CanIssue":false}}'
+    core_certificate: '{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"VlDgPI7tolHQb49P6N8OB31+Q1s4C2Y0WAVFk1WbyQg=","Signature":"6XL/SCvm8xN6hlrfvl66NdlrekHtg7rPjdRxGQlpcX6lA/PV2rTH92eZRW8fc7n/ZyLUwyGYGyp8UELksQqYCA==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1402","IssuingTime":1556613056,"Subject":"20-ffaa:0:1402","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true}'
 - model: scionlab.as
   pk: 12
   fields:
+    created_date: 2019-04-30 03:30:56.494203
+    modified_date: 2019-04-30 03:30:56.681035
     isd: 5
     as_id: ffaa:0:1403
     as_id_int: 281105609528323
@@ -379,13 +423,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"c7+pMQ34NC9Crzvsuzm50vqUIYaM5JbHrkzbR8uF74hNV+/4Zv4Nw4MKeyFmFpKTQV2sX8oYCL/y+8ibIvoJCw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Subject":"20-ffaa:0:1401","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"asn5HcCYt4f+uD72TQELddqVn2UVFGWn92bOY9xXskff+uFIxrcjgguRsramIcSr0zJRKQxo1xUXSghPglvSCw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"V0dR4JdPM20rE37pwW8P3EisLyiSKJbthTlEfy3ewec=","Subject":"20-ffaa:0:1403","SubjectEncKey":"E6yYLHdVEkympCXrgsl9FI6GGczdk7mDjQwGvxFa/Xo=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Signature":"q2fvcpn7LSdm5Yme8KdKJMpvQXjvXaJ04Y7vjZIEO80LgOmcvjmOozGRLW88/txn4coFUuNb2Q0mC/ZJ30m0Dw==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1401","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"V0dR4JdPM20rE37pwW8P3EisLyiSKJbthTlEfy3ewec=","Signature":"W2nCuAsE6QOMTkFiJHjoxEXayUnmN/Z9jwYDUucejlwTp3hh3E3pO0QyM4NrOeWPsewaX+VrOF+yPSfguHjSDw==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1403","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"E6yYLHdVEkympCXrgsl9FI6GGczdk7mDjQwGvxFa/Xo=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 13
   fields:
+    created_date: 2019-04-30 03:30:56.519714
+    modified_date: 2019-04-30 03:30:56.686349
     isd: 5
     as_id: ffaa:0:1404
     as_id_int: 281105609528324
@@ -404,13 +450,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"c7+pMQ34NC9Crzvsuzm50vqUIYaM5JbHrkzbR8uF74hNV+/4Zv4Nw4MKeyFmFpKTQV2sX8oYCL/y+8ibIvoJCw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Subject":"20-ffaa:0:1401","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"iQrIckYi64ggT0lbSdmyqlKMRHOi1hYmzbx5HjZg3qpu4aEEXupA2YwfOuPYIMb77CFVxrcm5VvNUPslLBgOBw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"nudp4iNlbGD5wT8hHjdvX2l3DQIct/Km+OIj1D5/j3k=","Subject":"20-ffaa:0:1404","SubjectEncKey":"I5PS1nggaYwo5bUuKHf5dJaVj+QHJ/1o6NvFlzktb1s=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Signature":"q2fvcpn7LSdm5Yme8KdKJMpvQXjvXaJ04Y7vjZIEO80LgOmcvjmOozGRLW88/txn4coFUuNb2Q0mC/ZJ30m0Dw==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1401","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"nudp4iNlbGD5wT8hHjdvX2l3DQIct/Km+OIj1D5/j3k=","Signature":"AmuYZEifpILZ8Wm57YZSdseGZpUYdlxihSqSxo1sMdvJk7pre9Iw2rmCdgHryIq3alPLtizPE/QVXMb/P+6ICA==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1404","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"I5PS1nggaYwo5bUuKHf5dJaVj+QHJ/1o6NvFlzktb1s=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 14
   fields:
+    created_date: 2019-04-30 03:30:56.550047
+    modified_date: 2019-04-30 03:30:56.690940
     isd: 5
     as_id: ffaa:0:1405
     as_id_int: 281105609528325
@@ -429,13 +477,15 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"c7+pMQ34NC9Crzvsuzm50vqUIYaM5JbHrkzbR8uF74hNV+/4Zv4Nw4MKeyFmFpKTQV2sX8oYCL/y+8ibIvoJCw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Subject":"20-ffaa:0:1401","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"ztmYcH+htcNLzt5HjLsbsIUwjgEz7kJuOMpV9weObE0BTni21r0iWXEGaOMHmrbzL7HQb7y9eoi0S9ATsZIQDg==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"rsS15MofKPVhZHpBXTkcS+2dgSBUx4zjkIWHccrlgfQ=","Subject":"20-ffaa:0:1405","SubjectEncKey":"ffSHmjAXpgFYfPJRIm6WFWgB6Ty5TD+/ADoZ18V+fng=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Signature":"q2fvcpn7LSdm5Yme8KdKJMpvQXjvXaJ04Y7vjZIEO80LgOmcvjmOozGRLW88/txn4coFUuNb2Q0mC/ZJ30m0Dw==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1401","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"rsS15MofKPVhZHpBXTkcS+2dgSBUx4zjkIWHccrlgfQ=","Signature":"Z/UGu7YuUFoG44kKntEl1lzMSQGfUOUz9lqCa5egrjyYKoBCMZIlnFPeyxIBi5EnJroiIN7m7S4Xn6IxYIIxBg==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1405","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"ffSHmjAXpgFYfPJRIm6WFWgB6Ty5TD+/ADoZ18V+fng=","CanIssue":false}}'
     core_certificate: null
 - model: scionlab.as
   pk: 15
   fields:
+    created_date: 2019-04-30 03:30:56.579529
+    modified_date: 2019-04-30 03:30:56.695665
     isd: 5
     as_id: ffaa:0:1406
     as_id_int: 281105609528326
@@ -454,30 +504,10 @@
     core_online_pub_key: null
     core_offline_priv_key: null
     core_offline_pub_key: null
-    certificate_chain: '{"1":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":true,"Signature":"c7+pMQ34NC9Crzvsuzm50vqUIYaM5JbHrkzbR8uF74hNV+/4Zv4Nw4MKeyFmFpKTQV2sX8oYCL/y+8ibIvoJCw==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Subject":"20-ffaa:0:1401","SubjectEncKey":"","IssuingTime":1555073589,"Comment":"Core
-      AS Certificate","ExpirationTime":1586609589},"0":{"EncAlgorithm":"curve25519xsalsa20poly1305","Version":1,"CanIssue":false,"Signature":"LlvGgiHGwtcHWYKLKoZsrlZJHDcP45MvzTN/381WlXRlkj8IIDqWYTmnfn8sVo9YNkICx9yHzPj+kUpQ2OvaBA==","SignAlgorithm":"ed25519","TRCVersion":1,"Issuer":"20-ffaa:0:1401","SubjectSignKey":"K1RZMfYF+3Pow5fV0mzjhY2zS4VEGItehMX9X03xHS4=","Subject":"20-ffaa:0:1406","SubjectEncKey":"pVxzouUaRKCkw9K0h/TU2Z62ka0wKQ8udwyMIxVafVU=","IssuingTime":1555073589,"Comment":"AS
-      Certificate","ExpirationTime":1586609588}}'
+    certificate_chain: '{"1":{"ExpirationTime":1588149055,"TRCVersion":1,"Version":1,"SubjectSignKey":"8z/VkF5V+6Rakm73N1UTLk9ZC5/tX0zTA4plq4m3u7U=","Signature":"q2fvcpn7LSdm5Yme8KdKJMpvQXjvXaJ04Y7vjZIEO80LgOmcvjmOozGRLW88/txn4coFUuNb2Q0mC/ZJ30m0Dw==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1401","Comment":"Core
+      AS Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"","CanIssue":true},"0":{"ExpirationTime":1588149054,"TRCVersion":1,"Version":1,"SubjectSignKey":"K1RZMfYF+3Pow5fV0mzjhY2zS4VEGItehMX9X03xHS4=","Signature":"Z9/V0PDo+hKutubOskkkmXz865MliyGgYwIxPqVwADDkdF9Wfp5lR9KwTq02BMEpyWf5IQ+YD2HTn0QcW6FDCA==","SignAlgorithm":"ed25519","Issuer":"20-ffaa:0:1401","IssuingTime":1556613056,"Subject":"20-ffaa:0:1406","Comment":"AS
+      Certificate","EncAlgorithm":"curve25519xsalsa20poly1305","SubjectEncKey":"pVxzouUaRKCkw9K0h/TU2Z62ka0wKQ8udwyMIxVafVU=","CanIssue":false}}'
     core_certificate: null
-- model: scionlab.attachmentpoint
-  pk: 1
-  fields:
-    AS: 4
-    vpn: null
-- model: scionlab.attachmentpoint
-  pk: 2
-  fields:
-    AS: 7
-    vpn: null
-- model: scionlab.attachmentpoint
-  pk: 3
-  fields:
-    AS: 13
-    vpn: null
-- model: scionlab.attachmentpoint
-  pk: 4
-  fields:
-    AS: 14
-    vpn: null
 - model: scionlab.host
   pk: 1
   fields:
@@ -1093,3 +1123,23 @@
     host: 15
     port: 2181
     type: ZK
+- model: scionlab.attachmentpoint
+  pk: 1
+  fields:
+    AS: 4
+    vpn: null
+- model: scionlab.attachmentpoint
+  pk: 2
+  fields:
+    AS: 7
+    vpn: null
+- model: scionlab.attachmentpoint
+  pk: 3
+  fields:
+    AS: 13
+    vpn: null
+- model: scionlab.attachmentpoint
+  pk: 4
+  fields:
+    AS: 14
+    vpn: null

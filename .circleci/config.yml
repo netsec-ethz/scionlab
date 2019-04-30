@@ -119,14 +119,14 @@ jobs:
 
       # Start integration tests
       - run:
-          name: Start containers and verify they are working
+          name: Start containers
           command: |
             set -x
-            # docker-compose will start 5 containers, the one with the coordinator will be named `coord`
+            # docker-compose will have started 5 containers, the one with the coordinator will be named `coord`
             # Then we have one core AS container coreAS1301, two infra ASes infraAS1303 and infraAS1305 and
             # a zookeeper instance they share.
 
-            # We start another container with curl in the same network as `coord` to check `coord` is ready. 
+            # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
             docker run --net repo_as_net --name curl_test\
               --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/user/login/; do echo 'Coord unreachable, retrying...'; sleep 5; done"
@@ -145,11 +145,15 @@ jobs:
             done
             sudo -E docker-compose -f ./docker-compose.yml up --no-recreate -d zookeeper coreAS1301 infraAS1303 infraAS1305
 
-            sleep 40 # wait for the SCION services to start
+      - run:
+          name: Check SCION connections
+          command: |
+            set -x
+            # Wait for the SCION services to start
             docker exec coreAS1301 /bin/bash -c 'cd ${SC}; until [ `./supervisor/supervisor.sh status | grep RUNNING | wc -l` -ge 6 ]; do sleep 1; done;'
-            sleep 30 # wait for paths to register
+            # Wait for beaconing to start
+            docker exec infraAS1305 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 1; done; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
             docker exec coreAS1301 /bin/bash -c "${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
-            docker exec infraAS1305 /bin/bash -c "grep -m 5 'Successfully verified PCB' -r ${SC}/logs/; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
             docker exec infraAS1303 /bin/bash -c "grep -m 5 'Successfully verified PCB' -r ${SC}/logs/; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
 
       - run:
@@ -180,7 +184,6 @@ jobs:
                 docker exec infraAS1305 /bin/bash -c "/tmp/reloadASConfig.sh"
 
                 # Check that TRCs were updated
-                sleep 15
                 docker exec coreAS1301 /bin/bash -c "cat ${SC}/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc;" >> "./TRC_V${TRC_version}.json"
                 docker exec infraAS1303 /bin/bash -c "cat ${SC}/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc;"
                 docker exec infraAS1305 /bin/bash -c "cat ${SC}/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc;"
@@ -192,10 +195,10 @@ jobs:
                 docker exec infraAS1303 /bin/bash -c "grep -m 5 'Successfully verified PCB' -r ${SC}/logs/; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
             done
 
-            core_count2=$(jq '.CoreASes | length' ./TRC_V2.json)
-            echo "Expected 3 core ASes in TRC V2, got ${core_count2}"
-            core_count5=$(jq '.CoreASes | length' ./TRC_V5.json)
-            echo "Expected 6 core ASes in TRC V5, got ${core_count5}"
+            core_countV2=$(jq '.CoreASes | length' ./TRC_V2.json)
+            echo "Expected 3 core ASes in TRC V2, got ${core_countV2}"
+            core_countV5=$(jq '.CoreASes | length' ./TRC_V5.json)
+            echo "Expected 6 core ASes in TRC V5, got ${core_countV5}"
 
             # We capture the exit codes from the infraAS containers
             #E1303=$(docker wait infraAS1303)
@@ -206,7 +209,7 @@ jobs:
             #docker logs infraAS1305
 
       - run:
-          name: Start VPN containers and verify the connection over VPN works 
+          name: Start VPN containers and verify the connection over VPN works
           command: |
             set -x
             # Skip if not running on a local branch, since CircleCI does not support docker privileged
@@ -241,11 +244,12 @@ jobs:
                 docker cp /tmp/scion/${src_dir} userAS1:${SC}
             done
             # Wait for client to be setup
-            sleep 180
-            echo "Starting VPN client SCMPs"
-            docker exec userAS1 /bin/bash -c "./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]"
+            docker run --net repo_as_net --name curl_test\
+              --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "until ping -w 1 -c 1 10.0.8.1; do echo 'AP not pingable, retrying...'; sleep 5; done"
+            echo "Waiting for beaconing before starting VPN client SCMPs"
+            docker exec userAS1 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 1; done; ./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
             docker stop userAS1; docker rm userAS1;
-            
+
       - run:
           name: Wind down the containers
           command: |
@@ -257,4 +261,4 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
-      
+

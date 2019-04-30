@@ -3,15 +3,15 @@ import shutil
 
 coord_ip = "172.31.0.10"
 client = requests.session()
-client.get("http://"+coord_ip+":8000/user/login/")
+client.get("http://"+coord_ip+":8000/login/")
 csrftoken = client.cookies['csrftoken']
 
 # Fixture test user
 login_data = dict(username="scion@scionlab.org", password="scion", csrfmiddlewaretoken=csrftoken)
 
-r = client.post("http://"+coord_ip+":8000/user/login/",
+r = client.post("http://"+coord_ip+":8000/login/",
                 data=login_data,
-                headers=dict(Referer="http://"+coord_ip+":8000/user/login/"))
+                headers=dict(Referer="http://"+coord_ip+":8000/login/"))
 
 r = client.get("http://"+coord_ip+":8000/user/as/add")
 csrftoken = client.cookies['csrftoken']
