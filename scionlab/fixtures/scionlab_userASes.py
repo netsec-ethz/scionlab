@@ -14,6 +14,7 @@
 
 import os
 import csv
+from collections import namedtuple
 
 from django.conf import settings
 from scionlab.models.user_as import UserAS, AttachmentPoint
@@ -26,73 +27,60 @@ APs_ROWIDs = [1, 2, 3, 4]
 DEFAULT_AP = AttachmentPoint.objects.get(AS__as_id='ffaa:0:1107')
 
 
+Conn = namedtuple('Conn', (
+                'join_as',
+                'respond_ap',
+                'join_ip',
+                'respond_ip',
+                'respond_br_id',
+                'is_vpn'))
+
+
+def conn_from_row(row):
+    assert(row[9] == '1' or row[9] == '0')
+    return Conn(int(row[1]),
+                int(row[2]),
+                row[3],
+                row[4],
+                int(row[6]),
+                row[8] == '1')
+
+
+UAS = namedtuple('UAS', (
+                'connection',
+                'row_id',
+                'email',
+                'public_ip',
+                'public_port',
+                'isd',
+                'as_id',
+                'label',
+                'active',
+                'type'))
+
+
+def uas_from_row(row):
+    if row[9] == '0':
+        return None
+    as_id = int(row[5])
+    # TODO: do we migrate the old IDs here?
+    assert((as_id > 0xffaa00010000 and as_id < 0xffaa00020000) or
+           (as_id > 1000 and as_id < 9000))
+    as_id = 'ffaa:1:%x' % (as_id - 1000 if as_id < 9000 else (as_id - 0xffaa00010000))
+    assert(row[9] == '1' or row[9] == '2')
+    return UAS(connection=None,
+               row_id=int(row[0]),
+               email=row[1],
+               public_ip=row[2],
+               public_port=int(row[3]),
+               isd=int(row[4]),
+               as_id=as_id,
+               label=row[7],
+               active=row[8] == '1',
+               type=UserAS.VM if row[9] == '1' else UserAS.DEDICATED)
+
+
 class CSV_Loader:
-    class Conn:
-        def __init__(self,
-                     join_as,
-                     respond_ap,
-                     join_ip,
-                     respond_ip,
-                     respond_br_id,
-                     is_vpn):
-            self.join_as = int(join_as)
-            self.respond_ap = int(respond_ap)
-            self.join_ip = join_ip
-            self.respond_ip = respond_ip
-            self.respond_interface_id = int(respond_br_id)
-            self.is_vpn = True if is_vpn == '1' else False
-
-        @classmethod
-        def from_row(cls, row):
-            # join status is 1 or 0
-            assert(row[9] == '1' or row[9] == '0')
-            return cls(row[1],
-                       row[2],
-                       row[3],
-                       row[4],
-                       row[6],
-                       row[8])
-
-    class UAS:
-        def __init__(self,
-                     row_id,
-                     email,
-                     public_ip,
-                     public_port,
-                     isd,
-                     as_id,
-                     label,
-                     status,
-                     type):
-            self.row_id = int(row_id)
-            self.email = email
-            self.public_ip = public_ip
-            self.public_port = int(public_port)
-            as_id = int(as_id)
-            # TODO: we don't want to migrate old IDs, fix them in the old DB Remove this from here and do not forget
-            assert((as_id > 0xffaa00010000 and as_id < 0xffaa00020000) or
-                   (as_id > 1000 and as_id < 9000))
-            self.as_id = 'ffaa:1:%x' % (as_id - 1000 if as_id < 9000 else (as_id - 0xffaa00010000))
-            self.label = label
-            self.active = True if status == '1' else False
-            if type != '1' and type != '2':
-                raise ValueError('Wrong type')
-            self.type = UserAS.VM if type == '1' else UserAS.DEDICATED
-            # last indicate this UAS is not yet linked with a connection
-            self.connection = None
-
-        @classmethod
-        def from_row(cls, row):
-            return cls(row_id=row[0],
-                       email=row[1],
-                       public_ip=row[2],
-                       public_port=row[3],
-                       isd=row[4],
-                       as_id=row[5],
-                       label=row[7],
-                       status=row[8],
-                       type=row[9]) if row[9] != '0' else None
-
     def __init__(self, base_path):
         self.base_path = base_path
         self.conn_rows = []
@@ -108,7 +96,7 @@ class CSV_Loader:
         with open(path) as f:
             r = csv.reader(f)
             next(iter(r))
-            self.conn_rows = [self.Conn.from_row(c) for c in r]
+            self.conn_rows = [conn_from_row(c) for c in r]
 
     def _load_user_ases(self):
         """ Loads the scion_lab_as table from a CSV file """
@@ -116,17 +104,15 @@ class CSV_Loader:
         with open(path) as f:
             r = csv.reader(f)
             next(iter(r))
-            self.ases_rows = list(filter(None, [self.UAS.from_row(a) for a in r]))
+            self.ases_rows = {a.row_id: a for a in filter(None, [uas_from_row(a) for a in r])}
 
     def _match(self):
-        m = {a.row_id: a for a in self.ases_rows}
         for c in self.conn_rows:
-            uas = m[c.join_as]
-            assert(uas.connection is None)
-            uas.connection = c
+            assert(self.ases_rows[c.join_as].connection is None)
+            self.ases_rows[c.join_as] = self.ases_rows[c.join_as]._replace(connection=c)
 
     def user_ases(self):
-        return self.ases_rows
+        return self.ases_rows.values()
 
 
 def load_user_ASes():
@@ -142,7 +128,8 @@ def load_user_ASes():
     }
     # create user ASes:
     i = 0
-    for uas in loader.user_ases():
+    uases = loader.user_ases()
+    for uas in uases:
         i += 1
         user = User.objects.get(email=uas.email)
         if uas.connection is None:
