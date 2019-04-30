@@ -83,8 +83,9 @@ def load_users(usertable):
 
             # from user.account:
             organisation = next(fields)
-
-            if password_invalid or not is_verified or is_admin:  # not importing these...
+            # not importing these:
+            if password_invalid or not is_verified or (is_admin and email == 'admin@scionlab.org'):
+                print('Warning: not importing user %s' % email)
                 continue
 
             encoded = reencode_password(salt, hash)

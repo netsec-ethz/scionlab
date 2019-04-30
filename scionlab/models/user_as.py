@@ -46,7 +46,8 @@ class UserASManager(models.Manager):
                use_vpn=False,
                public_ip=None,
                bind_ip=None,
-               bind_port=None):
+               bind_port=None,
+               vpn_client_ip=None):
         """
         Create a UserAS attached to the given attachment point.
 
@@ -87,11 +88,10 @@ class UserASManager(models.Manager):
         )
 
         host = user_as.hosts.get()
-
         if use_vpn:
             vpn_client = attachment_point.vpn.create_client(host=host,
-                                                            active=True)
-
+                                                            active=True,
+                                                            client_ip=vpn_client_ip)
             interface_client = Interface.objects.create(
                 border_router=BorderRouter.objects.first_or_create(host),
                 public_ip=vpn_client.ip,
