@@ -1,0 +1,7 @@
+localhost:80 {
+    root /var/www/scionlab
+    proxy / django:8000 {
+        except /static
+    }
+    log stdout
+}

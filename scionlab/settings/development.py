@@ -55,6 +55,7 @@ RECAPTCHA_PRIVATE_KEY = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
+# ##### VPN CONFIG OVERRIDES ##############################
 VPN_CA_KEY_PASSWORD = 'sci0nl4b'
 VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'dev_root_ca_key.pem')
 VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'dev_root_ca_cert.pem')
