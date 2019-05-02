@@ -163,7 +163,7 @@ class UserAS(AS):
     # if she switches to VPN and back.
     public_ip = models.GenericIPAddressField(null=True, blank=True)
     bind_ip = models.GenericIPAddressField(null=True, blank=True)
-    bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
+    bind_port = models.PositiveIntegerField(null=True, blank=True)
 
     installation_type = models.CharField(
         choices=INSTALLATION_TYPES,

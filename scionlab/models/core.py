@@ -718,13 +718,13 @@ class Interface(models.Model):
         help_text="""Public IP for this interface. If this is not null, overrides the Host's default
             public IP."""
     )
-    public_port = models.PositiveSmallIntegerField()
+    public_port = models.PositiveIntegerField()
     bind_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
         help_text="""Bind IP for this interface (optional). If `public_ip` (!) is not null, this
             overrides the Host's default bind IP.""")
-    bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
+    bind_port = models.PositiveIntegerField(null=True, blank=True)
 
     objects = InterfaceManager()
 
@@ -1106,8 +1106,8 @@ class BorderRouter(models.Model):
         related_name='border_routers',
         on_delete=models.CASCADE
     )
-    internal_port = models.PositiveSmallIntegerField(blank=True)
-    control_port = models.PositiveSmallIntegerField(blank=True)
+    internal_port = models.PositiveIntegerField(blank=True)
+    control_port = models.PositiveIntegerField(blank=True)
 
     objects = BorderRouterManager()
 
@@ -1211,7 +1211,7 @@ class Service(models.Model):
         related_name='services',
         on_delete=models.CASCADE
     )
-    port = models.PositiveSmallIntegerField(blank=True)
+    port = models.PositiveIntegerField(blank=True)
     type = models.CharField(
         choices=SERVICE_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT

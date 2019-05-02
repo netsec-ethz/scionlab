@@ -45,7 +45,7 @@ class VPN(models.Model):
         related_name='vpn_servers',
         on_delete=models.CASCADE
     )
-    server_port = models.PositiveSmallIntegerField()
+    server_port = models.PositiveIntegerField()
     subnet = models.CharField(max_length=15)
     server_vpn_ip = models.GenericIPAddressField()
     private_key = models.TextField(null=True, blank=True)
