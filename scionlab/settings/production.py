@@ -12,18 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from .common import *
+import huey
 
 ALLOWED_HOSTS = [
-    # TODO
+    '*'
 ]
 
-DATABASES = {
-    # TODO
+DEBUG=True
 
-    # Imporant:
-    # ATOMIC_REQUESTS: True
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': 'db',
+        'PORT': '5432',
+        'ATOMIC_REQUESTS': True,
+    },
 }
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# ##### HUEY TASK QUEUE CONFIGURATION #####################
+HUEY = huey.SqliteHuey('scionlab-huey',
+                       filename=os.path.join(BASE_DIR, 'run', 'dev-huey.sqlite3'))
+
 # ##### MAILER CONFIGURATION ##############################
+DEFAULT_FROM_EMAIL = 'no-reply@scionlab.org'
+SERVER_EMAIL = 'django@scionlab.org'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp0.ethz.ch'
+
+# ##### TEST INSTANCE INDICATOR ##############################
+DEVELOPMENT_MODE = 'testing'
+
+# TODO: django-recaptcha2 test keys
+RECAPTCHA_PUBLIC_KEY = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+RECAPTCHA_PRIVATE_KEY = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
