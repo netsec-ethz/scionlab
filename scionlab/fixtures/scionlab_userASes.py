@@ -37,7 +37,8 @@ Conn = namedtuple('Conn', (
 
 
 def conn_from_row(row):
-    # join status is 1 or 0:
+    # join status has to be active or inactive (1 or 0). If it is something else, the
+    # corresponding AP has to resolve this. Wait 10 minutes and export to CSV again
     assert(row[9] == '1' or row[9] == '0')
     return Conn(join_as=int(row[1]),
                 respond_ap=int(row[2]),
