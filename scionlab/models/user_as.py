@@ -60,6 +60,8 @@ class UserASManager(models.Manager):
                               Must be specified if use_vpn is not enabled.
         :param str bind_ip: the bind IP for the connection to the AP (for NAT)
         :param str bind_port: the bind port for the connection to the AP (for NAT port remapping)
+        :param str vpn_client_ip: the specific IP address to assign to the VPN client (if vpn).
+                                  A free one if not specified, and ignored if use_vpn == False.
         :returns: UserAS
         """
         owner.check_as_quota()

@@ -22,7 +22,7 @@ from scionlab.models.user import User
 from scionlab.util import as_ids
 
 
-# we have 4 APs. These are their PKs in the CVS:
+# we have 4 APs. These are their PKs in the CSV:
 APs_ROWIDs = [1, 2, 3, 4]
 DEFAULT_AP = AttachmentPoint.objects.get(AS__as_id='ffaa:0:1107')
 
@@ -37,13 +37,14 @@ Conn = namedtuple('Conn', (
 
 
 def conn_from_row(row):
+    # join status is 1 or 0:
     assert(row[9] == '1' or row[9] == '0')
-    return Conn(int(row[1]),
-                int(row[2]),
-                row[3],
-                row[4],
-                int(row[6]),
-                row[8] == '1')
+    return Conn(join_as=int(row[1]),
+                respond_ap=int(row[2]),
+                join_ip=row[3],
+                respond_ip=row[4],
+                respond_br_id=int(row[6]),
+                is_vpn=row[8] == '1')
 
 
 UAS = namedtuple('UAS', (
@@ -61,12 +62,19 @@ UAS = namedtuple('UAS', (
 
 def uas_from_row(row):
     if row[9] == '0':
+        # ignore infrastructure ASes
         return None
     as_id = int(row[5])
-    # TODO: do we migrate the old IDs here?
     assert((as_id > 0xffaa00010000 and as_id < 0xffaa00020000) or
            (as_id > 1000 and as_id < 9000))
-    as_id = 'ffaa:1:%x' % (as_id - 1000 if as_id < 9000 else (as_id - 0xffaa00010000))
+    if as_id < 9000:
+        old_id = True
+        as_id -= 1000
+    else:
+        old_id = False
+        as_id -= 0xffaa00010000
+    as_id = 'ffaa:1:%x' % as_id
+    # only possible AS types left are VM or DEDICATED:
     assert(row[9] == '1' or row[9] == '2')
     return UAS(connection=None,
                row_id=int(row[0]),
@@ -76,7 +84,7 @@ def uas_from_row(row):
                isd=int(row[4]),
                as_id=as_id,
                label=row[7],
-               active=row[8] == '1',
+               active=not old_id and row[8] == '1',
                type=UserAS.VM if row[9] == '1' else UserAS.DEDICATED)
 
 
@@ -132,6 +140,7 @@ def load_user_ASes():
     for uas in uases:
         i += 1
         user = User.objects.get(email=uas.email)
+        active = uas.active
         if uas.connection is None:
             active = False
             ap = DEFAULT_AP
@@ -139,7 +148,6 @@ def load_user_ASes():
             public_ip = '127.0.0.1'  # should be invalid when this gets activated
             public_port = 0
         else:
-            active = True
             ap = APs[uas.connection.respond_ap]
             is_vpn = uas.connection.is_vpn
             public_ip = uas.public_ip
