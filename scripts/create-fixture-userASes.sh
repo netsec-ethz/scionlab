@@ -28,7 +28,7 @@ mv run/dev.sqlite3 $tempdir || true
 
 # init new db
 python manage.py makemigrations scionlab
-python manage.py migrate -v 1
+python manage.py migrate
 
 # import user accounts:
 python ./scripts/import-scion-coord-users.py users.csv
