@@ -399,11 +399,28 @@ class ASCreationForm(_CreateUpdateModelForm):
 
 @admin.register(AS)
 class ASAdmin(admin.ModelAdmin):
+    class InfrastructureASFilter(admin.SimpleListFilter):
+        title = "Infrastructure AS"
+        parameter_name = 'infrastructure_as'
+
+        def lookups(self, request, model_admin):
+            return (
+                (True, 'Infrastructure'),
+                (False, 'User AS'),
+            )
+
+        def queryset(self, request, queryset):
+            if self.value() == 'True':
+                queryset = queryset.filter(owner=None)
+            elif self.value() == 'False':
+                queryset = queryset.exclude(owner=None)
+            return queryset
+
     inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
     actions = ['update_keys', 'update_core_keys', 'trigger_config_deployment']
     list_display = ('isd', 'as_id', 'label', 'is_core', 'is_ap', 'is_userAS')
     list_display_links = ('as_id', 'label')
-    list_filter = ('isd', 'is_core')
+    list_filter = ('isd', 'is_core', InfrastructureASFilter)
     ordering = ('isd', 'as_id')
 
     def get_fieldsets(self, request, obj=None):
