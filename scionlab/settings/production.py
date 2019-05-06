@@ -37,8 +37,7 @@ DATABASES = {
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # ##### HUEY TASK QUEUE CONFIGURATION #####################
-HUEY = huey.SqliteHuey('scionlab-huey',
-                       filename=os.path.join(BASE_DIR, 'run', 'dev-huey.sqlite3'))
+HUEY = huey.RedisHuey('scionlab-huey', host='redis')
 
 # ##### MAILER CONFIGURATION ##############################
 DEFAULT_FROM_EMAIL = 'no-reply@scionlab.org'
