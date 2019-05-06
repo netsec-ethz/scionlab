@@ -28,11 +28,14 @@ def _getenv(key):
     return v
 
 
-ALLOWED_HOSTS = [
-    'django',
-]
+# ##### PROXY CONFIGURATION #####################
+ALLOWED_HOSTS = ['django']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
 
+# ##### DB CONFIGURATION #####################
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -44,6 +47,7 @@ DATABASES = {
         'ATOMIC_REQUESTS': True,
     },
 }
+
 
 # ##### HUEY TASK QUEUE CONFIGURATION #####################
 HUEY = huey.RedisHuey('scionlab-huey', host='redis')
