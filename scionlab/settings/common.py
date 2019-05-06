@@ -58,7 +58,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'scionlab.context_processors.grafana_url',
-                'scionlab.context_processors.development_mode',
+                'scionlab.context_processors.instance_indicator',
             ],
         },
     },
