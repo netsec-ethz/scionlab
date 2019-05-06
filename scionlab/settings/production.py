@@ -29,12 +29,9 @@ def _getenv(key):
 
 
 ALLOWED_HOSTS = [
-    'proxy',
-    'localhost'
+    'django',
 ]
 
-
-DEBUG=True
 
 DATABASES = {
     'default': {
