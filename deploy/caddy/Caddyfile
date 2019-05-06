@@ -1,4 +1,4 @@
-129.132.85.122:80 {
+testing.scionlab.org {
     root /var/www/scionlab
     proxy / django:8000 {
         except /static

@@ -46,8 +46,10 @@ services:
       - "443:443"
     volumes:
       - web-static:/var/www/scionlab/static
+      - caddydata:/home/caddy/.caddy/
 
 volumes:
   web-static:
   pgdata:
   redisdata:
+  caddydata:
