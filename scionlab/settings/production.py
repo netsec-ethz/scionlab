@@ -52,10 +52,11 @@ HUEY = huey.RedisHuey('scionlab-huey', host='redis')
 DEFAULT_FROM_EMAIL = 'no-reply@scionlab.org'
 SERVER_EMAIL = 'django@scionlab.org'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = _getenv('EMAIL_HOST')
+EMAIL_HOST = 'mail.ethz.ch'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = _getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = _getenv('EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS = True
 
 
 # ##### RECAPTCHA KEYS ##############################
