@@ -68,6 +68,8 @@ TEMPLATES = [
 
 # the URL for static files
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 # ##### AUTH CONFIGURATION ################################
 AUTH_USER_MODEL = 'scionlab.User'

@@ -48,8 +48,6 @@ DATABASES = {
     },
 }
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
 # ##### HUEY TASK QUEUE CONFIGURATION #####################
 HUEY = huey.RedisHuey('scionlab-huey', host='redis')
 
