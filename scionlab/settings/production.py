@@ -13,21 +13,35 @@
 # limitations under the License.
 
 import os
-from .common import *
 import huey
+from .common import *
+
+
+def _getenv(key):
+    """ Helper for `os.environ[key]` with a specific error message """
+    v = os.environ.get(key)
+    if v is None:
+        raise Exception("Missing '%s' from environment.\n" % key +
+                        "This is required for scionlab.settings.production.\n"
+                        "NOTE: in the docker-compose setup, this variable needs to be defined in "
+                        "the (unversioned) file `run/scionlab.env`.")
+    return v
+
 
 ALLOWED_HOSTS = [
-    '*'
+    'proxy',
+    'localhost'
 ]
+
 
 DEBUG=True
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'NAME': _getenv('POSTGRES_DB'),
+        'USER': _getenv('POSTGRES_USER'),
+        'PASSWORD': _getenv('POSTGRES_PASSWORD'),
         'HOST': 'db',
         'PORT': '5432',
         'ATOMIC_REQUESTS': True,
@@ -43,11 +57,17 @@ HUEY = huey.RedisHuey('scionlab-huey', host='redis')
 DEFAULT_FROM_EMAIL = 'no-reply@scionlab.org'
 SERVER_EMAIL = 'django@scionlab.org'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp0.ethz.ch'
+EMAIL_HOST = _getenv('EMAIL_HOST')
+EMAIL_HOST_USER = _getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = _getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True
+
+
+# ##### RECAPTCHA KEYS ##############################
+RECAPTCHA_PUBLIC_KEY = _getenv('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = _getenv('RECAPTCHA_PRIVATE_KEY')
+
 
 # ##### TEST INSTANCE INDICATOR ##############################
-DEVELOPMENT_MODE = 'testing'
-
-# TODO: django-recaptcha2 test keys
-RECAPTCHA_PUBLIC_KEY = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
-RECAPTCHA_PRIVATE_KEY = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
+# Set this to empty string explicitly for production
+INSTANCE_NAME = _getenv('INSTANCE_NAME')
