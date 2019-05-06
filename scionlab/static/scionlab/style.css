@@ -75,11 +75,11 @@ main {
 ------------------------------------*/
 .ribbon {
   position: absolute;
-  left: -5px; top: -5px;
+  left: 0px;
+  top: 0px;
   z-index: 1;
-  overflow: hidden;
-  width: 130px;
-  height: 130px;
+  width: 150px;
+  height: 150px;
   pointer-events: none;
 }
 .ribbon span {
@@ -88,12 +88,13 @@ main {
   text-transform: uppercase;
   text-align: center;
   line-height: 30px;
-  transform: rotate(-45deg);
-  width: 180px;
+  width: 200%;
   display: block;
-  box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
+  transform: rotate(-45deg);
   position: absolute;
-  top: 40px; left: -40px;
+  left: -50%;
+  top: 50%;
+  box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
 }
 
 .ribbon-red {
