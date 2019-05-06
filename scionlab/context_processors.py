@@ -22,15 +22,15 @@ def grafana_url(request):
     return {'grafana_url': settings.GRAFANA_URL}
 
 
-def development_mode(request):
+def instance_indicator(request):
     """
-    Inject a `development_mode` string to indicate development mode.
+    Inject a `instance_indicator` string to indicate dev/testing instances.
     If set, this is rendered into a ribbon in the scionlab/base.html template
     """
     from django.conf import settings
     mode = ''
-    if hasattr(settings, 'DEVELOPMENT_MODE'):
-        mode = settings.DEVELOPMENT_MODE
-    elif settings.DEBUG:
-        mode = 'debug'
-    return {'development_mode': mode}
+    if hasattr(settings, 'INSTANCE_NAME'):
+        mode = settings.INSTANCE_NAME
+    if settings.DEBUG:
+        mode += '[debug]'
+    return {'instance_indicator': mode}
