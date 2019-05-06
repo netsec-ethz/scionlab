@@ -1,3 +1,0 @@
-FROM postgres
-
-RUN echo -e 'CREATE DATABASE scionlab;' > /docker-entrypoint-initdb.d/init-scionlab.sql

@@ -18,6 +18,4 @@ COPY . /scionlab/
 
 
 ENV DJANGO_SETTINGS_MODULE=scionlab.settings.production
-CMD /scionlab/scripts/docker-entrypoint.sh
-#CMD ["/scionlab/manage.py","runserver","0.0.0.0:8000"]
-#CMD ["gunicorn","scionlab.wsgi"]
+CMD /scionlab/deploy/django-entrypoint.sh
