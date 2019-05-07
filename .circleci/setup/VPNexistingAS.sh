@@ -22,7 +22,7 @@ tar -C $SC/ -xf /tmp/host_config.tar
 
 # Setup OpenVPN attachment point server
 sudo cp server.conf /etc/openvpn/
-echo 'ifconfig-push 10.0.8.2 255.255.255.0' > /tmp/userAS1.ccd
+echo 'ifconfig-push 10.0.0.1 255.255.0.0' > /tmp/userAS1.ccd
 sudo mv /tmp/userAS1.ccd /etc/openvpn/ccd/scion@scionlab.org__20-ffaa_1_1
 sudo openvpn --daemon ovpn-server --cd /etc/openvpn --config /etc/openvpn/server.conf
 

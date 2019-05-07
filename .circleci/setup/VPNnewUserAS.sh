@@ -28,15 +28,17 @@ tar -C $SC/ -xf /tmp/host_config.tar
 # Setup OpenVPN client
 sudo cp client.conf /etc/openvpn/
 sudo openvpn --daemon ovpn-client --cd /etc/openvpn --config /etc/openvpn/client.conf
-until [ `ps a | grep openvpn | grep -v "grep"` | wc -l` -ge 1 ]; do sleep 1; done
+until [ `ps ax | grep openvpn | grep -v "grep" | wc -l` -ge 1 ]; do sleep 1; done
+echo "VPN up"
 
 ZK_IP=$(dig +short zookeeper A); for f in $(find $SC/gen/ -name topology.json); do
     jq ".ZookeeperService[]|=({Addr:\"$ZK_IP\", L4Port:.L4Port})" $f | sponge $f;
 done
 
+until ip a show tun0; do sleep 1; done
+echo "VPN tun0 up"
+
 cd $SC
 ./supervisor/supervisor.sh stop all
 ./supervisor/supervisor.sh reload
 ./supervisor/supervisor.sh start all
-
-cat
