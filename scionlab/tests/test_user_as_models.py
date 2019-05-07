@@ -36,7 +36,7 @@ from scionlab.openvpn_config import write_vpn_ca_config
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 
 # Some test data:
-test_public_ip = '192.0.2.111'
+test_public_ip = '172.31.0.111'
 test_public_port = 54321
 test_bind_ip = '192.168.1.2'
 test_bind_port = 6666
@@ -241,7 +241,7 @@ def _get_random_useras_params(seed, force_public_ip=False, force_bind_ip=False, 
     kwargs.setdefault('attachment_point', r.choice(candidate_APs))
     kwargs.setdefault('owner', get_testuser())
 
-    public_ip = '192.0.2.%i' % r.randint(10, 254)
+    public_ip = '172.31.0.%i' % r.randint(10, 254)
     public_port = r.choice(range(DEFAULT_PUBLIC_PORT, DEFAULT_PUBLIC_PORT + 20))
     if _randbool() or not use_vpn or force_public_ip:
         kwargs.setdefault('public_ip', public_ip)
@@ -370,7 +370,7 @@ class CreateUserASTests(TestCase):
                                 bind_port=test_bind_port)
 
     def test_create_vpn(self):
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         create_and_check_useras(self,
                                 owner=get_testuser(),
                                 attachment_point=attachment_point,
@@ -388,7 +388,7 @@ class CreateUserASTests(TestCase):
 
     def test_server_vpn_ip(self):
         """ Its IP is not at the beginning of the subnet """
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         vpn = attachment_point.vpn
         server_orig_ip = ip_address(vpn.server_vpn_ip)
         vpn.server_vpn_ip = str(server_orig_ip + 1)
@@ -411,7 +411,7 @@ class CreateUserASTests(TestCase):
 
     @patch('scionlab.models.user.User.max_num_ases', return_value=2**16)
     def test_exhaust_vpn_clients(self, _):
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         vpn = attachment_point.vpn
         vpn.subnet = '10.0.8.0/28'
         vpn.server_vpn_ip = '10.0.8.10'
@@ -451,7 +451,7 @@ class UpdateUserASTests(TestCase):
 
     def test_enable_vpn(self):
         seed = 1
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         user_as = create_random_useras(self,
                                        seed=seed,
                                        attachment_point=attachment_point,
@@ -466,7 +466,7 @@ class UpdateUserASTests(TestCase):
 
     def test_disable_vpn(self):
         seed = 2
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         user_as = create_random_useras(self,
                                        seed=seed,
                                        attachment_point=attachment_point,
@@ -480,7 +480,7 @@ class UpdateUserASTests(TestCase):
 
     def test_cycle_vpn(self):
         seed = 3
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
         user_as = create_random_useras(self,
                                        seed=seed,
                                        attachment_point=attachment_point,
@@ -525,8 +525,8 @@ class UpdateUserASTests(TestCase):
         self.assertEqual(vpn_client.ip, vpn_client_ip)
 
     def test_vpn_client_next_ip(self):
-        attachment_point = AttachmentPoint.objects.get(vpn__isnull=False)
-        vpn_server = VPN.objects.get()
+        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
+        vpn_server = VPN.objects.first()
         user_as = create_and_check_useras(self,
                                           attachment_point=attachment_point,
                                           owner=get_testuser(),
