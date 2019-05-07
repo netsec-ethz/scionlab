@@ -46,7 +46,8 @@ class UserASManager(models.Manager):
                use_vpn=False,
                public_ip=None,
                bind_ip=None,
-               bind_port=None):
+               bind_port=None,
+               vpn_client_ip=None):
         """
         Create a UserAS attached to the given attachment point.
 
@@ -59,6 +60,8 @@ class UserASManager(models.Manager):
                               Must be specified if use_vpn is not enabled.
         :param str bind_ip: the bind IP for the connection to the AP (for NAT)
         :param str bind_port: the bind port for the connection to the AP (for NAT port remapping)
+        :param str vpn_client_ip: the specific IP address to assign to the VPN client (if vpn).
+                                  A free one if not specified, and ignored if use_vpn == False.
         :returns: UserAS
         """
         owner.check_as_quota()
@@ -87,11 +90,10 @@ class UserASManager(models.Manager):
         )
 
         host = user_as.hosts.get()
-
         if use_vpn:
             vpn_client = attachment_point.vpn.create_client(host=host,
-                                                            active=True)
-
+                                                            active=True,
+                                                            client_ip=vpn_client_ip)
             interface_client = Interface.objects.create(
                 border_router=BorderRouter.objects.first_or_create(host),
                 public_ip=vpn_client.ip,
