@@ -47,10 +47,10 @@ def deploy_host_config(host, delay=None):
     # ensure only one task per host is in the queue or executing at any time.
     if _put_if_empty(_key_deploy_host_running(host.pk), True):
         if delay:
-            _deploy_host_config.schedule(args=(host.management_ip, host.pk, host.secret),
+            _deploy_host_config.schedule(args=(host.ssh_host, host.pk, host.secret),
                                          delay=delay)
         else:
-            _deploy_host_config(host.management_ip, host.pk, host.secret)
+            _deploy_host_config(host.ssh_host, host.pk, host.secret)
     else:
         # Mark as re-triggered to ensure that the task will re-run if necessary.
         _put_if_empty(_key_deploy_host_retriggered(host.pk), True)
