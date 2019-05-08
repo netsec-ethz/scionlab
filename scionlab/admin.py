@@ -174,7 +174,7 @@ class ISDAdmin(admin.ModelAdmin):
 
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
-        fields = ('internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'management_ip',
+        fields = ('internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'ssh_host',
                   'secret')
 
     def create(self):
@@ -185,7 +185,7 @@ class HostAdminForm(_CreateUpdateModelForm):
             bind_ip=self.cleaned_data['bind_ip'],
             label=self.cleaned_data['label'],
             managed=self.cleaned_data['managed'],
-            management_ip=self.cleaned_data['management_ip'],
+            ssh_host=self.cleaned_data['ssh_host'],
             secret=self.cleaned_data['secret']
         )
 
@@ -196,7 +196,7 @@ class HostAdminForm(_CreateUpdateModelForm):
             bind_ip=self.cleaned_data['bind_ip'],
             label=self.cleaned_data['label'],
             managed=self.cleaned_data['managed'],
-            management_ip=self.cleaned_data['management_ip'],
+            ssh_host=self.cleaned_data['ssh_host'],
             secret=self.cleaned_data['secret']
         )
 
@@ -724,7 +724,7 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
     actions = ['trigger_config_deployment']
     list_display = ('__str__', 'AS',
-                    'internal_ip', 'public_ip', 'bind_ip', 'managed', 'management_ip',
+                    'internal_ip', 'public_ip', 'bind_ip', 'managed', 'ssh_host',
                     'latest_config_deployed', 'get_config_link')
     list_filter = ('AS__isd', 'AS', )
     ordering = ['AS']

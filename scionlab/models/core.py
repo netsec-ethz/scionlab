@@ -493,10 +493,11 @@ class Host(models.Model):
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     managed = models.BooleanField(default=False)
-    management_ip = models.GenericIPAddressField(
+    ssh_host = models.CharField(
+        max_length=_MAX_LEN_DEFAULT,
         null=True,
         blank=True,
-        help_text="Public IP of the host for management (should be reachable by the coordinator)."
+        help_text="Hostname or IP for management access via SSH. Configured in run/ssh_config."
     )
     secret = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
@@ -525,7 +526,7 @@ class Host(models.Model):
                bind_ip=_placeholder,
                label=_placeholder,
                managed=_placeholder,
-               management_ip=_placeholder,
+               ssh_host=_placeholder,
                secret=_placeholder):
         """
         Update the specified fields of this host instance, and immediately `save`.
@@ -536,7 +537,7 @@ class Host(models.Model):
         :param str bind_ip: optional, default bind IP for border router interfaces on this host
         :param str label: optional
         :param bool managed: optional
-        :param str management_ip: optional, public IP of the host for management
+        :param str ssh_host: optional, hostname/IP for management access via SSH
         :param str secret: optional, a secret to authenticate the host. If `None` is given, a new
                            random secret is generated.
         """
@@ -555,8 +556,8 @@ class Host(models.Model):
             self.label = label or None
         if managed is not _placeholder:
             self.managed = managed
-        if management_ip is not _placeholder:
-            self.management_ip = management_ip or None
+        if ssh_host is not _placeholder:
+            self.ssh_host = ssh_host or None
         if secret is not _placeholder:
             self.secret = secret or self._gen_secret()
         self.save()

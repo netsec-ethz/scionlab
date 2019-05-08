@@ -168,7 +168,7 @@ def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
     if is_ap:
         for host in as_.hosts.iterator():
             host.managed = True
-            host.management_ip = host.public_ip
+            host.ssh_host = host.public_ip
             host.save()
         AttachmentPoint.objects.create(AS=as_)
 

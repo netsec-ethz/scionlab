@@ -517,7 +517,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: 5a2W0_NrlEZzfqmk_7Pq-w
     config_version: 6
     config_version_deployed: 0
@@ -530,7 +530,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: OBKlTVlvLg-AdwqYGbP8ZA
     config_version: 6
     config_version_deployed: 0
@@ -543,7 +543,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: atSmFACYMbJVKD05o3JgtQ
     config_version: 6
     config_version_deployed: 0
@@ -556,7 +556,7 @@
     bind_ip: null
     label: null
     managed: true
-    management_ip: 192.0.2.17
+    ssh_host: 192.0.2.17
     secret: R7D6Lhl52uxloBQFRulzzA
     config_version: 6
     config_version_deployed: 0
@@ -569,7 +569,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: c8CtMx5_ZUE1pAr_8sw3nw
     config_version: 6
     config_version_deployed: 0
@@ -582,7 +582,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: Js_8WmkJnHdidQwZeMcmBQ
     config_version: 6
     config_version_deployed: 0
@@ -595,7 +595,7 @@
     bind_ip: null
     label: null
     managed: true
-    management_ip: 172.31.0.111
+    ssh_host: 172.31.0.111
     secret: kuA3OhfG0eLjoMeAsoZrgQ
     config_version: 6
     config_version_deployed: 0
@@ -608,7 +608,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: 9UIhB_c1XFV59UpL7-D1jQ
     config_version: 6
     config_version_deployed: 0
@@ -621,7 +621,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: jpuwJ8uzcu1mL8Rrbiw_9Q
     config_version: 6
     config_version_deployed: 0
@@ -634,7 +634,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: Ch2eAP9F36OzSrrmOiTAkg
     config_version: 6
     config_version_deployed: 0
@@ -647,7 +647,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: -n51cB4VFD0Z08MnaeLrNg
     config_version: 6
     config_version_deployed: 0
@@ -660,7 +660,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: tIupSDi91OY9EIROrFM7Xw
     config_version: 6
     config_version_deployed: 0
@@ -673,7 +673,7 @@
     bind_ip: null
     label: null
     managed: true
-    management_ip: 192.0.2.44
+    ssh_host: 192.0.2.44
     secret: QiOaZrQw0lHJSmLxDzUJUA
     config_version: 6
     config_version_deployed: 0
@@ -686,7 +686,7 @@
     bind_ip: null
     label: null
     managed: true
-    management_ip: 172.31.0.114
+    ssh_host: 172.31.0.114
     secret: aPRjKwCAI5_eqYPXu7MlFA
     config_version: 6
     config_version_deployed: 0
@@ -699,7 +699,7 @@
     bind_ip: null
     label: null
     managed: false
-    management_ip: null
+    ssh_host: null
     secret: rwl0ZbgeZ1h-DQVFvf4IQQ
     config_version: 6
     config_version_deployed: 0
