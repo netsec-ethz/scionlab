@@ -19,6 +19,7 @@ Huey tasks config for scionlab project.
 import logging
 import subprocess
 import huey.contrib.djhuey as huey
+from django.conf import settings
 
 
 def deploy_host_config(host, delay=None):
@@ -99,9 +100,11 @@ def _key_deploy_host_retriggered(host_id):
 
 def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
     command = ('scionlab-config'
+               ' -F {configfile}'
                ' --host-id {host_id}'
                ' --host-secret {host_secret}'
                ' --url "{url}"').format(
+                  configfile=settings.SSH_CONFIG_PATH,
                   host_id=host_id,
                   host_secret=host_secret,
                   url='localhost:8080')  # TODO(matzf)
