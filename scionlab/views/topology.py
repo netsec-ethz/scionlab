@@ -18,9 +18,13 @@ from graphviz import Graph
 
 from scionlab.models.core import ISD, Link
 
+
 @cache_page(1 * 60 * 60)
 @cache_control(public=True, max_age=24 * 60 * 60)
 def topology_png(request):
+    """
+    Create graph with infrastructure ASes and links and draw it with dot a png.
+    """
     g = _topology_graph()
     imgdata = g.pipe(format='png')
 
@@ -30,47 +34,44 @@ def topology_png(request):
 
 
 def _topology_graph():
-    # TODO(matzf): these queries can/should be optimized...
-    g = Graph(engine='dot')
+    g = Graph(engine='dot', graph_attr={'ratio': '0.41'})
     for isd in ISD.objects.iterator():
         g_isd = _make_isd_graph(isd)
-        if False:
-            # XXX experiment with subgraph for core AS.
-            # Unnecessary if contraint=false for core links.
-            g_isd_core = Graph(name="_ISD_%i_core" % isd.isd_id, graph_attr={'rank': 'min'})
-            for as_ in isd.ases.filter(is_core=True, owner=None):
-                _add_as_node(g_isd_core, as_)
-            g_isd.subgraph(g_isd_core)
-            for as_ in isd.ases.filter(is_core=False, owner=None):
-                _add_as_node(g_isd, as_)
-        else:
-            for as_ in isd.ases.filter(owner=None):
-                _add_as_node(g_isd, as_)
+        for as_ in isd.ases.filter(owner=None):
+            _add_as_node(g_isd, as_)
         g.subgraph(g_isd)
-    for link in Link.objects.iterator():
-        as_a = link.interfaceA.AS
-        as_b = link.interfaceB.AS
-        if as_a.owner or as_b.owner:
-            continue
-        attrs = None
-        if link.type == Link.PEER:
-            attrs = {'style': 'dashed', 'constraint': 'false'}
-        elif link.type == Link.CORE:
-            attrs = {'constraint': 'false'}
-        g.edge(str(as_a.pk), str(as_b.pk), _attributes=attrs)
+    for link in Link.objects.filter(interfaceA__AS__owner=None, interfaceB__AS__owner=None):
+        _add_link(g, link)
 
     return g
 
 
 def _make_isd_graph(isd):
     return Graph("cluster_ISD_%i" % isd.isd_id,
-                 graph_attr={'color': 'blue', 'label': _isd_label(isd), 'style': 'rounded'})
+                 graph_attr={'color': 'blue',
+                             'label': _isd_label(isd),
+                             'style': 'rounded'})
+
+
+def _add_link(g, link):
+    as_a = link.interfaceA.AS
+    as_b = link.interfaceB.AS
+    attrs = None
+    if link.type == Link.PEER:
+        attrs = {'style': 'dashed',
+                 'constraint': 'false'}  # Don't rank peers
+    elif link.type == Link.CORE:
+        if as_a.isd == as_b.isd:
+            attrs = {'constraint': 'false'}  # Don't rank core ASes of one ISD
+        elif as_a.isd.isd_id < as_b.isd.isd_id:  # Keep min ISD (i.e. 16) on top
+            as_a, as_b = as_b, as_a
+    g.edge(str(as_b.pk), str(as_a.pk), _attributes=attrs)
 
 
 def _add_as_node(g, as_):
     g.node(str(as_.pk),
            _as_label(as_),
-           _attributes={'width': '1',
+           _attributes={'width': '1.33',
                         'fixedsize': 'true',
                         'shape': 'circle',
                         'color': _as_color(as_)})
