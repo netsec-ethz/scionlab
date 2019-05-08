@@ -94,11 +94,11 @@ jobs:
           command: |
             set -x
             # We first start only the coordinator
-            docker-compose -f ./docker-compose.yml create coord
+            docker-compose -f .circleci/docker-compose.yml create coord
             # create is deprecated in v18, use no-start when circleci updates its images
-            # docker-compose -f ./docker-compose.yml up --no-start coord
+            # docker-compose -f .circleci/docker-compose.yml up --no-start coord
             docker cp ./ coord:/home/circleci/repo/scionlab
-            docker-compose -f ./docker-compose.yml up --no-recreate -d coord
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coord
 
       - run:
           name: Build latest scion binaries for scionlab
@@ -142,7 +142,7 @@ jobs:
               --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/login/; do echo 'Coord unreachable, retrying...'; sleep 5; done"
 
             export coreAS1301IP=172.31.0.110 infraAS1303IP=172.31.0.111 infraAS1305IP=172.31.0.112
-            docker-compose -f ./docker-compose.yml create zookeeper coreAS1301 infraAS1303 infraAS1305
+            docker-compose -f .circleci/docker-compose.yml create zookeeper coreAS1301 infraAS1303 infraAS1305
 
             # speedup deployment until we have binary packages
             for dst_AS in coreAS1301 infraAS1303 infraAS1305; do
@@ -153,7 +153,7 @@ jobs:
                     docker cp .circleci/setup/${f} ${dst_AS}:/tmp/
                 done
             done
-            docker-compose -f ./docker-compose.yml up --no-recreate -d zookeeper coreAS1301 infraAS1303 infraAS1305
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d zookeeper coreAS1301 infraAS1303 infraAS1305
 
       - run:
           name: Check SCION connections
@@ -171,7 +171,7 @@ jobs:
           command: |
             set -x
             # Restart ASes
-            docker-compose -f ./docker-compose.yml up --no-recreate -d infraAS1303 infraAS1305
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d infraAS1303 infraAS1305
             AS_ID=1305 # largest AS ID in the ISD
             TRC_version=1 # initial TRC version
 
@@ -229,7 +229,7 @@ jobs:
             fi
             echo "Start containers required for VPN AP and verify they are working"
             export coreAS1401IP=172.31.0.113 infraAS1405IP=172.31.0.114
-            docker-compose -f ./docker-compose.yml create coreAS1401 infraAS1405
+            docker-compose -f .circleci/docker-compose.yml create coreAS1401 infraAS1405
 
             # speedup deployment until we have binary packages
             for dst_AS in coreAS1401 infraAS1405; do
@@ -240,7 +240,7 @@ jobs:
                     docker cp .circleci/setup/${f} ${dst_AS}:/tmp/
                 done
             done
-            docker-compose -f ./docker-compose.yml up --no-recreate -d coreAS1401 infraAS1405
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coreAS1401 infraAS1405
             # Wait for AP to be set up (key generation is slow)
             docker exec infraAS1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 1; done;"
             echo "AP started"
@@ -264,7 +264,7 @@ jobs:
       - run:
           name: Wind down the containers
           command: |
-            docker-compose -f ./docker-compose.yml down
+            docker-compose -f .circleci/docker-compose.yml down
 
       - store_test_results:
           path: test-reports
