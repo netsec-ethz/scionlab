@@ -100,14 +100,13 @@ def _key_deploy_host_retriggered(host_id):
 
 def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
     command = ('scionlab-config'
-               ' -F {configfile}'
                ' --host-id {host_id}'
                ' --host-secret {host_secret}'
                ' --url "{url}"').format(
-                  configfile=settings.SSH_CONFIG_PATH,
                   host_id=host_id,
                   host_secret=host_secret,
-                  url='localhost:8080')  # TODO(matzf)
+                  url='https://testing.scionlab.org')  # TODO(matzf)
 
-    logging.info("ssh %s '%s'" % (ssh_host, command))
-    subprocess.call(['ssh', ssh_host, command])
+    args = ['ssh', '-F', settings.SSH_CONFIG_PATH, ssh_host, command]
+    logging.info(' '.join(a for a in args))
+    subprocess.call(args)
