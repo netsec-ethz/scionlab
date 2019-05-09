@@ -103,7 +103,7 @@ ATTACHMENT_POINT_DEPLOYMENT_PERIOD = 60
 SSH_CONFIG_PATH = os.path.join(BASE_DIR, 'run', 'ssh_config')
 
 # Openvpn key/cert:
-VPN_CA_KEY_PASSWORD = os.environ.get('SCIONLAB_ROOT_CA_KEY_PASSWORD')
+VPN_CA_KEY_PASSWORD = os.environ.get('VPN_CA_KEY_PASSWORD')
 VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_key.pem')
 VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_cert.pem')
 
