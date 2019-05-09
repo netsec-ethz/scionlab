@@ -84,7 +84,7 @@ def generate_instance_dir(archive, as_, stype, tp, name):
     else:  # beacon server
         assert stype == 'BS'
         env.append('PYTHONPATH=python/:.')
-        cmd = ('python/bin/beacon_server --prom {prom} --sciond_path '
+        cmd = ('python/bin/beacon_server --filter_isd_loops --prom {prom} --sciond_path '
                '/run/shm/sciond/default.sock "{instance}" "{elem_dir}"'
                ).format(prom=prom_addr, instance=name, elem_dir=elem_dir)
 
