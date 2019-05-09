@@ -297,8 +297,7 @@ def install_vpn_server_config(tmpdir):
     if changed:
         if exists:
             if not os.path.exists('/etc/openvpn/dh.pem'):
-                _run_as_root(['openssl', 'dhparam', '-out', 'dh.pem', '2048'],
-                             cwd='/etc/openvpn/')
+                _run_as_root(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'])
             _run_as_root(['systemctl', 'reload-or-restart', 'openvpn@server'])
         else:
             _run_as_root(['systemctl', 'stop', 'openvpn@server'], check=False)
@@ -346,7 +345,7 @@ def _run_as_root(args, check=True, **kwargs):
           script as root.
     """
     if os.getuid() != 0:
-        args = 'sudo' + args
+        args = ['sudo'] + args
     subprocess.run(args, check=check)
 
 
