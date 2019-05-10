@@ -21,6 +21,7 @@ import re
 import tarfile
 
 import lib.crypto.asymcrypto
+import logging
 from lib.crypto.trc import TRC
 from lib.crypto.certificate import Certificate
 from lib.crypto.certificate_chain import CertificateChain
@@ -505,3 +506,7 @@ def _tar_cat(tar, path):
     mem = tar.getmember(path)
     with tar.extractfile(mem) as f:
         return f.read()
+
+
+def subprocess_call_log(*popenargs, timeout=None, **kwargs):
+    logging.info("Command: %s; shell args: %s" % (" ".join(*popenargs), str(kwargs)))
