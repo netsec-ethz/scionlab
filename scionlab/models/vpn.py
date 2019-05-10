@@ -68,8 +68,8 @@ class VPN(models.Model):
         self.private_key = key
         self.cert = cert
 
-    def create_client(self, host, active):
-        client_ip = str(self._find_client_ip())
+    def create_client(self, host, active, client_ip=None):
+        client_ip = client_ip or str(self._find_client_ip())
         return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, active=active)
 
     def vpn_subnet(self):
@@ -164,6 +164,7 @@ class VPNClient(models.Model):
     objects = VPNClientManager()
 
     class Meta:
+        unique_together = ('vpn', 'ip')
         verbose_name = 'VPN Client'
         verbose_name_plural = 'VPN Clients'
 
