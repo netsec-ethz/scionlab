@@ -18,7 +18,7 @@
 #
 version: 2
 jobs:
-  build:
+  basic:
     docker:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
@@ -287,3 +287,10 @@ jobs:
           name: Wind down the containers
           command: |
             docker-compose -f .circleci/docker-compose.yml down
+
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - basic
+      - integration
