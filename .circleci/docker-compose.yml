@@ -12,7 +12,7 @@ services:
   coord:
     image:  circleci/python:3.6.1
     container_name: coord
-    working_dir: /home/circleci/repo
+    working_dir: /home/circleci/scionlab
     environment:
       PYTHONPATH: /tmp/scion/python
     volumes:
