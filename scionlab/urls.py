@@ -73,6 +73,7 @@ urlpatterns = [
     path('topology.png', topology_png, name='topology.png'),
 
     # API:
-    path('api/host/<int:pk>/config', GetHostConfig.as_view()),
-    path('api/host/<int:pk>/deployed_config_version', PostHostDeployedConfigVersion.as_view()),
+    path('api/host/<int:pk>/config', GetHostConfig.as_view(), name='api_get_config'),
+    path('api/host/<int:pk>/deployed_config_version', PostHostDeployedConfigVersion.as_view(),
+         name='api_post_deployed_version'),
 ]

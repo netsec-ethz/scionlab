@@ -31,6 +31,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'run', 'dev.sqlite3'),
         'ATOMIC_REQUESTS': True,
+        'OPTIONS': {
+            'timeout': 10,
+        },
     }
 }
 
