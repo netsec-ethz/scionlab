@@ -6,7 +6,7 @@ cd /tmp/scion
 git fetch && git checkout scionlab && git reset --hard origin/scionlab
 
 # Get code under test from executor
-cd ~/repo; until [ -d ./scionlab ]; do sleep 10; done
+cd ~/scionlab; until [ -d ./scionlab ]; do sleep 10; done
 cd scionlab
 
 # Regular coordinator installation procedure
