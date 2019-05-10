@@ -15,13 +15,7 @@
 from django.test import TestCase
 from scionlab.models.core import Host
 from scionlab.tests import utils
-import base64
-
-
-def _basic_auth(username, password):
-    uname_pwd = '%s:%s' % (username, password)
-    uname_pwd_encoded = base64.b64encode(uname_pwd.encode('utf-8')).decode('ascii')
-    return {"HTTP_AUTHORIZATION": "Basic %s" % uname_pwd_encoded}
+from scionlab.tests.utils import basic_auth
 
 
 class GetHostConfigTests(TestCase):
@@ -31,14 +25,14 @@ class GetHostConfigTests(TestCase):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
         self.url = '/api/host/%i/config' % self.host.pk
-        self.auth_headers = _basic_auth(self.host.id, self.host.secret)
+        self.auth_headers = basic_auth(self.host.id, self.host.secret)
 
     def test_aaa(self):
         ret = self.client.get(self.url, **self.auth_headers)
         self.assertEqual(ret.status_code, 200)
 
     def test_bad_auth(self):
-        auth_headers = _basic_auth(self.host.id, self.host.secret + "_foobar")
+        auth_headers = basic_auth(self.host.id, self.host.secret + "_foobar")
         ret = self.client.get(self.url, **auth_headers)
         self.assertEqual(ret.status_code, 401)
 
@@ -98,7 +92,7 @@ class GetHostConfigExtraServicesTests(TestCase):
 
     @staticmethod
     def _get_auth_headers(host):
-        return _basic_auth(host.id, host.secret)
+        return basic_auth(host.id, host.secret)
 
     def test_get(self):
         # in the fixture, the host for 17-ffaa:0:1107 has extra services
@@ -120,10 +114,10 @@ class PostHostConfigVersionTests(TestCase):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
         self.url = '/api/host/%i/deployed_config_version' % self.host.pk
-        self.auth_headers = _basic_auth(self.host.id, self.host.secret)
+        self.auth_headers = basic_auth(self.host.id, self.host.secret)
 
     def test_bad_auth(self):
-        auth_headers = _basic_auth(self.host.id, self.host.secret + "_foobar")
+        auth_headers = basic_auth(self.host.id, self.host.secret + "_foobar")
         ret = self.client.post(self.url, **auth_headers)
         self.assertEqual(ret.status_code, 401)
 

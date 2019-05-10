@@ -95,9 +95,9 @@ MAX_ASES_ADMIN = 10
 MAX_ASES_USER = 5
 GRAFANA_URL = "https://prometheus.scionlab.org"
 
-# Rate limit for attachment point deployment, specified by the minimal time between
+# Rate limit for host deployments, specified by the minimal time between
 # two consecutive deployments (value in seconds).
-ATTACHMENT_POINT_DEPLOYMENT_PERIOD = 60
+DEPLOYMENT_PERIOD = 60
 
 # SSH Config file for managed hosts
 SSH_CONFIG_PATH = os.path.join(BASE_DIR, 'run', 'ssh_config')
