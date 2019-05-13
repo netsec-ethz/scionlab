@@ -120,10 +120,10 @@ def generate_server_app_dir(archive, as_, app_type, name, host_ip, app_port):
         cmd = 'bash -c "sleep 10 && exec bin/bwtestserver -s {ia},[{ip}]:{port}"'.format(
             ia=ia, ip=host_ip, port=app_port)
     elif app_type == Service.PP:
-        cmd = 'bash -c "sleep 10 && exec bin/pingpong -mode server -local '
-        '{ia},[{ip}]:{port}"'.format(ia=ia, ip=host_ip, port=app_port)
+        cmd = ('bash -c "sleep 10 && exec bin/pingpong -mode server -local '
+               '{ia},[{ip}]:{port}"').format(ia=ia, ip=host_ip, port=app_port)
     archive.write_config((elem_dir, 'supervisord.conf'),
-                         _make_supervisord_conf(name, cmd, DEFAULT_ENV, priority=200))
+                         _make_supervisord_conf(name, cmd, DEFAULT_ENV, priority=200, startsecs=15))
 
 
 def generate_sciond_config(archive, as_, tp, name):
@@ -173,7 +173,7 @@ def write_ia_file(archive, as_):
     archive.write_text('gen/ia', as_.isd_as_path_str())
 
 
-def _make_supervisord_conf(name, cmd, envs, priority=100):
+def _make_supervisord_conf(name, cmd, envs, priority=100, startsecs=5):
     config = configparser.ConfigParser()
     config['program:' + name] = {
         'autostart': 'false',
@@ -182,7 +182,7 @@ def _make_supervisord_conf(name, cmd, envs, priority=100):
         'stdout_logfile': 'logs/%s.OUT' % name,
         'stderr_logfile': 'logs/%s.ERR' % name,
         'startretries': '0',
-        'startsecs': '5',
+        'startsecs': str(startsecs),
         'priority': str(priority),
         'command':  cmd
     }
