@@ -146,8 +146,8 @@ def _generate_config_info_json(host):
         'host_secret': host.secret,
         'version': host.config_version,
         # 'ia': host.AS.isd_as_str() # XXX: what for?
-        'url': 'locahost:8080'  # TODO(matzf): how to get this?
-                                # Put into settings? Or get from request and pass in?
+        'url': 'https://testing.scionlab.org'  # TODO(matzf): how to get this?
+                                               # Put into settings? Or get from request and pass in?
     }
     return json.dumps(config_info)
 
