@@ -88,6 +88,9 @@ django==2.2 \
 gunicorn==19.9.0 \
     --hash=sha256:aa8e0b40b4157b36a5df5e599f45c9c76d6af43845ba3b3b0efe2c70473c2471 \
     --hash=sha256:fa2662097c66f920f53f70621c6c58ca4a3c4d3434205e608e121b5b3b71f4f3
+graphviz==0.10.1 \
+    --hash=sha256:0e1744a45b0d707bc44f99c7b8e5f25dc22cf96b6aaf2432ac308ed9822a9cb6 \
+    --hash=sha256:d311be4fddfe832a56986ac5e1d6e8715d7fcb0208560da79d1bb0f72abef41f
 huey==2.0.1 \
     --hash=sha256:733e04a3bdbc4b2506ddb20c8c6b51f5e456a15c855be69b38a708cf0dcc23c7
 idna==2.8 \
