@@ -27,3 +27,9 @@ export PYTHONPATH=/path/to/scionproto/scion/python
 # Initialise development DB with some an admin, a testuser and some ASes.
 scripts/init-test-db.sh
 ```
+
+To render the topology graph, `graphviz` needs to be installed additionally to the python dependencies. On ubuntu:
+```
+apt install graphviz
+```
+If this is missing, the topology graph will fail to render (with a 500 error code).
