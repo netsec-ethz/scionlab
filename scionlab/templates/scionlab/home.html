@@ -14,7 +14,7 @@ internet architecture.
 You can join the SCION network with your own computation
 resources and can set up and run your own autonomous systems (ASes).
 Your ASes will actively participate in routing in the SCIONLab network and
-enable realistic experimentation with the unique properties of SCION architecture.
+enable realistic experimentation with the unique properties of the SCION architecture.
 </p>
 
 {% if user.is_authenticated %}
@@ -34,18 +34,64 @@ enable realistic experimentation with the unique properties of SCION architectur
 <h4>About SCION</h4>
 
 <p>
-SCION (<i>S</i>calability, <i>C</i>ontrol and <i>I</i>solation on next-generation <i>N</i>etworks)
-is a next-generation internet architecture. 
+SCION (<i>S</i>calability, <i>C</i>ontrol and <i>I</i>solation on next-generation <i>N</i>etworks) is an inter-domain network architecture, designed to provide route control, failure isolation, and explicit trust information for end-to-end communication.
 </p>
 <p>
-See the <a href="https://www.scion-architecture.net" target="_blank">SCION Architecture</a> main page for more details.
+SCION organizes ASes into groups of independent routing planes, called isolation domains (ISDs), which interconnect to provide global connectivity.
+ISDs provide natural isolation of routing failures and misconfiguration, give endpoints strong control for both inbound and outbound traffic, provide meaningful and enforceable trust, and enable scalable routing updates with high path freshness.
+</p>
+<p>
+As a result, the SCION architecture provides strong resilience and security properties as an intrinsic consequence of its design.
+Besides high security, SCION also provides a scalable routing infrastructure, and high efficiency for packet forwarding.
+</p>
+<p>
+As a path-based architecture, SCION end hosts learn about available network path segments, and combine then into end-to-end paths that are carried in packet headers.
+Thanks to embedded cryptographic mechanisms, path construction is constrained to the route policies of ISPs and receivers, offering path choice to all the parties: senders, receivers, and ISPs.
+This approach enables path-aware communication.
+These features also enable multi-path communication, which is an important approach for high availability, rapid failover in case of network failures, increased end-to-end bandwidth, dynamic traffic optimization, and resilience to DDoS attacks.
+</p>
+<p>
+SCION is designed to interoperate with existing networking infrastructure.
+Deployment of SCION can utilize existing internal switching infrastructure of an AS, and only require installation or upgrade of a few border routers.
+A SCION-Internet-Gateway (SIG) in the local infrastructure allows legacy end-hosts and applications to be unaware of SCION.
 </p>
 
-{% lorem %}
+<p>
+Please refer to the <a href="https://www.scion-architecture.net" target="_blank">SCION Architecture</a> main page for more information.
+</p>
+
 
 <hr class="mt-5">
 <h4>About SCIONLab</h4>
 
-{% lorem 2 %}
+<p>
+SCIONLab is a global research network to test and experiment with the SCION internet architecture.
+As a participant of SCIONLab, you will be able to create your own ASes that actively participate in the SCION inter-domain routing.
+Your AS will be running on your own hardware, under your full control.
+</p>
+
+<p>
+The infrastructure of SCIONLab comprises a network of globally connected ASes.
+A number of SCIONLab ASes are configured to act as "Attachment Points", and you can choose one as the uplink for your AS.
+The link between your AS and the attachment point AS is established as an overlay link over the legacy internet.
+</p>
+
+<p>
+The SCIONLab website serves to simplify and coordinate the setup of experimental ASes.
+Once created and configured in the SCIONLab website, you will be able to download the bundled configuration files for the SCION services and run your AS.
+Please refer to the <a href="https://netsec-ethz.github.io/scion-tutorials/" target="_blank">Tutorials</a> for setup instructions.
+</p>
+
+<p>
+In order to lower the entry-barrier for participation in SCIONLab, the design of SCIONLab deliberately includes some misfeatures that are <i>not</i> present in the production deployment of SCION:
+<ul>
+  <li>SCIONLab centralises management of the control plane public key infrastructure.
+    Compromising the central service would compromise all ASes in all ISDs. </li>
+  <li>Overlay links over the publicly routed internet are used both in the infrastructure and between the infrastructure and user-owned ASes.
+    Therefore, the security-, availability- and performance properties of SCION are not fully realised.
+  </li>
+</ul>
+</p>
+
 
 {% endblock content %}
