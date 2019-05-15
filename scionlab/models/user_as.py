@@ -17,7 +17,6 @@ import ipaddress
 from django import urls
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.conf import settings
 
 import scionlab.tasks
 from scionlab.models.core import (
@@ -332,9 +331,8 @@ class AttachmentPoint(models.Model):
         The deployment is rate limited, max rate controlled by
         settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD.
         """
-        delay = settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD
         for host in self.AS.hosts.iterator():
-            scionlab.tasks.deploy_host_config(host, delay=delay)
+            scionlab.tasks.deploy_host_config(host)
 
     def supported_ip_versions(self):
         """

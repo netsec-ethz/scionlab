@@ -27,7 +27,11 @@ import scionlab.tasks
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.models.core import Host
 from scionlab.models.user_as import AttachmentPoint, UserAS
-from scionlab.tasks import _check_host_needs_config_deployment, _deploy_host_config
+from scionlab.tasks import (
+    _check_host_needs_config_deployment,
+    _deploy_host_config,
+    _reset_host_deploy_cooldown
+)
 from scionlab.tests import utils
 
 execution_log = []
@@ -37,6 +41,8 @@ task_post_check = {}
 # Some test data:
 test_public_ip = '172.31.0.111'
 test_public_port = 54321
+
+smaller_test_delay = 3
 
 
 @huey.task()
@@ -99,6 +105,14 @@ def consume():
         logging.info("Consumer stopped.")
 
 
+def pending_tasks_by_name(name):
+    return len([t for t in huey.HUEY.pending() if t.name == name])
+
+
+def scheduled_tasks_by_name(name):
+    return len([t for t in huey.HUEY.scheduled() if t.name == name])
+
+
 class DeployHostConfigTests(TestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
@@ -146,6 +160,7 @@ class DeployHostConfigTests(TestCase):
             self.assertEqual(len(huey.HUEY.pending()), 0)
 
     def test_enqueing(self):
+        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD = smaller_test_delay
         attachment_point = AttachmentPoint.objects.first()
         hosts_pending_before = set(Host.objects.needs_config_deployment())
         with patch('scionlab.tasks._check_host_needs_config_deployment',
@@ -156,6 +171,7 @@ class DeployHostConfigTests(TestCase):
                        side_effect=_fake_invoke_ssh_scionlab_config) as mock_remote_ssh:
                 logging.debug("Mocking: %s" % (mock_remote_ssh,))
                 self.assertEqual(len(huey.HUEY.pending()), 0)
+                self.fake_needs_config_deployment = True
                 user_as = UserAS.objects.create(
                     owner=get_testuser(),
                     attachment_point=attachment_point,
@@ -166,8 +182,8 @@ class DeployHostConfigTests(TestCase):
                     public_port=test_public_port,
                 )
                 self.host = user_as.attachment_point.AS.hosts.first()
-                self.assertFalse(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
-                                               peek=True))
+                self.assertTrue(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
+                                              peek=True))
                 self.assertEqual("%s%s" % (task_pre_check['name'], task_pre_check['args']),
                                  "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
                                                                           self.host.pk,
@@ -179,13 +195,18 @@ class DeployHostConfigTests(TestCase):
                                      self.host.pk,
                                      self.host.secret,
                                      self.url))
+                huey.HUEY.immediate = False
+                time.sleep(smaller_test_delay+1)
+                consume()
+                self.assertFalse(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
+                                               peek=True))
                 # Check AS needs_config_deployment:
                 self.assertSetEqual(
                     hosts_pending_before | set(user_as.hosts.all() |
                                                attachment_point.AS.hosts.all()),
                     set(Host.objects.needs_config_deployment())
                 )
-                self.fake_needs_config_deployment = True
+                huey.HUEY.immediate = True
                 executions = len(execution_log)
                 user_as.attachment_point.trigger_deployment()
                 self.assertTrue(len(execution_log) > executions)
@@ -194,7 +215,7 @@ class DeployHostConfigTests(TestCase):
     def test_dequeuing(self):
         attachment_point = AttachmentPoint.objects.first()
         huey.HUEY.immediate = False
-        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD = 10
+        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD = smaller_test_delay
         with patch('subprocess.call',
                    side_effect=utils.subprocess_call_log) as mock_subprocess_call:
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
@@ -214,10 +235,9 @@ class DeployHostConfigTests(TestCase):
                              "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
                                                                       self.host.pk,
                                                                       self.host.secret))
-            time.sleep(10)
+            time.sleep(smaller_test_delay+1)
             consume()
             self.assertEqual(len(huey.HUEY.pending()), 0)
-        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD = None
 
     def test_canceled(self):
         attachment_point = AttachmentPoint.objects.first()
@@ -236,13 +256,15 @@ class DeployHostConfigTests(TestCase):
                 public_port=test_public_port,
             )
             self.host = user_as.attachment_point.AS.hosts.first()
-            deploy_task = huey.HUEY.pending()[0]
+            deploy_task = [t for t in huey.HUEY.pending() if t.name == '_deploy_host_config'][0]
             huey.HUEY._emit(huey_internal.signals.SIGNAL_CANCELED, deploy_task)
             _deploy_host_config.revoke()
+            _reset_host_deploy_cooldown.revoke()
             self.assertEqual("%s%s" % (deploy_task.name, deploy_task.args),
                              "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
                                                                       self.host.pk,
                                                                       self.host.secret))
+            time.sleep(smaller_test_delay+1)
             consume()
             self.assertEqual(len(huey.HUEY.pending()), 0)
             # check task was not executed
@@ -257,9 +279,10 @@ class DeployHostConfigTests(TestCase):
             self.assertEqual(len(huey.HUEY.pending()), 0)
             attachment_point.trigger_deployment()
             attachment_point.trigger_deployment()
-            self.assertEqual(len(huey.HUEY.pending()), 1)
+            self.assertEqual(pending_tasks_by_name('_deploy_host_config'), 1)
             consume()
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(scheduled_tasks_by_name('_reset_host_deploy_cooldown'), 1)
+            self.assertEqual(pending_tasks_by_name('_deploy_host_config'), 0)
 
     def test_empty(self):
         huey.HUEY.immediate = False
