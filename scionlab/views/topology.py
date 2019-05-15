@@ -63,9 +63,9 @@ def _add_link(g, link):
     elif link.type == Link.CORE:
         if as_a.isd == as_b.isd:
             attrs = {'constraint': 'false'}  # Don't rank core ASes of one ISD
-        elif as_a.isd.isd_id < as_b.isd.isd_id:  # Keep min ISD (i.e. 16) on top
+        elif as_a.isd.isd_id > as_b.isd.isd_id:  # Keep min ISD (i.e. 16) on top
             as_a, as_b = as_b, as_a
-    g.edge(str(as_b.pk), str(as_a.pk), _attributes=attrs)
+    g.edge(str(as_a.pk), str(as_b.pk), _attributes=attrs)
 
 
 def _add_as_node(g, as_):
