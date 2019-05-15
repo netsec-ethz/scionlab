@@ -1,7 +1,3 @@
-# TODO all these caddy base images seem rather crappy
-FROM yobasystems/alpine-caddy
+FROM abiosoft/caddy:no-stats
 COPY Caddyfile /etc/
-
-RUN mkdir -p /home/caddy/.caddy
-
-CMD ["-conf","/etc/Caddyfile","-agree","-email","scionlab-admins@sympa.ethz.ch"]
+ENV ACME_AGREE=true

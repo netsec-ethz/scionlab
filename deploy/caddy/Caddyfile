@@ -5,4 +5,5 @@ testing.scionlab.org {
         transparent
     }
     log stdout
+    tls scionlab-admins@sympa.ethz.ch
 }
