@@ -71,7 +71,6 @@ jobs:
             # Create migrations, otherwise test DB will not be initialised properly
             # TODO: remove once migrations are checked in!
             PYTHONPATH=/tmp/scion/python python manage.py makemigrations scionlab
-            PYTHONPATH=/tmp/scion/python python3 ./manage.py initialize_root_ca
             PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
@@ -94,11 +93,11 @@ jobs:
           command: |
             set -x
             # We first start only the coordinator
-            docker-compose -f ./docker-compose.yml create coord
+            docker-compose -f .circleci/docker-compose.yml create coord
             # create is deprecated in v18, use no-start when circleci updates its images
-            # docker-compose -f ./docker-compose.yml up --no-start coord
+            # docker-compose -f .circleci/docker-compose.yml up --no-start coord
             docker cp ./ coord:/home/circleci/repo/scionlab
-            docker-compose -f ./docker-compose.yml up --no-recreate -d coord
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coord
 
       - run:
           name: Build latest scion binaries for scionlab
@@ -138,11 +137,11 @@ jobs:
 
             # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
-            docker run --net repo_as_net --name curl_test\
+            docker run --net circleci_as_net --name curl_test\
               --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/login/; do echo 'Coord unreachable, retrying...'; sleep 5; done"
 
             export coreAS1301IP=172.31.0.110 infraAS1303IP=172.31.0.111 infraAS1305IP=172.31.0.112
-            docker-compose -f ./docker-compose.yml create zookeeper coreAS1301 infraAS1303 infraAS1305
+            docker-compose -f .circleci/docker-compose.yml create zookeeper coreAS1301 infraAS1303 infraAS1305
 
             # speedup deployment until we have binary packages
             for dst_AS in coreAS1301 infraAS1303 infraAS1305; do
@@ -153,7 +152,7 @@ jobs:
                     docker cp .circleci/setup/${f} ${dst_AS}:/tmp/
                 done
             done
-            docker-compose -f ./docker-compose.yml up --no-recreate -d zookeeper coreAS1301 infraAS1303 infraAS1305
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d zookeeper coreAS1301 infraAS1303 infraAS1305
 
       - run:
           name: Check SCION connections
@@ -171,7 +170,7 @@ jobs:
           command: |
             set -x
             # Restart ASes
-            docker-compose -f ./docker-compose.yml up --no-recreate -d infraAS1303 infraAS1305
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d infraAS1303 infraAS1305
             AS_ID=1305 # largest AS ID in the ISD
             TRC_version=1 # initial TRC version
 
@@ -181,7 +180,7 @@ jobs:
                 docker exec coreAS1301 /bin/bash -c "cat ${SC}/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
 
                 # Add core AS(es) for ISD 19
-                docker run --net repo_as_net -d --name add_core_AS\
+                docker run --net circleci_as_net -d --name add_core_AS\
                   --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; sleep 5; python3 /tmp/create_core_as.py ${AS_ID} ${n}" # largest AS ID in the ISD, number of new core ASes
                 docker cp .circleci/setup/create_core_as.py add_core_AS:/tmp/create_core_as.py
                 AS_ID=$(( $AS_ID + $n ))
@@ -229,7 +228,7 @@ jobs:
             fi
             echo "Start containers required for VPN AP and verify they are working"
             export coreAS1401IP=172.31.0.113 infraAS1405IP=172.31.0.114
-            docker-compose -f ./docker-compose.yml create coreAS1401 infraAS1405
+            docker-compose -f .circleci/docker-compose.yml create coreAS1401 infraAS1405
 
             # speedup deployment until we have binary packages
             for dst_AS in coreAS1401 infraAS1405; do
@@ -240,14 +239,14 @@ jobs:
                     docker cp .circleci/setup/${f} ${dst_AS}:/tmp/
                 done
             done
-            docker-compose -f ./docker-compose.yml up --no-recreate -d coreAS1401 infraAS1405
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coreAS1401 infraAS1405
             # Wait for AP to be set up (key generation is slow)
             docker exec infraAS1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 1; done;"
             echo "AP started"
 
             # Start user AS container, create user AS and connect:
-            docker run --net repo_as_net --privileged -d --name userAS1\
-              --entrypoint /bin/bash ethznetsec/scion_base:latest -c 'sleep 10; /tmp/VPNnewUserAS.sh'  # waits for setup script to be loaded
+            docker run --net circleci_as_net --privileged -dt --name userAS1\
+              --entrypoint /bin/bash ethznetsec/scion_base:latest -c 'sleep 10; /tmp/VPNnewUserAS.sh; cat; echo "Past cat"'  # waits for setup script to be loaded
             for f in $(ls .circleci/setup/); do
                 docker cp .circleci/setup/${f} userAS1:/tmp/
             done
@@ -255,16 +254,14 @@ jobs:
                 docker cp /tmp/scion/${src_dir} userAS1:${SC}
             done
             # Wait for client to be setup
-            docker run --net repo_as_net --name curl_test\
-              --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "until ping -w 1 -c 1 10.0.8.1; do echo 'AP not pingable, retrying...'; sleep 5; done"
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker exec userAS1 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 1; done; ./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+            docker exec -e SC=${SC} userAS1 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 1; done; ./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
             docker stop userAS1; docker rm userAS1;
 
       - run:
           name: Wind down the containers
           command: |
-            docker-compose -f ./docker-compose.yml down
+            docker-compose -f .circleci/docker-compose.yml down
 
       - store_test_results:
           path: test-reports
