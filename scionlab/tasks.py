@@ -37,10 +37,10 @@ def deploy_host_config(host):
     if not host.needs_config_deployment():
         return
 
-    queue_or_retrigger(host.management_ip, host.pk, host.secret)
+    _queue_or_retrigger(host.management_ip, host.pk, host.secret)
 
 
-def queue_or_retrigger(ssh_host, host_id, host_secret):
+def _queue_or_retrigger(ssh_host, host_id, host_secret):
     """
     Queues or sets the retrigger for the configuration deployment of a managed scionlab host.
 
@@ -57,12 +57,7 @@ def queue_or_retrigger(ssh_host, host_id, host_secret):
     # Custom trickery with hueys key-value store:
     # ensure only one task per host is in the queue or executing at any time.
     if _put_if_empty(_key_deploy_host_running(host_id), True):
-        try:
-            _deploy_host_config(ssh_host, host_id, host_secret)
-        finally:
-            # reset the lock when the cooldown period expires
-            _reset_host_deploy_cooldown.schedule(args=(host_id),
-                                                 delay=settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD)
+        _deploy_host_config(ssh_host, host_id, host_secret)
     else:
         # Mark as re-triggered to ensure that the task will re-run if necessary.
         _put_if_empty(_key_deploy_host_retriggered(host_id), True)
@@ -72,7 +67,6 @@ def queue_or_retrigger(ssh_host, host_id, host_secret):
 def _deploy_host_config(ssh_host, host_id, host_secret):
     """
     Task to deploy configuration to a managed scionlab host.
-    Should only be called from `queue_or_retrigger`.
 
     Note: parameters are passed individually instead of as the full host object,
     because the parameters are serialised by huey.
@@ -82,40 +76,18 @@ def _deploy_host_config(ssh_host, host_id, host_secret):
     :param str host_secret: secret to authenticate request for this Host object
     """
     if _check_host_needs_config_deployment(host_id):
+        # drain the retriggers
+        huey.HUEY.get(_key_deploy_host_retriggered(host_id))
         _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret)
-    # Check if the task was retriggered during its execution
+
+    # Check if the task was retriggered during its execution and it still needs deployment
     retriggered = huey.HUEY.get(_key_deploy_host_retriggered(host_id))
-    if retriggered:
-        # Schedule the task to be rerun, rerun it after the cooldown kicked in
-        _queue_or_retrigger.schedule(args=(ssh_host, host_id, host_secret),
-                                     delay=settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD+1)
-
-
-@huey.task()
-def _queue_or_retrigger(ssh_host, host_id, host_secret):
-    """
-    Task to queue or set the retrigger for the `_deploy_host_config` task.
-    Can be scheduled with a delay to ensure that updates get bundled.
-
-    Note: parameters are passed individually instead of as the full host object,
-    because the parameters are serialised by huey.
-
-    :param str ssh_host: name to ssh to host
-    :param str host_id: id (primary key) of the Host object
-    :param str host_secret: secret to authenticate request for this Host object
-    """
-    queue_or_retrigger(ssh_host, host_id, host_secret)
-
-
-@huey.task()
-def _reset_host_deploy_cooldown(host_id):
-    """
-    Resets the deployment lock for the host with `host_id`.
-    Should only be called from `queue_or_retrigger`.
-
-    :param str host_id: id (primary key) of the Host object
-    """
-    huey.HUEY.get(_key_deploy_host_running(host_id))
+    if retriggered and _check_host_needs_config_deployment(host_id):
+        # Schedule the task to be rerun after the delay
+        _deploy_host_config.schedule(args=(ssh_host, host_id, host_secret),
+                                     delay=settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD)
+    else:
+        huey.HUEY.get(_key_deploy_host_running(host_id))
 
 
 def _check_host_needs_config_deployment(host_id):

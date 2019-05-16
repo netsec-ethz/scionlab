@@ -30,7 +30,6 @@ from scionlab.models.user_as import AttachmentPoint, UserAS
 from scionlab.tasks import (
     _check_host_needs_config_deployment,
     _deploy_host_config,
-    _reset_host_deploy_cooldown
 )
 from scionlab.tests import utils
 
@@ -182,8 +181,8 @@ class DeployHostConfigTests(TestCase):
                     public_port=test_public_port,
                 )
                 self.host = user_as.attachment_point.AS.hosts.first()
-                self.assertTrue(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
-                                              peek=True))
+                #self.assertTrue(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
+                #                              peek=True))
                 self.assertEqual("%s%s" % (task_pre_check['name'], task_pre_check['args']),
                                  "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
                                                                           self.host.pk,
@@ -259,7 +258,6 @@ class DeployHostConfigTests(TestCase):
             deploy_task = [t for t in huey.HUEY.pending() if t.name == '_deploy_host_config'][0]
             huey.HUEY._emit(huey_internal.signals.SIGNAL_CANCELED, deploy_task)
             _deploy_host_config.revoke()
-            _reset_host_deploy_cooldown.revoke()
             self.assertEqual("%s%s" % (deploy_task.name, deploy_task.args),
                              "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
                                                                       self.host.pk,
@@ -281,7 +279,6 @@ class DeployHostConfigTests(TestCase):
             attachment_point.trigger_deployment()
             self.assertEqual(pending_tasks_by_name('_deploy_host_config'), 1)
             consume()
-            self.assertEqual(scheduled_tasks_by_name('_reset_host_deploy_cooldown'), 1)
             self.assertEqual(pending_tasks_by_name('_deploy_host_config'), 0)
 
     def test_empty(self):
