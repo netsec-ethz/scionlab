@@ -143,7 +143,6 @@ def _generate_config_info_json(host):
         'host_id': host.pk,
         'host_secret': host.secret,
         'version': host.config_version,
-        # 'ia': host.AS.isd_as_str() # XXX: what for?
         'url': settings.SCIONLAB_SITE
     }
     return json.dumps(config_info)
