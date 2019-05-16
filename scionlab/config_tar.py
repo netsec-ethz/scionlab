@@ -26,7 +26,7 @@ from scionlab.openvpn_config import (
     generate_vpn_server_config,
     ccd_config,
 )
-from scionlab.util.archive import TarWriter, tar_add_textfile
+from scionlab.util.archive import TarWriter, tar_add_textfile, tar_add_dir
 
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
@@ -90,9 +90,7 @@ def _add_vpn_config(host, tar):
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
         tar_add_textfile(tar, "server.conf", generate_vpn_server_config(vpn_server))
-        ccd_member = tarfile.TarInfo('ccd')
-        ccd_member.type = tarfile.DIRTYPE
-        tar.addfile(ccd_member)
+        tar_add_dir(tar, 'ccd')
         for vpn_client in vpn_server.clients.iterator():
             common_name, config_string = ccd_config(vpn_client)
             tar_add_textfile(tar, 'ccd/' + common_name, config_string)

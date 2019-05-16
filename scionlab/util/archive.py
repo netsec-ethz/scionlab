@@ -20,6 +20,7 @@ import io
 import json
 import pathlib
 import tarfile
+import time
 import toml
 import yaml
 
@@ -114,13 +115,28 @@ class TarWriter(BaseArchiveWriter):
 
 def tar_add_textfile(tar, path, content):
     """
-    Helper for tarfile: add a text-file `name` with the given `content` to a tarfile `tar`.
+    Helper for tarfile: add a text-file at `path` with the given `content` to a tarfile `tar`.
     :param TarFile tar: an open tarfile.TarFile
     :param str path: name/path for the file in the tarfile
     :param str content: file content
     """
-    tarinfo = tarfile.TarInfo()
-    tarinfo.name = path
+    m = tarfile.TarInfo(path)
     content_bytes = content.encode()
-    tarinfo.size = len(content_bytes)
-    tar.addfile(tarinfo, io.BytesIO(content_bytes))
+    m.size = len(content_bytes)
+    m.mtime = time.time()
+    tar.addfile(m, io.BytesIO(content_bytes))
+
+
+def tar_add_dir(tar, path, mode=0o755):
+    """
+    Add an explicit entry for a directory at `path` to the tarfile `tar`.
+    This can be used e.g. to add an empty directory.
+    :param TarFile tar: an open tarfile.TarFile
+    :param str path: name/path for the directory in the tarfile
+    :param int mode: optional, permission bits
+    """
+    m = tarfile.TarInfo(path)
+    m.type = tarfile.DIRTYPE
+    m.mode = mode
+    m.mtime = time.time()
+    tar.addfile(m)
