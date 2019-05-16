@@ -22,13 +22,15 @@ import huey as huey_internal
 import huey.contrib.djhuey as huey
 from django.conf import settings
 from django.test import TestCase
+from django.urls import reverse
 
-import scionlab.tasks
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.models.core import Host
 from scionlab.models.user_as import AttachmentPoint, UserAS
-from scionlab.tasks import _check_host_needs_config_deployment, _deploy_host_config
+from scionlab import tasks
+from scionlab.tasks import _put_if_empty, _key_deploy_host_running
 from scionlab.tests import utils
+from scionlab.tests.utils import basic_auth
 
 execution_log = []
 task_pre_check = {}
@@ -37,6 +39,8 @@ task_post_check = {}
 # Some test data:
 test_public_ip = '172.31.0.111'
 test_public_port = 54321
+
+smaller_test_delay = 3
 
 
 @huey.task()
@@ -84,6 +88,21 @@ def _fake_invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
     logging.info("Task info: task running %s, task retriggered %s" % (task_running, retriggered))
     execution = "ssh %s %s" % (ssh_host, command)
     execution_log.append(execution)
+
+    # Mock the client side call to notify success to the coordinator
+    client = TestCase.client_class()
+    deployed_config_version = Host.objects.get(id=host_id).config_version
+    post_url = reverse('api_post_deployed_version', kwargs={'pk': host_id})
+    auth_headers = basic_auth(host_id, host_secret)
+    response = client.post(
+        post_url,
+        {'version': deployed_config_version},
+        **auth_headers
+    )
+    logging.info("Status code"
+                 " of posting version %s to API endpoint %s: %s" % (deployed_config_version,
+                                                                    post_url,
+                                                                    response.status_code))
 
 
 def consume():
@@ -152,53 +171,53 @@ class DeployHostConfigTests(TestCase):
     def test_enqueing(self):
         attachment_point = AttachmentPoint.objects.first()
         hosts_pending_before = set(Host.objects.needs_config_deployment())
-        with patch('scionlab.tasks._check_host_needs_config_deployment',
-                   return_value=self.fake_needs_config_deployment) as mock_needs_config_deployment:
-            logging.debug("Mocking: %s" % (mock_needs_config_deployment,))
-            scionlab.tasks._check_host_needs_config_deployment = _check_host_needs_config_deployment
-            with patch('scionlab.tasks._invoke_ssh_scionlab_config',
-                       side_effect=_fake_invoke_ssh_scionlab_config) as mock_remote_ssh:
-                logging.debug("Mocking: %s" % (mock_remote_ssh,))
-                self.assertEqual(len(huey.HUEY.pending()), 0)
-                user_as = UserAS.objects.create(
-                    owner=get_testuser(),
-                    attachment_point=attachment_point,
-                    installation_type=UserAS.DEDICATED,
-                    label="Some label",
-                    use_vpn=False,
-                    public_ip=test_public_ip,
-                    public_port=test_public_port,
-                )
-                self.host = user_as.attachment_point.AS.hosts.first()
-                self.assertFalse(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
-                                               peek=True))
-                self.assertEqual("%s%s" % (task_pre_check['name'], task_pre_check['args']),
-                                 "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
-                                                                          self.host.pk,
-                                                                          self.host.secret))
-                self.assertEqual(execution_log[-1],
-                                 "ssh %s scionlab-config --host-id %s "
-                                 "--host-secret %s --url \"%s\"" % (
-                                     self.host.management_ip,
-                                     self.host.pk,
-                                     self.host.secret,
-                                     self.url))
-                # Check AS needs_config_deployment:
-                self.assertSetEqual(
-                    hosts_pending_before | set(user_as.hosts.all() |
-                                               attachment_point.AS.hosts.all()),
-                    set(Host.objects.needs_config_deployment())
-                )
-                self.fake_needs_config_deployment = True
-                executions = len(execution_log)
-                user_as.attachment_point.trigger_deployment()
-                self.assertTrue(len(execution_log) > executions)
-                self.assertNotEqual(execution_log, [])
+        with patch('scionlab.tasks._invoke_ssh_scionlab_config',
+                   side_effect=_fake_invoke_ssh_scionlab_config) as mock_remote_ssh:
+            logging.debug("Mocking: %s" % (mock_remote_ssh,))
+            self.assertEqual(len(huey.HUEY.pending()), 0)
+            _put_if_empty(_key_deploy_host_running(attachment_point.AS.hosts.first().pk), True)
+            user_as = UserAS.objects.create(
+                owner=get_testuser(),
+                attachment_point=attachment_point,
+                installation_type=UserAS.DEDICATED,
+                label="Some label",
+                use_vpn=False,
+                public_ip=test_public_ip,
+                public_port=test_public_port,
+            )
+            # Check AS needs_config_deployment:
+            self.assertSetEqual(
+                hosts_pending_before | set(user_as.hosts.all() |
+                                           attachment_point.AS.hosts.all()),
+                set(Host.objects.needs_config_deployment())
+            )
+            self.host = user_as.attachment_point.AS.hosts.first()
+            self.assertTrue(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
+                                           peek=True))
+
+            executions = len(execution_log)
+            huey.HUEY.get(_key_deploy_host_running(self.host.pk))
+            user_as.attachment_point.trigger_deployment()
+            self.assertFalse(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
+                                           peek=True))
+            self.assertEqual("%s%s" % (task_pre_check['name'], task_pre_check['args']),
+                             "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
+                                                                      self.host.pk,
+                                                                      self.host.secret))
+            self.assertEqual(execution_log[-1],
+                             "ssh %s scionlab-config --host-id %s "
+                             "--host-secret %s --url \"%s\"" % (
+                                 self.host.management_ip,
+                                 self.host.pk,
+                                 self.host.secret,
+                                 self.url))
+            self.assertTrue(len(execution_log) > executions)
+            self.assertNotEqual(execution_log, [])
 
     def test_dequeuing(self):
         attachment_point = AttachmentPoint.objects.first()
         huey.HUEY.immediate = False
-        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD = 10
+        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD = smaller_test_delay
         with patch('subprocess.call',
                    side_effect=utils.subprocess_call_log) as mock_subprocess_call:
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
@@ -218,7 +237,7 @@ class DeployHostConfigTests(TestCase):
                              "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
                                                                       self.host.pk,
                                                                       self.host.secret))
-            time.sleep(10)
+            time.sleep(smaller_test_delay+1)
             consume()
             self.assertEqual(len(huey.HUEY.pending()), 0)
         settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD = None
@@ -244,7 +263,7 @@ class DeployHostConfigTests(TestCase):
             self.host = user_as.attachment_point.AS.hosts.first()
             deploy_task = huey.HUEY.pending()[0]
             huey.HUEY._emit(huey_internal.signals.SIGNAL_CANCELED, deploy_task)
-            _deploy_host_config.revoke()
+            tasks._deploy_host_config.revoke()
             self.assertEqual("%s%s" % (deploy_task.name, deploy_task.args),
                              "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,
                                                                       self.host.pk,
