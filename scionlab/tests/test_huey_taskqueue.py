@@ -193,7 +193,7 @@ class DeployHostConfigTests(TestCase):
             )
             self.host = user_as.attachment_point.AS.hosts.first()
             self.assertTrue(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
-                                           peek=True))
+                                          peek=True))
 
             executions = len(execution_log)
             huey.HUEY.get(_key_deploy_host_running(self.host.pk))

@@ -16,7 +16,6 @@ from django.test import TestCase
 from scionlab.models.core import Host
 from scionlab.tests import utils
 from scionlab.tests.utils import basic_auth
-import base64
 
 
 class GetHostConfigTests(TestCase):
