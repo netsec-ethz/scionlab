@@ -1,4 +1,5 @@
-testing.scionlab.org {
+#testing.scionlab.org {
+{$SCIONLAB_SITE} {
     root /var/www/scionlab
     proxy / django:8000 {
         except /static

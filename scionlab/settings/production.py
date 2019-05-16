@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import re
 import huey
 from .common import *
 
@@ -28,9 +29,19 @@ def _getenv(key):
     return v
 
 
-# ##### PROXY CONFIGURATION #####################
-ALLOWED_HOSTS = ['testing.scionlab.org']
+# ##### INSTANCE AND PROXY CONFIGURATION #####################
+# Parse host out of "site", so we won't need two settings for this.
+# This enviornment variable is shared with the Caddyfile
+SCIONLAB_SITE = _getenv('SCIONLAB_SITE')
+_scionlab_host = re.sub(r'^\w+://|:\d+$', '', SCIONLAB_SITE)
+
+ALLOWED_HOSTS = [_scionlab_host]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Test instance indicator (controls ribbon in base template):
+# - Empty string for production instance at scionlab.org.
+# - 'testing' for testing.scionlab.org etc.
+INSTANCE_NAME = re.sub(r'\.?scionlab\.org$', '', _scionlab_host)
 
 
 # ##### DB CONFIGURATION #####################
@@ -64,8 +75,3 @@ EMAIL_HOST_PASSWORD = _getenv('EMAIL_HOST_PASSWORD')
 # ##### RECAPTCHA KEYS ##############################
 RECAPTCHA_PUBLIC_KEY = _getenv('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = _getenv('RECAPTCHA_PRIVATE_KEY')
-
-
-# ##### TEST INSTANCE INDICATOR ##############################
-# Set this to empty string explicitly for production
-INSTANCE_NAME = _getenv('INSTANCE_NAME')

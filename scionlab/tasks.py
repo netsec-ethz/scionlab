@@ -105,7 +105,7 @@ def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
                ' --url "{url}"').format(
                   host_id=host_id,
                   host_secret=host_secret,
-                  url='https://testing.scionlab.org')  # TODO(matzf)
+                  url=settings.SCIONLAB_SITE)
 
     args = ['ssh', '-F', settings.SSH_CONFIG_PATH, ssh_host, command]
     logging.info(' '.join(a for a in args))

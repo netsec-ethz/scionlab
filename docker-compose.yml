@@ -41,6 +41,7 @@ services:
 
   proxy:
     build: ./deploy/caddy
+    env_file: run/scionlab.env
     depends_on:
       - django
     ports:

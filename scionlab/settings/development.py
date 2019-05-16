@@ -16,6 +16,8 @@ import os
 from .common import *
 import huey
 
+SCIONLAB_SITE = 'http://localhost:8000'
+
 # ##### DEBUG CONFIGURATION ###############################
 DEBUG = True
 TEMPLATES[0]['OPTIONS']['debug'] = True
