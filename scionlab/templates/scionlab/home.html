@@ -50,7 +50,8 @@ As a result, the SCION architecture provides strong resilience and security prop
 Besides high security, SCION also provides a scalable routing infrastructure, and high efficiency for packet forwarding.
 </p>
 <p>
-As a path-based architecture, SCION end hosts learn about available network path segments, and combine then into end-to-end paths that are carried in packet headers.
+The SCION architecture is based on paths.
+SCION end hosts learn about available network path segments, and combine them into end-to-end paths that are carried in packet headers.
 Thanks to embedded cryptographic mechanisms, path construction is constrained to the route policies of ISPs and receivers, offering path choice to all the parties: senders, receivers, and ISPs.
 This approach enables path-aware communication.
 These features also enable multi-path communication, which is an important approach for high availability, rapid failover in case of network failures, increased end-to-end bandwidth, dynamic traffic optimization, and resilience to DDoS attacks.
@@ -88,12 +89,12 @@ Please refer to the <a href="https://netsec-ethz.github.io/scion-tutorials/" tar
 </p>
 
 <p>
-In order to lower the entry-barrier for participation in SCIONLab, the design of SCIONLab deliberately includes some misfeatures that are <i>not</i> present in the production deployment of SCION:
+In order to simplify the management of ASes and lower the entry-barrier for participation, the design of SCIONLab deliberately has some restrictions that are <i>not</i> present in the production deployment of SCION:
 <ul>
-  <li>SCIONLab centralises management of the control plane public key infrastructure.
-    Compromising the central service would compromise all ASes in all ISDs. </li>
+  <li>SCIONLab centralizes management of the control plane public key infrastructure.
+    Compromising the central service would compromise all ASes. </li>
   <li>Overlay links over the publicly routed internet are used both in the infrastructure and between the infrastructure and user-owned ASes.
-    Therefore, the security-, availability- and performance properties of SCION are not fully realised.
+    Therefore, the security-, availability- and performance properties of SCION are not fully realized.
   </li>
 </ul>
 </p>
