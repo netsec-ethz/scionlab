@@ -17,6 +17,7 @@ Huey tasks config for scionlab project.
 """
 
 import logging
+import shlex
 import subprocess
 import huey.contrib.djhuey as huey
 from django.conf import settings
@@ -108,5 +109,5 @@ def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
                   url=settings.SCIONLAB_SITE)
 
     args = ['ssh', '-F', settings.SSH_CONFIG_PATH, ssh_host, command]
-    logging.info(' '.join(a for a in args))
+    logging.info(' '.join(shlex.quote(a) for a in args))
     subprocess.call(args)
