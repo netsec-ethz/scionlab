@@ -1,9 +1,10 @@
-Dear SCIONLab user,
+Hello {{ user.first_name }} {{ user.last_name }}
 
-This is the account activation Email.
-Use the following activation link to activate your account: {{ scheme }}://{{ site }}/registration/activate/{{ activation_key }}
+Thank you for signing up with SCIONLab. To use the service you have to confirm your email address by clicking the link below.
+If you did not expect this email, please ignore it.
 
-If you did not request a SCIONLab account, you can ignore this email.
+{{ scheme }}://{{ site }}{% url 'django_registration_activate' activation_key=activation_key %}
+
 
 Kind regards,
 
