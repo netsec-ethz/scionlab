@@ -545,6 +545,7 @@ class Host(models.Model):
         prev_internal_ip = self.internal_ip
         prev_public_ip = self.public_ip
         prev_bind_ip = self.bind_ip
+        prev_secret = self.secret
 
         if internal_ip is not _placeholder:
             self.internal_ip = internal_ip or None
@@ -560,17 +561,24 @@ class Host(models.Model):
             self.ssh_host = ssh_host or None
         if secret is not _placeholder:
             self.secret = secret or self._gen_secret()
-        self.config_version += 1
+
+        internal_ip_changed = (self.internal_ip != prev_internal_ip)
+        public_ip_changed = (self.public_ip != prev_public_ip)
+        bind_ip_changed = (self.bind_ip != prev_bind_ip)
+        secret_changed = (self.secret != prev_secret)
+
+        has_affected_interfaces = self.interfaces.filter(public_ip=None).exists()
+        bump_host = internal_ip_changed or public_ip_changed or bind_ip_changed or secret_changed
+        bump_local_AS = internal_ip_changed or (public_ip_changed and has_affected_interfaces)
+        bump_remote_ASes = public_ip_changed and has_affected_interfaces
+
+        if bump_host and not bump_local_AS:
+            self.config_version += 1
         self.save()
 
-        bump_internal_ip = (self.internal_ip != prev_internal_ip) and self.services.exists()
-        has_affected_interfaces = self.interfaces.filter(public_ip=None).exists()
-        bump_public_ip = (self.public_ip != prev_public_ip) and has_affected_interfaces
-        bump_bind_ip = (self.bind_ip != prev_bind_ip) and has_affected_interfaces
-
-        if bump_internal_ip or bump_public_ip or bump_bind_ip:
+        if bump_local_AS:
             self.AS.hosts.bump_config()
-        if bump_public_ip:
+        if bump_remote_ASes:
             # bump affected remote ASes
             for interface in self.interfaces.filter(public_ip=None).iterator():
                 interface.remote_as().hosts.bump_config()
