@@ -85,7 +85,7 @@ def _deploy_host_config(ssh_host, host_id, host_secret):
     if retriggered and _check_host_needs_config_deployment(host_id):
         # Schedule the task to be rerun after the delay
         _deploy_host_config.schedule(args=(ssh_host, host_id, host_secret),
-                                     delay=settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD)
+                                     delay=settings.DEPLOYMENT_PERIOD)
     else:
         huey.HUEY.get(_key_deploy_host_running(host_id))
 
