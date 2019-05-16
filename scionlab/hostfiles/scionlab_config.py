@@ -14,7 +14,14 @@
 # limitations under the License.
 
 """
-TODO(matzf) doc
+scionlab-config  --  configuration script for scionlab hosts
+
+The scionlab-config script fetches the bundled configuration for a scionlab host from
+the scionlab.org coordination website and installs it in this machine.
+
+Prerequisites:
+    - an installation of SCION (with all its dependencies)
+    - openvpn installed, if used
 """
 
 import argparse
@@ -25,6 +32,7 @@ import json
 import logging
 import os
 import shutil
+import shlex
 import subprocess
 import sys
 import tarfile
@@ -51,9 +59,9 @@ ConfigInfo = namedtuple('ConfigInfo',
                          'version'])
 
 
-def main():
+def main(argv):
     sys.tracebacklimit = -1
-    args = parse_command_line_args()
+    args = parse_command_line_args(argv)
 
     if not args.tar:
         config_info = get_config_info(args)
@@ -72,7 +80,7 @@ def main():
         install_config(tar)
 
 
-def parse_command_line_args():
+def parse_command_line_args(argv):
     parser = argparse.ArgumentParser(description='Install configuration for a SCIONLab host.')
 
     group_fetch = parser.add_argument_group('Fetch options')
@@ -91,7 +99,7 @@ def parse_command_line_args():
 
     parser.add_argument('--tar')
 
-    return parser.parse_args()
+    return parser.parse_args(argv[1:])
 
 
 def get_config_info(args):
@@ -349,5 +357,24 @@ def _run_as_root(args, check=True, **kwargs):
     subprocess.run(args, check=check)
 
 
+def _get_argv():
+    """
+    Parse args from SSH_ORIGINAL_COMMAND, if set.
+    Allows to restrict ssh access to running this script, eg.
+
+    .ssh/authorized_keys:
+        command=scionlab-config <...key...> auto-deploy@scionlab.org
+    """
+    ssh_original_cmd = os.environ.get('SSH_ORIGINAL_COMMAND')
+    if ssh_original_cmd:
+        argv = shlex.split(ssh_original_cmd)
+        if not argv or argv[0] != os.path.basename(sys.argv[0]):  # avoid silly things
+            return None
+        return argv
+    return sys.argv
+
+
 if __name__ == '__main__':
-    main()
+    argv = _get_argv()
+    if argv:
+        main(argv)
