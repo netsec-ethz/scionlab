@@ -18,14 +18,10 @@
 #
 version: 2
 jobs:
-  build:
+  basic:
     docker:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
-    environment:
-      BASH_ENV: "~/repo/.circleci/bash_env.sh"
-      SCION_SRC: "https://github.com/netsec-ethz/netsec-scion"
-      SC: "/home/scion/go/src/github.com/scionproto/scion"
 
     steps:
       - checkout
@@ -74,24 +70,45 @@ jobs:
             PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
+      - store_test_results:
+          path: test-reports
+
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+
+  integration:
+    docker:
+      - image: circleci/python:3.6.1
+    working_directory: ~/repo
+    environment:
+      BASH_ENV: "~/repo/.circleci/bash_env.sh"
+      SCION_SRC: "https://github.com/netsec-ethz/netsec-scion"
+      SC: "/home/scion/go/src/github.com/scionproto/scion"
+
+    steps:
+      - checkout
+
       - setup_remote_docker
 
-      # Setup for local execution
       - run:
           name: Setup local execution alias
           command: |
             if [[ ${CIRCLE_ENV} == *"local"* ]]; then
+              echo "Setting up local execution aliases"
               echo "shopt -s expand_aliases" >> ./${local_env}
               echo "alias docker='sudo -E docker'" >> ./${local_env}
               echo "alias docker-compose='sudo -E docker-compose'" >> ./${local_env}
               # BASH_ENV gets sourced before each run step
             fi
 
-      # Setup coordinator
       - run:
           name: Setup coordinator
           command: |
             set -x
+            # XXX(matzf) This could probably mount the tested code, instead of fiddly copying.
+            # Otherwise, Dockerfile!
+
             # We first start only the coordinator
             docker-compose -f .circleci/docker-compose.yml create coord
             # create is deprecated in v18, use no-start when circleci updates its images
@@ -102,6 +119,14 @@ jobs:
       - run:
           name: Build latest scion binaries for scionlab
           command: |
+            # XXX(matzf) This should be restructured;
+            # Building the scion binaries should happen in a Dockerfile! This would then be cached, no
+            # need for manual copying around things. Would make things a lot simpler here.
+            # Btw. not sure about why this particular checkout is needed here:
+
+            git clone ${SCION_SRC} -b scionlab --depth 1 /tmp/scion
+            cd /tmp/scion
+
             #cd /tmp/scion
             #sudo apt update
             #./env/deps
@@ -109,7 +134,7 @@ jobs:
 
             # Use builder container, to build once when not using local image
             docker run --name scion_builder --rm -d\
-              --entrypoint /bin/bash ethznetsec/scion_base -c "sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev; git clone ${SCION_SRC} ${SC}; cd ${SC}; ./env/deps; make; until [ -e ./done ]; do sleep 10; done;"
+              --entrypoint /bin/bash ethznetsec/scion_base -c "sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev; git clone ${SCION_SRC} -b scionlab --depth 1 ${SC}; cd ${SC}; ./env/deps; make; until [ -e ./done ]; do sleep 10; done;"
             echo "Started builder"
             docker exec scion_builder /bin/bash -c "until [ -e ${SC}/bin/sig ]; do sleep 10; done;"
             echo "Build completed"
@@ -263,10 +288,9 @@ jobs:
           command: |
             docker-compose -f .circleci/docker-compose.yml down
 
-      - store_test_results:
-          path: test-reports
-
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
-
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - basic
+      - integration

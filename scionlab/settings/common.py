@@ -58,6 +58,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'scionlab.context_processors.grafana_url',
+                'scionlab.context_processors.instance_indicator',
             ],
         },
     },
@@ -67,6 +68,8 @@ TEMPLATES = [
 
 # the URL for static files
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 # ##### AUTH CONFIGURATION ################################
 AUTH_USER_MODEL = 'scionlab.User'
@@ -96,8 +99,11 @@ GRAFANA_URL = "https://prometheus.scionlab.org"
 # two consecutive deployments (value in seconds).
 ATTACHMENT_POINT_DEPLOYMENT_PERIOD = 60
 
+# SSH Config file for managed hosts
+SSH_CONFIG_PATH = os.path.join(BASE_DIR, 'run', 'ssh_config')
+
 # Openvpn key/cert:
-VPN_CA_KEY_PASSWORD = os.environ.get('SCIONLAB_ROOT_CA_KEY_PASSWORD')
+VPN_CA_KEY_PASSWORD = os.environ.get('VPN_CA_KEY_PASSWORD')
 VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_key.pem')
 VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_cert.pem')
 

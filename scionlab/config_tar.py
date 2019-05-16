@@ -26,7 +26,7 @@ from scionlab.openvpn_config import (
     generate_vpn_server_config,
     ccd_config,
 )
-from scionlab.util.archive import TarWriter, tar_add_textfile
+from scionlab.util.archive import TarWriter, tar_add_textfile, tar_add_dir
 
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
@@ -90,6 +90,7 @@ def _add_vpn_config(host, tar):
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
         tar_add_textfile(tar, "server.conf", generate_vpn_server_config(vpn_server))
+        tar_add_dir(tar, 'ccd')
         for vpn_client in vpn_server.clients.iterator():
             common_name, config_string = ccd_config(vpn_client)
             tar_add_textfile(tar, 'ccd/' + common_name, config_string)
@@ -142,9 +143,7 @@ def _generate_config_info_json(host):
         'host_id': host.pk,
         'host_secret': host.secret,
         'version': host.config_version,
-        # 'ia': host.AS.isd_as_str() # XXX: what for?
-        'url': 'locahost:8080'  # TODO(matzf): how to get this?
-                                # Put into settings? Or get from request and pass in?
+        'url': settings.SCIONLAB_SITE
     }
     return json.dumps(config_info)
 

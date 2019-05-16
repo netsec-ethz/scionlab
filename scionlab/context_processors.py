@@ -20,3 +20,17 @@ def grafana_url(request):
     """
     from django.conf import settings
     return {'grafana_url': settings.GRAFANA_URL}
+
+
+def instance_indicator(request):
+    """
+    Inject a `instance_indicator` string to indicate dev/testing instances.
+    If set, this is rendered into a ribbon in the scionlab/base.html template
+    """
+    from django.conf import settings
+    mode = ''
+    if hasattr(settings, 'INSTANCE_NAME'):
+        mode = settings.INSTANCE_NAME
+    if settings.DEBUG:
+        mode += '[debug]'
+    return {'instance_indicator': mode}

@@ -493,10 +493,11 @@ class Host(models.Model):
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
     managed = models.BooleanField(default=False)
-    management_ip = models.GenericIPAddressField(
+    ssh_host = models.CharField(
+        max_length=_MAX_LEN_DEFAULT,
         null=True,
         blank=True,
-        help_text="Public IP of the host for management (should be reachable by the coordinator)."
+        help_text="Hostname or IP for management access via SSH. Configured in run/ssh_config."
     )
     secret = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
@@ -525,7 +526,7 @@ class Host(models.Model):
                bind_ip=_placeholder,
                label=_placeholder,
                managed=_placeholder,
-               management_ip=_placeholder,
+               ssh_host=_placeholder,
                secret=_placeholder):
         """
         Update the specified fields of this host instance, and immediately `save`.
@@ -536,7 +537,7 @@ class Host(models.Model):
         :param str bind_ip: optional, default bind IP for border router interfaces on this host
         :param str label: optional
         :param bool managed: optional
-        :param str management_ip: optional, public IP of the host for management
+        :param str ssh_host: optional, hostname/IP for management access via SSH
         :param str secret: optional, a secret to authenticate the host. If `None` is given, a new
                            random secret is generated.
         """
@@ -544,6 +545,7 @@ class Host(models.Model):
         prev_internal_ip = self.internal_ip
         prev_public_ip = self.public_ip
         prev_bind_ip = self.bind_ip
+        prev_secret = self.secret
 
         if internal_ip is not _placeholder:
             self.internal_ip = internal_ip or None
@@ -555,20 +557,28 @@ class Host(models.Model):
             self.label = label or None
         if managed is not _placeholder:
             self.managed = managed
-        if management_ip is not _placeholder:
-            self.management_ip = management_ip or None
+        if ssh_host is not _placeholder:
+            self.ssh_host = ssh_host or None
         if secret is not _placeholder:
             self.secret = secret or self._gen_secret()
+
+        internal_ip_changed = (self.internal_ip != prev_internal_ip)
+        public_ip_changed = (self.public_ip != prev_public_ip)
+        bind_ip_changed = (self.bind_ip != prev_bind_ip)
+        secret_changed = (self.secret != prev_secret)
+
+        has_affected_interfaces = self.interfaces.filter(public_ip=None).exists()
+        bump_host = internal_ip_changed or public_ip_changed or bind_ip_changed or secret_changed
+        bump_local_AS = internal_ip_changed or (public_ip_changed and has_affected_interfaces)
+        bump_remote_ASes = public_ip_changed and has_affected_interfaces
+
+        if bump_host and not bump_local_AS:
+            self.config_version += 1
         self.save()
 
-        bump_internal_ip = (self.internal_ip != prev_internal_ip) and self.services.exists()
-        has_affected_interfaces = self.interfaces.filter(public_ip=None).exists()
-        bump_public_ip = (self.public_ip != prev_public_ip) and has_affected_interfaces
-        bump_bind_ip = (self.bind_ip != prev_bind_ip) and has_affected_interfaces
-
-        if bump_internal_ip or bump_public_ip or bump_bind_ip:
+        if bump_local_AS:
             self.AS.hosts.bump_config()
-        if bump_public_ip:
+        if bump_remote_ASes:
             # bump affected remote ASes
             for interface in self.interfaces.filter(public_ip=None).iterator():
                 interface.remote_as().hosts.bump_config()
@@ -718,13 +728,13 @@ class Interface(models.Model):
         help_text="""Public IP for this interface. If this is not null, overrides the Host's default
             public IP."""
     )
-    public_port = models.PositiveSmallIntegerField()
+    public_port = models.PositiveIntegerField()
     bind_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
         help_text="""Bind IP for this interface (optional). If `public_ip` (!) is not null, this
             overrides the Host's default bind IP.""")
-    bind_port = models.PositiveSmallIntegerField(null=True, blank=True)
+    bind_port = models.PositiveIntegerField(null=True, blank=True)
 
     objects = InterfaceManager()
 
@@ -1106,8 +1116,8 @@ class BorderRouter(models.Model):
         related_name='border_routers',
         on_delete=models.CASCADE
     )
-    internal_port = models.PositiveSmallIntegerField(blank=True)
-    control_port = models.PositiveSmallIntegerField(blank=True)
+    internal_port = models.PositiveIntegerField(blank=True)
+    control_port = models.PositiveIntegerField(blank=True)
 
     objects = BorderRouterManager()
 
@@ -1211,7 +1221,7 @@ class Service(models.Model):
         related_name='services',
         on_delete=models.CASCADE
     )
-    port = models.PositiveSmallIntegerField(blank=True)
+    port = models.PositiveIntegerField(blank=True)
     type = models.CharField(
         choices=SERVICE_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT

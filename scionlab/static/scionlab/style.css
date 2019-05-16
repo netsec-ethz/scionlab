@@ -70,3 +70,36 @@ main {
 .invalid-feedback {
   display: block;
 }
+
+/* "TESTING" ribbon over nav bar
+------------------------------------*/
+.ribbon {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  pointer-events: none;
+}
+.ribbon span {
+  font-size: 20px;
+  color: #FFF;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 30px;
+  width: 200%;
+  display: block;
+  transform: rotate(-45deg);
+  position: absolute;
+  left: -50%;
+  top: 50%;
+  box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
+}
+
+.ribbon-red {
+  background: linear-gradient(#F70505 0%, #8F0808 100%);
+}
+.ribbon-blue {
+  background: linear-gradient(#2989d8 0%, #1e5799 100%);
+}

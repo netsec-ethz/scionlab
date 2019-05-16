@@ -279,7 +279,7 @@ class Generator:
                                                  internal_ip=internal_ip,
                                                  bind_ip=bind_ip,
                                                  managed=True,
-                                                 management_ip=public_ip)
+                                                 ssh_host=public_ip)
             Service.objects.create(host=host, type=service_type, port=public_port)
         serv = topo[TYPES_TO_KEYS[Service.ZK]]['1']
         public_ip = serv['Addr']
@@ -316,7 +316,7 @@ class Generator:
                                                           internal_ip=internal_ip,
                                                           bind_ip=bind_ip,
                                                           managed=True,
-                                                          management_ip=public_ip)
+                                                          ssh_host=public_ip)
                 assert(Host.objects.filter(AS=as_,
                                            public_ip=public_ip,
                                            internal_ip=internal_ip).count() == 1)

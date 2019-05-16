@@ -17,8 +17,10 @@ Huey tasks config for scionlab project.
 """
 
 import logging
+import shlex
 import subprocess
 import huey.contrib.djhuey as huey
+from django.conf import settings
 
 
 def deploy_host_config(host, delay=None):
@@ -46,10 +48,10 @@ def deploy_host_config(host, delay=None):
     # ensure only one task per host is in the queue or executing at any time.
     if _put_if_empty(_key_deploy_host_running(host.pk), True):
         if delay:
-            _deploy_host_config.schedule(args=(host.management_ip, host.pk, host.secret),
+            _deploy_host_config.schedule(args=(host.ssh_host, host.pk, host.secret),
                                          delay=delay)
         else:
-            _deploy_host_config(host.management_ip, host.pk, host.secret)
+            _deploy_host_config(host.ssh_host, host.pk, host.secret)
     else:
         # Mark as re-triggered to ensure that the task will re-run if necessary.
         _put_if_empty(_key_deploy_host_retriggered(host.pk), True)
@@ -104,7 +106,8 @@ def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
                ' --url "{url}"').format(
                   host_id=host_id,
                   host_secret=host_secret,
-                  url='localhost:8080')  # TODO(matzf)
+                  url=settings.SCIONLAB_SITE)
 
-    logging.info("ssh %s '%s'" % (ssh_host, command))
-    subprocess.call(['ssh', ssh_host, command])
+    args = ['ssh', '-F', settings.SSH_CONFIG_PATH, ssh_host, command]
+    logging.info(' '.join(shlex.quote(a) for a in args))
+    subprocess.call(args)

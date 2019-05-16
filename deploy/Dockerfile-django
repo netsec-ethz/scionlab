@@ -1,0 +1,25 @@
+FROM python:3
+ENV PYTHONUNBUFFERED 1
+
+# Graphviz is used to render the topology (see scionlab.views.topology); the python
+# library only wraps calls to the binaries which need to be installed on the system.
+RUN apt-get update && apt-get install -y graphviz
+
+# Appdeps is used by the entrypoint script to wait for the DB services.
+# Not included in requirements because it's a requirement of the
+# docker-compose plumbing, not the application.
+RUN pip install appdeps
+
+# Clone SCION repo to get it's python modules
+RUN git clone https://github.com/netsec-ethz/netsec-scion/ -b scionlab /scion
+ENV PYTHONPATH=/scion/python:/scion
+
+RUN mkdir /scionlab
+WORKDIR /scionlab
+COPY requirements.txt /scionlab/
+RUN pip install -r requirements.txt
+COPY . /scionlab/
+
+
+ENV DJANGO_SETTINGS_MODULE=scionlab.settings.production
+CMD /scionlab/deploy/django-entrypoint.sh

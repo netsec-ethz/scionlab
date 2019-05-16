@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # Get scion dependency
-[ -d /tmp/scion ] || git clone https://github.com/netsec-ethz/netsec-scion.git /tmp/scion
-cd /tmp/scion
-git fetch && git checkout scionlab && git reset --hard origin/scionlab
+git clone https://github.com/netsec-ethz/netsec-scion.git -b scionlab --depth 1 /tmp/scion
 
 # Get code under test from executor
 cd ~/repo; until [ -d ./scionlab ]; do sleep 10; done

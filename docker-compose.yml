@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:11-alpine
+    env_file: run/scionlab.env
+    expose:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+  redis:
+    image: redis:5-alpine
+    volumes:
+      - redisdata:/data
+
+  huey:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile-django
+    command: /scionlab/manage.py run_huey -w 8
+    env_file: run/scionlab.env
+    depends_on:
+      - redis
+    volumes:
+      - ./run/:/scionlab/run/
+
+  django:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile-django
+    env_file: run/scionlab.env
+    expose:
+      - "8000"
+    depends_on:
+      - db
+      - huey
+    volumes:
+      - ./run/:/scionlab/run/
+      - web-static:/scionlab/static/
+
+  proxy:
+    build: ./deploy/caddy
+    env_file: run/scionlab.env
+    depends_on:
+      - django
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - web-static:/var/www/scionlab/static
+      - caddydata:/home/caddy/.caddy/
+
+volumes:
+  web-static:
+  pgdata:
+  redisdata:
+  caddydata:

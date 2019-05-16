@@ -14,7 +14,14 @@
 # limitations under the License.
 
 """
-TODO(matzf) doc
+scionlab-config  --  configuration script for scionlab hosts
+
+The scionlab-config script fetches the bundled configuration for a scionlab host from
+the scionlab.org coordination website and installs it in this machine.
+
+Prerequisites:
+    - an installation of SCION (with all its dependencies)
+    - openvpn installed, if used
 """
 
 import argparse
@@ -25,6 +32,7 @@ import json
 import logging
 import os
 import shutil
+import shlex
 import subprocess
 import sys
 import tarfile
@@ -51,9 +59,9 @@ ConfigInfo = namedtuple('ConfigInfo',
                          'version'])
 
 
-def main():
+def main(argv):
     sys.tracebacklimit = -1
-    args = parse_command_line_args()
+    args = parse_command_line_args(argv)
 
     if not args.tar:
         config_info = get_config_info(args)
@@ -72,7 +80,7 @@ def main():
         install_config(tar)
 
 
-def parse_command_line_args():
+def parse_command_line_args(argv):
     parser = argparse.ArgumentParser(description='Install configuration for a SCIONLab host.')
 
     group_fetch = parser.add_argument_group('Fetch options')
@@ -91,7 +99,7 @@ def parse_command_line_args():
 
     parser.add_argument('--tar')
 
-    return parser.parse_args()
+    return parser.parse_args(argv[1:])
 
 
 def get_config_info(args):
@@ -284,20 +292,27 @@ def restart_scion():
 
 
 def install_vpn_client_config(tmpdir):
-    # TODO subfolder "vpn_client"?
-    changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
+    exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
     if changed:
-        subprocess.check_call(['sudo', 'systemctl', 'reload-or-restart', 'openvpn@client'])
+        if exists:
+            _run_as_root(['systemctl', 'reload-or-restart', 'openvpn@client'])
+        else:
+            _run_as_root(['systemctl', 'stop', 'openvpn@client'])
 
 
 def install_vpn_server_config(tmpdir):
-    changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
+    exists, changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
     if changed:
-        subprocess.check_call(['sudo', 'systemctl', 'reload-or-restart', 'openvpn@server'])
-    _sudo_mv(os.path.join(tmpdir, 'openvpn_ccd'), '/etc/openvpn')
-    if not os.path.exists('/etc/openvpn/dh.pem'):
-        subprocess.check_call(['sudo', 'openssl', 'dhparam', '-out', 'dh.pem', '2048'],
-                              cwd='/etc/openvpn/')
+        if exists:
+            if not os.path.exists('/etc/openvpn/dh.pem'):
+                _run_as_root(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'])
+            _run_as_root(['systemctl', 'reload-or-restart', 'openvpn@server'])
+        else:
+            _run_as_root(['systemctl', 'stop', 'openvpn@server'], check=False)
+
+    if exists:
+        _run_as_root(['rm', '-rf', '/etc/openvpn/ccd/'])
+        _run_as_root(['mv', os.path.join(tmpdir, 'ccd'), '/etc/openvpn/'])
 
 
 def _mv_dir(srcdir, dirname, dstdir):
@@ -307,30 +322,59 @@ def _mv_dir(srcdir, dirname, dstdir):
 
 def _install_file(srcdir, filename, dstdir):
     """
-    Installs the file into the dir at the path.
-    Returns False iff the file was changed.
-    If the member doesn't exist, the file at path will be removed.
+    Installs the file from srcdir into the directory dstdir.
+    If the file doesn't exist in srcdir, the file at dstdir will be removed.
+    :returns:   tuple (exists, changed):
+                    exists indicates whether the file exists now.
+                    changed indicates whether the file was changed.
     """
     srcfilename = os.path.join(srcdir, filename)
-    dstfilename = os.path.join(srcdir, filename)
+    dstfilename = os.path.join(dstdir, filename)
     if not os.path.exists(srcfilename):
         if os.path.exists(dstfilename):
             os.remove(dstfilename)
-            return True
-        return False
+            return (False, True)
+        return (False, False)
 
     try:
         equal = filecmp.cmp(srcfilename, dstfilename, shallow=False)
     except FileNotFoundError:
         equal = False
     if not equal:
-        _sudo_mv(srcfilename, dstfilename)
-    return not equal
+        _run_as_root(['mv', srcfilename, dstfilename])
+    return (True, not equal)
 
 
-def _sudo_mv(src, dst):
-    subprocess.check_call(["sudo", "mv", src, dst])
+def _run_as_root(args, check=True, **kwargs):
+    """
+    Convenience helper: run with sudo unless already running as root
+    Note: if in the future the scion-gen/-folder is also owned by root,
+          it will probably make more sense to simply require running this
+          script as root.
+    """
+    if os.getuid() != 0:
+        args = ['sudo'] + args
+    subprocess.run(args, check=check)
+
+
+def _get_argv():
+    """
+    Parse args from SSH_ORIGINAL_COMMAND, if set.
+    Allows to restrict ssh access to running this script, eg.
+
+    .ssh/authorized_keys:
+        command=scionlab-config <...key...> auto-deploy@scionlab.org
+    """
+    ssh_original_cmd = os.environ.get('SSH_ORIGINAL_COMMAND')
+    if ssh_original_cmd:
+        argv = shlex.split(ssh_original_cmd)
+        if not argv or argv[0] != os.path.basename(sys.argv[0]):  # avoid silly things
+            return None
+        return argv
+    return sys.argv
 
 
 if __name__ == '__main__':
-    main()
+    argv = _get_argv()
+    if argv:
+        main(argv)

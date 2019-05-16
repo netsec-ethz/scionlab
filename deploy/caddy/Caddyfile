@@ -1,0 +1,9 @@
+{$SCIONLAB_SITE} {
+    root /var/www/scionlab
+    proxy / django:8000 {
+        except /static
+        transparent
+    }
+    log stdout
+    tls scionlab-admins@sympa.ethz.ch
+}
