@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import re
-from unittest.mock import patch
 
 from django.test import TestCase
 from parameterized import parameterized, param
@@ -43,17 +41,14 @@ def _create_ases_for_testuser(num):
     user = get_testuser()
     num_existing_ases = UserAS.objects.filter(owner=user).count()
     for i in range(num_existing_ases, num_existing_ases+num):
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            UserAS.objects.create(
-                owner=user,
-                attachment_point=AttachmentPoint.objects.first(),
-                public_ip=_test_ip,
-                public_port=_test_start_port + i,
-                label="Testuser's AS number %i" % (i + 1),
-                installation_type=UserAS.VM
-            )
+        UserAS.objects.create(
+            owner=user,
+            attachment_point=AttachmentPoint.objects.first(),
+            public_ip=_test_ip,
+            public_port=_test_start_port + i,
+            label="Testuser's AS number %i" % (i + 1),
+            installation_type=UserAS.VM
+        )
 
 
 def _setup_vpn_attachment_point():
@@ -120,11 +115,8 @@ class UserASFormTests(TestCase):
         form = UserASForm(user=get_testuser(), data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
 
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            user_as = form.save()
-            self.assertIsNotNone(user_as)
+        user_as = form.save()
+        self.assertIsNotNone(user_as)
 
     @parameterized.expand(invalid_form_params)
     def test_create_invalid(self, **kwargs):
@@ -145,10 +137,7 @@ class UserASFormTests(TestCase):
             form = UserASForm(user=get_testuser(), data=form_data)
             # Check that form is valid, otherwise this test will not make sense
             self.assertTrue(form.is_valid(), form.errors)
-            with patch('subprocess.call',
-                       side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-                logging.debug("Mocking: %s" % (mock_subprocess_call,))
-                form.save()
+            form.save()
 
         form = UserASForm(user=get_testuser(), data=form_data)
         self.assertFalse(form.is_valid())
@@ -169,11 +158,8 @@ class UserASFormTests(TestCase):
         create_form = UserASForm(user=get_testuser(), data=form_data)
         self.assertIsNotNone(create_form.as_table())
         self.assertTrue(create_form.is_valid(), create_form.errors)
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            user_as = create_form.save()
-            self.assertIsNotNone(user_as)
+        user_as = create_form.save()
+        self.assertIsNotNone(user_as)
 
         # Check that the form can be instantiated for the object just created
         # and check that the forms initial values are the same as the
@@ -182,20 +168,15 @@ class UserASFormTests(TestCase):
         self.assertIsNotNone(edit_form_1.as_table())
         self.assertTrue(edit_form_1.is_valid(), edit_form_1.errors)
         self.assertFalse(edit_form_1.has_changed(), edit_form_1.changed_data)
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            user_as_edited_1 = edit_form_1.save()
-            self.assertEqual(user_as.pk, user_as_edited_1.pk)
+        user_as_edited_1 = edit_form_1.save()
+        self.assertEqual(user_as.pk, user_as_edited_1.pk)
 
         # Do it again!
         edit_form_2 = UserASForm(user=get_testuser(), instance=user_as, data=form_data)
         self.assertTrue(edit_form_2.is_valid(), edit_form_2.errors)
         self.assertFalse(edit_form_2.has_changed(), edit_form_2.changed_data)
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            user_as_edited_2 = edit_form_2.save()
-            self.assertEqual(user_as.pk, user_as_edited_2.pk)
+        user_as_edited_2 = edit_form_2.save()
+        self.assertEqual(user_as.pk, user_as_edited_2.pk)
 
     def _get_initial_dict(self):
         """
@@ -288,27 +269,21 @@ class UserASCreateTests(WebTest):
         self.app.set_user(TESTUSER_EMAIL)
         create_page = self.app.get(reverse('user_as_add'))
         self._fill_form(create_page.form, **kwargs)
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            response = create_page.form.submit()
+        response = create_page.form.submit()
 
-            user_as = UserAS.objects.filter(owner=get_testuser()).last()
-            self.assertEqual(response.status_code, 302)
-            self.assertEqual(response.location,
-                             reverse('user_as_detail', kwargs={'pk': user_as.pk}))
-            self.assertEqual(response.follow().status_code, 200)
+        user_as = UserAS.objects.filter(owner=get_testuser()).last()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.location,
+                         reverse('user_as_detail', kwargs={'pk': user_as.pk}))
+        self.assertEqual(response.follow().status_code, 200)
 
         # submit the form again, forwards to the next AS:
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            response_2 = create_page.form.submit()
-            user_as_2 = UserAS.objects.filter(owner=get_testuser()).last()
-            self.assertEqual(response_2.status_code, 302)
-            self.assertEqual(response_2.location,
-                             reverse('user_as_detail', kwargs={'pk': user_as_2.pk}))
-            self.assertEqual(response_2.follow().status_code, 200)
+        response_2 = create_page.form.submit()
+        user_as_2 = UserAS.objects.filter(owner=get_testuser()).last()
+        self.assertEqual(response_2.status_code, 302)
+        self.assertEqual(response_2.location,
+                         reverse('user_as_detail', kwargs={'pk': user_as_2.pk}))
+        self.assertEqual(response_2.follow().status_code, 200)
 
     @parameterized.expand(UserASFormTests.invalid_form_params)
     def test_submit_create_form_invalid(self, **kwargs):
@@ -365,17 +340,11 @@ class UserASActivateTests(WebTest):
         edit_page = user_page.click(href=reverse('user_as_detail', kwargs={'pk': user_as.pk})+'$')
         check_active(True, user_as, edit_page)
 
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            edit_page = edit_page.forms['id_deactivate_form'].submit().maybe_follow()
-            check_active(False, user_as, edit_page)
+        edit_page = edit_page.forms['id_deactivate_form'].submit().maybe_follow()
+        check_active(False, user_as, edit_page)
 
-        with patch('subprocess.call',
-                   side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            edit_page = edit_page.forms['id_activate_form'].submit().maybe_follow()
-            check_active(True, user_as, edit_page)
+        edit_page = edit_page.forms['id_activate_form'].submit().maybe_follow()
+        check_active(True, user_as, edit_page)
 
 
 class UserASGetConfigTests(TestCase):

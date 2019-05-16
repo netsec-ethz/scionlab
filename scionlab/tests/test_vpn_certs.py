@@ -18,7 +18,7 @@ import re
 from io import StringIO
 from unittest.mock import patch
 
-import logging
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -34,7 +34,6 @@ from scionlab.models.vpn import VPN
 from scionlab.openvpn_config import write_vpn_ca_config, generate_vpn_client_config, \
     load_ca_cert, _generate_private_key, load_ca_key, _generate_root_ca_cert, \
     generate_vpn_server_config, ccd_config
-from scionlab.tests import utils
 
 test_public_port = 54321
 
@@ -53,20 +52,17 @@ def _setup_vpn_attachment_point():
 
 
 def create_user_as(ap, label='Some label'):
-    with patch('subprocess.call',
-               side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-        logging.debug("Mocking: %s" % (mock_subprocess_call,))
-        return UserAS.objects.create(
-                owner=get_testuser(),
-                attachment_point=ap,
-                installation_type=UserAS.VM,
-                label=label,
-                use_vpn=True,
-                public_ip=None,
-                public_port=test_public_port,
-                bind_ip=None,
-                bind_port=None,
-            )
+    return UserAS.objects.create(
+            owner=get_testuser(),
+            attachment_point=ap,
+            installation_type=UserAS.VM,
+            label=label,
+            use_vpn=True,
+            public_ip=None,
+            public_port=test_public_port,
+            bind_ip=None,
+            bind_port=None,
+        )
 
 
 @override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)

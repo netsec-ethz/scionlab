@@ -118,6 +118,11 @@ class DeployHostConfigTests(TestCase):
         task_pre_check = {}
         task_post_check = {}
 
+    @classmethod
+    def tearDownClass(cls):
+        huey.HUEY.immediate = False
+        super().tearDownClass()
+
     def test_dummy(self):
         # Tests that the queue setup works
         # test dummy task
@@ -134,7 +139,6 @@ class DeployHostConfigTests(TestCase):
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
             self.assertEqual(len(huey.HUEY.pending()), 0)
             # Trigger an initial deployment and fake deployed config version
-            # TODO: Fix deployed config version for infra ASes
             attachment_point.trigger_deployment()
             consume()
             ap_host = attachment_point.AS.hosts.first()
@@ -220,6 +224,8 @@ class DeployHostConfigTests(TestCase):
         settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD = None
 
     def test_canceled(self):
+        # The current use of the huey taskqueue does not make use of revoked task
+        # Remove this test if no future feature makes use of revoked tasks
         attachment_point = AttachmentPoint.objects.first()
         huey.HUEY.immediate = False
         with patch('subprocess.call',
