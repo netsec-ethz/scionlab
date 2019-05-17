@@ -329,7 +329,7 @@ class AttachmentPoint(models.Model):
         Trigger the deployment for the attachment point configuration.
 
         The deployment is rate limited, max rate controlled by
-        settings.ATTACHMENT_POINT_DEPLOYMENT_PERIOD.
+        settings.DEPLOYMENT_PERIOD.
         """
         for host in self.AS.hosts.iterator():
             scionlab.tasks.deploy_host_config(host)
