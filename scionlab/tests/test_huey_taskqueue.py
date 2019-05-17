@@ -206,7 +206,7 @@ class DeployHostConfigTests(TestCase):
             executions = len(execution_log)
             huey.HUEY.get(_key_deploy_host_running(self.host.pk))
             user_as.attachment_point.trigger_deployment()
-            self.assertFalse(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
+            self.assertTrue(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
                                            peek=True))
             self.assertEqual("%s%s" % (task_pre_check['name'], task_pre_check['args']),
                              "_deploy_host_config('%s', %s, '%s')" % (self.host.management_ip,

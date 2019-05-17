@@ -37,15 +37,15 @@ def deploy_host_config(host):
     if not host.needs_config_deployment():
         return
 
-    _queue_or_retrigger(host.management_ip, host.pk, host.secret)
+    _queue_or_trigger(host.management_ip, host.pk, host.secret)
 
 
-def _queue_or_retrigger(ssh_host, host_id, host_secret):
+def _queue_or_trigger(ssh_host, host_id, host_secret):
     """
-    Queues or sets the retrigger for the configuration deployment of a managed scionlab host.
+    Queues and/or sets the trigger for the configuration deployment of a managed scionlab host.
 
     Ensures that only one such task is executing per host by enforcing that
-    only a single deploy task per host is in the queue.
+    at most one deploy task per host is in the queue.
 
     The deployment is run asynchronously, the version that will be deployed can be any version newer
     than the current one.
@@ -57,10 +57,11 @@ def _queue_or_retrigger(ssh_host, host_id, host_secret):
     # Custom trickery with hueys key-value store:
     # ensure only one task per host is in the queue or executing at any time.
     if _put_if_empty(_key_deploy_host_running(host_id), True):
+        _put_if_empty(_key_deploy_host_triggered(host_id), True)
         _deploy_host_config(ssh_host, host_id, host_secret)
     else:
-        # Mark as re-triggered to ensure that the task will re-run if necessary.
-        _put_if_empty(_key_deploy_host_retriggered(host_id), True)
+        # Mark as triggered to ensure that the task will re-run if necessary.
+        _put_if_empty(_key_deploy_host_triggered(host_id), True)
 
 
 @huey.task()
@@ -75,18 +76,17 @@ def _deploy_host_config(ssh_host, host_id, host_secret):
     :param str host_id: id (primary key) of the Host object
     :param str host_secret: secret to authenticate request for this Host object
     """
-    if _check_host_needs_config_deployment(host_id):
-        # drain the retriggers
-        huey.HUEY.get(_key_deploy_host_retriggered(host_id))
+    triggered = huey.HUEY.get(_key_deploy_host_triggered(host_id))
+    # Check that the task was triggered since its last execution and it still needs deployment
+    if triggered and _check_host_needs_config_deployment(host_id):
+        # The task was triggered and needs execution, run it
         _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret)
 
-    # Check if the task was retriggered during its execution and it still needs deployment
-    retriggered = huey.HUEY.get(_key_deploy_host_retriggered(host_id))
-    if retriggered and _check_host_needs_config_deployment(host_id):
-        # Schedule the task to be rerun after the delay
+        # Schedule the task to be rerun no sooner than after the delay
         _deploy_host_config.schedule(args=(ssh_host, host_id, host_secret),
                                      delay=settings.DEPLOYMENT_PERIOD)
     else:
+        # Previous task was executed before the delay
         huey.HUEY.get(_key_deploy_host_running(host_id))
 
 
@@ -106,8 +106,8 @@ def _key_deploy_host_running(host_id):
     return 'scionlab_deploy_host_ongoing_' + str(host_id)
 
 
-def _key_deploy_host_retriggered(host_id):
-    return 'scionlab_deploy_host_version_retriggered' + str(host_id)
+def _key_deploy_host_triggered(host_id):
+    return 'scionlab_deploy_host_version_triggered' + str(host_id)
 
 
 def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
