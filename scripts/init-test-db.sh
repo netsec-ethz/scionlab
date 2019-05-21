@@ -26,4 +26,4 @@ python manage.py loaddata scionlab/fixtures/testuser-admin.yaml \
     scionlab/fixtures/testuser.yaml \
     scionlab/fixtures/testtopo-ases-links.yaml
 
-cp scionlab/fixtures/dev_root_ca_{key,cert}.pem run/
+cp scionlab/fixtures/dev_root_ca_*.pem run/
