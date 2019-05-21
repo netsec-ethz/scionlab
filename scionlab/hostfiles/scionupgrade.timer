@@ -1,4 +1,4 @@
-# SCION upgrade version 0.6
+# SCION upgrade version 0.9
 
 [Unit]
 Description=Run SCION upgrade daily
