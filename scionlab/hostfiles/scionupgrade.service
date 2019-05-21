@@ -1,7 +1,7 @@
-# SCION upgrade version 0.6
+# SCION upgrade version 0.9
 
 [Unit]
-Description=SCION infrastructure upgrade
+Description=SCION automated upgrade
 After=network-online.target
 Wants=network-online.target scion.service
 # We want to update scion before starting it
