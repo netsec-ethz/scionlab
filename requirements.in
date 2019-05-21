@@ -12,3 +12,4 @@ redis
 scrypt
 psycopg2-binary  # PostgreSQL backend
 gunicorn
+graphviz
