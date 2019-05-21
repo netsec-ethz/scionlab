@@ -67,12 +67,6 @@ You can test this by checking the logs in `~/go/src/github.com/scionproto/scion/
 calling `checkbeacons`.
 
 
-## Visualizing the network topology
-
-You can access the SCION AS Visualization Tool at `localhost:8000` from outside the VM.
-The tool is automatically started inside the VM and displays paths to other SCION ASes.
-
-
 ## Stopping and Restarting the VM
 
 You can stop and restart `SCIONLabVM` using `vagrant` commands.
@@ -93,9 +87,9 @@ vagrant up
 from inside the directory where you unpacked your vm configuration (i.e., where the `Vagrantfile` is
 located).
 
-If you experience problems with the topology visualization, you may want to manually restart the
+If you experience problems with the SCION services, you may want to manually restart the
 SCION infrastructure by either calling `sudo systemctl restart scion.service` or by moving to the
-scion directory and calling `./scion.sh stop` followed by `./scion.sh run`.
+scion directory and calling `./scion.sh stop` followed by `./scion.sh start nobuild`.
 
 
 ## Current Vagrant Configuration
