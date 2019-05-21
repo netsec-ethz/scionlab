@@ -114,7 +114,7 @@ def _key_deploy_host_running(host_id):
 
 
 def _key_deploy_host_triggered(host_id):
-    return 'scionlab_deploy_host_version_triggered' + str(host_id)
+    return 'scionlab_deploy_host_triggered' + str(host_id)
 
 
 def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):

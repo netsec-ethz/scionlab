@@ -22,7 +22,6 @@ from unittest.mock import patch
 import huey as huey_internal
 import huey.contrib.djhuey as huey
 from django.conf import settings
-from django.db.utils import OperationalError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -77,7 +76,7 @@ def _fake_invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
     task_running = huey.HUEY.get('scionlab_deploy_host_ongoing_'
                                  + str(host_id), peek=True) is not None
     assert (task_running)
-    triggered = huey.HUEY.get('scionlab_deploy_host_version_triggered'
+    triggered = huey.HUEY.get('scionlab_deploy_host_triggered'
                               + str(host_id), peek=True) is not None
     command = ('scionlab-config'
                ' --host-id {host_id}'
@@ -100,25 +99,18 @@ def _fake_check_deployment_required(host_id):
 def _fake_notify_deploy_success(host_id, host_secret):
     # Mock the client side call to notify success to the coordinator
     client = TestCase.client_class()
-    try:
-        deployed_config_version = Host.objects.get(id=host_id).config_version
-    except OperationalError as e:
-        logging.error(e)  # The sqlite backend does not support concurrent writes
-        deployed_config_version = 2
+    deployed_config_version = Host.objects.get(id=host_id).config_version
     post_url = reverse('api_post_deployed_version', kwargs={'pk': host_id})
     auth_headers = basic_auth(host_id, host_secret)
-    try:
-        response = client.post(
-            post_url,
-            {'version': deployed_config_version},
-            **auth_headers
-        )
-        logging.info("Status code"
-                     " of posting version %s to API endpoint %s: %s" % (deployed_config_version,
-                                                                        post_url,
-                                                                        response.status_code))
-    except OperationalError as e:
-        logging.error(e)
+    response = client.post(
+        post_url,
+        {'version': deployed_config_version},
+        **auth_headers
+    )
+    logging.info("Status code"
+                 " of posting version %s to API endpoint %s: %s" % (deployed_config_version,
+                                                                    post_url,
+                                                                    response.status_code))
     global deployment_required
     deployment_required = False
 
@@ -241,8 +233,8 @@ class DeployHostConfigTests(TestCase):
                 )
                 self.host = user_as.attachment_point.AS.hosts.first()
                 # Check trigger was consumed
-                if huey.HUEY.get('scionlab_deploy_host_version_triggered'
-                                 + str(self.host.pk), peek=True):
+                while huey.HUEY.get('scionlab_deploy_host_triggered'
+                                    + str(self.host.pk), peek=True):
                     time.sleep(1)
                 # Check AS needs_config_deployment:
                 all_user_as_hosts = user_as.hosts.all()
@@ -252,8 +244,6 @@ class DeployHostConfigTests(TestCase):
                     hosts_pending_before | set(all_user_as_hosts | all_attachment_point_hosts),
                     set(hosts_requiring_deployment)
                 )
-                self.assertTrue(huey.HUEY.get('scionlab_deploy_host_ongoing_' + str(self.host.pk),
-                                              peek=True))
                 _fake_notify_deploy_success(user_as.attachment_point.AS.hosts.first().pk,
                                             user_as.attachment_point.AS.hosts.first().secret)
 
@@ -286,8 +276,8 @@ class DeployHostConfigTests(TestCase):
                 )
                 self.host = user_as2.attachment_point.AS.hosts.first()
                 # Check trigger was consumed
-                if huey.HUEY.get('scionlab_deploy_host_version_triggered'
-                                 + str(self.host.pk), peek=True):
+                while huey.HUEY.get('scionlab_deploy_host_triggered'
+                                    + str(self.host.pk), peek=True):
                     time.sleep(1)
                 self.consumer.drain_and_stop()
                 self.assertEqual("%s%s" % (task_pre_check['name'], task_pre_check['args']),
