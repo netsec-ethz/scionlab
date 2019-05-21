@@ -24,8 +24,8 @@ from scionlab.defines import DEFAULT_PUBLIC_PORT
 from scionlab.fixtures.testuser import get_testuser, TESTUSER_EMAIL
 from scionlab.fixtures import testtopo
 from scionlab.openvpn_config import write_vpn_ca_config
-from scionlab.views.user_as_views import UserASForm
 from scionlab.tests import utils
+from scionlab.views.user_as_views import UserASForm
 
 
 _QUOTA_EXCEEDED_MESSAGE = ('You have reached the maximum number of ASes '
