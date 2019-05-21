@@ -124,7 +124,8 @@ def _expand_vagrantfile_template(host):
         vagrant_tmpl = f.read()
     return string.Template(vagrant_tmpl).substitute(
         PortForwarding=forwarding_string,
-        ASID=host.AS.as_id,
+        hostname="scionlab-" + host.AS.as_id.replace(":", "-"),
+        vmname="SCIONLabVM-" + host.AS.as_id,
     )
 
 
