@@ -404,8 +404,8 @@ def check_tarball_user_as(testcase, response, user_as):
     tar = _check_open_tarball(testcase, response)
     files = ['README.md']
     if user_as.installation_type == UserAS.VM:
-        files += ["Vagrantfile", "scion-viz.service", "scion.service", "scionupgrade.service",
-                  "scionupgrade.timer", "run.sh", "scionupgrade.sh"]
+        files += ["Vagrantfile", "scion.service", "scionupgrade.service", "scionupgrade.timer",
+                  "run.sh", "scion_install_script.sh", "scionupgrade.sh"]
     testcase.assertTrue(sorted(['gen'] + files), _tar_ls(tar, ''))
     _check_tarball_gen(testcase, tar, user_as.hosts.get())
 

@@ -15,7 +15,6 @@ where:
     -g GEN_DIR          path to gen directory to be used
     -v VPN_CONF_PATH    path to OpenVPN configuration file
     -s SCION_SERVICE    path to SCION service file
-    -z SCION_VI_SERVICE path to SCION-viz service file
     -a ALIASES_FILE     adds useful command aliases in specified file
     -c                  do not destroy user context on logout
     -u UPGR_SCRIPT      script used for upgrading scion, (will be copied to 
@@ -35,9 +34,6 @@ while getopts ":p:g:v:s:z:ha:cu:t:" opt; do
       ;;
     s)
       scion_service_path=$OPTARG
-      ;;
-    z)
-      scion_viz_service=$OPTARG
       ;;
     h)
       echo "Displaying help:" >&2
@@ -145,12 +141,6 @@ if [ ! -d scion ]; then
 /usr/share/zookeeper/bin/zkCleanup.sh -n 3
 CRON1'
     sudo chmod 755 /etc/cron.daily/zookeeper
-
-    cd sub
-    git clone git@github.com:netsec-ethz/scion-viz
-    cd scion-viz/python/web
-    pip3 install --user --require-hashes -r requirements.txt
-    python3 ./manage.py migrate
 else
     echo "SCION already present, not building it."
 fi
@@ -203,23 +193,6 @@ then
 else
     echo "SCION systemd service file not specified! SCION won't run automatically on startup."
     ./scion.sh start nobuild
-fi
-
-if  [[ ( ! -z ${scion_viz_service+x} ) && -r ${scion_viz_service} ]]
-then
-    echo "Registering SCION-viz as startup service"
-
-    cp "$scion_viz_service" "$tempfile"
-    # We need to replace template user with current username
-    sed -i "s/_USER_/$USER/g" "$tempfile"
-    sudo cp "$tempfile" /etc/systemd/system/scion-viz.service
-
-    sudo systemctl enable scion-viz.service
-    sudo systemctl start scion-viz.service
-
-    rm "$tempfile"
-else
-    echo "SCION-viz systemd service file not specified! SCION-viz won't run automatically on startup."
 fi
 
 if [[ $keep_user_context = true ]]
