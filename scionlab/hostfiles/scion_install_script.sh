@@ -96,8 +96,7 @@ mkdir -p "$GOPATH"
 mkdir -p "$GOPATH/src/github.com/scionproto"
 cd "$GOPATH/src/github.com/scionproto"
 
-git config --global url.https://github.com/.insteadOf git@github.com:
-git clone --recursive -b scionlab git@github.com:netsec-ethz/netsec-scion scion
+git clone -b scionlab https://github.com/netsec-ethz/netsec-scion scion
 
 cd scion
 
