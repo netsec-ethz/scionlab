@@ -366,6 +366,7 @@ class Generator:
                 if iface['LinkTo'] == 'CORE':
                     type = Link.CORE
                 elif iface['LinkTo'] == 'PARENT':
+                    # there(parent) -> here(child)
                     type = Link.PROVIDER
                 elif iface['LinkTo'] == 'PEER':
                     type = Link.PEER
@@ -375,8 +376,8 @@ class Generator:
                     # this is a reverse link to an existing one, no need to do anything
                     continue
                 Link.objects.create(type=type,
-                                    interfaceA=iface_here,
-                                    interfaceB=iface_there,
+                                    interfaceA=iface_there,
+                                    interfaceB=iface_here,
                                     bandwidth=iface['Bandwidth'],
                                     mtu=iface['MTU'])
 
