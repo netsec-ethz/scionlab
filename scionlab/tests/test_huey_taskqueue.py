@@ -41,7 +41,8 @@ test_public_ip = '172.31.0.111'
 test_public_port = 54321
 deployment_required = True
 
-smaller_test_delay = 3
+_TEST_DEPLOYMENT_PERIOD = 3
+_SLEEP_PERIOD = 0.01
 
 
 @huey.task()
@@ -134,8 +135,8 @@ class TestingConsumer:
     @staticmethod
     def drain_queue():
         while len(huey.HUEY.scheduled()) > 0 or len(huey.HUEY.pending()) > 0:
-            time.sleep(1)
-        time.sleep(1)
+            time.sleep(_SLEEP_PERIOD)
+        time.sleep(_SLEEP_PERIOD)
 
     def drain_and_stop(self):
         self.drain_queue()
@@ -167,7 +168,7 @@ class DeployHostConfigTests(TestCase):
 
         # add some state config
         huey.HUEY.immediate = False
-        settings.DEPLOYMENT_PERIOD = smaller_test_delay
+        settings.DEPLOYMENT_PERIOD = _TEST_DEPLOYMENT_PERIOD
         self.consumer = TestingConsumer()
         global task_pre_check
         task_pre_check = {}
@@ -230,7 +231,7 @@ class DeployHostConfigTests(TestCase):
                 self.host = user_as.attachment_point.AS.hosts.first()
                 # Check trigger was consumed
                 while _peek_deploy_host_triggered(self.host.uid):
-                    time.sleep(1)
+                    time.sleep(_SLEEP_PERIOD)
                 # Check AS needs_config_deployment:
                 all_user_as_hosts = user_as.hosts.all()
                 all_attachment_point_hosts = self.attachment_point.AS.hosts.all()
@@ -262,7 +263,7 @@ class DeployHostConfigTests(TestCase):
                 self.host = user_as2.attachment_point.AS.hosts.first()
                 # Check trigger was consumed
                 while _peek_deploy_host_triggered(self.host.uid):
-                    time.sleep(1)
+                    time.sleep(_SLEEP_PERIOD)
                 self.consumer.drain_and_stop()
                 self._verify_deploy_task(self.host, task_pre_check['name'], task_pre_check['args'])
                 self._check_execution_log(self.host)
