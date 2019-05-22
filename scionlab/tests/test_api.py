@@ -24,15 +24,15 @@ class GetHostConfigTests(TestCase):
     def setUp(self):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
-        self.url = '/api/host/%i/config' % self.host.pk
-        self.auth_headers = basic_auth(self.host.id, self.host.secret)
+        self.url = '/api/host/%s/config' % self.host.uid
+        self.auth_headers = basic_auth(self.host.uid, self.host.secret)
 
     def test_aaa(self):
         ret = self.client.get(self.url, **self.auth_headers)
         self.assertEqual(ret.status_code, 200)
 
     def test_bad_auth(self):
-        auth_headers = basic_auth(self.host.id, self.host.secret + "_foobar")
+        auth_headers = basic_auth(self.host.uid, self.host.secret + "_foobar")
         ret = self.client.get(self.url, **auth_headers)
         self.assertEqual(ret.status_code, 401)
 
@@ -88,11 +88,11 @@ class GetHostConfigExtraServicesTests(TestCase):
 
     @staticmethod
     def _get_url(host):
-        return '/api/host/%i/config' % host.pk
+        return '/api/host/%s/config' % host.uid
 
     @staticmethod
     def _get_auth_headers(host):
-        return basic_auth(host.id, host.secret)
+        return basic_auth(host.uid, host.secret)
 
     def test_get(self):
         # in the fixture, the host for 17-ffaa:0:1107 has extra services
@@ -113,11 +113,11 @@ class PostHostConfigVersionTests(TestCase):
     def setUp(self):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
-        self.url = '/api/host/%i/deployed_config_version' % self.host.pk
-        self.auth_headers = basic_auth(self.host.id, self.host.secret)
+        self.url = '/api/host/%s/deployed_config_version' % self.host.uid
+        self.auth_headers = basic_auth(self.host.uid, self.host.secret)
 
     def test_bad_auth(self):
-        auth_headers = basic_auth(self.host.id, self.host.secret + "_foobar")
+        auth_headers = basic_auth(self.host.uid, self.host.secret + "_foobar")
         ret = self.client.post(self.url, **auth_headers)
         self.assertEqual(ret.status_code, 401)
 
