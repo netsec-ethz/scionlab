@@ -34,7 +34,6 @@ from scionlab.tests.utils import basic_auth
 
 
 task_pre_check = {}
-task_post_check = {}
 execution_log = []
 
 # Some test data:
@@ -56,13 +55,6 @@ def mock_preexecute_hook(task):
     global task_pre_check
     task_pre_check = {'name': task.name,
                       'args': task.args}
-
-
-@huey.post_execute()
-def mock_postexecute_hook(task, task_value, exception):
-    global task_post_check
-    task_post_check = {'name': task.name,
-                       'args': task.args}
 
 
 @huey.HUEY.signal(huey_internal.signals.SIGNAL_CANCELED)
@@ -177,9 +169,8 @@ class DeployHostConfigTests(TestCase):
         huey.HUEY.immediate = False
         settings.DEPLOYMENT_PERIOD = smaller_test_delay
         self.consumer = TestingConsumer()
-        global task_pre_check, task_post_check
+        global task_pre_check
         task_pre_check = {}
-        task_post_check = {}
 
     def tearDown(self):
         self.consumer.stop()
