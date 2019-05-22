@@ -87,7 +87,7 @@ def parse_command_line_args(argv):
     parser.add_argument('--config-info',
                         help="Path to json file containing host-id, secret and the local version. "
                              "(default=%s)" % DEFAULT_CONFIG_INFO_PATH)
-    group_fetch.add_argument('--host-id', help='Host identifier', type=int)
+    group_fetch.add_argument('--host-id', help='Host identifier')
     group_fetch.add_argument('--host-secret', help='Authentication for host')
     # Either 'local-version' or 'force'
     group_version = group_fetch.add_mutually_exclusive_group()
