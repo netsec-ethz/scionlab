@@ -10,7 +10,7 @@ SERVICE_CURRENT_VERSION="0.9"
 verleq() {
     [ ! -z "$1" ] && [ ! -z "$2" ] && [ "$1" = `echo -e "$1\n$2" | sort -V | head -n1` ]
 }
-check_system_files() {
+eck_system_files() {
     # check service files:
     need_to_reload=0
     declare -a FILES_TO_CHECK=("/etc/systemd/system/scionupgrade.service"
@@ -106,56 +106,25 @@ MOTD1
     fi # if [ $need_to_reload -eq 1 ]
 }
 
-is_id_standardized() {
-    ia="$1"
-    echo $ia | grep _ >/dev/null && return 0
-    iaarray=(${ia//-/ })
-    if [ "${iaarray[1]}" -lt "1000000" ]; then
-        return 1
-    else
-        return 0
+install_scionlab_config() {
+    if [ `which scionlab-config` == "" ]; then
+        wget https://testing.scionlab.org/static/scionlab-config -O /usr/bin/scionlab-config
     fi
 }
+
 
 
 shopt -s nullglob
 
 export LC_ALL=C
-DEFAULT_BRANCH_NAME="scionlab"
-REMOTE_REPO="origin"
-SCION_COORD_URL="https://www.scionlab.org"
 
-if [ "$#" -gt 1 ]; then
-    ACCOUNT_ID=$1
-    ACCOUNT_SECRET=$2
-    IA=$3
-    unset MANUAL
-else
-    ACCOUNT_ID=$(cat "$SC/gen/account_id")
-    ACCOUNT_SECRET=$(cat "$SC/gen/account_secret")
-    IA=$(cat "$SC/gen/ia")
-    [ "$1" == "-m" ] && MANUAL=1 || unset MANUAL
-fi
-
-echo "Invoking update script with $ACCOUNT_ID $ACCOUNT_SECRET $IA MANUAL=$MANUAL"
-
-if [ -z "$MANUAL" ]; then
+if [ "$1" == "-m" ]; then
     # systemd files upgrade:
     check_system_files
+else
+    echo "Skipping check_system_files, because -m (manual) is given"
 fi
 
-if [ -f "$SC/gen/coord_url" ]; then
-    SCION_COORD_URL=$(cat "$SC/gen/coord_url")
-    echo "Special Coordinator in use. URL: $SCION_COORD_URL"
-fi
-UPDATE_BRANCH=$(curl --fail "${SCION_COORD_URL}/api/as/queryUpdateBranch/${ACCOUNT_ID}/${ACCOUNT_SECRET}?IA=${IA}" || true)
-
-if [  -z "$UPDATE_BRANCH"  ]
-then
-    echo "No branch name has been specified, using default value ${DEFAULT_BRANCH_NAME}. "
-    UPDATE_BRANCH=$DEFAULT_BRANCH_NAME
-fi
-echo "Update branch is: ${UPDATE_BRANCH}"
 
 cd $SC
 
@@ -163,18 +132,18 @@ git_username=$(git config user.name || true)
 if [ -z "$git_username" ]
 then
     echo "GIT user credentials not set, configuring defaults"
-    git config --global user.name "Scion User" 
+    git config --global user.name "Scion User"
     git config --global user.email "scion@scion-architecture.net"
     git config --global url.https://github.com/.insteadOf git@github.com:
 fi
 
-echo "Running git fetch $REMOTE_REPO $UPDATE_BRANCH &>/dev/null"
-git fetch "$REMOTE_REPO" "$UPDATE_BRANCH" &>/dev/null
-head_commit=$(git rev-parse "${REMOTE_REPO}/${UPDATE_BRANCH}")
-[[ $(git branch "$UPDATE_BRANCH" --contains "$head_commit" 2>/dev/null | wc -l) -gt 0 ]] && needtoreset=0 || needtoreset=1
-[[ $(git rev-parse --abbrev-ref --symbolic-full-name @{upstream}) == "${REMOTE_REPO}/${UPDATE_BRANCH}" ]] && badtracking=0 || badtracking=1
+git fetch origin scionlab &>/dev/null
+
+git merge-base --is-ancestor scionlab origin/scionlab && needtoreset=0 || needtoreset=1
+[[ $(git rev-parse --abbrev-ref --symbolic-full-name @{upstream}) == "origin/scionlab" ]] && badtracking=0 || badtracking=1
 [[ -f "scionupgrade.auto.inprogress" ]] && dirtybuild=1 || dirtybuild=0
 echo "Need to reset? $needtoreset . Dirty build? $dirtybuild . Bad tracked branch? $badtracking"
+
 if [ $needtoreset -eq 0 ] && [ $badtracking -eq 0 ] && [ $dirtybuild -eq 0 ]; then
     echo "SCION version is already up to date and ready!"
 else
@@ -183,20 +152,12 @@ else
     [ -x /etc/update-motd.d/99-scionlab-upgrade ] && /etc/update-motd.d/99-scionlab-upgrade | wall
     git stash >/dev/null # just in case something was locally modified
     if [ $badtracking -ne 0 ]; then
-        git checkout "${REMOTE_REPO}/${UPDATE_BRANCH}" -b "$UPDATE_BRANCH" || git checkout "$UPDATE_BRANCH"
+        git checkout origin/scionlab -b scionlab || git checkout scionlab
     fi
-    git reset --hard "${REMOTE_REPO}/${UPDATE_BRANCH}"
-    # apply platform dependent patches, etc:
-    ARCH=$(dpkg --print-architecture)
-    echo -n "This architecture: $ARCH. "
-    case "$ARCH" in
-        "armhf")
-            echo "ARM architecture supported without patches"
-            ;;
-        *)
-            echo "No need to patch."
-    esac
+    git reset --hard origin/scionlab
+
     echo "SCION code has been upgraded, stopping..."
+
     # rebuild scion
     ./scion.sh stop || true
     ~/.local/bin/supervisorctl -c supervisor/supervisord.conf shutdown || true
@@ -230,17 +191,25 @@ else
         sudo swapoff /tmp/swap && sudo rm -f /tmp/swap || true
         echo "Swap space removed."
     fi
+
     # get a new gen folder:
     echo "We will get the AS configuration from the Coordinator now."
-    pushd /tmp >/dev/null
-    wget https://raw.githubusercontent.com/netsec-ethz/scion-coord/master/scripts/check_as_config.sh -O check_as_config.sh
-    bash check_as_config.sh -f && echo "Done getting the AS configuration from the Coordinator." || echo "[ERROR] Checking the AS configuration. This AS might be misconfigured!"
-    popd >/dev/null
-    ./tools/zkcleanslate || true
-    # announce we are done with the upgrade
-    printf "SCIONLab has been upgraded. You can now run any command involving scion.sh\n\n" | wall
 
-    echo "Emptying gen-cache..."
+    install_scionlab_config
+    if [ -f "gen/account_id" ]; then
+        # Use old account-id/account-secret
+        host_id=$(<gen/account_id)-$(<gen/ia)
+        host_secret=$(<gen/account_secret)
+        scionlab-config --host-id="$host_id" --host-secret="$host_secret"
+    else
+        scionlab-config
+    fi
+
+    # announce we are done with the upgrade
+    printf "SCIONLab has been upgraded. You can now safely run commands involving scion.sh\n\n" | wall
+
+    echo "Emptying caches..."
+    ./tools/zkcleanslate || true
     rm -f gen-cache/*
     mkdir -p gen-cache/
 
@@ -258,20 +227,4 @@ if [ -d "./sub/scion-viz" ]; then
     popd >/dev/null
 fi
 
-RESULT=$(curl -X POST "${SCION_COORD_URL}/api/as/confirmUpdate/${ACCOUNT_ID}/${ACCOUNT_SECRET}?IA=${IA}") || true
-echo "Done, got response from server: ${RESULT}"
-
-if ! is_id_standardized "$IA" ; then
-    echo "-----------------------------------------------------------------------------------"
-    echo "We need to map the addresses to the standard"
-    cd "/tmp"
-    wget https://raw.githubusercontent.com/netsec-ethz/scion-coord/master/scripts/remap_as_identity.sh -O remap_as_identity.sh  && doremap=1 || doremap=0
-    if [ "$doremap" == 1 ]; then
-        bash remap_as_identity.sh || true
-    else
-        echo "Not yet mapping IA IDs"
-    fi
-else
-    echo "SCION IA follows standard."
-fi
 echo "Done."
