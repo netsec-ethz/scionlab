@@ -28,18 +28,15 @@ from scionlab.models.core import Host
 from scionlab.util.http import HttpResponseAttachment, basicauth
 
 
-def _authenticate_host(host_id, secret):
+def _authenticate_host(uid, secret):
     """
     Check the authentication for an api/host request.
-    The request is authenticated by host_id and a random secret.
-    :param str host_id:
+    The request is authenticated by the hosts uid and a random secret.
+    :param str uid:
     :param str secret:
     :returns: True iff host authenticated successfully with secret
     """
-    if not host_id.isnumeric():
-        return False
-    host_id_int = int(host_id)
-    host_secrets = Host.objects.filter(id=host_id_int).values_list('secret', flat=True)
+    host_secrets = Host.objects.filter(uid=uid).values_list('secret', flat=True)
     if not host_secrets:  # no such host
         return False
     return hmac.compare_digest(secret, host_secrets[0])
@@ -55,6 +52,8 @@ class GetHostConfig(SingleObjectMixin, View):
     The request is authenticated via a per-Host secret field, included in the request parameters.
     """
     model = Host
+    slug_field = 'uid'
+    slug_url_kwarg = 'uid'
 
     def get(self, request, *args, **kwargs):
         host = self.get_object()
@@ -88,6 +87,8 @@ class PostHostDeployedConfigVersion(SingleObjectMixin, View):
     GetHostConfig, has been successfully installed on a host.
     """
     model = Host
+    slug_field = 'uid'
+    slug_url_kwarg = 'uid'
 
     def post(self, request, *args, **kwargs):
         version = _get_version_param(request.POST)
