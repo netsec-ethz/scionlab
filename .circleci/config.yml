@@ -116,41 +116,6 @@ jobs:
             docker cp ./ coord:/home/circleci/repo/scionlab
             docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coord
 
-      - run:
-          name: Build latest scion binaries for scionlab
-          command: |
-            # XXX(matzf) This should be restructured;
-            # Building the scion binaries should happen in a Dockerfile! This would then be cached, no
-            # need for manual copying around things. Would make things a lot simpler here.
-            # Btw. not sure about why this particular checkout is needed here:
-
-            git clone ${SCION_SRC} -b scionlab --depth 1 /tmp/scion
-            cd /tmp/scion
-
-            #cd /tmp/scion
-            #sudo apt update
-            #./env/deps
-            #./scion.sh build
-
-            # Use builder container, to build once when not using local image
-            docker run --name scion_builder --rm -d\
-              --entrypoint /bin/bash ethznetsec/scion_base -c "sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev; git clone ${SCION_SRC} -b scionlab --depth 1 ${SC}; cd ${SC}; ./env/deps; make; until [ -e ./done ]; do sleep 10; done;"
-            echo "Started builder"
-            docker exec scion_builder /bin/bash -c "until [ -e ${SC}/bin/sig ]; do sleep 10; done;"
-            echo "Build completed"
-            # Copying built binaries, explicitly ignoring braccept
-            for x in border cert_srv dispatcher path_srv pingpong scion-pki sciond scmp sig; do
-                docker cp scion_builder:${SC}/bin/${x} /tmp/scion/bin/;
-            done
-            docker cp scion_builder:${SC}/proto /tmp/scion
-            echo "Finished copying"
-            docker exec scion_builder /bin/bash -c "touch ${SC}/done"
-
-            # use local cache to speedup local execution until packages are available
-            # add $SC/bin and $SC/proto to your cache directory and source it
-            #mv ./cache/bin/* /tmp/scion/bin/
-            #mv ./cache/proto/* /tmp/scion/proto/
-
       # Start integration tests
       - run:
           name: Start containers
@@ -163,20 +128,10 @@ jobs:
             # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
             docker run --net circleci_as_net --name curl_test\
-              --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/login/; do echo 'Coord unreachable, retrying...'; sleep 5; done"
+              --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/login/ 2>/dev/null; do sleep 0.1; done;"
 
             export coreAS1301IP=172.31.0.110 infraAS1303IP=172.31.0.111 infraAS1305IP=172.31.0.112
             docker-compose -f .circleci/docker-compose.yml create zookeeper coreAS1301 infraAS1303 infraAS1305
-
-            # speedup deployment until we have binary packages
-            for dst_AS in coreAS1301 infraAS1303 infraAS1305; do
-                for src_dir in bin supervisor python proto env; do
-                    docker cp /tmp/scion/${src_dir} ${dst_AS}:${SC}
-                done
-                for f in $(ls .circleci/setup/); do
-                    docker cp .circleci/setup/${f} ${dst_AS}:/tmp/
-                done
-            done
             docker-compose -f .circleci/docker-compose.yml up --no-recreate -d zookeeper coreAS1301 infraAS1303 infraAS1305
 
       - run:
@@ -184,11 +139,49 @@ jobs:
           command: |
             set -x
             # Wait for the SCION services to start
-            docker exec coreAS1301 /bin/bash -c 'cd ${SC}; until [ `./supervisor/supervisor.sh status | grep RUNNING | wc -l` -ge 6 ]; do sleep 1; done;'
+            docker exec coreAS1301 /bin/bash -c 'cd ${SC}; until [ `./supervisor/supervisor.sh status | grep RUNNING | wc -l` -ge 6 ]; do sleep 0.1; done;'
             # Wait for beaconing to start
-            docker exec infraAS1305 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 1; done; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
+            docker exec infraAS1305 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 0.1; done; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
             docker exec coreAS1301 /bin/bash -c "${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
             docker exec infraAS1303 /bin/bash -c "grep -m 5 'Successfully verified PCB' -r ${SC}/logs/; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
+
+      - run:
+          name: Check deploy
+          command: |
+            set -x
+            # Recheck 1303
+            docker exec infraAS1303 /bin/bash -c "grep -m 5 'Successfully verified PCB' -r ${SC}/logs/; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
+            # Update coordinator url config
+            docker exec coord /bin/bash -c 'echo "SCIONLAB_SITE = \"http://coord:8000\"" >> ~/repo/scionlab/scionlab/settings/development.py'
+            docker cp .circleci/setup/ssh_config coord:/home/circleci/repo/scionlab/run/ssh_config
+
+            # Setup ssh
+            ssh-keygen -t rsa -b 4096 -C "deploy" -f ~/.ssh/deploy_rsa -N ""
+            docker cp ~/.ssh/deploy_rsa.pub infraAS1303:/tmp/
+            docker cp ./scionlab/hostfiles/scionlab-config infraAS1303:/tmp/scionlab-config
+            docker exec -d infraAS1303 /bin/bash -c "sudo apt-get install -y openssh-server inotify-tools && sudo mkdir /var/run/sshd && mkdir ~/.ssh && cat /tmp/deploy_rsa.pub >> ~/.ssh/authorized_keys && sudo mv /tmp/scionlab-config /usr/bin/scionlab-config && sudo chmod +x /usr/bin/scionlab-config && sudo cp /home/scion/.local/bin/supervisorctl /usr/bin/; sudo /usr/sbin/sshd"
+            docker exec coord /bin/bash -c 'mkdir -p ~/.ssh'
+            docker cp ~/.ssh/deploy_rsa coord:/home/circleci/.ssh/
+            # Update config on the fly to use shared zookeeper instance
+            docker exec -d infraAS1303 /bin/bash -c "sudo apt-get install -y inotify-tools; while true; do inotifywait -e delete $SC/gen/ISD19 && /home/scion/go/src/github.com/scionproto/scion/share_zk.sh; done"
+
+            # Start the huey consumer
+            docker exec -d coord /bin/bash -c 'cd /home/circleci/repo/scionlab && . /tmp/venv/bin/activate && PYTHONPATH=/tmp/scion/python python manage.py run_huey -w 8 &'
+
+            # Change internal IP of infraAS1303
+            docker run --net circleci_as_net -dt --name update_AS\
+                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url 'admin/scionlab/host/7/change/' --data '{\"AS\": 7, \"internal_ip\": \"127.0.0.111\", \"public_ip\": \"172.31.0.111\", \"managed\": \"on\",\"ssh_host\": \"172.31.0.111\", \"secret\": \"kuA3OhfG0eLjoMeAsoZrgQ\"}' --action update; cat"
+            docker cp .circleci/setup/admin_action.py update_AS:/tmp/admin_action.py
+
+            # Trigger a manual deployment
+            docker exec -d update_AS\
+                  /bin/bash -c "sleep 7; python3 /tmp/admin_action.py --url 'admin/scionlab/host/' --data '{\"action\": \"trigger_config_deployment\", \"select_across\": 0, \"index\": 0,\"_selected_action\": 7}' --action trigger"
+            #docker exec -d update_AS\
+            #      /bin/bash -c "python3 /tmp/admin_action.py --url 'admin/scionlab/host/add/' --data '{\"AS\": \"7\", \"internal_ip\": \"172.31.0.11\", \"public_ip\": \"172.31.0.11\",\"label\": \"zookeeper\"}' --action add"
+            docker stop update_AS
+
+            # Check change was deployed and connection still works
+            docker exec infraAS1303 /bin/bash -c 'until [ `grep "127.0.0.111" -s -r ${SC}/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done; until ${SC}/bin/showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done; until ${SC}/bin/scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.111] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
 
       - run:
           name: Test TRC update
@@ -206,16 +199,16 @@ jobs:
 
                 # Add core AS(es) for ISD 19
                 docker run --net circleci_as_net -d --name add_core_AS\
-                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; sleep 5; python3 /tmp/create_core_as.py ${AS_ID} ${n}" # largest AS ID in the ISD, number of new core ASes
-                docker cp .circleci/setup/create_core_as.py add_core_AS:/tmp/create_core_as.py
+                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url admin/scionlab/as/add/ --action add --prev_ia ${AS_ID} --count ${n}" # largest AS ID in the ISD, number of new core ASes
+                docker cp .circleci/setup/admin_action.py add_core_AS:/tmp/admin_action.py
                 AS_ID=$(( $AS_ID + $n ))
                 TRC_version=$(( $TRC_version + $n ))
                 sleep 10
 
                 # Reload configurations
-                docker exec -d coreAS1301 /bin/bash -c "/tmp/reloadASConfig.sh"
-                docker exec -d infraAS1303 /bin/bash -c "/tmp/reloadASConfig.sh"
-                docker exec infraAS1305 /bin/bash -c "/tmp/reloadASConfig.sh"
+                docker exec -d coreAS1301 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec -d infraAS1303 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec infraAS1305 /bin/bash -c "${SC}/reloadASConfig.sh"
 
                 # Check that TRCs were updated
                 docker exec coreAS1301 /bin/bash -c "cat ${SC}/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc;" >> "./TRC_V${TRC_version}.json"
@@ -255,38 +248,33 @@ jobs:
             export coreAS1401IP=172.31.0.113 infraAS1405IP=172.31.0.114
             docker-compose -f .circleci/docker-compose.yml create coreAS1401 infraAS1405
 
-            # speedup deployment until we have binary packages
+            # Load setup files
             for dst_AS in coreAS1401 infraAS1405; do
-                for src_dir in bin supervisor python proto env; do
-                    docker cp /tmp/scion/${src_dir} ${dst_AS}:${SC}
-                done
                 for f in $(ls .circleci/setup/); do
-                    docker cp .circleci/setup/${f} ${dst_AS}:/tmp/
+                    docker cp .circleci/setup/${f} ${dst_AS}:${SC}/
                 done
             done
             docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coreAS1401 infraAS1405
             # Wait for AP to be set up (key generation is slow)
-            docker exec infraAS1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 1; done;"
+            docker exec infraAS1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 0.1; done;"
             echo "AP started"
 
             # Start user AS container, create user AS and connect:
             docker run --net circleci_as_net --privileged -dt --name userAS1\
-              --entrypoint /bin/bash ethznetsec/scion_base:latest -c 'sleep 10; /tmp/VPNnewUserAS.sh; cat; echo "Past cat"'  # waits for setup script to be loaded
+              --entrypoint /bin/bash scionhost:tmp -c 'sleep 10; ${SC}/VPNnewUserAS.sh; cat;'  # waits for setup script to be loaded
             for f in $(ls .circleci/setup/); do
-                docker cp .circleci/setup/${f} userAS1:/tmp/
-            done
-            for src_dir in bin supervisor python proto env; do
-                docker cp /tmp/scion/${src_dir} userAS1:${SC}
+                docker cp .circleci/setup/${f} userAS1:${SC}/
             done
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker exec -e SC=${SC} userAS1 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 1; done; ./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+            docker exec -e SC=${SC} userAS1 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 0.1; done; ./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
             docker stop userAS1; docker rm userAS1;
 
       - run:
           name: Wind down the containers
           command: |
             docker-compose -f .circleci/docker-compose.yml down
+          when: always
 
 workflows:
   version: 2
