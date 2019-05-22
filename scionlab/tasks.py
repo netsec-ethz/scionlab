@@ -41,7 +41,7 @@ def deploy_host_config(host):
     if not host.needs_config_deployment():
         return
 
-    _queue_or_trigger(host.ssh_host, host.pk, host.secret)
+    _queue_or_trigger(host.ssh_host, host.uid, host.secret)
 
 
 def _queue_or_trigger(ssh_host, host_id, host_secret):
@@ -55,7 +55,7 @@ def _queue_or_trigger(ssh_host, host_id, host_secret):
     than the current one.
 
     :param str ssh_host: name to ssh to host
-    :param str host_id: id (primary key) of the Host object
+    :param str host_id: unique id of the Host object
     :param str host_secret: secret to authenticate request for this Host object
     """
     # Set the trigger for the task to run/re-run it if necessary.
@@ -99,7 +99,7 @@ def _deploy_host_config(ssh_host, host_id, host_secret):
 
 def _check_host_needs_config_deployment(host_id):
     from scionlab.models.core import Host
-    return Host.objects.get(id=host_id).needs_config_deployment()
+    return Host.objects.get(uid=host_id).needs_config_deployment()
 
 
 # this wrapper is missing from huey.api
@@ -110,11 +110,11 @@ def _put_if_empty(key, value):
 
 
 def _key_deploy_host_running(host_id):
-    return 'scionlab_deploy_host_ongoing_' + str(host_id)
+    return 'scionlab_deploy_host_ongoing_' + host_id
 
 
 def _key_deploy_host_triggered(host_id):
-    return 'scionlab_deploy_host_triggered' + str(host_id)
+    return 'scionlab_deploy_host_triggered_' + host_id
 
 
 def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
