@@ -21,6 +21,8 @@ services:
     networks:
       as_net:
         ipv4_address: 172.31.0.10
+    ports:
+      - "8432:8000"
     # waits for setup script to be loaded
     entrypoint: /bin/bash
     command: -c "./scionlab/.circleci/setup/coord.sh"
@@ -34,7 +36,13 @@ services:
     restart: always
 
   coreAS1301:
-    image: ethznetsec/scion_base:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-scionHost
+      args:
+        - SCION_SRC=${SCION_SRC}
+        - SC=${SC}
+    image: scionhost:tmp
     container_name: coreAS1301
     depends_on:
       - zookeeper
@@ -45,18 +53,21 @@ services:
         ipv4_address: ${coreAS1301IP}
     user: scion
     environment:
-      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
-      GOPATH: "/home/scion/go"
-      SC: "/home/scion/go/src/github.com/scionproto/scion"
       CUSER: "5"
       # fixture secret
       CSECRET: "c8CtMx5_ZUE1pAr_8sw3nw"
     tty: true
     entrypoint: /bin/bash
-    command: -c "/tmp/existingAS.sh; cat;"
+    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
 
   infraAS1303:
-    image: ethznetsec/scion_base:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-scionHost
+      args:
+        - SCION_SRC=${SCION_SRC}
+        - SC=${SC}
+    image: scionhost:tmp
     container_name: infraAS1303
     depends_on:
       - zookeeper
@@ -67,18 +78,21 @@ services:
         ipv4_address: ${infraAS1303IP}
     user: scion
     environment:
-      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
-      GOPATH: "/home/scion/go"
-      SC: "/home/scion/go/src/github.com/scionproto/scion"
       CUSER: "7"
       # fixture secret
       CSECRET: "kuA3OhfG0eLjoMeAsoZrgQ"
     tty: true
     entrypoint: /bin/bash
-    command: -c "/tmp/existingAS.sh; cat;"
+    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
 
   infraAS1305:
-    image: ethznetsec/scion_base:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-scionHost
+      args:
+        - SCION_SRC=${SCION_SRC}
+        - SC=${SC}
+    image: scionhost:tmp
     container_name: infraAS1305
     depends_on:
       - zookeeper
@@ -89,18 +103,21 @@ services:
         ipv4_address: ${infraAS1305IP}
     user: scion
     environment:
-      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
-      GOPATH: "/home/scion/go"
-      SC: "/home/scion/go/src/github.com/scionproto/scion"
       CUSER: "9"
       # fixture secret
       CSECRET: "jpuwJ8uzcu1mL8Rrbiw_9Q"
     tty: true
     entrypoint: /bin/bash
-    command: -c "/tmp/existingAS.sh; cat;"
+    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
 
   coreAS1401:
-    image: ethznetsec/scion_base:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-scionHost
+      args:
+        - SCION_SRC=${SCION_SRC}
+        - SC=${SC}
+    image: scionhost:tmp
     container_name: coreAS1401
     depends_on:
       - zookeeper
@@ -110,19 +127,22 @@ services:
         ipv4_address: ${coreAS1401IP}
     user: scion
     environment:
-      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
-      GOPATH: "/home/scion/go"
-      SC: "/home/scion/go/src/github.com/scionproto/scion"
       CUSER: "10"
       # fixture secret
       CSECRET: "Ch2eAP9F36OzSrrmOiTAkg"
     tty: true
     # waits for binaries and setup script to be loaded, then keeps beaconing
     entrypoint: /bin/bash
-    command: -c "until [ -e /tmp/existingAS.sh ]; do sleep 1; done; /tmp/existingAS.sh; cat;"
+    command: -c "until [ -e ${SC}/reloadASConfig.sh ]; do sleep 1; done; ${SC}/reloadASConfig.sh; cat;"
 
   infraAS1405:
-    image: ethznetsec/scion_base:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-scionHost
+      args:
+        - SCION_SRC=${SCION_SRC}
+        - SC=${SC}
+    image: scionhost:tmp
     container_name: infraAS1405
     depends_on:
       - zookeeper
@@ -134,14 +154,11 @@ services:
     user: scion
     privileged: true
     environment:
-      PYTHONPATH: "/home/scion/go/src/github.com/scionproto/scion/python"
-      GOPATH: "/home/scion/go"
-      SC: "/home/scion/go/src/github.com/scionproto/scion"
       CUSER: "14"
       # fixture secret
       CSECRET: "aPRjKwCAI5_eqYPXu7MlFA"
     tty: true
     # waits for binaries and setup script to be loaded, then a user AS to connect and run scmp echos
     entrypoint: /bin/bash
-    command: -c "until [ -e /tmp/VPNexistingAS.sh ]; do sleep 1; done; /tmp/VPNexistingAS.sh; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch $${SC}/done; sleep 120; echo 'reloading AP'; /tmp/reloadASConfig.sh; cat;"
+    command: -c "until [ -e ${SC}/VPNexistingAS.sh ]; do sleep 1; done; ${SC}/VPNexistingAS.sh; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch $${SC}/done; sleep 120; echo 'reloading AP'; ${SC}/reloadASConfig.sh; cat;"
 

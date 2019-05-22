@@ -4,14 +4,11 @@ export PYTHONPATH=/home/scion/go/src/github.com/scionproto/scion/python
 export GOPATH=/home/scion/go
 export SC=/home/scion/go/src/github.com/scionproto/scion
 
-sleep 10
-/tmp/minimalInstall.sh
-
 pip3 install --user requests
 
 echo "Creating new userAS"
 # Create a new user AS and get the gen config
-python3 /tmp/create_user_as.py
+python3 ${SC}/user_action.py --url "user/as/add" --data '{"attachment_point":"4", "label": "UserAS1", "installation_type": "DEDICATED", "use_vpn": "on", "public_port": 50000}' --action "add"
 echo "Created new userAS"
 
 # Configure container for OpenVPN connections
