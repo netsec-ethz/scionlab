@@ -15,6 +15,7 @@
 import base64
 import jsonfield
 import os
+import uuid
 
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -440,9 +441,11 @@ class AS(TimestampedModel):
 
 
 class HostManager(models.Manager):
-    def create(self, secret=None, **kwargs):
-        secret = secret or Host._gen_secret()
+    def create(self, uid=None, secret=None, **kwargs):
+        uid = uid or uuid.uuid4().hex
+        secret = secret or uuid.uuid4().hex
         return super().create(
+            uid=uid,
             secret=secret,
             **kwargs
         )
@@ -499,7 +502,12 @@ class Host(models.Model):
         blank=True,
         help_text="Hostname or IP for management access via SSH. Configured in run/ssh_config."
     )
-    secret = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
+
+    uid = models.CharField(max_length=_MAX_LEN_DEFAULT, unique=True, editable=False,
+                           help_text="Identifier for API",
+                           verbose_name="UID")
+    secret = models.CharField(max_length=_MAX_LEN_DEFAULT,
+                              help_text="Secret token for API")
 
     config_version = models.PositiveIntegerField(default=1)
     config_version_deployed = models.PositiveIntegerField(default=0)
@@ -560,7 +568,7 @@ class Host(models.Model):
         if ssh_host is not _placeholder:
             self.ssh_host = ssh_host or None
         if secret is not _placeholder:
-            self.secret = secret or self._gen_secret()
+            self.secret = secret or uuid.uuid4().hex
 
         internal_ip_changed = (self.internal_ip != prev_internal_ip)
         public_ip_changed = (self.public_ip != prev_public_ip)
@@ -636,10 +644,6 @@ class Host(models.Model):
             portmap.add(self.internal_ip, port)
 
         return portmap
-
-    @staticmethod
-    def _gen_secret():
-        return base64.urlsafe_b64encode(os.urandom(16)).decode().rstrip('=')
 
 
 class InterfaceManager(models.Manager):
