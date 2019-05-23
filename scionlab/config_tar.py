@@ -141,7 +141,7 @@ def _generate_config_info_json(host):
     :returns: json string
     """
     config_info = {
-        'host_id': host.pk,
+        'host_id': host.uid,
         'host_secret': host.secret,
         'version': host.config_version,
         'url': settings.SCIONLAB_SITE
