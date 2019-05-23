@@ -198,8 +198,10 @@ else
 
     install_scionlab_config
     if [ -f "gen/account_id" ]; then
-        # Use old account-id/account-secret
-        host_id=$(<gen/account_id)-$(<gen/ia)
+        # Use old account-id/account-secret files to generate host-id/host-secret as imported into new scionlab-coordinator.
+        ia=$(<gen/ia)
+        as_id=${ia#*-}
+        host_id=$(<gen/account_id)-$as_id
         host_secret=$(<gen/account_secret)
         scionlab-config --host-id="$host_id" --host-secret="$host_secret"
     else
