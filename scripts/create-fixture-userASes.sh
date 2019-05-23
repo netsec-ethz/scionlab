@@ -17,10 +17,9 @@
 set -e
 
 # run this import script after creating the infrastructure fixture
-# this import script needs three CSV files located in the root dir (where "scripts" is):
+# this import script needs two CSV files located in the root dir (where "scripts" is):
 # - users.csv
-# - connection.csv
-# - scion_lab_as.csv
+# - userases.csv
 
 # backup db
 tempdir=`mktemp -d`
@@ -35,7 +34,7 @@ python ./scripts/import-scion-coord-users.py users.csv
 # import infrastructure:
 python manage.py loaddata scionlab/fixtures/scionlab-infrastructure.yaml
 # import user ASes:
-python manage.py shell -c "from scionlab.fixtures.scionlab_userASes import load_user_ASes; load_user_ASes()"
+python manage.py shell -c "from scionlab.fixtures.scionlab_userASes import load_user_ASes; load_user_ASes('userases.csv')"
 
 # dump into fixture and get original db back
 python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/scionlab-withuserASes.yaml

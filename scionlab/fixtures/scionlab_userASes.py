@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import csv
+import hashlib
 from collections import namedtuple
 
 from django.conf import settings
@@ -28,7 +28,6 @@ DEFAULT_AP = AttachmentPoint.objects.get(AS__as_id='ffaa:0:1107')
 
 
 Conn = namedtuple('Conn', (
-                'join_as',
                 'respond_ap',
                 'join_ip',
                 'respond_ip',
@@ -36,21 +35,23 @@ Conn = namedtuple('Conn', (
                 'is_vpn'))
 
 
-def conn_from_row(row):
+def conn_from_fields(respond_ap, join_ip, respond_ip, respond_br_id, is_vpn):
     # join status has to be active or inactive (1 or 0). If it is something else, the
     # corresponding AP has to resolve this. Wait 10 minutes and export to CSV again
-    assert(row[9] == '1' or row[9] == '0')
-    return Conn(join_as=int(row[1]),
-                respond_ap=int(row[2]),
-                join_ip=row[3],
-                respond_ip=row[4],
-                respond_br_id=int(row[6]),
-                is_vpn=row[8] == '1')
+    # assert(join_status in ['0', '1']) XXX
+
+    if respond_ap == 'NULL':  # No corresponding connection in DB join
+        return None
+
+    return Conn(respond_ap=int(respond_ap),
+                join_ip=join_ip,
+                respond_ip=respond_ip,
+                respond_br_id=respond_br_id,
+                is_vpn=(is_vpn == '1'))
 
 
 UAS = namedtuple('UAS', (
                 'connection',
-                'row_id',
                 'email',
                 'public_ip',
                 'public_port',
@@ -58,14 +59,22 @@ UAS = namedtuple('UAS', (
                 'as_id',
                 'label',
                 'active',
-                'type'))
+                'type',
+                'account_id',
+                'account_secret'))
 
 
-def uas_from_row(row):
-    if row[9] == '0':
+def uas_from_fields(conn,
+                    user_email, public_ip, start_port, isd, as_id, label, status, type,
+                    account_id, secret):
+
+    if type == '0':
         # ignore infrastructure ASes
         return None
-    as_id = int(row[5])
+    # only possible AS types left are VM or DEDICATED:
+    assert(type == '1' or type == '2')
+
+    as_id = int(as_id)
     assert((as_id > 0xffaa00010000 and as_id < 0xffaa00020000) or
            (as_id > 1000 and as_id < 9000))
     if as_id < 9000:
@@ -75,60 +84,82 @@ def uas_from_row(row):
         old_id = False
         as_id -= 0xffaa00010000
     as_id = 'ffaa:1:%x' % as_id
-    # only possible AS types left are VM or DEDICATED:
-    assert(row[9] == '1' or row[9] == '2')
-    return UAS(connection=None,
-               row_id=int(row[0]),
-               email=row[1],
-               public_ip=row[2],
-               public_port=int(row[3]),
-               isd=int(row[4]),
+
+    return UAS(connection=conn,
+               email=user_email,
+               public_ip=public_ip,
+               public_port=int(start_port),
+               isd=int(isd),
                as_id=as_id,
-               label=row[7],
-               active=not old_id and row[8] == '1',
-               type=UserAS.VM if row[9] == '1' else UserAS.DEDICATED)
+               label=label,
+               active=not old_id and status == '1',
+               type=UserAS.VM if type == '1' else UserAS.DEDICATED,
+               account_id=account_id,
+               account_secret=secret)
 
 
-class CSV_Loader:
-    def __init__(self, base_path):
-        self.base_path = base_path
-        self.conn_rows = []
-        self.ases_rows = []
+def _read_user_ases(useras_table):
+    """
+    `useras_table` is the path to a CSV, created with the following query:
 
-        self._load_connections()
-        self._load_user_ases()
-        self._match()
+SELECT
+    uas.user_email,
+    uas.public_ip,
+    uas.start_port,
+    uas.isd,
+    uas.as_id,
+    uas.label,
+    uas.status,
+    uas.type,
 
-    def _load_connections(self):
-        """ Loads the connection table from a CSV file """
-        path = os.path.join(self.base_path, 'connection.csv')
-        with open(path) as f:
-            r = csv.reader(f)
-            next(iter(r))
-            self.conn_rows = [conn_from_row(c) for c in r]
+    account.account_id,
+    account.secret,
 
-    def _load_user_ases(self):
-        """ Loads the scion_lab_as table from a CSV file """
-        path = os.path.join(self.base_path, 'scion_lab_as.csv')
-        with open(path) as f:
-            r = csv.reader(f)
-            next(iter(r))
-            self.ases_rows = {a.row_id: a for a in filter(None, [uas_from_row(a) for a in r])}
+    connection.respond_ap,
+    connection.join_ip,
+    connection.respond_ip,
+    connection.respond_br_id,
+    connection.is_vpn
+FROM
+    scion_lab_as uas
+    INNER JOIN user
+        ON uas.user_email = user.email
+    INNER JOIN account
+        ON account.id = user.account_id
+    LEFT JOIN connection
+        ON uas.id = connection.join_as
+;
+    """
+    user_ases = []
+    with open(useras_table) as f:
+        rows = csv.reader(f)
+        next(iter(rows))
+        for r in rows:
+            print(len(r))
+            conn = conn_from_fields(*r[-5:])
+            uas = uas_from_fields(conn, *r[:-5])
+            if uas:
+                user_ases.append(uas)
+    return user_ases
 
-    def _match(self):
-        for c in self.conn_rows:
-            assert(self.ases_rows[c.join_as].connection is None)
-            self.ases_rows[c.join_as] = self.ases_rows[c.join_as]._replace(connection=c)
 
-    def user_ases(self):
-        return self.ases_rows.values()
+def _host_id(account_id, as_path_str):
+    """
+    Generate a host id using the account_id and as-id.
+    The exact same logic is in `scion_upgrade_script.sh` to allow generating the host id
+    when contacting the new API for first time.
+
+    Note: computes a hash; this is not technically necessary (could also use the concated string)
+    but this makes the host-ids the same length as the newly generated ones (16 bytes/32-character
+    hex string) so it won't *look* different.
+    """
+    return hashlib.md5((account_id + as_path_str).encode()).hexdigest()
 
 
-def load_user_ASes():
+def load_user_ASes(path):
     # special settings:
     settings.MAX_ASES_USER = 9999
     # load CSV
-    loader = CSV_Loader('.')
     APs = {
         APs_ROWIDs[0]: AttachmentPoint.objects.get(AS__as_id='ffaa:0:1107'),
         APs_ROWIDs[1]: AttachmentPoint.objects.get(AS__as_id='ffaa:0:1202'),
@@ -136,10 +167,8 @@ def load_user_ASes():
         APs_ROWIDs[3]: AttachmentPoint.objects.get(AS__as_id='ffaa:0:1404'),
     }
     # create user ASes:
-    i = 0
-    uases = loader.user_ases()
-    for uas in uases:
-        i += 1
+    uases = _read_user_ases(path)
+    for i, uas in enumerate(uases):
         user = User.objects.get(email=uas.email)
         active = uas.active
         if uas.connection is None:
@@ -170,6 +199,10 @@ def load_user_ASes():
             as_.as_id = uas.as_id
             as_.as_id_int = as_ids.parse(uas.as_id)
             as_.save()
+            host = as_.hosts.get()
+            host.uid = _host_id(uas.account_id, as_.as_path_str())
+            host.secret = uas.account_secret
+            host.save()
         except Exception:
             print('Exception processing row {row} AS ID {asid} from {owner}'.format(
                 row=i,
@@ -177,4 +210,4 @@ def load_user_ASes():
                 owner=uas.email
             ))
             raise
-        print('done {} / {}'.format(i, len(loader.user_ases())))
+        print('done {} / {}'.format(i+1, len(uases)))
