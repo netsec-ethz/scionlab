@@ -135,7 +135,6 @@ FROM
         rows = csv.reader(f)
         next(iter(rows))
         for r in rows:
-            print(len(r))
             conn = conn_from_fields(*r[-5:])
             uas = uas_from_fields(conn, *r[:-5])
             if uas:
