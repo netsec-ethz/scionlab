@@ -13,13 +13,14 @@
 # limitations under the License.
 
 
+import base64
+import json
 import os
 import re
-import json
+import uuid
 from collections import defaultdict, namedtuple
 from django.db.models import Q
 from nacl.signing import SigningKey
-import base64
 
 from lib.crypto.certificate import Certificate
 
@@ -274,12 +275,10 @@ class Generator:
             else:
                 internal_ip = public_ip
                 bind_ip = None
-            host, _ = Host.objects.get_or_create(AS=as_,
-                                                 public_ip=public_ip,
-                                                 internal_ip=internal_ip,
-                                                 bind_ip=bind_ip,
-                                                 managed=True,
-                                                 ssh_host=public_ip)
+            host, _ = _get_or_create_host(AS=as_,
+                                          public_ip=public_ip,
+                                          internal_ip=internal_ip,
+                                          bind_ip=bind_ip)
             Service.objects.create(host=host, type=service_type, port=public_port)
         serv = topo[TYPES_TO_KEYS[Service.ZK]]['1']
         public_ip = serv['Addr']
@@ -311,12 +310,10 @@ class Generator:
                     print('Warning: assigning BRs, skip BR %s (non IPv4 overlay)' % brname)
                     continue
                 bind_ip = iface['BindOverlay']['Addr'] if 'BindOverlay' in iface else None
-                host_here, _ = Host.objects.get_or_create(AS=as_,
-                                                          public_ip=public_ip,
-                                                          internal_ip=internal_ip,
-                                                          bind_ip=bind_ip,
-                                                          managed=True,
-                                                          ssh_host=public_ip)
+                host_here, _ = _get_or_create_host(AS=as_,
+                                                   public_ip=public_ip,
+                                                   internal_ip=internal_ip,
+                                                   bind_ip=bind_ip)
                 assert(Host.objects.filter(AS=as_,
                                            public_ip=public_ip,
                                            internal_ip=internal_ip).count() == 1)
@@ -380,6 +377,16 @@ class Generator:
                                     interfaceB=iface_here,
                                     bandwidth=iface['Bandwidth'],
                                     mtu=iface['MTU'])
+
+
+def _get_or_create_host(AS, public_ip, internal_ip, bind_ip):
+    return Host.objects.get_or_create(AS=AS,
+                                      public_ip=public_ip,
+                                      internal_ip=internal_ip,
+                                      bind_ip=bind_ip,
+                                      managed=True,
+                                      ssh_host=public_ip,
+                                      defaults=dict(uid=uuid.uuid4().hex, secret=uuid.uuid4().hex))
 
 
 def _create_attachmentpoints(ap_list):
