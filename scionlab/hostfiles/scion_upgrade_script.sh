@@ -201,7 +201,8 @@ else
         # Use old account-id/account-secret files to generate host-id/host-secret as imported into new scionlab-coordinator.
         ia=$(<gen/ia)
         as_id=${ia#*-}
-        host_id=$(<gen/account_id)-$as_id
+        account_id=$(<gen/account_id)
+        host_id=`echo -n $account_id$as_id | md5sum | cut -c 1-32`
         host_secret=$(<gen/account_secret)
         scionlab-config --host-id="$host_id" --host-secret="$host_secret"
     else
