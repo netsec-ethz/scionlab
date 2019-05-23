@@ -79,7 +79,7 @@ services:
     user: scion
     environment:
       CUSER: f5422107f7354c55b9f54a4befe0f58d
-      CSECERT: a2532f97fe144a88944e2860e525f220
+      CSECRET: a2532f97fe144a88944e2860e525f220
     tty: true
     entrypoint: /bin/bash
     command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
