@@ -14,8 +14,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 pip install -r dev-requirements.txt
 
-# Recreate fixture and initalize test DB
-PYTHONPATH=/tmp/scion/python scripts/create-fixture-testtopo.sh
+# Load fixtures and initalize test DB
 PYTHONPATH=/tmp/scion/python scripts/init-test-db.sh
 
 # Start coordinator

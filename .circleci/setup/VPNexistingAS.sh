@@ -12,8 +12,7 @@ sudo openssl dhparam -out /etc/openvpn/dh.pem 2048
 sudo mkdir /etc/openvpn/ccd
 
 # Get configuration from coordinator
-export COORD_IP=$(dig +short coord A)
-curl --fail -u ${CUSER}:${CSECRET} http://${COORD_IP}:8000/api/host/${CUSER}/config -o /tmp/host_config.tar
+curl --fail -u ${CUSER}:${CSECRET} http://coord:8000/api/host/${CUSER}/config -o /tmp/host_config.tar
 rm $SC/gen -rf
 tar -C $SC/ -xf /tmp/host_config.tar
 
