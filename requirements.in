@@ -1,15 +1,22 @@
-cryptography
 Django>=2.1.5
+cryptography
 django-crispy-forms
 django-extensions
 django-recaptcha2
 django-registration
-jsonfield2
-pyyaml>=4.2b1  # for fixtures and config generation; high severity vulnerability before 4.1 (CVE-2017-18342)
-toml
+graphviz
+gunicorn
 huey
+jsonfield2
+psycopg2-binary  # PostgreSQL backend
+pyyaml>=4.2b1  # for fixtures and config generation; high severity vulnerability before 4.1 (CVE-2017-18342)
 redis
 scrypt
-psycopg2-binary  # PostgreSQL backend
-gunicorn
-graphviz
+toml
+
+# SCION dependencies:
+# these are dependencies of the scion-python libraries that we use
+lz4
+pycapnp
+pygments  # accidental dependency, just for stack traces somewhere
+pynacl

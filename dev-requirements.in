@@ -1,6 +1,6 @@
 # Testing:
-django-webtest
 django-nose
-parameterized
+django-webtest
 flake8
 flake8-formatter-junit-xml
+parameterized
