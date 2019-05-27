@@ -15,10 +15,9 @@ where:
     -g GEN_DIR          path to gen directory to be used
     -v VPN_CONF_PATH    path to OpenVPN configuration file
     -s SCION_SERVICE    path to SCION service file
-    -z SCION_VI_SERVICE path to SCION-viz service file
     -a ALIASES_FILE     adds useful command aliases in specified file
     -c                  do not destroy user context on logout
-    -u UPGR_SCRIPT      script used for upgrading scion, (will be copied to 
+    -u UPGR_SCRIPT      script used for upgrading scion, (will be copied to
                         path ${UPGRADE_SCRIPT_LOCATION})
     -t TIMER_UPG_SERV   name of sysd timer and system name for upgrades"
 
@@ -35,9 +34,6 @@ while getopts ":p:g:v:s:z:ha:cu:t:" opt; do
       ;;
     s)
       scion_service_path=$OPTARG
-      ;;
-    z)
-      scion_viz_service=$OPTARG
       ;;
     h)
       echo "Displaying help:" >&2
@@ -100,61 +96,86 @@ mkdir -p "$GOPATH"
 mkdir -p "$GOPATH/src/github.com/scionproto"
 cd "$GOPATH/src/github.com/scionproto"
 
-if [ ! -d scion ]; then
-    git config --global url.https://github.com/.insteadOf git@github.com:
-    git clone --recursive -b scionlab git@github.com:netsec-ethz/netsec-scion scion
-    cd scion
+git config --global url.https://github.com/.insteadOf git@github.com:
+git clone --recursive -b scionlab git@github.com:netsec-ethz/netsec-scion scion
 
-    # Check if there is a patch directory
-    if  [[ ( ! -z ${patch_dir+x} ) && -d ${patch_dir} ]]
+cd scion
+
+# Check if there is a patch directory
+if  [[ ( ! -z ${patch_dir+x} ) && -d ${patch_dir} ]]
+then
+    echo "Applying patches:"
+    patch_files="$patch_dir/*.patch"
+
+    for f in $patch_files;
+    do
+        echo -e "\t$f"
+        git apply "$f"
+    done
+
+    git_username=$(git config user.name || true)
+
+    # We need to have git user in order to commit
+    if [ -z "$git_username" ]
     then
-        echo "Applying patches:"
-        patch_files="$patch_dir/*.patch"
-
-        for f in $patch_files;
-        do
-            echo -e "\t$f"
-            git apply "$f"
-        done
-
-        git_username=$(git config user.name || true)
-
-        # We need to have git user in order to commit
-        if [ -z "$git_username" ]
-        then
-            echo "GIT user credentials not set, configuring defaults"
-            git config --global user.name "Scion User" 
-            git config --global user.email "scion@scion-architecture.net"
-        fi
-
-        git commit -am "Applied platform dependent patches"
-
-        echo "Finished applying patches"
+        echo "GIT user credentials not set, configuring defaults"
+        git config --global user.name "Scion User"
+        git config --global user.email "scion@scion-architecture.net"
     fi
 
-    echo "Installing dependencies"
-    bash -c 'yes | GO_INSTALL=true ./env/deps'
-    echo "Building SCION"
-    ./scion.sh build
-    echo "SCION built"
+    git commit -am "Applied platform dependent patches"
 
-    sudo cp docker/zoo.cfg /etc/zookeeper/conf/zoo.cfg
-    # Add cron script which removes old zk logs
-    sudo bash -c 'cat > /etc/cron.daily/zookeeper << CRON1
-#! /bin/sh
+    echo "Finished applying patches"
+fi
+
+MEMTOTAL=$(grep MemTotal /proc/meminfo  | awk '{print $2}')
+echo "Available memory is: $MEMTOTAL"
+# if less than 4Gb
+[[ $MEMTOTAL -lt 4194304 ]] && swapadded=1 || swapadded=0
+if [ $swapadded -eq 1 ]; then
+    echo "Not enough memory, adding swap space..."
+    sudo fallocate -l 4G /tmp/swap
+    sudo mkswap /tmp/swap
+    sudo swapon /tmp/swap
+    echo "Swap space added."
+else
+    echo "No swap space needed."
+fi
+echo "Building dependencies ..."
+bash -c 'yes | GO_INSTALL=true ./env/deps'
+echo "Building SCION ..."
+./scion.sh build
+if [ $swapadded -eq 1 ]; then
+    echo "Removing swap space..."
+    sudo swapoff /tmp/swap && sudo rm -f /tmp/swap || true
+    echo "Swap space removed."
+fi
+
+sudo bash -c 'cat > /etc/zookeeper/conf/zoo.cfg << ZOOCFG
+tickTime=100
+initLimit=10
+syncLimit=5
+dataDir=/var/lib/zookeeper
+dataLogDir=/run/shm/host-zk
+clientPort=2181
+maxClientCnxns=0
+autopurge.purgeInterval=1
+ZOOCFG'
+
+# Add cron script which removes old zk logs
+sudo bash -c 'cat > /etc/cron.daily/zookeeper << CRON1
+#!/bin/sh
 /usr/share/zookeeper/bin/zkCleanup.sh -n 3
 CRON1'
-    sudo chmod 755 /etc/cron.daily/zookeeper
+sudo chmod 755 /etc/cron.daily/zookeeper
 
-    cd sub
-    git clone git@github.com:netsec-ethz/scion-viz
-    cd scion-viz/python/web
-    pip3 install --user --require-hashes -r requirements.txt
-    python3 ./manage.py migrate
-else
-    echo "SCION already present, not building it."
-fi
-cd "$SC"
+# Add cron script to remove gen-cache contents
+sudo bash -c "cat > /etc/cron.daily/clean_gen-cache << CRON2
+#!/bin/sh
+rm -f $SC/gen-cache/*
+CRON2"
+sudo chmod 755 /etc/cron.daily/clean_gen-cache
+
 # Check if gen directory exists
 if  [[ ( ! -z ${gen_dir+x} ) && -d ${gen_dir} ]]
 then
@@ -162,10 +183,21 @@ then
     cp -r "$gen_dir" .
 else
     echo "Gen directory is NOT specified! Generating local (Tiny) topology!"
-    ./scion.sh topology -c topology/Tiny.topo
+    ./scion.sh topology nodocker -c topology/Tiny.topo
 fi
-./scion.sh stop
-./supervisor/supervisor.sh reload
+# ensure we have the default certificate needed by QUIC
+if [ ! -e "gen-certs/tls.pem" -o ! -e "gen-certs/tls.key" ]; then
+    old=$(umask)
+    echo "Generating TLS cert"
+    mkdir -p "gen-certs"
+    umask 0177
+    openssl genrsa -out "gen-certs/tls.key" 2048
+    umask "$old"
+    openssl req -new -x509 -key "gen-certs/tls.key" -out "gen-certs/tls.pem" -days 3650 -subj /CN=scion_def_srv
+fi
+
+# Ensure gen-cache directory exists (some services fail to start otherwise (bug))
+mkdir -p gen-cache
 
 # Should we add aliases
 if [[ (! -z ${aliases_file} ) ]]
@@ -195,36 +227,22 @@ then
 
     cp "$scion_service_path" "$tempfile"
     # We need to replace template user with current username
-    sed -i "s|_USER_|$USER|g;s|/usr/local/go/bin|$(dirname $(which go))|g" "$tempfile"
+    sed -i "s/_USER_/$USER/g" "$tempfile"
     sudo cp "$tempfile" /etc/systemd/system/scion.service
+
     sudo systemctl enable scion.service
-    sudo systemctl restart scion.service || true
+    sudo systemctl start scion.service
+
     rm "$tempfile"
 else
     echo "SCION systemd service file not specified! SCION won't run automatically on startup."
     ./scion.sh start nobuild
 fi
 
-if  [[ ( ! -z ${scion_viz_service+x} ) && -r ${scion_viz_service} ]]
-then
-    echo "Registering SCION-viz as startup service"
-
-    cp "$scion_viz_service" "$tempfile"
-    # We need to replace template user with current username
-    sed -i "s/_USER_/$USER/g" "$tempfile"
-    sudo cp "$tempfile" /etc/systemd/system/scion-viz.service
-
-    sudo systemctl enable scion-viz.service
-    sudo systemctl start scion-viz.service
-
-    rm "$tempfile"
-else
-    echo "SCION-viz systemd service file not specified! SCION-viz won't run automatically on startup."
-fi
-
 if [[ $keep_user_context = true ]]
 then
   sudo sh -c 'echo RemoveIPC=no >> /etc/systemd/logind.conf'
+  sudo systemctl reload-or-restart systemd-logind.service
 fi
 
 if  [[ ( ! -z ${upgrade_script+x} ) ]]
@@ -244,7 +262,7 @@ then
     echo "Registering SCION periodic upgrade service"
 
     cp "$upgrade_service" "$tempfile"
-    sed -i "s|_USER_|$USER|g;s|/usr/local/go/bin|$(dirname $(which go))|g" "$tempfile"
+    sed -i "s/_USER_/$USER/g" "$tempfile"
     sudo cp "$tempfile" /etc/systemd/system/scionupgrade.service
     rm "$tempfile"
 
@@ -255,11 +273,11 @@ then
 
     sudo systemctl enable scionupgrade.timer
     sudo systemctl enable scionupgrade.service
-    
+
     sudo systemctl start scionupgrade.timer
+    sudo systemctl start scionupgrade.service
 
     if [ -d "/vagrant" ]; then # iff this is a VM
-        echo "Detected running inside Vagrant"
         # registering the upgrade service also means "manage SCION", including keep time sync'ed
         sudo apt-get install -y --no-remove ntp || true
         sudo sed -i -- 's/^\(\s*start-stop-daemon\s*--start\s*--quiet\s*--oknodo\s*--exec\s*\/usr\/sbin\/VBoxService\)$/\1 -- --disable-timesync/g' /etc/init.d/virtualbox-guest-utils || true
@@ -292,8 +310,26 @@ then
 Unattended-Upgrade::Automatic-Reboot "true";
 Unattended-Upgrade::Automatic-Reboot-Time "02:00";' | sudo tee /etc/apt/apt.conf.d/51unattended-upgrades >/dev/null
         fi
+        if [ ! -x /etc/update-motd.d/99-scionlab-upgrade ]; then
+            cat << "MOTD1" | sudo tee /etc/update-motd.d/99-scionlab-upgrade > /dev/null
+#!/bin/bash
+
+SC=/home/ubuntu/go/src/github.com/scionproto/scion
+cd "$SC"
+[[ -f "scionupgrade.auto.inprogress" ]] && dirtybuild=1 || dirtybuild=0
+if [ $dirtybuild -eq 1 ]; then
+    printf "\n"
+    printf "===========================================================================\n"
+    printf "================= WARNING !! ==============================================\n"
+    printf "===========================================================================\n"
+    printf " SCIONLab is updating. Please wait until it finishes to run scion.sh start\n"
+    printf "===========================================================================\n"
+    printf "\n"
+fi
+MOTD1
+            sudo chmod 755 /etc/update-motd.d/99-scionlab-upgrade
+        fi
     fi
 else
     echo "SCION periodic upgrade service and timer files are not provided."
 fi
-echo "done. (SCION install script)"
