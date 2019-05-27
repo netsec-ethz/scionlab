@@ -1,5 +1,0 @@
-# these are dependencies of the scion-python libraries that we use
-pynacl
-pygments  # accidental dependency, just for stack traces somewhere
-pycapnp
-lz4
