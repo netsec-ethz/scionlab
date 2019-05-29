@@ -19,7 +19,6 @@ from collections import namedtuple
 from django.conf import settings
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.models.user import User
-from scionlab.util import as_ids
 
 
 # we have 4 APs. These are their PKs in the CSV:
@@ -155,6 +154,12 @@ def _host_id(account_id, as_path_str):
     return hashlib.md5((account_id + as_path_str).encode()).hexdigest()
 
 
+def _port_from_br_id(br_id):
+    # see GetPortNumberFromBRID(brID uint16) uint16
+    START_PORT = 50000
+    return START_PORT + br_id - 1
+
+
 def load_user_ASes(path):
     # special settings:
     settings.MAX_ASES_USER = 9999
@@ -202,6 +207,13 @@ def load_user_ASes(path):
             host.uid = _host_id(uas.account_id, as_.as_path_str())
             host.secret = uas.account_secret
             host.save()
+
+            # Import previously used interface-id/port on AP side:
+            ap_interface = as_.interfaces.get().remote_interface()
+            ap_interface.interface_id = uas.connection.respond_br_id
+            ap_interface.public_port = _port_from_br_id(uas.connection.respond_br_id)
+            ap_interface.save()
+
         except Exception:
             print('Exception processing row {row} AS ID {asid} from {owner}'.format(
                 row=i,
