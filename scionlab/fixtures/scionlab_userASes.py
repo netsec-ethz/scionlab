@@ -45,7 +45,7 @@ def conn_from_fields(respond_ap, join_ip, respond_ip, respond_br_id, is_vpn):
     return Conn(respond_ap=int(respond_ap),
                 join_ip=join_ip,
                 respond_ip=respond_ip,
-                respond_br_id=respond_br_id,
+                respond_br_id=int(respond_br_id),
                 is_vpn=(is_vpn == '1'))
 
 
