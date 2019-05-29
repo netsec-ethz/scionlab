@@ -107,9 +107,9 @@ MOTD1
 }
 
 install_scionlab_config() {
-    if [ `which scionlab-config` == "" ]; then
+    if [ -z `which scionlab-config` ]; then
         #wget https://testing.scionlab.org/static/scionlab-config -O /usr/bin/scionlab-config
-        wget "https://raw.githubusercontent.com/netsec-ethz/scionlab/scion-upgrade/scionlab/hostfiles/scionlab-config" -O /usr/bin/scionlab-config
+        wget "https://raw.githubusercontent.com/netsec-ethz/scionlab/scion-upgrade/scionlab/hostfiles/scionlab-config" -O /usr/local/bin/scionlab-config
     fi
 }
 
