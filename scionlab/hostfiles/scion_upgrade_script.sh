@@ -10,7 +10,7 @@ SERVICE_CURRENT_VERSION="0.9"
 verleq() {
     [ ! -z "$1" ] && [ ! -z "$2" ] && [ "$1" = `echo -e "$1\n$2" | sort -V | head -n1` ]
 }
-eck_system_files() {
+check_system_files() {
     # check service files:
     need_to_reload=0
     declare -a FILES_TO_CHECK=("/etc/systemd/system/scionupgrade.service"
