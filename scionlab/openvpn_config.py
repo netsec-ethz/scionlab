@@ -137,8 +137,8 @@ def generate_vpn_server_key_material(host):
     # create server certificate
     # set subject attributes
     owner_email = get_owner_email(host.AS)
-    subject = _make_name(host.AS.isd_as_path_str()+"__"+host.public_ip.replace(":", "_"))
-    subject_alt_name = owner_email + "__" + host.AS.isd_as_path_str()
+    subject = _make_name(host.AS.as_path_str()+"__"+host.public_ip.replace(":", "_"))
+    subject_alt_name = owner_email + "_" + host.AS.as_path_str()
 
     # create and sign the certificate
     cert = _make_cert(subject, subject_alt_name, key, ca_cert.issuer, ca_key,
@@ -157,7 +157,7 @@ def generate_vpn_client_key_material(as_):
     # create a certificate signed by the ca
     # set subject attributes
     owner_email = get_owner_email(as_)
-    subject_common_name = owner_email+"__"+as_.isd_as_path_str()
+    subject_common_name = owner_email+"_"+as_.as_path_str()
     subject = _make_name(subject_common_name)
 
     # create and sign the client certificate
