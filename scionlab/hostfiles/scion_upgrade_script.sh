@@ -119,7 +119,7 @@ shopt -s nullglob
 
 export LC_ALL=C
 
-if [ "$1" == "-m" ]; then
+if [ "$1" != "-m" ]; then
     # systemd files upgrade:
     check_system_files
 else
