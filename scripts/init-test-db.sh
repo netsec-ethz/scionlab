@@ -17,9 +17,7 @@
 set -e
 
 rm run/dev.sqlite3 || true
-rm -r scionlab/migrations/ || true
 
-python manage.py makemigrations scionlab
 python manage.py migrate
 
 python manage.py loaddata scionlab/fixtures/testuser-admin.yaml \
