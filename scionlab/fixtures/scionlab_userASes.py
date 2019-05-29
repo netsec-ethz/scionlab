@@ -23,7 +23,6 @@ from scionlab.models.user import User
 
 # we have 4 APs. These are their PKs in the CSV:
 APs_ROWIDs = [1, 2, 3, 4]
-DEFAULT_AP = AttachmentPoint.objects.get(AS__as_id='ffaa:0:1107')
 
 
 Conn = namedtuple('Conn', (
@@ -128,6 +127,8 @@ FROM
     LEFT JOIN connection
         ON uas.id = connection.join_as
 ;
+
+    XXX:  The last join could now also be an inner join as we're ignoring all the ASes without conn.
     """
     user_ases = []
     with open(useras_table) as f:
@@ -136,8 +137,10 @@ FROM
         for r in rows:
             conn = conn_from_fields(*r[-5:])
             uas = uas_from_fields(conn, *r[:-5])
-            if uas:
+            if conn and uas:
                 user_ases.append(uas)
+            elif uas:
+                print('Skipping, no connection. IA = %s , user = %s' % (uas.as_id, uas.email))
     return user_ases
 
 
@@ -173,19 +176,16 @@ def load_user_ASes(path):
     # create user ASes:
     uases = _read_user_ases(path)
     for i, uas in enumerate(uases):
-        user = User.objects.get(email=uas.email)
-        active = uas.active
-        if uas.connection is None:
-            active = False
-            ap = DEFAULT_AP
-            is_vpn = False
-            public_ip = '127.0.0.1'  # should be invalid when this gets activated
-            public_port = 0
-        else:
-            ap = APs[uas.connection.respond_ap]
-            is_vpn = uas.connection.is_vpn
-            public_ip = uas.public_ip
-            public_port = uas.public_port
+        print('doing {} / {}'.format(i+1, len(uases)))
+        try:
+            user = User.objects.get(email=uas.email)
+        except User.DoesNotExist as ex:
+            print('User %s does not exist in DB' % uas.email)
+            raise ex
+        ap = APs[uas.connection.respond_ap]
+        is_vpn = uas.connection.is_vpn
+        public_ip = uas.public_ip
+        public_port = uas.public_port
         bind_ip = '10.0.2.15' if uas.type == UserAS.VM else None
         bind_port = public_port if bind_ip else None
         try:
@@ -200,9 +200,16 @@ def load_user_ASes(path):
                                         bind_ip=bind_ip,
                                         bind_port=bind_port,
                                         vpn_client_ip=uas.connection.join_ip if is_vpn else None)
-            if not active:
-                as_.update_active(active)
+            if not uas.active:
+                as_.update_active(False)
+            # update its certificate version: slightly nasty but we don't have a nicer way (and we
+            # don't seem to need it otherwise).
+            # UserASes in scion-coord are currently at version 2, so we will bump to version 3
+            # because we've changed the keys.
+            as_.certificate_chain["0"]['Version'] = 2
+            as_.generate_certificate_chain()
             as_.save()
+
             host = as_.hosts.get()
             host.uid = _host_id(uas.account_id, as_.as_path_str())
             host.secret = uas.account_secret
@@ -221,4 +228,3 @@ def load_user_ASes(path):
                 owner=uas.email
             ))
             raise
-        print('done {} / {}'.format(i+1, len(uases)))
