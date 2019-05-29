@@ -41,6 +41,7 @@ class UserASManager(models.Manager):
                attachment_point,
                public_port,
                installation_type,
+               as_id=None,
                label=None,
                use_vpn=False,
                public_ip=None,
@@ -53,6 +54,7 @@ class UserASManager(models.Manager):
         :param User owner: owner of this UserAS
         :param AttachmentPoint attachment_point: the attachment point (AP) to connect to
         :param int public_port: the public port for the connection to the AP
+        :param str as_id: optional as_id, if None is given, the next free ID is chosen
         :param str label: optional label
         :param bool use_vpn: use VPN for the connection to the AP
         :param str public_ip: the public IP for the connection to the AP.
@@ -66,12 +68,17 @@ class UserASManager(models.Manager):
         owner.check_as_quota()
 
         isd = attachment_point.AS.isd
-        as_id_int = self.get_next_id()
+        if as_id:
+            as_id_int = as_ids.parse(as_id)
+        else:
+            as_id_int = self.get_next_id()
+            as_id = as_ids.format(as_id_int)
+
         user_as = UserAS(
             owner=owner,
             label=label,
             isd=isd,
-            as_id=as_ids.format(as_id_int),
+            as_id=as_id,
             as_id_int=as_id_int,
             attachment_point=attachment_point,
             public_ip=public_ip,

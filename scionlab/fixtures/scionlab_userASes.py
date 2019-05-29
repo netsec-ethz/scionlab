@@ -185,6 +185,7 @@ def load_user_ASes(path):
         bind_port = public_port if bind_ip else None
         try:
             as_ = UserAS.objects.create(owner=user,
+                                        as_id=uas.as_id,
                                         attachment_point=ap,
                                         public_port=public_port,
                                         installation_type=uas.type,
@@ -194,9 +195,8 @@ def load_user_ASes(path):
                                         bind_ip=bind_ip,
                                         bind_port=bind_port,
                                         vpn_client_ip=uas.connection.join_ip if is_vpn else None)
-            as_.update_active(active)
-            as_.as_id = uas.as_id
-            as_.as_id_int = as_ids.parse(uas.as_id)
+            if not active:
+                as_.update_active(active)
             as_.save()
             host = as_.hosts.get()
             host.uid = _host_id(uas.account_id, as_.as_path_str())
