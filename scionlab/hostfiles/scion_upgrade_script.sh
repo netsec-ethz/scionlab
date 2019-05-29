@@ -140,7 +140,7 @@ fi
 
 git fetch origin scionlab &>/dev/null
 
-git merge-base --is-ancestor scionlab origin/scionlab && needtoreset=0 || needtoreset=1
+git merge-base --is-ancestor origin/scionlab scionlab && needtoreset=0 || needtoreset=1
 [[ $(git rev-parse --abbrev-ref --symbolic-full-name @{upstream}) == "origin/scionlab" ]] && badtracking=0 || badtracking=1
 [[ -f "scionupgrade.auto.inprogress" ]] && dirtybuild=1 || dirtybuild=0
 echo "Need to reset? $needtoreset . Dirty build? $dirtybuild . Bad tracked branch? $badtracking"
