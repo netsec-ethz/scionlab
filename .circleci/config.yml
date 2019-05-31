@@ -128,7 +128,7 @@ jobs:
             # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
             docker run --net circleci_as_net --name curl_test\
-              --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/login/ 2>/dev/null; do sleep 1; done;"
+              --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/login/ 2>/dev/null; do sleep 0.1; done;"
 
             export coreAS1301IP=172.31.0.110 infraAS1303IP=172.31.0.111 infraAS1305IP=172.31.0.112
             docker-compose -f .circleci/docker-compose.yml create zookeeper coreAS1301 infraAS1303 infraAS1305
@@ -139,9 +139,9 @@ jobs:
           command: |
             set -x
             # Wait for the SCION services to start
-            docker exec coreAS1301 /bin/bash -c 'cd ${SC}; until [ `./supervisor/supervisor.sh status | grep RUNNING | wc -l` -ge 6 ]; do sleep 1; done;'
+            docker exec coreAS1301 /bin/bash -c 'cd ${SC}; until [ `./supervisor/supervisor.sh status | grep RUNNING | wc -l` -ge 6 ]; do sleep 0.1; done;'
             # Wait for beaconing to start
-            docker exec infraAS1305 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 1; done; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
+            docker exec infraAS1305 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 0.1; done; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
             docker exec coreAS1301 /bin/bash -c "${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
             docker exec infraAS1303 /bin/bash -c "grep -m 5 'Successfully verified PCB' -r ${SC}/logs/; ${SC}/bin/scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
 
@@ -163,21 +163,21 @@ jobs:
             docker exec coord /bin/bash -c 'mkdir -p ~/.ssh'
             docker cp ~/.ssh/deploy_rsa coord:/home/circleci/.ssh/
             # Update config on the fly to use shared zookeeper instance
-            docker exec -d infraAS1303 /bin/bash -c "sudo apt-get install -y inotify-tools; sleep 1; while true; do inotifywait -e delete $SC/gen/ISD19 && /home/scion/go/src/github.com/scionproto/scion/share_zk.sh; done"
+            docker exec -d infraAS1303 /bin/bash -c "sudo apt-get install -y inotify-tools; while true; do inotifywait -e delete $SC/gen/ISD19 && /home/scion/go/src/github.com/scionproto/scion/share_zk.sh; done"
 
             # Start the huey consumer
             docker exec -d coord /bin/bash -c 'cd /home/circleci/repo/scionlab && . /tmp/venv/bin/activate && PYTHONPATH=/tmp/scion/python python manage.py run_huey -w 8 &'
 
             # Change internal IP of infraAS1303
             docker run --net circleci_as_net -dt --name update_AS\
-                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 1; done; python3 /tmp/admin_action.py --url 'admin/scionlab/host/7/change/' --data '{\"AS\": 7, \"internal_ip\": \"127.0.0.111\", \"public_ip\": \"172.31.0.111\", \"managed\": \"on\",\"ssh_host\": \"172.31.0.111\", \"secret\": \"kuA3OhfG0eLjoMeAsoZrgQ\"}' --action update; cat"
+                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url 'admin/scionlab/host/7/change/' --data '{\"AS\": 7, \"internal_ip\": \"127.0.0.111\", \"public_ip\": \"172.31.0.111\", \"managed\": \"on\",\"ssh_host\": \"172.31.0.111\", \"secret\": \"kuA3OhfG0eLjoMeAsoZrgQ\"}' --action update; cat"
             docker cp .circleci/setup/admin_action.py update_AS:/tmp/admin_action.py
 
             # Trigger a manual deployment
             docker exec -d update_AS\
                   /bin/bash -c "sleep 7; python3 /tmp/admin_action.py --url 'admin/scionlab/host/' --data '{\"action\": \"trigger_config_deployment\", \"select_across\": 0, \"index\": 0,\"_selected_action\": 7}' --action trigger"
             #docker exec -d update_AS\
-            #      /bin/bash -c "sleep 7; python3 /tmp/admin_action.py --url 'admin/scionlab/host/add/' --data '{\"AS\": \"7\", \"internal_ip\": \"172.31.0.11\", \"public_ip\": \"172.31.0.11\",\"label\": \"zookeeper\"}' --action add"
+            #      /bin/bash -c "python3 /tmp/admin_action.py --url 'admin/scionlab/host/add/' --data '{\"AS\": \"7\", \"internal_ip\": \"172.31.0.11\", \"public_ip\": \"172.31.0.11\",\"label\": \"zookeeper\"}' --action add"
             docker stop update_AS
 
             # Check change was deployed and connection still works
@@ -199,7 +199,7 @@ jobs:
 
                 # Add core AS(es) for ISD 19
                 docker run --net circleci_as_net -d --name add_core_AS\
-                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; sleep 5; python3 /tmp/admin_action.py --url admin/scionlab/as/add/ --action add --prev_ia ${AS_ID} --count ${n}" # largest AS ID in the ISD, number of new core ASes
+                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url admin/scionlab/as/add/ --action add --prev_ia ${AS_ID} --count ${n}" # largest AS ID in the ISD, number of new core ASes
                 docker cp .circleci/setup/admin_action.py add_core_AS:/tmp/admin_action.py
                 AS_ID=$(( $AS_ID + $n ))
                 TRC_version=$(( $TRC_version + $n ))
@@ -256,7 +256,7 @@ jobs:
             done
             docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coreAS1401 infraAS1405
             # Wait for AP to be set up (key generation is slow)
-            docker exec infraAS1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 1; done;"
+            docker exec infraAS1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 0.1; done;"
             echo "AP started"
 
             # Start user AS container, create user AS and connect:
@@ -267,7 +267,7 @@ jobs:
             done
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker exec -e SC=${SC} userAS1 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 1; done; ./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+            docker exec -e SC=${SC} userAS1 /bin/bash -c 'until [ `grep "Successfully verified PCB" -s -r ${SC}/logs/ | wc -l` -ge 5 ]; do sleep 0.1; done; ./bin/scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
             docker stop userAS1; docker rm userAS1;
 
       - run:
