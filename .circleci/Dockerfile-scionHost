@@ -1,0 +1,24 @@
+FROM ethznetsec/scion_base:latest
+
+ARG SCION_SRC
+ARG SC
+
+# Update
+RUN sudo apt-get update && sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev
+
+# Install SCION
+RUN git clone ${SCION_SRC} -b scionlab --depth 1 ${SC}
+
+RUN cd ${SC} && ./env/deps
+
+RUN cd ${SC} && make
+## To be replaced by the package installation
+
+COPY ./setup/reloadASConfig.sh ${SC}/reloadASConfig.sh
+COPY ./setup/share_zk.sh ${SC}/share_zk.sh
+RUN mkdir ${SC}/gen-cache
+
+
+# Add environment variables for execution
+ENV PYTHONPATH ${SC}/python
+ENV SC ${SC}

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-sleep 10
-/tmp/minimalInstall.sh
-
 # Configure container for OpenVPN connections
 sudo apt-get update
 sudo apt-get install -y openvpn
@@ -16,7 +13,7 @@ sudo mkdir /etc/openvpn/ccd
 
 # Get configuration from coordinator
 export COORD_IP=$(dig +short coord A)
-curl -u ${CUSER}:${CSECRET} http://${COORD_IP}:8000/api/host/${CUSER}/config -o /tmp/host_config.tar
+curl --fail -u ${CUSER}:${CSECRET} http://${COORD_IP}:8000/api/host/${CUSER}/config -o /tmp/host_config.tar
 rm $SC/gen -rf
 tar -C $SC/ -xf /tmp/host_config.tar
 
