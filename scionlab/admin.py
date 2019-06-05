@@ -179,7 +179,7 @@ class HostAdminForm(_CreateUpdateModelForm):
 
     def create(self):
         return Host.objects.create(
-            AS=self.instance.AS if self.instance else self.cleaned_data['AS'],    # Hmmm...
+            AS=self.instance.AS if self.instance.AS else self.cleaned_data['AS'],    # Hmmm...
             internal_ip=self.cleaned_data['internal_ip'],
             public_ip=self.cleaned_data['public_ip'],
             bind_ip=self.cleaned_data['bind_ip'],
