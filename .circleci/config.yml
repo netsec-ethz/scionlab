@@ -207,8 +207,8 @@ jobs:
                 sleep 10
 
                 # Reload configurations
-                docker exec -d coreAS1301 /bin/bash -c "${SC}/reloadASConfig.sh"
-                docker exec -d infraAS1303 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec coreAS1301 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec infraAS1303 /bin/bash -c "${SC}/reloadASConfig.sh"
                 docker exec infraAS1305 /bin/bash -c "${SC}/reloadASConfig.sh"
 
                 # Check that TRCs were updated
