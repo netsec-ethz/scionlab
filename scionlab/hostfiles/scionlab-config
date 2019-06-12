@@ -295,7 +295,7 @@ def install_vpn_client_config(tmpdir):
     exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
     if changed:
         if exists:
-            _run_as_root(['systemctl', 'reload-or-restart', 'openvpn@client'])
+            _run_as_root(['systemctl', 'restart', 'openvpn@client'])
         else:
             _run_as_root(['systemctl', 'stop', 'openvpn@client'])
 
@@ -306,7 +306,7 @@ def install_vpn_server_config(tmpdir):
         if exists:
             if not os.path.exists('/etc/openvpn/dh.pem'):
                 _run_as_root(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'])
-            _run_as_root(['systemctl', 'reload-or-restart', 'openvpn@server'])
+            _run_as_root(['systemctl', 'restart', 'openvpn@server'])
         else:
             _run_as_root(['systemctl', 'stop', 'openvpn@server'], check=False)
 
