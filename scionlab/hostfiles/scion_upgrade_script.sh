@@ -195,9 +195,13 @@ else
         echo "Swap space removed."
     fi
 
+    echo "Emptying caches..."
+    ./tools/zkcleanslate || true
+    rm -f gen-cache/*
+    mkdir -p gen-cache/
+
     # get a new gen folder:
     echo "We will get the AS configuration from the Coordinator now."
-
     install_scionlab_config
     if [ -f "gen/account_id" ]; then
         # Use old account-id/account-secret files to generate host-id/host-secret as imported into new scionlab-coordinator.
@@ -213,14 +217,6 @@ else
 
     # announce we are done with the upgrade
     printf "SCIONLab has been upgraded. You can now safely run commands involving scion.sh\n\n" | wall
-
-    echo "Emptying caches..."
-    ./tools/zkcleanslate || true
-    rm -f gen-cache/*
-    mkdir -p gen-cache/
-
-    echo "Starting SCION again..."
-    ./scion.sh start nobuild || true
 fi
 # update scion-viz
 if [ -d "./sub/scion-viz" ]; then
