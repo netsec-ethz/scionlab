@@ -108,9 +108,8 @@ MOTD1
 
 install_scionlab_config() {
     if [ -z `which scionlab-config` ]; then
-        #wget https://testing.scionlab.org/static/scionlab-config -O /usr/bin/scionlab-config
         tmpfile=`mktemp`
-        wget "https://raw.githubusercontent.com/netsec-ethz/scionlab/scion-upgrade/scionlab/hostfiles/scionlab-config" -O $tmpfile
+        wget "https://raw.githubusercontent.com/netsec-ethz/scionlab/master/scionlab/hostfiles/scionlab-config" -O $tmpfile
         chmod +x $tmpfile
         sudo mv $tmpfile /usr/local/bin/scionlab-config
     fi
