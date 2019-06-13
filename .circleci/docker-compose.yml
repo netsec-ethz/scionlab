@@ -15,9 +15,6 @@ services:
     working_dir: /home/circleci/repo
     environment:
       PYTHONPATH: /tmp/scion/python
-    volumes:
-      - "/tmp/coord/:/tmp/coord/"
-      - "/tmp/vi:/tmp/vi"
     networks:
       as_net:
         ipv4_address: 172.31.0.10
