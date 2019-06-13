@@ -1,5 +1,4 @@
 run # mounted as volume
-deploy
 .circleci
 .git
 .gitignore
