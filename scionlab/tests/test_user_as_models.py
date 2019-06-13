@@ -177,6 +177,13 @@ def check_useras(testcase,
             to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
         ))
     else:
+        overridden_bind_ip = bind_ip
+        if installation_type == UserAS.VM:
+            overridden_bind_ip = '10.0.2.15'
+        overridden_bind_port = bind_port
+        if overridden_bind_ip:
+            overridden_bind_port = bind_port or public_port
+
         utils.check_link(testcase, link, utils.LinkDescription(
             type=Link.PROVIDER,
             from_as_id=attachment_point.AS.as_id,
@@ -185,8 +192,8 @@ def check_useras(testcase,
             from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
             to_public_ip=public_ip,
             to_public_port=public_port,
-            to_bind_ip=bind_ip,
-            to_bind_port=bind_port,
+            to_bind_ip=overridden_bind_ip,
+            to_bind_port=overridden_bind_port,
             to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
         ))
 
