@@ -39,9 +39,10 @@ ALLOWED_HOSTS = [_scionlab_host]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Test instance indicator (controls ribbon in base template):
-# - Empty string for production instance at scionlab.org.
+# - Empty string for production instance at scionlab.org and www.scionlab.org.
 # - 'testing' for testing.scionlab.org etc.
-INSTANCE_NAME = re.sub(r'\.?scionlab\.org$', '', _scionlab_host)
+_subdomain = re.sub(r'\.?scionlab\.org$', '', _scionlab_host)
+INSTANCE_NAME = '' if _subdomain == 'www' else _subdomain
 
 
 # ##### DB CONFIGURATION #####################

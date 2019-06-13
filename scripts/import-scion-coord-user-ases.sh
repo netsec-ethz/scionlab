@@ -16,12 +16,7 @@
 
 set -e
 
-rm run/dev.sqlite3 || true
+# run this import script after creating the infrastructure fixture and the users.
+# parameter 1 is the path to the userases.csv file.
 
-python manage.py migrate
-
-python manage.py loaddata scionlab/fixtures/testuser-admin.yaml \
-    scionlab/fixtures/testuser.yaml \
-    scionlab/fixtures/testtopo-ases-links.yaml
-
-cp scionlab/fixtures/dev_root_ca_*.pem run/
+python manage.py shell -c "from scionlab.fixtures.scionlab_userASes import load_user_ASes; load_user_ASes('$1')"

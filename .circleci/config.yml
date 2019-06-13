@@ -89,7 +89,8 @@ jobs:
     steps:
       - checkout
 
-      - setup_remote_docker
+      - setup_remote_docker:
+         docker_layer_caching: true
 
       - run:
           name: Setup local execution alias
@@ -170,7 +171,7 @@ jobs:
 
             # Change internal IP of infraAS1303
             docker run --net circleci_as_net -dt --name update_AS\
-                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url 'admin/scionlab/host/7/change/' --data '{\"AS\": 7, \"internal_ip\": \"127.0.0.111\", \"public_ip\": \"172.31.0.111\", \"managed\": \"on\",\"ssh_host\": \"172.31.0.111\", \"secret\": \"kuA3OhfG0eLjoMeAsoZrgQ\"}' --action update; cat"
+                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url 'admin/scionlab/host/7/change/' --data '{\"AS\": 7, \"internal_ip\": \"127.0.0.111\", \"public_ip\": \"172.31.0.111\", \"managed\": \"on\",\"ssh_host\": \"172.31.0.111\", \"secret\": \"a2532f97fe144a88944e2860e525f220\"}' --action update; cat"
             docker cp .circleci/setup/admin_action.py update_AS:/tmp/admin_action.py
 
             # Trigger a manual deployment
@@ -206,8 +207,8 @@ jobs:
                 sleep 10
 
                 # Reload configurations
-                docker exec -d coreAS1301 /bin/bash -c "${SC}/reloadASConfig.sh"
-                docker exec -d infraAS1303 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec coreAS1301 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec infraAS1303 /bin/bash -c "${SC}/reloadASConfig.sh"
                 docker exec infraAS1305 /bin/bash -c "${SC}/reloadASConfig.sh"
 
                 # Check that TRCs were updated

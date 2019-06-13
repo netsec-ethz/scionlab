@@ -722,6 +722,7 @@ class LinkAdmin(admin.ModelAdmin):
 @admin.register(Host)
 class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
+    readonly_fields = ['uid']
     actions = ['trigger_config_deployment']
     list_display = ('__str__', 'AS',
                     'internal_ip', 'public_ip', 'bind_ip', 'managed', 'ssh_host',

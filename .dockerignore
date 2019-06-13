@@ -1,0 +1,4 @@
+run # mounted as volume
+.circleci
+.git
+.gitignore

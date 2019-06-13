@@ -229,7 +229,7 @@ class VPNCertsTests(TestCase):
         vpn_client = user_as.hosts.first().vpn_clients.first()
         ccd_filename, ccd_config_entry = ccd_config(vpn_client)
         self.assertEqual(ccd_filename,
-                         vpn_client.host.AS.owner.email+"__"+user_as.isd_as_path_str())
+                         vpn_client.host.AS.owner.email+"_"+user_as.as_path_str())
         ccd_string_match = re.findall(r'ifconfig-push (\S*) (\S*)', ccd_config_entry)
         self.assertTrue(len(ccd_string_match) == 1)
         client_ip, netmask = ccd_string_match[0]
