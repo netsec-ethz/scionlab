@@ -369,7 +369,7 @@ class Generator:
                     type = Link.PEER
                 else:
                     raise Exception('Unknown link type')
-                if Link.objects.filter(interfaceA=iface_there, interfaceB=iface_here).exists():
+                if Link.objects.filter(interfaceB=iface_there, interfaceA=iface_here).exists():
                     # this is a reverse link to an existing one, no need to do anything
                     continue
                 Link.objects.create(type=type,
