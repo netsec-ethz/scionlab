@@ -33,6 +33,7 @@ from scionlab.defines import (
 from scionlab.util import as_ids
 
 _MAX_LEN_CHOICES_DEFAULT = 16
+_VAGRANT_VM_LOCAL_IP = '10.0.2.15'
 
 
 class UserASManager(models.Manager):
@@ -92,7 +93,7 @@ class UserASManager(models.Manager):
         user_as.save()
         user_as.init_default_services(
             public_ip=public_ip,
-            bind_ip=bind_ip,
+            bind_ip=_VAGRANT_VM_LOCAL_IP if installation_type == UserAS.VM else bind_ip,
         )
 
         host = user_as.hosts.get()
@@ -209,7 +210,7 @@ class UserAS(AS):
 
         host.update(
             public_ip=public_ip,
-            bind_ip=bind_ip
+            bind_ip=_VAGRANT_VM_LOCAL_IP if installation_type == UserAS.VM else bind_ip,
         )
 
         link = self._get_ap_link()

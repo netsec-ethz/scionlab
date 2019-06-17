@@ -114,9 +114,10 @@ def _add_vagrantfiles(host, tar):
 
 def _expand_vagrantfile_template(host):
     if not host.vpn_clients.filter(active=True).exists():
+        interface = host.interfaces.get()
+        port = interface.bind_port or interface.public_port
         forwarding_string = 'config.vm.network "forwarded_port",' \
-                            ' guest: {0}, host: {0}, protocol: "udp"'. \
-            format(host.interfaces.get().public_port)
+                            ' guest: {port}, host: {port}, protocol: "udp"'.format(port=port)
     else:
         forwarding_string = ''
 
