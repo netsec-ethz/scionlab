@@ -4,7 +4,7 @@ services:
   redis:
     image: redis:5-alpine
     volumes:
-      - redisdata:/data
+      - redisdata:/data:Z
 
   huey:
     build:
@@ -27,8 +27,8 @@ services:
     depends_on:
       - huey
     volumes:
-      - ./run/:/scionlab/run/
-      - web-static:/scionlab/static/
+      - ./run/:/scionlab/run/:z
+      - web-static:/scionlab/static/:z
 
   caddy:
     build: ./deploy/caddy
@@ -39,8 +39,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - web-static:/var/www/scionlab/static
-      - caddydata:/home/caddy/.caddy/
+      - web-static:/var/www/scionlab/static:z
+      - caddydata:/home/caddy/.caddy/:Z
 
 volumes:
   web-static:
