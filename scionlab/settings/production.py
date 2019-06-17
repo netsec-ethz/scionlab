@@ -49,11 +49,11 @@ INSTANCE_NAME = '' if _subdomain == 'www' else _subdomain
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': _getenv('POSTGRES_HOST'),
+        'PORT': _getenv('POSTGRES_PORT'),
         'NAME': _getenv('POSTGRES_DB'),
         'USER': _getenv('POSTGRES_USER'),
         'PASSWORD': _getenv('POSTGRES_PASSWORD'),
-        'HOST': 'db',
-        'PORT': '5432',
         'ATOMIC_REQUESTS': True,
     },
 }

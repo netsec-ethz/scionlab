@@ -1,14 +1,6 @@
 version: '3'
 
 services:
-  db:
-    image: postgres:11-alpine
-    env_file: run/scionlab.env
-    expose:
-      - "5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data/
-
   redis:
     image: redis:5-alpine
     volumes:
@@ -33,13 +25,12 @@ services:
     expose:
       - "8000"
     depends_on:
-      - db
       - huey
     volumes:
       - ./run/:/scionlab/run/
       - web-static:/scionlab/static/
 
-  proxy:
+  caddy:
     build: ./deploy/caddy
     env_file: run/scionlab.env
     depends_on:
@@ -53,6 +44,5 @@ services:
 
 volumes:
   web-static:
-  pgdata:
   redisdata:
   caddydata:

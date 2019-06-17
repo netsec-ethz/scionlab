@@ -6,7 +6,7 @@ set -e
 /scionlab/manage.py collectstatic --noinput
 
 # Wait for DB
-appdeps.py --wait-secs 60 --port-wait db:5432
+appdeps.py --wait-secs 60 --port-wait $POSTGRES_HOST:$POSTGRES_PORT
 
 # Initialise/migrate DB
 /scionlab/manage.py migrate
