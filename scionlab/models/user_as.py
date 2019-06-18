@@ -17,7 +17,6 @@ import ipaddress
 from django import urls
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 
 import scionlab.tasks
 from scionlab.models.core import (
@@ -369,26 +368,24 @@ class AttachmentPoint(models.Model):
         :param int max_ifaces The maximum number of interfaces per BR
         """
         host = self._get_host_for_useras_attachment()
-        attaching_ifaces = Interface.objects.filter(
-            Q(border_router__in=host.border_routers.all()) and
-            Q(link_as_interfaceB=None, link_as_interfaceA__type=Link.PROVIDER))
-
         # find the interfaces attaching children (attaching_ifaces) and the rest
         ifaces = Interface.objects.filter(border_router__in=host.border_routers.all())
-        attaching_ifaces = ifaces.exclude(link_as_interfaceA=None,
-                                          link_as_interfaceB__type=Link.PROVIDER)
+        attaching_ifaces = ifaces.filter(
+            link_as_interfaceA__type=Link.PROVIDER,
+            link_as_interfaceA__interfaceB__AS__as_id__startswith='ffaa:1:')
         infra_ifaces = ifaces.exclude(pk__in=attaching_ifaces)
 
         # attaching non children all to one BR:
         infra_br = BorderRouter.objects.first_or_create(host)
-        brs_to_delete = list(host.border_routers.exclude(pk__in={infra_br.pk})
-                             .values_list('pk', flat=True)).reverse()
+        brs_to_delete = list(
+            host.border_routers.exclude(pk__in={infra_br.pk}).values_list('pk', flat=True))
+        brs_to_delete.reverse()
         infra_ifaces.update(border_router=infra_br)
         # attaching children to several BRs:
         attaching_ifaces = attaching_ifaces.all()
         for i in range(0, len(attaching_ifaces), max_ifaces):
             if brs_to_delete:
-                br = brs_to_delete.pop()
+                br = BorderRouter.objects.get(pk=brs_to_delete.pop())
             else:
                 br = BorderRouter.objects.create(host=host)
             for j in range(i, min(len(attaching_ifaces), i + max_ifaces)):
