@@ -17,6 +17,7 @@ import ipaddress
 from django import urls
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 import scionlab.tasks
 from scionlab.models.core import (
@@ -125,7 +126,7 @@ class UserASManager(models.Manager):
             interfaceA=interface_ap,
             interfaceB=interface_client
         )
-
+        attachment_point.split_border_routers()
         attachment_point.trigger_deployment()
 
         return user_as
@@ -241,7 +242,7 @@ class UserAS(AS):
                 public_ip=None,
                 public_port=None,
             )
-
+        attachment_point.split_border_routers()
         self.attachment_point = attachment_point
         self.installation_type = installation_type
         self.public_ip = public_ip
@@ -359,3 +360,42 @@ class AttachmentPoint(models.Model):
         else:
             host = self.AS.hosts.filter(public_ip__isnull=False)[0]
         return host
+
+    def split_border_routers(self, max_ifaces=10):
+        """
+        Will create / remove border routers so no one of them has more than
+        the specified limit of interfaces. The links to parent ASes will
+        always remain in a different border router.
+        :param int max_ifaces The maximum number of interfaces per BR
+        """
+        host = self._get_host_for_useras_attachment()
+        attaching_ifaces = Interface.objects.filter(
+            Q(border_router__in=host.border_routers.all()) and
+            Q(link_as_interfaceB=None, link_as_interfaceA__type=Link.PROVIDER))
+
+        # find the interfaces attaching children (attaching_ifaces) and the rest
+        ifaces = Interface.objects.filter(border_router__in=host.border_routers.all())
+        attaching_ifaces = ifaces.exclude(link_as_interfaceA=None,
+                                          link_as_interfaceB__type=Link.PROVIDER)
+        infra_ifaces = ifaces.exclude(pk__in=attaching_ifaces)
+
+        # attaching non children all to one BR:
+        infra_br = BorderRouter.objects.first_or_create(host)
+        brs_to_delete = list(host.border_routers.exclude(pk__in={infra_br.pk})
+                             .values_list('pk', flat=True)).reverse()
+        infra_ifaces.update(border_router=infra_br)
+        # attaching children to several BRs:
+        attaching_ifaces = attaching_ifaces.all()
+        for i in range(0, len(attaching_ifaces), max_ifaces):
+            if brs_to_delete:
+                br = brs_to_delete.pop()
+            else:
+                br = BorderRouter.objects.create(host=host)
+            for j in range(i, min(len(attaching_ifaces), i + max_ifaces)):
+                iface = attaching_ifaces[j]
+                iface.border_router = br
+                iface.save()
+            br.save()
+        # delete old BRs
+        if brs_to_delete:
+            BorderRouter.objects.filter(pk__in=brs_to_delete).delete()
