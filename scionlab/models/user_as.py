@@ -125,7 +125,7 @@ class UserASManager(models.Manager):
             interfaceA=interface_ap,
             interfaceB=interface_client
         )
-
+        attachment_point.split_border_routers()
         attachment_point.trigger_deployment()
 
         return user_as
@@ -241,7 +241,6 @@ class UserAS(AS):
                 public_ip=None,
                 public_port=None,
             )
-
         self.attachment_point = attachment_point
         self.installation_type = installation_type
         self.public_ip = public_ip
@@ -250,7 +249,9 @@ class UserAS(AS):
         self.save()
 
         if self.attachment_point != prev_ap:
+            prev_ap.split_border_routers()  # clean up empty BRs
             prev_ap.trigger_deployment()
+        self.attachment_point.split_border_routers()
         self.attachment_point.trigger_deployment()
 
     def is_use_vpn(self):
@@ -319,6 +320,9 @@ class AttachmentPoint(models.Model):
     def get_border_router_for_useras_interface(self):
         """
         Selects the preferred border router on which the Interfaces to UserASes should be configured
+
+        Note: the border router effectively used will be be overwritten by `split_border_routers`.
+
         :returns: a `BorderRouter` of the related `AS`
         """
         host = self._get_host_for_useras_attachment()
@@ -359,3 +363,48 @@ class AttachmentPoint(models.Model):
         else:
             host = self.AS.hosts.filter(public_ip__isnull=False)[0]
         return host
+
+    def split_border_routers(self, max_ifaces=10):
+        """
+        This is a workaround for an (apparent) issue with the border router, that cannot handle more
+        than ~12 interfaces per process; this problem seemed to be fixed but is apparently still
+        here. This is a hopefully temporary patch.
+
+        Will create / remove border routers so no one of them has more than
+        the specified limit of interfaces. The links to parent ASes will
+        always remain in a different border router.
+        :param int max_ifaces The maximum number of interfaces per BR
+        """
+        host = self._get_host_for_useras_attachment()
+        # find the *active* interfaces attaching for UserASes (attaching_ifaces) and the rest
+        # (infra_ifaces)
+        ifaces = host.interfaces.active().order_by('interface_id')
+        attaching_ifaces = ifaces.filter(
+            link_as_interfaceA__type=Link.PROVIDER,
+            link_as_interfaceA__interfaceB__AS__owner__isnull=False)
+        infra_ifaces = ifaces.exclude(pk__in=attaching_ifaces)
+
+        # attaching non children all to one BR:
+        infra_br = BorderRouter.objects.first_or_create(host)
+        brs_to_delete = list(
+            host.border_routers.exclude(pk=infra_br.pk).values_list('pk', flat=True))
+        brs_to_delete.reverse()
+        infra_ifaces.update(border_router=infra_br)
+        # attaching children to several BRs:
+        attaching_ifaces = attaching_ifaces.all()
+        for i in range(0, len(attaching_ifaces), max_ifaces):
+            if brs_to_delete:
+                br = BorderRouter.objects.get(pk=brs_to_delete.pop())
+            else:
+                br = BorderRouter.objects.create(host=host)
+            for j in range(i, min(len(attaching_ifaces), i + max_ifaces)):
+                iface = attaching_ifaces[j]
+                iface.border_router = br
+                iface.save()
+            br.save()
+        # delete old BRs
+        if brs_to_delete:
+            BorderRouter.objects.filter(pk__in=brs_to_delete).delete()
+
+        # squirrel away the *inactive* interfaces somewhere...
+        host.interfaces.inactive().update(border_router=infra_br)

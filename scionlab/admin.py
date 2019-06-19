@@ -494,6 +494,7 @@ class ASAdmin(admin.ModelAdmin):
 
     def is_userAS(self, obj):
         """ Is the AS `obj` a user AS? """
+        # Some other places simply check for owner=None.
         return UserAS.objects.filter(as_ptr=obj).exists()
 
     # Mark the is_ap and is_userAS functions as boolean, so they show

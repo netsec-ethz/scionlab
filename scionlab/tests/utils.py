@@ -42,7 +42,7 @@ def check_topology(testcase):
         check_as(testcase, as_)
     for link in Link.objects.iterator():
         check_link(testcase, link)
-    check_no_dangling_interfaces(testcase)
+    check_interfaces(testcase)
 
 
 def check_as(testcase, as_):
@@ -231,6 +231,14 @@ def check_no_dangling_interfaces(testcase):
             link_as_interfaceA=None,
             link_as_interfaceB=None
         ).exists())
+
+
+def check_interfaces(testcase):
+    # Check that each interface is referenced by exactly one link
+    links = Link.objects.iterator()
+    ifacesA, ifacesB = zip(*((link.interfaceA_id, link.interfaceB_id) for link in links))
+    counter = Counter(ifacesA + ifacesB)
+    testcase.assertTrue(all(counter[iface.pk] == 1 for iface in Interface.objects.iterator()))
 
 
 def check_as_keys(testcase, as_):

@@ -699,6 +699,13 @@ class InterfaceManager(models.Manager):
         return self.filter(link_as_interfaceA__active=True) |\
             self.filter(link_as_interfaceB__active=True)
 
+    def inactive(self):
+        """
+        return list of Interfaces from inactive links
+        """
+        return self.filter(link_as_interfaceA__active=False) |\
+            self.filter(link_as_interfaceB__active=False)
+
     def get_by_address_port(self, as_, public_ip, public_port):
         """
         Get the interface by specifying its public IP and port, unique to an AS
