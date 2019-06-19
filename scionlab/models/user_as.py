@@ -320,6 +320,9 @@ class AttachmentPoint(models.Model):
     def get_border_router_for_useras_interface(self):
         """
         Selects the preferred border router on which the Interfaces to UserASes should be configured
+
+        Note: the border router effectively used will be be overwritten by `split_border_routers`.
+
         :returns: a `BorderRouter` of the related `AS`
         """
         host = self._get_host_for_useras_attachment()
@@ -363,7 +366,9 @@ class AttachmentPoint(models.Model):
 
     def split_border_routers(self, max_ifaces=10):
         """
-        This is a workaround for an (apparent) issue with the border router
+        This is a workaround for an (apparent) issue with the border router, that cannot handle more
+        than ~12 interfaces per process; this problem seemed to be fixed but is apparently still
+        here. This is a hopefully temporary patch.
 
         Will create / remove border routers so no one of them has more than
         the specified limit of interfaces. The links to parent ASes will
@@ -373,10 +378,10 @@ class AttachmentPoint(models.Model):
         host = self._get_host_for_useras_attachment()
         # find the *active* interfaces attaching for UserASes (attaching_ifaces) and the rest
         # (infra_ifaces)
-        ifaces = host.interfaces.order_by('interface_id').filter(active=True)
+        ifaces = host.interfaces.active().order_by('interface_id')
         attaching_ifaces = ifaces.filter(
             link_as_interfaceA__type=Link.PROVIDER,
-            link_as_interfaceA__interfaceB__AS__owner=None)
+            link_as_interfaceA__interfaceB__AS__owner__isnull=False)
         infra_ifaces = ifaces.exclude(pk__in=attaching_ifaces)
 
         # attaching non children all to one BR:
@@ -402,4 +407,4 @@ class AttachmentPoint(models.Model):
             BorderRouter.objects.filter(pk__in=brs_to_delete).delete()
 
         # squirrel away the *inactive* interfaces somewhere...
-        host.interfaces.filter(active=False).update(border_router=infra_br)
+        host.interfaces.inactive().update(border_router=infra_br)
