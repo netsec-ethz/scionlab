@@ -25,7 +25,7 @@ check_system_files() {
             # need to upgrade. (1) get the file with wget. (2) copy the file (3) reload systemd things
             bf=$(basename $f)
             tmpfile=$(mktemp)
-            wget "https://raw.githubusercontent.com/netsec-ethz/scion-coord/master/vagrant/$bf" -O "$tmpfile"
+            wget "https://raw.githubusercontent.com/netsec-ethz/scionlab/master/scionlab/hostfiles/$bf" -O "$tmpfile"
             sed -i "s/_USER_/$USER/g" "$tmpfile"
             sudo cp "$tmpfile" "$f"
             sudo chmod "$perm" "$f"
