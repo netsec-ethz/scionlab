@@ -241,7 +241,6 @@ class UserAS(AS):
                 public_ip=None,
                 public_port=None,
             )
-        attachment_point.split_border_routers()
         self.attachment_point = attachment_point
         self.installation_type = installation_type
         self.public_ip = public_ip
@@ -250,7 +249,9 @@ class UserAS(AS):
         self.save()
 
         if self.attachment_point != prev_ap:
+            prev_ap.split_border_routers()  # clean up empty BRs
             prev_ap.trigger_deployment()
+        self.attachment_point.split_border_routers()
         self.attachment_point.trigger_deployment()
 
     def is_use_vpn(self):
@@ -362,23 +363,26 @@ class AttachmentPoint(models.Model):
 
     def split_border_routers(self, max_ifaces=10):
         """
+        This is a workaround for an (apparent) issue with the border router
+
         Will create / remove border routers so no one of them has more than
         the specified limit of interfaces. The links to parent ASes will
         always remain in a different border router.
         :param int max_ifaces The maximum number of interfaces per BR
         """
         host = self._get_host_for_useras_attachment()
-        # find the interfaces attaching children (attaching_ifaces) and the rest
-        ifaces = Interface.objects.filter(border_router__in=host.border_routers.all())
+        # find the *active* interfaces attaching for UserASes (attaching_ifaces) and the rest
+        # (infra_ifaces)
+        ifaces = host.interfaces.order_by('interface_id').filter(active=True)
         attaching_ifaces = ifaces.filter(
             link_as_interfaceA__type=Link.PROVIDER,
-            link_as_interfaceA__interfaceB__AS__as_id__startswith='ffaa:1:')
+            link_as_interfaceA__interfaceB__AS__owner=None)
         infra_ifaces = ifaces.exclude(pk__in=attaching_ifaces)
 
         # attaching non children all to one BR:
         infra_br = BorderRouter.objects.first_or_create(host)
         brs_to_delete = list(
-            host.border_routers.exclude(pk__in={infra_br.pk}).values_list('pk', flat=True))
+            host.border_routers.exclude(pk=infra_br.pk).values_list('pk', flat=True))
         brs_to_delete.reverse()
         infra_ifaces.update(border_router=infra_br)
         # attaching children to several BRs:
@@ -396,3 +400,6 @@ class AttachmentPoint(models.Model):
         # delete old BRs
         if brs_to_delete:
             BorderRouter.objects.filter(pk__in=brs_to_delete).delete()
+
+        # squirrel away the *inactive* interfaces somewhere...
+        host.interfaces.filter(active=False).update(border_router=infra_br)
