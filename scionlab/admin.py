@@ -576,6 +576,9 @@ class VPNUpdateForm(VPNCreationForm):
 
 @admin.register(VPN)
 class VPNAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'server', 'subnet', 'server_vpn_ip', 'num_clients')
+    list_display_links = ('__str__',)
+
     def get_form(self, request, obj=None, **kwargs):
         """
         Use different forms for VPN creation or update
@@ -586,9 +589,16 @@ class VPNAdmin(admin.ModelAdmin):
             kwargs['form'] = VPNUpdateForm
         return super().get_form(request, obj, **kwargs)
 
+    def num_clients(self, obj):
+        return obj.clients.filter(active=True).count()
+
 
 @admin.register(VPNClient)
 class VPNClientAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'vpn', 'ip', 'common_name')
+    list_display_links = ('__str__',)
+    list_filter = ('vpn', 'active')
+
     def get_form(self, request, obj=None, **kwargs):
         """
         Use custom form during AS creation
