@@ -73,7 +73,7 @@ def generate_instance_dir(archive, as_, stype, tp, name):
     elem_dir = _elem_dir(as_, name)
 
     prom_port = _get_prom_port_of_element(tp, name)
-    prom_addr = "127.0.0.1:%i" % prom_port
+    prom_addr = "0.0.0.0:%i" % prom_port
     env = DEFAULT_ENV.copy()
     if stype == 'BR':
         env.append('GODEBUG="cgocheck=0"')
