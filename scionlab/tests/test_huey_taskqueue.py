@@ -22,8 +22,9 @@ from unittest.mock import patch
 import huey as huey_internal
 import huey.contrib.djhuey as huey
 from django.conf import settings
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
+from django.db import transaction
 
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.models.core import Host
@@ -113,6 +114,23 @@ def _fake_notify_deploy_success(host_id, host_secret):
     deployment_required = False
 
 
+@transaction.atomic
+def _create_user_as(attachment_point, label="Some label"):
+    """
+    Create a UserAS in a transaction, as would happen in a view.
+    This will then trigger the on_commit and run the deployment tasks.
+    """
+    return UserAS.objects.create(
+        owner=get_testuser(),
+        attachment_point=attachment_point,
+        installation_type=UserAS.DEDICATED,
+        label=label,
+        use_vpn=False,
+        public_ip=str(ipaddress.ip_address(test_public_ip)+2),
+        public_port=test_public_port,
+    )
+
+
 class TestingConsumer:
     def __init__(self):
         self.consumer = huey.HUEY.create_consumer()
@@ -151,7 +169,7 @@ def scheduled_tasks_by_name(name):
     return len([t for t in huey.HUEY.scheduled() if t.name == name])
 
 
-class DeployHostConfigTests(TestCase):
+class DeployHostConfigTests(TransactionTestCase):
     fixtures = ['testuser', 'testtopo-ases-links']
 
     def setUp(self):
@@ -161,7 +179,6 @@ class DeployHostConfigTests(TestCase):
         self.assertEqual(len(huey.HUEY.scheduled()), 0)
         self.assertEqual(len(huey.HUEY.pending()), 0)
         # Avoid duplication, get this info here:
-        self.host = None
         self.url = "localhost:8080"
         self.attachment_point = AttachmentPoint.objects.first()
         assert(self.attachment_point)
@@ -219,18 +236,12 @@ class DeployHostConfigTests(TestCase):
                 self.assertEqual(len(huey.HUEY.pending()), 0)
                 executions = len(execution_log)
                 self.consumer.start()
-                user_as = UserAS.objects.create(
-                    owner=get_testuser(),
-                    attachment_point=self.attachment_point,
-                    installation_type=UserAS.DEDICATED,
-                    label="Some label",
-                    use_vpn=False,
-                    public_ip=test_public_ip,
-                    public_port=test_public_port,
-                )
-                self.host = user_as.attachment_point.AS.hosts.first()
+
+                user_as = _create_user_as(self.attachment_point)
+
+                host = self.attachment_point.AS.hosts.first()
                 # Check trigger was consumed
-                while _peek_deploy_host_triggered(self.host.uid):
+                while _peek_deploy_host_triggered(host.uid):
                     time.sleep(_SLEEP_PERIOD)
                 # Check AS needs_config_deployment:
                 all_user_as_hosts = user_as.hosts.all()
@@ -240,52 +251,40 @@ class DeployHostConfigTests(TestCase):
                     hosts_pending_before | set(all_user_as_hosts | all_attachment_point_hosts),
                     set(hosts_requiring_deployment)
                 )
-                _fake_notify_deploy_success(user_as.attachment_point.AS.hosts.first().uid,
-                                            user_as.attachment_point.AS.hosts.first().secret)
+                _fake_notify_deploy_success(self.attachment_point.AS.hosts.first().uid,
+                                            self.attachment_point.AS.hosts.first().secret)
 
                 self.consumer.drain_queue()
-                self._verify_deploy_task(self.host, task_pre_check['name'], task_pre_check['args'])
-                self._check_execution_log(self.host)
+                self._verify_deploy_task(host, task_pre_check['name'], task_pre_check['args'])
+                self._check_execution_log(host)
                 self.assertTrue(len(execution_log) > executions)
-                self.assertFalse(_peek_deploy_host_ongoing(self.host.uid))
+                self.assertFalse(_peek_deploy_host_ongoing(host.uid))
 
                 deployment_required = True
                 last_ap = AttachmentPoint.objects.last()
-                user_as2 = UserAS.objects.create(
-                    owner=get_testuser(),
-                    attachment_point=last_ap,
-                    installation_type=UserAS.DEDICATED,
-                    label="Some other label",
-                    use_vpn=False,
-                    public_ip=str(ipaddress.ip_address(test_public_ip)+1),
-                    public_port=test_public_port,
-                )
-                self.host = user_as2.attachment_point.AS.hosts.first()
+
+                _create_user_as(last_ap, "Some other label")
+
+                host = last_ap.AS.hosts.first()
                 # Check trigger was consumed
-                while _peek_deploy_host_triggered(self.host.uid):
+                while _peek_deploy_host_triggered(host.uid):
                     time.sleep(_SLEEP_PERIOD)
                 self.consumer.drain_and_stop()
-                self._verify_deploy_task(self.host, task_pre_check['name'], task_pre_check['args'])
-                self._check_execution_log(self.host)
-                self.assertFalse(_peek_deploy_host_ongoing(self.host.uid))
+                self._verify_deploy_task(host, task_pre_check['name'], task_pre_check['args'])
+                self._check_execution_log(host)
+                self.assertFalse(_peek_deploy_host_ongoing(host.uid))
 
     def test_dequeuing(self):
         with patch('subprocess.call',
                    side_effect=utils.subprocess_call_log) as mock_subprocess_call:
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
             self.assertEqual(len(huey.HUEY.pending()), 0)
-            user_as = UserAS.objects.create(
-                owner=get_testuser(),
-                attachment_point=self.attachment_point,
-                installation_type=UserAS.DEDICATED,
-                label="Some label",
-                use_vpn=False,
-                public_ip=test_public_ip,
-                public_port=test_public_port,
-            )
-            self.host = user_as.attachment_point.AS.hosts.first()
+
+            _create_user_as(self.attachment_point)
+
+            host = self.attachment_point.AS.hosts.first()
             deploy_task = huey.HUEY.pending()[0]
-            self._verify_deploy_task(self.host, deploy_task.name, deploy_task.args)
+            self._verify_deploy_task(host, deploy_task.name, deploy_task.args)
             self.consumer.start()
             self.consumer.drain_and_stop()
             self.assertEqual(len(huey.HUEY.pending()), 0)
@@ -297,20 +296,14 @@ class DeployHostConfigTests(TestCase):
                    side_effect=utils.subprocess_call_log) as mock_subprocess_call:
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
             self.assertEqual(len(huey.HUEY.pending()), 0)
-            user_as = UserAS.objects.create(
-                owner=get_testuser(),
-                attachment_point=self.attachment_point,
-                installation_type=UserAS.DEDICATED,
-                label="Some label",
-                use_vpn=False,
-                public_ip=str(ipaddress.ip_address(test_public_ip)+1),
-                public_port=test_public_port,
-            )
-            self.host = user_as.attachment_point.AS.hosts.first()
+
+            _create_user_as(self.attachment_point)
+
+            host = self.attachment_point.AS.hosts.first()
             deploy_task = [t for t in huey.HUEY.pending() if t.name == '_deploy_host_config'][0]
             huey.HUEY._emit(huey_internal.signals.SIGNAL_CANCELED, deploy_task)
             _deploy_host_config.revoke()
-            self._verify_deploy_task(self.host, deploy_task.name, deploy_task.args)
+            self._verify_deploy_task(host, deploy_task.name, deploy_task.args)
 
             self.consumer.start()
             self.consumer.drain_and_stop()
@@ -341,18 +334,12 @@ class DeployHostConfigTests(TestCase):
 
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
             self.assertEqual(len(huey.HUEY.pending()), 0)
-            user_as = UserAS.objects.create(
-                owner=get_testuser(),
-                attachment_point=self.attachment_point,
-                installation_type=UserAS.DEDICATED,
-                label="Some label",
-                use_vpn=False,
-                public_ip=str(ipaddress.ip_address(test_public_ip)+2),
-                public_port=test_public_port,
-            )
-            self.host = user_as.attachment_point.AS.hosts.first()
+
+            _create_user_as(self.attachment_point)
+
+            host = self.attachment_point.AS.hosts.first()
             self.consumer.drain_and_stop()
-            self._verify_deploy_task(self.host, task_pre_check['name'], task_pre_check['args'])
+            self._verify_deploy_task(host, task_pre_check['name'], task_pre_check['args'])
 
     def _verify_deploy_task(self, host, task_name, task_args):
         self.assertEqual(task_name, "_deploy_host_config")
