@@ -59,7 +59,7 @@ TYPES_TO_KEYS = {
 }
 
 
-def generate_instance_dir(archive, as_, stype, tp, name):
+def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
     """
     Generate the service instance directory for the gen folder
     :param AS as_: AS in which the instance runs
@@ -71,8 +71,7 @@ def generate_instance_dir(archive, as_, stype, tp, name):
     """
     elem_dir = _elem_dir(as_, name)
 
-    prom_port = 31000 + (hash(name) % 1000)  # TODO(matzf) should be obtained from model
-    prom_addr = "127.0.0.1:%i" % prom_port
+    prom_addr = "127.0.0.1:%i" % prometheus_port
     env = DEFAULT_ENV.copy()
     if stype == 'BR':
         env.append('GODEBUG="cgocheck=0"')
