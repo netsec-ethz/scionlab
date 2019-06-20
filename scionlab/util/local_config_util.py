@@ -71,8 +71,7 @@ def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
     """
     elem_dir = _elem_dir(as_, name)
 
-    prom_port = prometheus_port
-    prom_addr = "0.0.0.0:%i" % prom_port
+    prom_addr = "0.0.0.0:%i" % prometheus_port
     env = DEFAULT_ENV.copy()
     if stype == 'BR':
         env.append('GODEBUG="cgocheck=0"')
