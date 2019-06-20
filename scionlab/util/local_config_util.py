@@ -20,7 +20,6 @@ from string import Template
 
 # SCION
 from scionlab.models.core import Service
-from scionlab.defines import PROM_PORT_OFFSET
 from lib.crypto.asymcrypto import (
     get_core_sig_key_file_path,
     get_enc_key_file_path,
@@ -60,7 +59,7 @@ TYPES_TO_KEYS = {
 }
 
 
-def generate_instance_dir(archive, as_, stype, tp, name):
+def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
     """
     Generate the service instance directory for the gen folder
     :param AS as_: AS in which the instance runs
@@ -72,7 +71,7 @@ def generate_instance_dir(archive, as_, stype, tp, name):
     """
     elem_dir = _elem_dir(as_, name)
 
-    prom_port = _get_prom_port_of_element(tp, name)
+    prom_port = prometheus_port
     prom_addr = "0.0.0.0:%i" % prom_port
     env = DEFAULT_ENV.copy()
     if stype == 'BR':
@@ -324,19 +323,3 @@ def _build_common_goservice_conf(instance_name, instance_path):
             'Connection': 'gen-cache/%s.trust.db' % instance_name,
         }
     }
-
-
-def _get_prom_port_of_element(topo_dict, name):
-    """
-    Returns the port to use for Prometheus for this element
-    :param dict topo_dict: the topology
-    :param str name: the name of the element
-    """
-    for k, d in topo_dict.items():
-        if isinstance(d, dict) and name in d.keys():
-            if k == KEY_BR:
-                port = topo_dict[KEY_BR][name]['InternalAddrs']['IPv4'][
-                    'PublicOverlay']['OverlayPort']
-            else:
-                port = topo_dict[k][name]['Addrs']['IPv4']['Public']['L4Port']
-            return int(port) + PROM_PORT_OFFSET
