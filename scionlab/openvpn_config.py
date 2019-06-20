@@ -134,34 +134,33 @@ def generate_vpn_server_key_material(host):
     # get ca material
     ca_key, ca_cert = load_ca_key_material()
 
-    # create server certificate
-    # set subject attributes
-    owner_email = get_owner_email(host.AS)
-    subject = _make_name(host.AS.as_path_str()+"__"+host.public_ip.replace(":", "_"))
-    subject_alt_name = owner_email + "_" + host.AS.as_path_str()
-
     # create and sign the certificate
-    cert = _make_cert(subject, subject_alt_name, key, ca_cert.issuer, ca_key,
+    subject = host.AS.as_path_str()+"__"+host.public_ip.replace(":", "_")
+    cert = _make_cert(subject, key, ca_cert.issuer, ca_key,
                       x509.ExtendedKeyUsageOID.SERVER_AUTH)
 
     cert_decoded = cert.public_bytes(serialization.Encoding.PEM).decode()
     return key_decoded, cert_decoded
 
 
-def generate_vpn_client_key_material(as_):
+def generate_vpn_client_key_material(host):
     ca_key, ca_cert = load_ca_key_material()
 
     # generate client key
     client_key = _generate_private_key()
 
     # create a certificate signed by the ca
-    # set subject attributes
-    owner_email = get_owner_email(as_)
-    subject_common_name = owner_email+"_"+as_.as_path_str()
-    subject = _make_name(subject_common_name)
-
-    # create and sign the client certificate
-    client_cert = _make_cert(subject, subject_common_name, client_key, ca_cert.issuer, ca_key,
+    # the subject will be used to identify the client-config in the client-config-dir (ccd),
+    # and therefore needs to be unique per VPN-server.
+    as_ = host.AS
+    if as_.is_infrastructure_AS():
+        subject = "{email}_{AS}_{host}".format(email=settings.VPN_KEYGEN_CONFIG.KEY_EMAIL,
+                                               AS=as_.as_path_str(),
+                                               host=host.uid)
+    else:
+        # User-AS will only have one client, so per AS is unique (also: compatible with old certs)
+        subject = "{email}_{AS}".format(email=as_.owner.email, AS=as_.as_path_str())
+    client_cert = _make_cert(subject, client_key, ca_cert.issuer, ca_key,
                              x509.ExtendedKeyUsageOID.CLIENT_AUTH)
 
     client_key_decoded = client_key.private_bytes(
@@ -174,15 +173,11 @@ def generate_vpn_client_key_material(as_):
     return client_key_decoded, client_cert_decoded
 
 
-def get_owner_email(as_):
-    if as_.is_infrastructure_AS():
-        owner_email = settings.VPN_KEYGEN_CONFIG.KEY_EMAIL
-    else:
-        owner_email = as_.owner.email
-    return owner_email
-
-
 def get_cert_common_name(cert_data):
+    """
+    Extract the common name from a (client-)certificate. This will be used to identify the
+    client-config in the client-config-dir (ccd).
+    """
     cert = x509.load_pem_x509_certificate(cert_data, backend=default_backend())
     cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
     if len(cn) != 1:
@@ -255,10 +250,11 @@ def _make_name(common_name):
     ])
 
 
-def _make_cert(subject_name, subject_alt_name, subject_key, issuer_name, issuer_key,
+def _make_cert(subject_name, subject_key, issuer_name, issuer_key,
                extended_key_usage_oid):
-    return x509.CertificateBuilder().subject_name(subject_name) \
-        .issuer_name(
+    return x509.CertificateBuilder().subject_name(
+        _make_name(subject_name)
+    ).issuer_name(
         issuer_name
     ).public_key(
         subject_key.public_key()
@@ -271,7 +267,7 @@ def _make_cert(subject_name, subject_alt_name, subject_key, issuer_name, issuer_
         datetime.timedelta(days=settings.VPN_KEYGEN_CONFIG.KEY_EXPIRE)
     ).add_extension(
         x509.SubjectAlternativeName(
-            [x509.DNSName(subject_alt_name)]),
+            [x509.DNSName(subject_name)]),
         critical=False,
     ).add_extension(
         x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()),
