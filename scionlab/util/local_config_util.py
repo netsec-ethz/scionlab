@@ -335,7 +335,8 @@ def _get_prom_port_of_element(topo_dict, name):
     for k, d in topo_dict.items():
         if isinstance(d, dict) and name in d.keys():
             if k == KEY_BR:
-                port = topo_dict[KEY_BR][name]['InternalAddrs']['IPv4']['PublicOverlay']['OverlayPort']
+                port = topo_dict[KEY_BR][name]['InternalAddrs']['IPv4'][
+                    'PublicOverlay']['OverlayPort']
             else:
                 port = topo_dict[k][name]['Addrs']['IPv4']['Public']['L4Port']
             return int(port) + PROM_PORT_OFFSET
