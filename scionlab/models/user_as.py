@@ -15,7 +15,7 @@
 import ipaddress
 
 from django import urls
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import ValidationError
 
 import scionlab.tasks
@@ -338,13 +338,14 @@ class AttachmentPoint(models.Model):
 
     def trigger_deployment(self):
         """
-        Trigger the deployment for the attachment point configuration.
+        Trigger the deployment for the attachment point configuration (after the current transaction
+        is succesfully commited).
 
         The deployment is rate limited, max rate controlled by
         settings.DEPLOYMENT_PERIOD.
         """
         for host in self.AS.hosts.iterator():
-            scionlab.tasks.deploy_host_config(host)
+            transaction.on_commit(lambda: scionlab.tasks.deploy_host_config(host))
 
     def supported_ip_versions(self):
         """
