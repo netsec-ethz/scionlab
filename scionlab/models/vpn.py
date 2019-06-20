@@ -176,7 +176,7 @@ class VPNClient(models.Model):
         self.vpn.server.bump_config()
 
     def init_key(self):
-        key, cert = generate_vpn_client_key_material(self.host.AS)
+        key, cert = generate_vpn_client_key_material(self.host)
         self.private_key = key
         self.cert = cert
 
