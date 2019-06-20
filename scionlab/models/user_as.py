@@ -339,7 +339,7 @@ class AttachmentPoint(models.Model):
     def trigger_deployment(self):
         """
         Trigger the deployment for the attachment point configuration (after the current transaction
-        is succesfully commited).
+        is successfully committed).
 
         The deployment is rate limited, max rate controlled by
         settings.DEPLOYMENT_PERIOD.

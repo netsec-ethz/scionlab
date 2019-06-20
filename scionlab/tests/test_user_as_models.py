@@ -94,7 +94,7 @@ def create_and_check_useras(testcase,
     """
     hosts_pending_before = set(Host.objects.needs_config_deployment())
 
-    with patch('scionlab.tasks.deploy_host_config') as mock_deploy:
+    with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
         user_as = UserAS.objects.create(
             owner=owner,
             attachment_point=attachment_point,
@@ -113,10 +113,10 @@ def create_and_check_useras(testcase,
         set(Host.objects.needs_config_deployment())
     )
 
-    # Check that scionlab.tasks.deploy_host_config was called for the attachment point hosts.
-    testcase.assertSetEqual(
-        {args[0] for args, kwargs in mock_deploy.call_args_list},
-        set(attachment_point.AS.hosts.all())
+    # Check that deployment was triggered for the attachment point.
+    testcase.assertEqual(
+        [args[0] for args, kwargs in mock_deploy.call_args_list],
+        [attachment_point]
     )
 
     check_useras(testcase,
@@ -234,9 +234,9 @@ def update_useras(testcase, user_as, **kwargs):
     but it seems preferable to keep the "production" logic lean, as this functionality
     only seems to be used here.
     """
-    prev_ap_hosts = set(user_as.attachment_point.AS.hosts.all())
+    prev_ap = user_as.attachment_point
 
-    with patch('scionlab.tasks.deploy_host_config') as mock_deploy:
+    with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
         user_as.update(
             attachment_point=kwargs.get('attachment_point', user_as.attachment_point),
             label=kwargs.get('label', user_as.label),
@@ -248,11 +248,11 @@ def update_useras(testcase, user_as, **kwargs):
             bind_port=kwargs.get('bind_port', user_as.bind_port),
         )
 
-    # Check that scionlab.tasks.deploy_host_config was called for the attachment point hosts.
-    curr_ap_hosts = set(user_as.attachment_point.AS.hosts.all())
-    testcase.assertSetEqual(
-        {args[0] for args, kwargs in mock_deploy.call_args_list},
-        prev_ap_hosts | curr_ap_hosts
+    # Check that deployment was triggered once for each of the attachment points.
+    curr_ap = user_as.attachment_point
+    testcase.assertEqual(
+        sorted((args[0] for args, kwargs in mock_deploy.call_args_list), key=id),
+        sorted(set([prev_ap, curr_ap]), key=id)
     )
 
 
@@ -691,12 +691,12 @@ class ActivateUserASTests(TestCase):
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
-    @patch('scionlab.tasks.deploy_host_config')
-    def test_cycle_active(self, mock_deploy):
+    def test_cycle_active(self):
         seed = 123
         user_as = create_random_useras(self, seed=seed)
 
-        user_as.update_active(False)
+        with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
+            user_as.update_active(False)
 
         uplink = Link.objects.get(interfaceB__AS=user_as)
         self.assertFalse(uplink.active)
@@ -705,13 +705,13 @@ class ActivateUserASTests(TestCase):
             list(user_as.hosts.all() |
                  user_as.attachment_point.AS.hosts.all())
         )
-        self.assertSetEqual(
-            {args[0] for args, kwargs in mock_deploy.call_args_list},
-            set(user_as.attachment_point.AS.hosts.all())
+        self.assertEqual(
+            [args[0] for args, kwargs in mock_deploy.call_args_list],
+            [user_as.attachment_point]
         )
-        mock_deploy.reset_mock()
 
-        user_as.update_active(True)
+        with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
+            user_as.update_active(True)
 
         uplink = Link.objects.get(interfaceB__AS=user_as)
         self.assertTrue(uplink.active)
@@ -720,9 +720,9 @@ class ActivateUserASTests(TestCase):
             list(user_as.hosts.all() |
                  user_as.attachment_point.AS.hosts.all())
         )
-        self.assertSetEqual(
-            {args[0] for args, kwargs in mock_deploy.call_args_list},
-            set(user_as.attachment_point.AS.hosts.all())
+        self.assertEqual(
+            [args[0] for args, kwargs in mock_deploy.call_args_list],
+            [user_as.attachment_point]
         )
 
         check_random_useras(self, user_as, seed=seed)
