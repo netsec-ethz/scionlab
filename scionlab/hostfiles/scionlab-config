@@ -37,6 +37,7 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
+import time
 from collections import namedtuple
 
 
@@ -264,8 +265,8 @@ def install_config(tar):
     try:
         tmpdir = tempfile.mkdtemp()
         tar.extractall(path=tmpdir)
-        install_scion_config(tmpdir)
         install_vpn_client_config(tmpdir)
+        install_scion_config(tmpdir)
         install_vpn_server_config(tmpdir)
     finally:
         shutil.rmtree(tmpdir)
@@ -295,6 +296,14 @@ def install_vpn_client_config(tmpdir):
     if changed:
         if exists:
             _run_as_root(['systemctl', 'restart', 'openvpn@client'])
+            # ensure the interface is up; give up after 5 tries
+            for i in range(5):
+                print('Waiting for VPN ...')
+                time.sleep(1)
+                st = subprocess.run(['systemctl', 'is-active', '--quiet', 'openvpn@client'])
+                if st.returncode == 0:
+                    print("Got VPN")
+                    break
         else:
             _run_as_root(['systemctl', 'stop', 'openvpn@client'])
 
@@ -331,7 +340,7 @@ def _install_file(srcdir, filename, dstdir):
     dstfilename = os.path.join(dstdir, filename)
     if not os.path.exists(srcfilename):
         if os.path.exists(dstfilename):
-            os.remove(dstfilename)
+            _run_as_root(['rm', dstfilename])
             return (False, True)
         return (False, False)
 
