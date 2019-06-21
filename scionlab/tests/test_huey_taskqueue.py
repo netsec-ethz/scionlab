@@ -176,6 +176,11 @@ class DeployHostConfigTests(TransactionTestCase):
         # Ensure we start the test with a clean queue
         huey.HUEY.storage.flush_results()
         huey.HUEY.storage.flush_queue()
+        # Flushing is not immediate
+        i = 0
+        while len(huey.HUEY.scheduled()) + len(huey.HUEY.pending()) != 0 and i < 10:
+            time.sleep(_SLEEP_PERIOD*10)
+            i += 1
         self.assertEqual(len(huey.HUEY.scheduled()), 0)
         self.assertEqual(len(huey.HUEY.pending()), 0)
         # Avoid duplication, get this info here:
