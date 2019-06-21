@@ -26,7 +26,6 @@ Prerequisites:
 
 import argparse
 import base64
-import filecmp
 import io
 import json
 import logging
@@ -336,16 +335,17 @@ def _install_file(srcdir, filename, dstdir):
             return (False, True)
         return (False, False)
 
-    try:
-        equal = filecmp.cmp(srcfilename, dstfilename, shallow=False)
-    except FileNotFoundError:
-        equal = False
+    with open(os.devnull, 'w') as null:
+        equal = _run_as_root(['diff', '-q', srcfilename, dstfilename],
+                             check=False,
+                             stdout=null,
+                             stderr=null) == 0
     if not equal:
         _run_as_root(['mv', srcfilename, dstfilename])
     return (True, not equal)
 
 
-def _run_as_root(args, check=True, **kwargs):
+def _run_as_root(args, **kwargs):
     """
     Convenience helper: run with sudo unless already running as root
     Note: if in the future the scion-gen/-folder is also owned by root,
@@ -354,7 +354,7 @@ def _run_as_root(args, check=True, **kwargs):
     """
     if os.getuid() != 0:
         args = ['sudo'] + args
-    subprocess.run(args, check=check)
+    return subprocess.run(args, **kwargs).returncode
 
 
 def _get_argv():
