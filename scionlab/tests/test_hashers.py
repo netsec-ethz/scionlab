@@ -91,21 +91,21 @@ class SCryptPasswordHasherTests(TestCase):
         salt = h.salt()
 
         encoded_8 = h.encode(password, salt, Nlog2=8)  # N==2**8 instead of 2**15
-        start = timer()
         self.assertTrue(h.verify(password, encoded_8))
+        start = timer()
         h.harden_runtime(password, encoded_8)
         end = timer()
         time_8 = end - start
 
         encoded_15 = h.encode(password, salt)
-        start = timer()
         self.assertTrue(h.verify(password, encoded_15))
+        start = timer()
         h.harden_runtime(password, encoded_15)
         end = timer()
         time_15 = end - start
 
-        # within +-20%
-        self.assertTrue(time_15 * 0.8 < time_8 < time_15 * 1.2,
+        # within +-30%
+        self.assertTrue(time_15 * 0.7 < time_8 < time_15 * 1.3,
                         "time_8: %f, time_15: %f" % (time_8, time_15))
 
 
