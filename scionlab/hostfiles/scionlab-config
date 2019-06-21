@@ -297,13 +297,18 @@ def install_vpn_client_config(tmpdir):
         if exists:
             _run_as_root(['systemctl', 'restart', 'openvpn@client'])
             # ensure the interface is up; give up after 5 tries
+            vpn_ready = False
             for i in range(5):
                 print('Waiting for VPN ...')
                 time.sleep(1)
                 st = subprocess.run(['systemctl', 'is-active', '--quiet', 'openvpn@client'])
                 if st.returncode == 0:
-                    print("Got VPN")
+                    vpn_ready = True
                     break
+            if vpn_ready:
+                print("Got VPN")
+            else:
+                print('WARNING!: VPN seems not to be ready. SCION may fail to start.')
         else:
             _run_as_root(['systemctl', 'stop', 'openvpn@client'])
 
@@ -354,7 +359,7 @@ def _install_file(srcdir, filename, dstdir):
     return (True, not equal)
 
 
-def _run_as_root(args, **kwargs):
+def _run_as_root(args, check=True, **kwargs):
     """
     Convenience helper: run with sudo unless already running as root
     Note: if in the future the scion-gen/-folder is also owned by root,
@@ -363,7 +368,7 @@ def _run_as_root(args, **kwargs):
     """
     if os.getuid() != 0:
         args = ['sudo'] + args
-    return subprocess.run(args, **kwargs).returncode
+    return subprocess.run(args, check=check, **kwargs).returncode
 
 
 def _get_argv():
