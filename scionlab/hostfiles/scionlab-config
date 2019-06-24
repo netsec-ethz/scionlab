@@ -299,16 +299,18 @@ def install_vpn_client_config(tmpdir):
             # ensure the interface is up; give up after 5 tries
             vpn_ready = False
             for i in range(5):
-                logging.info('Waiting for VPN ...')
+                logging.debug('Waiting for VPN ...')
                 time.sleep(1)
-                st = subprocess.run(['systemctl', 'is-active', '--quiet', 'openvpn@client'])
+                st = subprocess.run(['ip', 'address', 'show', 'dev', 'tun0'],
+                                    stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL)
                 if st.returncode == 0:
                     vpn_ready = True
                     break
             if vpn_ready:
-                logging.info("Got VPN")
+                logging.debug("Got VPN")
             else:
-                logging.warn('WARNING!: VPN seems not to be ready. SCION may fail to start.')
+                logging.warn('WARNING!: VPN could be to be ready. SCION may fail to start.')
         else:
             _run_as_root(['systemctl', 'stop', 'openvpn@client'])
 
