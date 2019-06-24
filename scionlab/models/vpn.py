@@ -21,6 +21,7 @@ from scionlab.models.core import _placeholder, Host
 from scionlab.openvpn_config import (
     generate_vpn_client_key_material,
     generate_vpn_server_key_material,
+    get_cert_common_name,
 )
 from scionlab.util.django import value_set
 
@@ -56,6 +57,9 @@ class VPN(models.Model):
     class Meta:
         verbose_name = 'VPN'
         verbose_name_plural = 'VPNs'
+
+    def __str__(self):
+        return "VPN %s, %s" % (self.server, self.subnet)
 
     def _pre_delete(self):
         """
@@ -168,6 +172,9 @@ class VPNClient(models.Model):
         verbose_name = 'VPN Client'
         verbose_name_plural = 'VPN Clients'
 
+    def __str__(self):
+        return "%s in %s" % (self.ip, self.vpn)
+
     def _pre_delete(self):
         """
         Called by the pre_delete signal handler `_vpn_client_pre_delete`.
@@ -175,8 +182,11 @@ class VPNClient(models.Model):
         self.host.bump_config()
         self.vpn.server.bump_config()
 
+    def common_name(self):
+        return get_cert_common_name(self.cert.encode())
+
     def init_key(self):
-        key, cert = generate_vpn_client_key_material(self.host.AS)
+        key, cert = generate_vpn_client_key_material(self.host)
         self.private_key = key
         self.cert = cert
 
