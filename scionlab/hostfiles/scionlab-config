@@ -58,6 +58,8 @@ ConfigInfo = namedtuple('ConfigInfo',
                          'url',
                          'version'])
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.WARNING)
+
 
 def main(argv):
     sys.tracebacklimit = -1
