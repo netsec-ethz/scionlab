@@ -235,7 +235,7 @@ def _get_linkto_relation(interface):
 
 def _get_router_names(as_):
     router_names = {}
-    for id, router in enumerate(as_.border_routers.iterator(), start=1):
+    for id, router in enumerate(as_.border_routers.order_by('pk').iterator(), start=1):
         router_name = "br%s-%s" % (as_.isd_as_path_str(), id)
         router_names[router] = router_name
     return router_names
@@ -244,7 +244,7 @@ def _get_router_names(as_):
 def _get_service_names(as_, service_types):
     service_names = {}
     for stype in service_types:
-        for id, service in enumerate(as_.services.filter(type=stype), start=1):
+        for id, service in enumerate(as_.services.filter(type=stype).order_by('pk'), start=1):
             service_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(), id)
             service_names[service] = service_name
     return service_names
