@@ -310,7 +310,7 @@ def install_vpn_client_config(tmpdir):
             if vpn_ready:
                 logging.debug("Got VPN")
             else:
-                logging.warn('WARNING!: VPN could be to be ready. SCION may fail to start.')
+                logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
         else:
             _run_as_root(['systemctl', 'stop', 'openvpn@client'])
 
