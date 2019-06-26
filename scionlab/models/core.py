@@ -517,6 +517,12 @@ class Host(models.Model):
     class Meta:
         unique_together = ('AS', 'internal_ip')
 
+    def scion_address(self):
+        if self.AS:
+            return '%s,[%s]' % (self.AS.isd_as_str(), self.internal_ip)
+        else:
+            return None
+
     def path_str(self):
         return'%s__%s' % (self.AS.isd_as_path_str(), str(self.internal_ip).replace(":", "_"))
 
