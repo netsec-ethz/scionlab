@@ -107,8 +107,8 @@ class SCryptPasswordHasherTests(TestCase):
         time_15 = end - start
 
         # within +-20%
-        if time_15 * 0.8 > time_8 > time_15 * 1.2:
-            print("Time diff. exceeds tolerance: time_8: %f, time_15: %f" % (time_8, time_15))
+        self.assertTrue(time_15 * 0.8 < time_8 < time_15 * 1.2,
+                        "time_8: %f, time_15: %f" % (time_8, time_15))
 
 
 class ImportedUserTests(TestCase):
