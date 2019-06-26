@@ -181,14 +181,20 @@ def _topo_add_router_entry(topo_dict, router, router_name, as_address_type):
 def _topo_add_control_services(topo_dict, service_names, as_address_type):
     for service, service_name in service_names.items():
         service_type_entry = topo_dict.setdefault(generator.TYPES_TO_KEYS[service.type], {})
+        addrs = {
+            "Public": {
+                "Addr": service.host.internal_ip,
+                "L4Port": service.port
+            }
+        }
+        if service.host.bind_ip:
+            addrs["Bind"] = {
+                "Addr": service.host.bind_ip,
+                "L4Port": service.port,
+            }
         service_type_entry[service_name] = {
             "Addrs": {
-                as_address_type: {
-                    "Public": {
-                        "Addr": service.host.internal_ip,
-                        "L4Port": service.port
-                    }
-                }
+                as_address_type: addrs
             }
         }
 
