@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
+
 from django.core.management.base import BaseCommand
 
 from scionlab.models.core import Host
@@ -19,15 +21,18 @@ from scionlab.models.user_as import UserAS
 
 
 class Command(BaseCommand):
-    help = 'Creates a RAINS compatible zonefile containing all hosts'
+    help = "Creates a RAINS compatible zonefile containing all hosts"
 
-    TYPE_SCION_IP4 = ":scionip4:"
-    USER_PREFIX = "user-"
+    TYPE_SCION_IP4 = ':scionip4:'
+    USER_PREFIX = 'user-'
 
     def add_arguments(self, parser):
-        parser.add_argument('-z', '--zone', type=str, required=True)
-        parser.add_argument('-c', '--context', type=str, required=True)
-        parser.add_argument('-o', '--out', type=str, required=True)
+        parser.add_argument('-z', '--zone', type=str, required=True,
+                            help="The name of the zone under which assertions are added (e.g. \'node.snet.\')")
+        parser.add_argument('-c', '--context', type=str, default='.',
+                            help="Namespace in which the zone is created (default: \'.\')")
+        parser.add_argument(
+            '-o', '--out', type=argparse.FileType('w'), default='-', help="Output file (default: Stdout)")
 
     def handle(self, *args, **options):
 
@@ -45,18 +50,17 @@ class Command(BaseCommand):
             record_dict[infra.ssh_host] = infra.scion_address()
 
         # write zonefile
-        zone_file = ":Z: %s %s [\n" % (options['zone'], options['context'])
+        zone_file = ':Z: %s %s [\n' % (options['zone'], options['context'])
         for k in sorted(record_dict.keys(), key=str.lower):
             zone_file += self.encodeAssertion(k, record_dict[k]) + "\n"
-        zone_file += "]"
+        zone_file += ']'
 
-        with open(options['out'], 'w+') as f:
-            f.write(zone_file)
+        options['out'].write(zone_file)
 
         self.stdout.write(self.style.SUCCESS(
-            "Zonefile successfully written to disk"))
+            "Zonefile successfully written to file"))
 
     def encodeAssertion(self, subjectName, value):
-        assertion = "    :A: %s [ %s%s ]" % (
+        assertion = '    :A: %s [ %s%s ]' % (
             subjectName, self.TYPE_SCION_IP4.ljust(12), value)
         return assertion
