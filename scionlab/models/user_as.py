@@ -388,7 +388,7 @@ class AttachmentPoint(models.Model):
         # attaching non children all to one BR:
         infra_br = BorderRouter.objects.first_or_create(host)
         brs_to_delete = list(
-            host.border_routers.exclude(pk=infra_br.pk).values_list('pk', flat=True))
+            host.border_routers.order_by('pk').exclude(pk=infra_br.pk).values_list('pk', flat=True))
         brs_to_delete.reverse()
         infra_ifaces.update(border_router=infra_br)
         # attaching children to several BRs:
