@@ -26,7 +26,6 @@ Prerequisites:
 
 import argparse
 import base64
-import filecmp
 import io
 import json
 import logging
@@ -38,6 +37,7 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
+import time
 from collections import namedtuple
 
 
@@ -57,6 +57,8 @@ ConfigInfo = namedtuple('ConfigInfo',
                          'host_secret',
                          'url',
                          'version'])
+
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.WARNING)
 
 
 def main(argv):
@@ -265,8 +267,8 @@ def install_config(tar):
     try:
         tmpdir = tempfile.mkdtemp()
         tar.extractall(path=tmpdir)
-        install_scion_config(tmpdir)
         install_vpn_client_config(tmpdir)
+        install_scion_config(tmpdir)
         install_vpn_server_config(tmpdir)
     finally:
         shutil.rmtree(tmpdir)
@@ -296,6 +298,21 @@ def install_vpn_client_config(tmpdir):
     if changed:
         if exists:
             _run_as_root(['systemctl', 'restart', 'openvpn@client'])
+            # ensure the interface is up; give up after 5 tries
+            vpn_ready = False
+            for i in range(5):
+                logging.debug('Waiting for VPN ...')
+                time.sleep(1)
+                st = subprocess.run(['ip', 'address', 'show', 'dev', 'tun0'],
+                                    stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL)
+                if st.returncode == 0:
+                    vpn_ready = True
+                    break
+            if vpn_ready:
+                logging.debug("Got VPN")
+            else:
+                logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
         else:
             _run_as_root(['systemctl', 'stop', 'openvpn@client'])
 
@@ -332,14 +349,14 @@ def _install_file(srcdir, filename, dstdir):
     dstfilename = os.path.join(dstdir, filename)
     if not os.path.exists(srcfilename):
         if os.path.exists(dstfilename):
-            os.remove(dstfilename)
+            _run_as_root(['rm', dstfilename])
             return (False, True)
         return (False, False)
 
-    try:
-        equal = filecmp.cmp(srcfilename, dstfilename, shallow=False)
-    except FileNotFoundError:
-        equal = False
+    equal = _run_as_root(['diff', '-q', srcfilename, dstfilename],
+                         check=False,
+                         stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL) == 0
     if not equal:
         _run_as_root(['mv', srcfilename, dstfilename])
     return (True, not equal)
@@ -354,7 +371,7 @@ def _run_as_root(args, check=True, **kwargs):
     """
     if os.getuid() != 0:
         args = ['sudo'] + args
-    subprocess.run(args, check=check)
+    return subprocess.run(args, check=check, **kwargs).returncode
 
 
 def _get_argv():
