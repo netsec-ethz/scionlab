@@ -21,18 +21,18 @@ from scionlab.models.user_as import UserAS
 
 
 class Command(BaseCommand):
-    help = "Creates a RAINS compatible zonefile containing all hosts"
+    help = 'Creates a RAINS compatible zonefile containing all hosts'
 
     TYPE_SCION_IP4 = ':scionip4:'
     USER_PREFIX = 'user-'
 
     def add_arguments(self, parser):
         parser.add_argument('-z', '--zone', type=str, required=True,
-                            help="The name of the zone under which assertions are added (e.g. \'node.snet.\')")
+                            help='The name of the zone under which assertions are added (e.g. \'node.snet.\')')
         parser.add_argument('-c', '--context', type=str, default='.',
-                            help="Namespace in which the zone is created (default: \'.\')")
+                            help='Namespace in which the zone is created (default: \'.\')')
         parser.add_argument(
-            '-o', '--out', type=argparse.FileType('w'), default='-', help="Output file (default: Stdout)")
+            '-o', '--out', type=argparse.FileType('w'), default='-', help='Output file (default: Stdout)')
 
     def handle(self, *args, **options):
 
@@ -52,13 +52,13 @@ class Command(BaseCommand):
         # write zonefile
         zone_file = ':Z: %s %s [\n' % (options['zone'], options['context'])
         for k in sorted(record_dict.keys(), key=str.lower):
-            zone_file += self.encodeAssertion(k, record_dict[k]) + "\n"
+            zone_file += self.encodeAssertion(k, record_dict[k]) + '\n'
         zone_file += ']'
 
         options['out'].write(zone_file)
 
         self.stdout.write(self.style.SUCCESS(
-            "Zonefile successfully written to file"))
+            'Zonefile successfully written to file'))
 
     def encodeAssertion(self, subjectName, value):
         assertion = '    :A: %s [ %s%s ]' % (
