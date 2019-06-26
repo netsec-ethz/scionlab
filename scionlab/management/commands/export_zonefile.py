@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import OrderedDict
-from datetime import datetime
-import json
-
 from django.core.management.base import BaseCommand
 
 from scionlab.models.core import Host
@@ -25,44 +21,28 @@ from scionlab.models.user_as import UserAS
 class Command(BaseCommand):
     help = 'Creates a RAINS compatible zonefile containing all hosts'
 
-    indent4 = "    "
-    indent8 = indent4 + indent4
-    indent12 = indent8 + indent4
-    type_scion_ip4 = ":scionip4:"
-    user_prefix = "user-"
+    TYPE_SCION_IP4 = ":scionip4:"
+    USER_PREFIX = "user-"
 
     def add_arguments(self, parser):
         parser.add_argument('-z', '--zone', type=str, required=True)
         parser.add_argument('-c', '--context', type=str, required=True)
-        parser.add_argument('-ap', '--ap_file', type=str, required=True)
         parser.add_argument('-o', '--out', type=str, required=True)
 
     def handle(self, *args, **options):
 
-        record_dict = OrderedDict()
+        record_dict = {}
 
         # user ASes
-        # We assume that every user AS runs on one host only
         for ua in UserAS.objects.all():
             host = ua.hosts.first()
             parts = ua.as_id.split(':')
-            ip = ua.public_ip if ua.public_ip is not None else host.vpn_clients.first().ip
-            record_dict[self.user_prefix + str(parts[2])] = str('%s,[%s]' %
-                                                                (ua.isd_as_str(), ip))
+            record_dict[self.USER_PREFIX + parts[2]] = host.scion_address()
 
         # Infrastructure
         # all hosts belonging to an AS without an owner
-        for infr in Host.objects.filter(AS__owner=None):
-            if infr.ssh_host is not None:
-                record_dict[str(infr.ssh_host)] = str('%s,[%s]' %
-                                                      (infr.AS.isd_as_str(), infr.internal_ip))
-
-        # Attachment Points
-        # add from static file
-        with open(options['ap_file']) as f:
-            aps = json.load(f)
-            for key in aps:
-                record_dict[key] = aps[key]
+        for infra in Host.objects.filter(AS__owner=None).exclude(ssh_host=None):
+            record_dict[infra.ssh_host] = infra.scion_address()
 
         # write zonefile
         zone_file = ":Z: %s %s [\n" % (options['zone'], options['context'])
@@ -77,8 +57,6 @@ class Command(BaseCommand):
             "Zonefile successfully written to disk"))
 
     def encodeAssertion(self, subjectName, value):
-        type_indent = self.type_scion_ip4 + \
-            self.indent12[len(self.type_scion_ip4):]
-        assertion = "%s:A: %s [ %s%s ]" % (
-            self.indent4, subjectName, type_indent, value)
+        assertion = "    :A: %s [ %s%s ]" % (
+            subjectName, self.TYPE_SCION_IP4.ljust(12), value)
         return assertion
