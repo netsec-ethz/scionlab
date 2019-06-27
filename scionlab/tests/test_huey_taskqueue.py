@@ -152,7 +152,7 @@ class TestingConsumer:
 
     @staticmethod
     def drain_queue():
-        while len(huey.HUEY.scheduled()) > 0 or len(huey.HUEY.pending()) > 0:
+        while huey.HUEY.scheduled_count() > 0 or huey.HUEY.pending_count() > 0:
             time.sleep(_SLEEP_PERIOD)
         time.sleep(_SLEEP_PERIOD)
 
@@ -174,15 +174,9 @@ class DeployHostConfigTests(TransactionTestCase):
 
     def setUp(self):
         # Ensure we start the test with a clean queue
-        huey.HUEY.storage.flush_results()
-        huey.HUEY.storage.flush_queue()
-        # Flushing is not immediate
-        i = 0
-        while len(huey.HUEY.scheduled()) + len(huey.HUEY.pending()) != 0 and i < 10:
-            time.sleep(_SLEEP_PERIOD*10)
-            i += 1
-        self.assertEqual(len(huey.HUEY.scheduled()), 0)
-        self.assertEqual(len(huey.HUEY.pending()), 0)
+        huey.HUEY.flush()
+        self.assertEqual(huey.HUEY.scheduled_count(), 0)
+        self.assertEqual(huey.HUEY.pending_count(), 0)
         # Avoid duplication, get this info here:
         self.url = "localhost:8080"
         self.attachment_point = AttachmentPoint.objects.first()
@@ -208,7 +202,7 @@ class DeployHostConfigTests(TransactionTestCase):
         # Tests that the queue setup works
         # test dummy task
         dress = add(2, 3)
-        self.assertEqual(len(huey.HUEY.pending()), 0)
+        self.assertEqual(huey.HUEY.pending_count(), 0)
         logging.info('2 + 3 = %s' % dress.get(blocking=True))
         # done with dummy
 
@@ -226,7 +220,7 @@ class DeployHostConfigTests(TransactionTestCase):
             # Create change that does not require a redeployment on the AP
             self.attachment_point.AS.hosts.first().update(label="New label")
             self.attachment_point.trigger_deployment()
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
 
     def test_enqueing(self):
         hosts_pending_before = set(Host.objects.needs_config_deployment())
@@ -238,7 +232,7 @@ class DeployHostConfigTests(TransactionTestCase):
             with patch('scionlab.tasks._check_host_needs_config_deployment',
                        side_effect=_fake_check_deployment_required) as mock_requires_deployment:
                 logging.debug("Mocking: %s" % (mock_requires_deployment,))
-                self.assertEqual(len(huey.HUEY.pending()), 0)
+                self.assertEqual(huey.HUEY.pending_count(), 0)
                 executions = len(execution_log)
                 self.consumer.start()
 
@@ -283,7 +277,7 @@ class DeployHostConfigTests(TransactionTestCase):
         with patch('subprocess.call',
                    side_effect=utils.subprocess_call_log) as mock_subprocess_call:
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
 
             _create_user_as(self.attachment_point)
 
@@ -292,7 +286,7 @@ class DeployHostConfigTests(TransactionTestCase):
             self._verify_deploy_task(host, deploy_task.name, deploy_task.args)
             self.consumer.start()
             self.consumer.drain_and_stop()
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
 
     def test_canceled(self):
         # The current use of the huey taskqueue does not make use of revoked task
@@ -300,7 +294,7 @@ class DeployHostConfigTests(TransactionTestCase):
         with patch('subprocess.call',
                    side_effect=utils.subprocess_call_log) as mock_subprocess_call:
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
 
             _create_user_as(self.attachment_point)
 
@@ -312,7 +306,7 @@ class DeployHostConfigTests(TransactionTestCase):
 
             self.consumer.start()
             self.consumer.drain_and_stop()
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
             # check task was not executed
             self.assertEqual(task_pre_check, {})
 
@@ -320,7 +314,7 @@ class DeployHostConfigTests(TransactionTestCase):
         with patch('subprocess.call',
                    side_effect=utils.subprocess_call_log) as mock_subprocess_call:
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
             self.attachment_point.trigger_deployment()
             self.attachment_point.trigger_deployment()
             self.assertEqual(pending_tasks_by_name('_deploy_host_config'), 1)
@@ -331,14 +325,14 @@ class DeployHostConfigTests(TransactionTestCase):
     def test_empty(self):
         with patch('subprocess.call',
                    side_effect=utils.subprocess_call_log) as mock_subprocess_call:
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
             self.assertEqual(len(huey.HUEY.scheduled()), 0)
             # reading from empty queue should not affect later execution
             self.consumer.start()
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
 
             logging.debug("Mocking: %s" % (mock_subprocess_call,))
-            self.assertEqual(len(huey.HUEY.pending()), 0)
+            self.assertEqual(huey.HUEY.pending_count(), 0)
 
             _create_user_as(self.attachment_point)
 
