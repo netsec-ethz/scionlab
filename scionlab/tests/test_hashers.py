@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import string
+import unittest
 from parameterized import parameterized
 from timeit import default_timer as timer
 
@@ -78,6 +79,7 @@ class SCryptPasswordHasherTests(TestCase):
         self.assertEqual(summary['salt'], mask_hash(salt, show=2))
         self.assertEqual(summary['hash'], mask_hash(encoded.split('$')[-1]))
 
+    @unittest.skip("harden_runtime is not used in prod and is hard to test without being flaky.")
     def test_harden_runtime(self):
         """
         Running harden_runtime for a password with lower than default N leads to (roughly) same
@@ -92,15 +94,17 @@ class SCryptPasswordHasherTests(TestCase):
 
         encoded_8 = h.encode(password, salt, Nlog2=8)  # N==2**8 instead of 2**15
         start = timer()
-        self.assertTrue(h.verify(password, encoded_8))
-        h.harden_runtime(password, encoded_8)
+        for i in range(10):
+            self.assertTrue(h.verify(password, encoded_8))
+            h.harden_runtime(password, encoded_8)
         end = timer()
         time_8 = end - start
 
         encoded_15 = h.encode(password, salt)
         start = timer()
-        self.assertTrue(h.verify(password, encoded_15))
-        h.harden_runtime(password, encoded_15)
+        for i in range(10):
+            self.assertTrue(h.verify(password, encoded_15))
+            h.harden_runtime(password, encoded_15)
         end = timer()
         time_15 = end - start
 
