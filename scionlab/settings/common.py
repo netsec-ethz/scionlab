@@ -91,7 +91,7 @@ REGISTRATION_OPEN = True  # Accept new registrations
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # ##### DEFAULT SETTINGS CONFIGURATION ####################
-MAX_ASES_ADMIN = 10
+MAX_ASES_ADMIN = 50
 MAX_ASES_USER = 5
 GRAFANA_URL = "https://prometheus.scionlab.org"
 
