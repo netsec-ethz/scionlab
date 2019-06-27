@@ -63,7 +63,7 @@ DATABASES = {
 HUEY = huey.RedisHuey('scionlab-huey', host='redis')
 
 # ##### MAILER CONFIGURATION ##############################
-DEFAULT_FROM_EMAIL = 'no-reply@scionlab.org'
+DEFAULT_FROM_EMAIL = 'scionlab@ethz.ch'
 SERVER_EMAIL = 'django@scionlab.org'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'mail.ethz.ch'
