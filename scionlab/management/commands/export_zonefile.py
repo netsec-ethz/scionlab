@@ -28,11 +28,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('-z', '--zone', type=str, required=True,
-                            help='The name of the zone under which assertions are added (e.g. \'node.snet.\')')
+                            help='The name of the zone under which assertions \
+                                are added (e.g. \'node.snet.\')')
         parser.add_argument('-c', '--context', type=str, default='.',
                             help='Namespace in which the zone is created (default: \'.\')')
-        parser.add_argument(
-            '-o', '--out', type=argparse.FileType('w'), default='-', help='Output file (default: Stdout)')
+        parser.add_argument('-o', '--out', type=argparse.FileType('w'), default='-',
+                            help='Output file (default: Stdout)')
 
     def handle(self, *args, **options):
 
