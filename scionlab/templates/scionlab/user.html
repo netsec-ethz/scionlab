@@ -46,9 +46,9 @@
     <td>{{ user_as.attachment_point }}</td>
     <td>
       {% if user_as.is_use_vpn %}
-      {{ "<i>VPN</i>"|safe }}:{{ user_as.get_public_port }}</td>
+      <i>VPN</i>:{{ user_as.get_public_port }}
       {% else %}
-      {{ user_as.public_ip|safe }}:{{ user_as.get_public_port }}</td>
+      {{ user_as.public_ip }}:{{ user_as.get_public_port }}
       {% endif %}
     </td>
     <td>
