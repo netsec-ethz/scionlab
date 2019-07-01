@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from scionlab.models import AttachmentPoint
+from scionlab.models.user_as import AttachmentPoint
 
 
 def generate_link_info(host):

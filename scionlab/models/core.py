@@ -239,8 +239,6 @@ class AS(TimestampedModel):
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
     mtu = models.PositiveIntegerField(default=DEFAULT_LINK_MTU,
                                       help_text="Maximum Transfer Unit for intra AS packets.")
-    bandwidth = models.PositiveIntegerField(default=DEFAULT_LINK_BANDWIDTH,
-                                            help_text="The upper limit for the bandwidth to the AP. (in Kbps)")
 
     owner = models.ForeignKey(
         User,

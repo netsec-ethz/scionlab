@@ -66,6 +66,7 @@ class UserASManager(models.Manager):
         :param str bind_port: the bind port for the connection to the AP (for NAT port remapping)
         :param str vpn_client_ip: the specific IP address to assign to the VPN client (if vpn).
                                   A free one if not specified, and ignored if use_vpn == False.
+        :param int bw_limit: the maximal bandwidth in Kbps to the AP
         :returns: UserAS
         """
         owner.check_as_quota()
@@ -88,7 +89,6 @@ class UserASManager(models.Manager):
             bind_ip=bind_ip,
             bind_port=bind_port,
             installation_type=installation_type,
-            bandwidth=bw_limit
         )
 
         user_as.init_keys()
@@ -126,7 +126,8 @@ class UserASManager(models.Manager):
         Link.objects.create(
             type=Link.PROVIDER,
             interfaceA=interface_ap,
-            interfaceB=interface_client
+            interfaceB=interface_client,
+            bandwidth=bw_limit
         )
         attachment_point.split_border_routers()
         attachment_point.trigger_deployment()
@@ -198,7 +199,8 @@ class UserAS(AS):
                public_port,
                bind_ip,
                bind_port,
-               installation_type):
+               installation_type,
+               bw_limit):
         """
         Update this UserAS instance and immediately `save`.
         Updates the related host, interface and link instances and will trigger
@@ -217,6 +219,7 @@ class UserAS(AS):
         )
 
         link = self._get_ap_link()
+        link.update(bandwidth=bw_limit)
         interface_ap = link.interfaceA
         interface_user = link.interfaceB
         if use_vpn:
@@ -249,6 +252,7 @@ class UserAS(AS):
         self.public_ip = public_ip
         self.bind_ip = bind_ip
         self.bind_port = bind_port
+        self.bandwidth=bw_limit
         self.save()
 
         if self.attachment_point != prev_ap:
@@ -271,6 +275,9 @@ class UserAS(AS):
 
     def get_public_port(self):
         return self.interfaces.get().public_port
+
+    def get_bw_limit(self):
+        return self._get_ap_link ().bandwidth
 
     def update_active(self, active):
         """
