@@ -44,7 +44,13 @@
     <td><a href="{% url 'user_as_detail' pk=user_as.pk %}"><span class="fa fa-edit"></span> {{ user_as.isd_as_str }}</a></td>
     <td>{{ user_as.label|default:"-" }}</td>
     <td>{{ user_as.attachment_point }}</td>
-    <td>{{ user_as.public_ip|default:"<i>VPN</i>"|safe }}:{{ user_as.get_public_port }}</td>
+    <td>
+      {% if user_as.is_use_vpn %}
+      {{ "<i>VPN</i>"|safe }}:{{ user_as.get_public_port }}</td>
+      {% else %}
+      {{ user_as.public_ip|safe }}:{{ user_as.get_public_port }}</td>
+      {% endif %}
+     </td>
     <td>
       {% if user_as.is_active %}
       <img src="{% static "admin/img/icon-yes.svg" %}">
