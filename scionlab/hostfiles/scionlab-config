@@ -68,12 +68,12 @@ def main(argv):
     if not args.tar:
         config_info = get_config_info(args)
         config = fetch_config(config_info)
-        if config is _CONFIG_EMPTY:
-            # stop_scion()
-            pass
-        elif config is _CONFIG_UNCHANGED:
+        if config is _CONFIG_UNCHANGED:
             logging.info('Configuration unchanged (version %s). Nothing to do.',
                          config_info.version)
+        elif config is _CONFIG_EMPTY:
+            stop_scion()
+            confirm_deployed(args)
         else:
             install_config(config)
             confirm_deployed(args)
@@ -188,6 +188,8 @@ def fetch_config(config_info):
 
     try:
         conn = _http_get(url, data, username=config_info.host_id, password=config_info.host_secret)
+        if conn.getcode() == 204:
+            return _CONFIG_EMPTY
         response_data = conn.read()
     except urllib.error.HTTPError as e:
         if e.code == 304:
@@ -280,6 +282,12 @@ def install_scion_config(tmpdir):
         _error_exit('No SCION installation found at $SC (%s).', sc)
     _mv_dir(tmpdir, 'gen', sc)
     restart_scion()
+
+
+def stop_scion():
+    sc = SCION_PATH
+    scion_sh = os.path.join(sc, 'scion.sh')
+    subprocess.check_call([scion_sh, 'stop'], cwd=sc)
 
 
 def restart_scion():
