@@ -187,7 +187,13 @@ def _topo_add_control_services(topo_dict, service_names, as_address_type):
                 "L4Port": service.port
             }
         }
-        if service.host.bind_ip:
+        # XXX(matzf): use optional bind_ip, but only if the internal_ip matches public_ip;
+        #   the reason is that the bind_ip is only really defined for the public_ip. If the
+        #   internal_ip is different from public_ip, e.g. if it's 127.0.0.1, then it doesn't make
+        #   sense to use bind_ip.
+        #   We'd need an internal_bind_ip to represent this correctly -- luckily we don't seem to
+        #   need this.
+        if service.host.bind_ip and service.host.internal_ip == service.host.public_ip:
             addrs["Bind"] = {
                 "Addr": service.host.bind_ip,
                 "L4Port": service.port,
