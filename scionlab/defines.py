@@ -38,5 +38,5 @@ DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
 DEFAULT_LINK_MTU = 1500 - 20 - 8
 DEFAULT_LINK_BANDWIDTH = 1000
 
-PROPAGATE_TIME_DEFAULT = 60
-PROPAGATE_TIME_AP = 5  # higher beaconing frequency in AP for faster UserAS startup
+PROPAGATE_TIME_CORE = 60  # lower beaconing frequency in cores to save resources
+PROPAGATE_TIME_NONCORE = 5  # higher frequency in non-cores ASes to have quicker startup

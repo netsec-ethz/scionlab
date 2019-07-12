@@ -21,8 +21,8 @@ from string import Template
 # SCION
 from scionlab.models.core import Service
 from scionlab.defines import (
-    PROPAGATE_TIME_DEFAULT,
-    PROPAGATE_TIME_AP
+    PROPAGATE_TIME_CORE,
+    PROPAGATE_TIME_NONCORE,
 )
 from lib.crypto.asymcrypto import (
     get_core_sig_key_file_path,
@@ -241,9 +241,10 @@ def _write_topo(archive, elem_dir, tp):
 
 def _write_as_conf_and_path_policy(archive, elem_dir, as_):
 
-    propagate_time = PROPAGATE_TIME_DEFAULT
-    if hasattr(as_, 'attachment_point_info'):
-        propagate_time = PROPAGATE_TIME_AP
+    if as_.is_core:
+        propagate_time = PROPAGATE_TIME_CORE
+    else:
+        propagate_time = PROPAGATE_TIME_NONCORE
 
     conf = {
         'RegisterTime': 5,
