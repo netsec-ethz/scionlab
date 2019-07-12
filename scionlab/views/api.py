@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import hmac
+import json
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
@@ -24,7 +25,7 @@ from django.http import (
 )
 
 from scionlab import config_tar
-from scionlab.models.core import Host
+from scionlab.models.core import AS, Host
 from scionlab.util.http import HttpResponseAttachment, basicauth
 
 
@@ -105,6 +106,34 @@ class PostHostDeployedConfigVersion(SingleObjectMixin, View):
 
 
 _BAD_VERSION = object()
+
+
+class GetUserASesList(View):
+    """
+    Get the list of user ASes and their hosts, for a given user. This
+    view required login
+    """
+
+    def get(self, request, *args, **kwargs):
+        u = request.user
+        ases = AS.objects.filter(owner=u)
+        data = {
+            'user': u.email,
+            'ases': {},
+        }
+        for a in ases:
+            hosts = {}
+            for h in a.hosts.all():
+                hosts[h.pk] ={
+                    'uid': h.uid,
+                    'secret': h.secret,
+                }
+            data['ases'][a.as_id] = {
+                'pk': a.pk,
+                'isd': a.isd.isd_id,
+                'hosts': hosts,
+            }
+        return HttpResponse(json.dumps(data), content_type='application/json')
 
 
 def _get_version_param(request_params):

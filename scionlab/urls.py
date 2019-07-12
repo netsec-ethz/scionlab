@@ -25,7 +25,7 @@ from scionlab.views.user_as_views import (
     UserASDetailView,
     UserASGetConfigView)
 from scionlab.views.registration_view import UserRegistrationView, UserRegistrationResendView
-from scionlab.views.api import GetHostConfig, PostHostDeployedConfigVersion
+from scionlab.views.api import GetHostConfig, PostHostDeployedConfigVersion, GetUserASesList
 from scionlab.views.topology import topology_png
 
 urlpatterns = [
@@ -79,4 +79,7 @@ urlpatterns = [
     path('api/host/<slug:uid>/deployed_config_version',
          PostHostDeployedConfigVersion.as_view(),
          name='api_post_deployed_version'),
+    path('api/user/',
+         login_required(GetUserASesList.as_view()),
+         name='api_list_ases')
 ]
