@@ -252,7 +252,7 @@ class UserAS(AS):
         self.public_ip = public_ip
         self.bind_ip = bind_ip
         self.bind_port = bind_port
-        self.bandwidth=bw_limit
+        self.bandwidth = bw_limit
         self.save()
 
         if self.attachment_point != prev_ap:
@@ -277,7 +277,7 @@ class UserAS(AS):
         return self.interfaces.get().public_port
 
     def get_bw_limit(self):
-        return self._get_ap_link ().bandwidth
+        return self._get_ap_link().bandwidth
 
     def update_active(self, active):
         """

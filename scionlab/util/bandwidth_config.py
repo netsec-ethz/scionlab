@@ -18,7 +18,8 @@ from scionlab.models.user_as import AttachmentPoint
 
 def generate_link_info(host):
     """
-    Generate the dictionary that holds the necessary information to do the bandwidth limit enforcement
+    Generate the dictionary that holds the necessary information to do the
+    bandwidth limit enforcement
     :param host: Host that is hosting the AP
     :return: dictionary holding all the necessary information about the links
     """
@@ -60,7 +61,8 @@ def is_user_as(isd_as):
 
 def get_id_from_isd_as(isd_as):
     """
-    Since the number after the last : is unique for each user AS we use that as an ID to identify the links
+    Since the number after the last : is unique for each user AS we use that as an ID to identify
+    the links
     :param isd_as: String holding ISD_AS
     :return: The number after the last :
     """

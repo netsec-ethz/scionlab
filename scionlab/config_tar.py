@@ -77,7 +77,8 @@ def hosts_ap(host):
 
 def _add_bandwidth_config(host, tar):
     """
-       Generate the link_info.json file that is used to do the bandwidth configuration and add it to the tar.
+       Generate the link_info.json file that is used to do the bandwidth configuration and
+       add it to the tar.
     """
     if hosts_ap(host):
         tar_add_textfile(tar, "link_info.json", _generate_link_info_json(host))
@@ -99,7 +100,7 @@ def is_empty_config(host):
     """
     return (not host.services.exists()
             and not host.interfaces.exists()
-            and not host.vpn_clients.filter(active=True).exists ()
+            and not host.vpn_clients.filter(active=True).exists()
             and not host.vpn_servers.exists())
 
 
