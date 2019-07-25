@@ -246,6 +246,7 @@ def update_useras(testcase, user_as, **kwargs):
             public_port=kwargs.get('public_port', user_as.get_public_port()),
             bind_ip=kwargs.get('bind_ip', user_as.bind_ip),
             bind_port=kwargs.get('bind_port', user_as.bind_port),
+            bw_limit=kwargs.get('bw_limit', user_as.get_bw_limit()),
         )
 
     # Check that deployment was triggered once for each of the attachment points.
