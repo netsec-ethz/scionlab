@@ -20,6 +20,10 @@ from string import Template
 
 # SCION
 from scionlab.models.core import Service
+from scionlab.defines import (
+    PROPAGATE_TIME_CORE,
+    PROPAGATE_TIME_NONCORE,
+)
 from lib.crypto.asymcrypto import (
     get_core_sig_key_file_path,
     get_enc_key_file_path,
@@ -98,7 +102,7 @@ def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
                            _build_cs_conf(name, elem_dir))
 
     _write_topo(archive, elem_dir, tp)
-    _write_as_conf_and_path_policy(archive, elem_dir)
+    _write_as_conf_and_path_policy(archive, elem_dir, as_)
     _write_certs_trc(archive, elem_dir, as_)
     _write_keys(archive, elem_dir, as_)
 
@@ -142,7 +146,7 @@ def generate_sciond_config(archive, as_, tp, name):
                        _build_sciond_conf(name, elem_dir, as_.isd_as_str()))
 
     _write_topo(archive, elem_dir, tp)
-    _write_as_conf_and_path_policy(archive, elem_dir)
+    _write_as_conf_and_path_policy(archive, elem_dir, as_)
     _write_certs_trc(archive, elem_dir, as_)
 
 
@@ -235,10 +239,16 @@ def _write_topo(archive, elem_dir, tp):
     archive.write_json((elem_dir, 'topology.json'), tp)
 
 
-def _write_as_conf_and_path_policy(archive, elem_dir):
+def _write_as_conf_and_path_policy(archive, elem_dir, as_):
+
+    if as_.is_core:
+        propagate_time = PROPAGATE_TIME_CORE
+    else:
+        propagate_time = PROPAGATE_TIME_NONCORE
+
     conf = {
         'RegisterTime': 5,
-        'PropagateTime': 5,
+        'PropagateTime': propagate_time,
         'CertChainVersion': 0,
         'RegisterPath': True,
         'PathSegmentTTL': 21600,
