@@ -60,7 +60,6 @@ KEY_BR = 'BorderRouters'
 KEY_BS = 'BeaconService'
 KEY_CS = 'CertificateService'
 KEY_PS = 'PathService'
-KEY_ZK = 'ZookeeperService'
 KEY_DI = 'Discovery'
 
 TYPES_TO_KEYS = {
@@ -68,7 +67,6 @@ TYPES_TO_KEYS = {
     "BS": KEY_BS,
     "CS": KEY_CS,
     "PS": KEY_PS,
-    "ZK": KEY_ZK,
 }
 
 

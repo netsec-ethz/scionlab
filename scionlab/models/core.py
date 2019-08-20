@@ -44,7 +44,6 @@ from scionlab.defines import (
     DEFAULT_BS_PORT,
     DEFAULT_PS_PORT,
     DEFAULT_CS_PORT,
-    DEFAULT_ZK_PORT,
     DEFAULT_BW_PORT,
     DEFAULT_PP_PORT,
     DISPATCHER_PORT,
@@ -390,7 +389,7 @@ class AS(TimestampedModel):
             internal_ip=internal_ip or DEFAULT_HOST_INTERNAL_IP
         )
 
-        default_services = (Service.BS, Service.PS, Service.CS, Service.ZK)
+        default_services = (Service.BS, Service.PS, Service.CS)
         for service_type in default_services:
             Service.objects.create(host=host, type=service_type)
 
@@ -1187,7 +1186,7 @@ class ServiceManager(models.Manager):
         """
         Create a Service object.
         :param Host host: the host, defines the AS
-        :param str type: Service type (Service.BS, PS, CS, ZK, BW, or PP)
+        :param str type: Service type (Service.BS, PS, CS, BW, or PP)
         :param int port: optional, port, assigned automatically if not specified
         :returns: Service
         """
@@ -1208,14 +1207,12 @@ class Service(models.Model):
     BS = 'BS'
     PS = 'PS'
     CS = 'CS'
-    ZK = 'ZK'
     BW = 'BW'
     PP = 'PP'
     SERVICE_TYPES = (
         (BS, 'Beacon Server'),
         (PS, 'Path Server'),
         (CS, 'Certificate Server'),
-        (ZK, 'Zookeeper'),
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
     )
@@ -1223,7 +1220,6 @@ class Service(models.Model):
         BS: DEFAULT_BS_PORT,
         PS: DEFAULT_PS_PORT,
         CS: DEFAULT_CS_PORT,
-        ZK: DEFAULT_ZK_PORT,
         BW: DEFAULT_BW_PORT,
         PP: DEFAULT_PP_PORT,
     }
@@ -1300,7 +1296,7 @@ class Service(models.Model):
         :param str type: Service type
         :param Host prev_host:
         """
-        if type in [Service.BS, Service.PS, Service.CS, Service.ZK]:
+        if type in [Service.BS, Service.PS, Service.CS]:
             host.AS.hosts.bump_config()
         else:
             host.bump_config()
