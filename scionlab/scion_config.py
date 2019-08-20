@@ -99,8 +99,7 @@ def _generate_topology_from_DB(as_):
 
     service_names = _get_service_names(as_, service_types=SERVICE_TYPES_CONTROL_PLANE)
     _topo_add_control_services(topo_dict, service_names, address_type)
-
-    _topo_add_zookeeper(topo_dict, as_)
+    topo_dict[generator.KEY_DI] = {}
 
     return topo_dict, router_names, service_names
 
@@ -202,15 +201,6 @@ def _topo_add_control_services(topo_dict, service_names, as_address_type):
             "Addrs": {
                 as_address_type: addrs
             }
-        }
-
-
-def _topo_add_zookeeper(topo_dict, as_):
-    for id, service in enumerate(as_.services.filter(type=Service.ZK), start=1):
-        zookeeper_dict = topo_dict.setdefault(generator.KEY_ZK, {})
-        zookeeper_dict[str(id)] = {
-            "Addr": service.host.internal_ip,
-            "L4Port": service.port
         }
 
 
