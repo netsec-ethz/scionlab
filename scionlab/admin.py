@@ -236,13 +236,11 @@ class ServiceAdminForm(_CreateUpdateModelForm):
         return Service.objects.create(
             host=self.cleaned_data['host'],
             type=self.cleaned_data['type'],
-            port=self.cleaned_data['port']
         )
 
     def update(self):
         self.instance.update(
             host=self.cleaned_data['host'],
-            port=self.cleaned_data['port']
         )
 
 
@@ -250,7 +248,7 @@ class ServiceInline(admin.TabularInline):
     model = Service
     extra = 0
     form = ServiceAdminForm
-    fields = ('type', 'host', 'port')
+    fields = ('type', 'host')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "host":
