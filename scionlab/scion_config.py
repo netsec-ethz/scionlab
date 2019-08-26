@@ -58,10 +58,10 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
         instance_name = service_names.get(service)
         if service.type in SERVICE_TYPES_CONTROL_PLANE:
             generator.generate_instance_dir(archive, as_, service.type, topo_dict,
-                                            instance_name, service.port + PROM_PORT_OFFSET)
+                                            instance_name, service.port() + PROM_PORT_OFFSET)
         elif service.type in SERVICE_TYPES_SERVER_APPS:
             generator.generate_server_app_dir(archive, as_, service.type,
-                                              instance_name, host.internal_ip, service.port)
+                                              instance_name, host.internal_ip, service.port())
         else:
             continue
         processes.append(instance_name)
@@ -183,7 +183,7 @@ def _topo_add_control_services(topo_dict, service_names, as_address_type):
         addrs = {
             "Public": {
                 "Addr": service.host.internal_ip,
-                "L4Port": service.port
+                "L4Port": service.port()
             }
         }
         # XXX(matzf): use optional bind_ip, but only if the internal_ip matches public_ip;
@@ -195,7 +195,7 @@ def _topo_add_control_services(topo_dict, service_names, as_address_type):
         if service.host.bind_ip and service.host.internal_ip == service.host.public_ip:
             addrs["Bind"] = {
                 "Addr": service.host.bind_ip,
-                "L4Port": service.port,
+                "L4Port": service.port(),
             }
         service_type_entry[service_name] = {
             "Addrs": {
