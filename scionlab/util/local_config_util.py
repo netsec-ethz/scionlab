@@ -289,9 +289,6 @@ def _build_bs_conf(instance_name, instance_path, prometheus_port):
 def _build_ps_conf(instance_name, instance_path, prometheus_port):
     conf = _build_quic_goservice_conf(instance_name, instance_path, prometheus_port, PS_QUIC_PORT)
     conf.update({
-        'infra': {
-            'Type': "PS"
-        },
         'ps': {
             'PathDB': {
                 'Backend': 'sqlite',
@@ -308,9 +305,6 @@ def _build_cs_conf(instance_name, instance_path, prometheus_port):
     conf.update({
         'sd_client': {
             'Path': os.path.join(SCIOND_API_SOCKDIR, 'default.sock')
-        },
-        'infra': {
-            'Type': "CS"
         },
         'cs': {
             'LeafReissueTime': "6h",
