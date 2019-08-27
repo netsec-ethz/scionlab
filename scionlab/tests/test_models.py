@@ -80,7 +80,7 @@ class InitASTests(TestCase):
 
         self.assertTrue(hasattr(host, 'services'))
         self.assertEqual(sorted(s.type for s in host.services.iterator()),
-                         ['BS', 'CS', 'PS', 'ZK'])
+                         ['BS', 'CS', 'PS'])
 
 
 class UpdateASKeysTests(TestCase):

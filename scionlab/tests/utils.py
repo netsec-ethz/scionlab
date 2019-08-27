@@ -76,7 +76,6 @@ def check_as_services(testcase, as_):
     testcase.assertGreaterEqual(counter[Service.BS], 1)
     testcase.assertGreaterEqual(counter[Service.PS], 1)
     testcase.assertGreaterEqual(counter[Service.CS], 1)
-    testcase.assertEqual(counter[Service.ZK], 1)
 
 
 def check_host_ports(testcase, host):
@@ -99,7 +98,7 @@ def check_host_ports(testcase, host):
                 _add_port(interface.get_bind_ip(), interface.bind_port)
 
     for service in host.services.iterator():
-        _add_port(service.host.internal_ip, service.port)
+        _add_port(service.host.internal_ip, service.port())
 
     clashes = []
     for ip, ip_port_counter in ports_used.items():
