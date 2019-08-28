@@ -3,6 +3,11 @@
 from django.db import migrations, models
 
 
+def remove_zk(apps, schema_editor):
+    Service = apps.get_model('scionlab', 'Service')
+    Service.objects.filter(type='ZK').delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,6 +15,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(remove_zk),
         migrations.RemoveField(
             model_name='service',
             name='port',
