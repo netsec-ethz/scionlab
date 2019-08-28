@@ -22,6 +22,17 @@ import scionlab.util.local_config_util as generator
 SERVICE_TYPES_CONTROL_PLANE = [Service.BS, Service.CS, Service.PS]
 SERVICE_TYPES_SERVER_APPS = [Service.BW, Service.PP]
 
+SERVICES_TO_SYSTEMD_NAMES = {
+    Service.BS: 'scion-beacon-server',
+    Service.CS: 'scion-certificate-server',
+    Service.PS: 'scion-path-server',
+    'BR': 'scion-border-router',
+    'SD': 'scion-daemon',
+}
+SYSTEMD_NAMES_ALWAYS_PRESENT = [
+    'scion-dispatcher.service'
+]
+
 
 def create_gen(host, archive):
     """
@@ -74,6 +85,7 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
 
     generator.write_dispatcher_config(archive)
     generator.write_ia_file(archive, as_)
+    generator.write_service_file(archive, _get_systemd_services(processes))
 
 
 def _generate_topology_from_DB(as_):
@@ -250,3 +262,21 @@ def _get_service_names(as_, service_types):
             service_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(), id)
             service_names[service] = service_name
     return service_names
+
+
+def _get_systemd_services(processes):
+    """
+    converts process names ('cs17-ffaa_1_a-1')
+    to systemd names ('scion-certificate-server@17-ffaa_1_a-1.service')
+    :param list processes: list of process names e.g. ['cs17-ffaa_1_a-1']
+    """
+    units = []
+    for p in processes:
+        type_ = p[:2].upper()
+        name = p[2:]
+        systemd_unit = SERVICES_TO_SYSTEMD_NAMES.get(type_)
+        if systemd_unit is None:
+            continue
+        unit = '{sysd}@{name}.service'.format(sysd=systemd_unit, name=name)
+        units.append(unit)
+    return units + SYSTEMD_NAMES_ALWAYS_PRESENT
