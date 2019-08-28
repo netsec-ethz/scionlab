@@ -36,7 +36,6 @@ from scionlab.util import as_ids
 from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.defines import (
-    MAX_PORT,
     MAX_INTERFACE_ID,
     DEFAULT_PUBLIC_PORT,
     DEFAULT_INTERNAL_PORT,
