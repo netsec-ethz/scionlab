@@ -607,22 +607,6 @@ class Host(models.Model):
         """
         return self.config_version_deployed < self.config_version
 
-    def find_free_port(self, ip, min, max=MAX_PORT, preferred=None):
-        """
-        Get a free port for this IP address in the given range.
-
-        Note: if more than one port needs to be assigned, use the PortMap returned by get_port_map
-        instead.
-
-        :param ip: IP address or `None` for the unspecified address
-        :param int min: Start of acceptable port range
-        :param int max: Optional, end (included) of acceptable port range
-        :param int preferred: Optional, preferred port. Will be selected if free (range not checked)
-        :returns: Port
-        :raises: RuntimeError if no port could be found
-        """
-        return self.get_port_map().get_port(ip, min, max, preferred)
-
     def get_port_map(self):
         """
         Find a set of ports used.
