@@ -299,8 +299,11 @@ def install_scion_config(tmpdir):
 
 def install_scionlab_service(tmpdir):
     """ Copies the scionlab.service file to SERVICE_FILES_DIR """
-    _install_file(tmpdir, 'scionlab.service', SERVICE_FILES_DIR)
-    # TODO(juagargi) run whatever we need to run to update systemd with this new file                             don't forget !!!!
+    existed, changed = _install_file(tmpdir, 'scionlab.service', SERVICE_FILES_DIR)
+    if not existed:
+        _run_as_root(['systemctl', 'enable', 'scionlab.service'])
+    elif changed:
+        _run_as_root(['systemctl', 'daemon-reload'])
 
 
 def restart_scion():
@@ -353,8 +356,11 @@ def prepare_host_for_packages():
     Remove scionupgrade.{service,timer} and scion.service .
     Install apt repository, and unattended-upgrades
     """
+    _run_as_root(['systemctl', 'disable', 'scionupgrade.timer'])
     _run_as_root['rm', os.path.join(SERVICE_FILES_DIR, 'scionupgrade.timer')]
+    _run_as_root(['systemctl', 'disable', 'scionupgrade.service'])
     _run_as_root['rm', os.path.join(SERVICE_FILES_DIR, 'scionupgrade.service')]
+    _run_as_root(['systemctl', 'disable', 'scion.service'])
     _run_as_root['rm', os.path.join(SERVICE_FILES_DIR, 'scion.service')]
     _run_as_root(['apt-get', 'install', '-y', 'apt-transport-https'])
     _run_as_root(['bash',
@@ -386,8 +392,8 @@ def _install_file(srcdir, filename, dstdir):
     """
     Installs the file from srcdir into the directory dstdir.
     If the file doesn't exist in srcdir, the file at dstdir will be removed.
-    :returns:   tuple (exists, changed):
-                    exists indicates whether the file existed before the call.
+    :returns:   tuple (existed, changed):
+                    existed indicates whether the file existed before the call.
                     changed indicates whether the file was changed.
     """
     srcfilename = os.path.join(srcdir, filename)
