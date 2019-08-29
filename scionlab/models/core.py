@@ -439,6 +439,8 @@ class AS(TimestampedModel):
 
 
 class HostManager(models.Manager):
+    use_in_migrations = True
+
     def create(self, uid=None, secret=None, **kwargs):
         uid = uid or uuid.uuid4().hex
         secret = secret or uuid.uuid4().hex
