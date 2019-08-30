@@ -627,9 +627,6 @@ class Host(models.Model):
             if interface.get_bind_ip():
                 portmap.add(interface.get_bind_ip(), interface.bind_port)
 
-        for srv in self.services.iterator():
-            portmap.add(self.internal_ip, srv.port())
-
         for port, in self.vpn_servers.values_list('server_port'):
             portmap.add(self.internal_ip, port)
 
