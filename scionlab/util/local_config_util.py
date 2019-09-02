@@ -28,6 +28,10 @@ from scionlab.defines import (
     PS_QUIC_PORT,
     CS_QUIC_PORT,
     SD_QUIC_PORT,
+    SCION_BINARY_DIR,
+    SCION_CONFIG_DIR,
+    SCION_LOG_DIR,
+    SCION_VAR_DIR,
 )
 from lib.crypto.asymcrypto import (
     get_core_sig_key_file_path,
@@ -82,24 +86,28 @@ def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
     env = DEFAULT_ENV.copy()
     if stype == 'BR':
         env.append('GODEBUG="cgocheck=0"')
-        program = 'bin/border'
+        program = 'border'
         gen_toml = _build_br_conf
     elif stype == 'CS':
-        program = 'bin/cert_srv'
+        program = 'cert_srv'
         gen_toml = _build_cs_conf
     elif stype == 'PS':
-        program = 'bin/path_srv'
+        program = 'path_srv'
         gen_toml = _build_ps_conf
     else:
         assert stype == 'BS'
-        program = 'bin/beacon_srv'
+        program = 'beacon_srv'
         gen_toml = _build_bs_conf
-    cmd = '{program} -config {dir}/{srv}.toml'.format(program=program,
-                                                      dir=elem_dir, srv=stype.lower())
+    full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
+    cmd = '{program} -config {dir}/{srv}.toml'.format(
+        program=os.path.join(SCION_BINARY_DIR, program),
+        dir=full_elem_dir,
+        srv=stype.lower())
 
     archive.write_config((elem_dir, 'supervisord.conf'),
                          _make_supervisord_conf(name, cmd, env))
-    archive.write_toml((elem_dir, stype.lower()+'.toml'), gen_toml(name, elem_dir, prometheus_port))
+    archive.write_toml((elem_dir, stype.lower()+'.toml'),
+                       gen_toml(name, full_elem_dir, prometheus_port))
 
     _write_topo(archive, elem_dir, tp)
     _write_as_conf_and_path_policy(archive, elem_dir, as_)
@@ -120,11 +128,14 @@ def generate_server_app_dir(archive, as_, app_type, name, host_ip, app_port):
     ia = as_.isd_as_str()
     elem_dir = _elem_dir(as_, name)
     if app_type == Service.BW:
-        cmd = 'bash -c "sleep 10 && exec bin/bwtestserver -s {ia},[{ip}]:{port}"'.format(
+        cmd = 'bash -c "sleep 10 && exec {program} -s {ia},[{ip}]:{port}"'.format(
+            program=os.path.join(SCION_BINARY_DIR, 'bwtestserver'),
             ia=ia, ip=host_ip, port=app_port)
     elif app_type == Service.PP:
-        cmd = ('bash -c "sleep 10 && exec bin/pingpong -mode server -local '
-               '{ia},[{ip}]:{port}"').format(ia=ia, ip=host_ip, port=app_port)
+        cmd = ('bash -c "sleep 10 && exec {program} -mode server -local '
+               '{ia},[{ip}]:{port}"').format(
+            program=os.path.join(SCION_BINARY_DIR, 'pingpong'),
+            ia=ia, ip=host_ip, port=app_port)
     archive.write_config((elem_dir, 'supervisord.conf'),
                          _make_supervisord_conf(name, cmd, DEFAULT_ENV, priority=200, startsecs=15))
 
@@ -136,14 +147,16 @@ def generate_sciond_config(archive, as_, tp, name):
     :param dict tp: the topology as a dict of dicts.
     """
     elem_dir = _elem_dir(as_, "endhost")
-
+    full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
     superv = _make_supervisord_conf(name,
-                                    'bin/sciond -config "%s/sd.toml"' % elem_dir,
+                                    '{program} -config "{config}"'.format(
+                                        program=os.path.join(SCION_BINARY_DIR, 'sciond'),
+                                        config=os.path.join(full_elem_dir, 'sd.toml')),
                                     DEFAULT_ENV)
     archive.write_config((elem_dir, 'supervisord.conf'), superv)
 
     archive.write_toml((elem_dir, 'sd.toml'),
-                       _build_sciond_conf(name, elem_dir, as_.isd_as_str(), PROM_PORT_SD))
+                       _build_sciond_conf(name, full_elem_dir, as_.isd_as_str(), PROM_PORT_SD))
 
     _write_topo(archive, elem_dir, tp)
     _write_as_conf_and_path_policy(archive, elem_dir, as_)
@@ -153,7 +166,7 @@ def generate_sciond_config(archive, as_, tp, name):
 def write_supervisord_group_config(archive, as_, processes):
     config = configparser.ConfigParser()
     config['group:' + "as%s" % as_.isd_as_path_str()] = {'programs': ",".join(processes)}
-    archive.write_config((_isd_as_dir(as_), 'supervisord.conf'), config)
+    archive.write_config((GEN_PATH, _isd_as_dir(as_), 'supervisord.conf'), config)
 
 
 def write_dispatcher_config(archive):
@@ -161,17 +174,23 @@ def write_dispatcher_config(archive):
     Creates the supervisord files for the dispatcher and writes
     them into the dispatcher folder.
     """
+    cmd = '"{program}" "-config" "{config}"'.format(
+        program=os.path.join(SCION_BINARY_DIR, 'godispatcher'),
+        config=os.path.join(SCION_CONFIG_DIR, GEN_PATH, 'dispatcher', 'disp.toml'))
     superv = _make_supervisord_conf('dispatcher',
-                                    '"bin/godispatcher" "-config" "gen/dispatcher/disp.toml"',
+                                    cmd,
                                     DEFAULT_ENV,
                                     priority=50,
                                     startsecs=1)
-    archive.write_config('gen/dispatcher/supervisord.conf', superv)
-    archive.write_toml('gen/dispatcher/disp.toml', _build_disp_conf())
+    archive.write_config(os.path.join(GEN_PATH, 'dispatcher', 'supervisord.conf'),
+                         superv)
+    archive.write_toml(os.path.join(GEN_PATH, 'dispatcher', 'disp.toml'),
+                       _build_disp_conf())
 
 
 def write_ia_file(archive, as_):
-    archive.write_text('gen/ia', as_.isd_as_path_str())
+    archive.write_text(os.path.join(GEN_PATH, 'ia'),
+                       as_.isd_as_path_str())
 
 
 def write_service_file(archive, bound_to):
@@ -185,8 +204,8 @@ def _make_supervisord_conf(name, cmd, envs, priority=100, startsecs=5):
         'autostart': 'false',
         'autorestart': 'true',
         'environment': ','.join(envs),
-        'stdout_logfile': 'logs/%s.OUT' % name,
-        'stderr_logfile': 'logs/%s.ERR' % name,
+        'stdout_logfile': '%s.OUT' % os.path.join(SCION_LOG_DIR, name),
+        'stderr_logfile': '%s.ERR' % os.path.join(SCION_LOG_DIR, name),
         'startretries': '0',
         'startsecs': str(startsecs),
         'priority': str(priority),
@@ -222,11 +241,11 @@ def _build_service_file(bound_to):
 
 
 def _isd_as_dir(as_):
-    return os.path.join(GEN_PATH, "ISD%s/AS%s" % (as_.isd.isd_id, as_.as_path_str()))
+    return os.path.join("ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
 
 
 def _elem_dir(as_, elem_id):
-    return os.path.join(_isd_as_dir(as_), elem_id)
+    return os.path.join(GEN_PATH, _isd_as_dir(as_), elem_id)
 
 
 def _cert_chain_filename(as_, version):
@@ -269,12 +288,7 @@ def _write_topo(archive, elem_dir, tp):
 
 
 def _write_as_conf_and_path_policy(archive, elem_dir, as_):
-
-    if as_.is_core:
-        propagate_time = PROPAGATE_TIME_CORE
-    else:
-        propagate_time = PROPAGATE_TIME_NONCORE
-
+    propagate_time = PROPAGATE_TIME_CORE if as_.is_core else PROPAGATE_TIME_NONCORE
     conf = {
         'RegisterTime': 5,
         'PropagateTime': propagate_time,
@@ -311,7 +325,7 @@ def _build_bs_conf(instance_name, instance_path, prometheus_port):
     conf.update({
         'beaconDB': {
             'Backend': 'sqlite',
-            'Connection': 'gen-cache/%s.beacon.db' % instance_name
+            'Connection': '%s.beacon.db' % os.path.join(SCION_VAR_DIR, instance_name),
         }
     })
     return conf
@@ -323,7 +337,7 @@ def _build_ps_conf(instance_name, instance_path, prometheus_port):
         'ps': {
             'PathDB': {
                 'Backend': 'sqlite',
-                'Connection': 'gen-cache/%s.path.db' % instance_name,
+                'Connection': '%s.path.db' % os.path.join(SCION_VAR_DIR, instance_name),
             },
             'SegSync': True,
         },
@@ -355,7 +369,7 @@ def _build_sciond_conf(instance_name, instance_path, ia, prometheus_port):
             'Unix': os.path.join(SCIOND_API_SOCKDIR, "default.unix"),
             'Public': '%s,[127.0.0.1]:0' % ia,  # XXX(matzf): Should rather be the host addr?
             'PathDB': {
-                'Connection': 'gen-cache/%s.path.db' % instance_name,
+                'Connection': '%s.path.db' % os.path.join(SCION_VAR_DIR, instance_name),
             },
         },
     })
@@ -368,7 +382,7 @@ def _build_common_conf(logfile_name, prometheus_port):
         'metrics': {'Prometheus': '[127.0.0.1]:%s' % prometheus_port},
         'logging': {
             'file': {
-                'Path': 'logs/%s.log' % logfile_name,
+                'Path': '%s.log' % os.path.join(SCION_LOG_DIR, logfile_name),
                 'Level': 'debug',
             },
             'console': {
@@ -402,13 +416,13 @@ def _build_quic_goservice_conf(instance_name, instance_path, prometheus_port, qu
     conf.update({
         'trustDB': {
             'Backend': 'sqlite',
-            'Connection': 'gen-cache/%s.trust.db' % instance_name,
+            'Connection': '%s.trust.db' % os.path.join(SCION_VAR_DIR, instance_name),
         },
         'quic': {
-            'KeyFile': 'gen-certs/tls.key',
+            'KeyFile':  os.path.join(SCION_CONFIG_DIR, 'gen-certs/tls.key'),
+            'CertFile': os.path.join(SCION_CONFIG_DIR, 'gen-certs/tls.pem'),
             'ResolutionFraction': 0.4,
             'Address': '[127.0.0.1]:%s' % quic_port,
-            'CertFile': 'gen-certs/tls.pem',
         },
     })
     return conf
