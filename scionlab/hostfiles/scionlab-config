@@ -292,10 +292,9 @@ def install_scion_config(tmpdir):
 def install_scionlab_service(tmpdir):
     """ Copies the scionlab.service file to SERVICE_FILES_DIR """
     exists, changed = _install_file(tmpdir, 'scionlab.service', SERVICE_FILES_DIR)
-    if exists:
-        subprocess.run(['systemctl', 'enable', 'scionlab.service'], check=True)
-    else:
-        subprocess.run(['systemctl', 'disable', 'scionlab.service'], check=True)
+    if not exists:
+        _error_exit("Could not find the file scionlab.service in %s", tmpdir)
+    subprocess.run(['systemctl', 'enable', 'scionlab.service'], check=True)
     if changed:
         subprocess.run(['systemctl', 'daemon-reload'], check=True)
 
@@ -303,7 +302,7 @@ def install_scionlab_service(tmpdir):
 def restart_scion():
     # TODO quick reload: only restart if set of processes changed, otherwise trigger config
     # reloading
-    subprocess.run(['systemctl', 'restart', 'scionlab'], check=True)
+    subprocess.run(['systemctl', 'restart', 'scionlab.service'], check=True)
 
 
 def install_vpn_client_config(tmpdir):
