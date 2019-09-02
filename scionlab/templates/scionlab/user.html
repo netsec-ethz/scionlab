@@ -41,7 +41,7 @@
   {% for user_as in object_list %}
   <tr>
     <th scope="row">{{ forloop.counter }}</th>
-    <td><a href="{% url 'user_as_detail' pk=user_as.pk %}"><span class="fa fa-edit"></span> {{ user_as.isd_as_str }}</a></td>
+    <td><span class="nowrap"><a href="{% url 'user_as_detail' pk=user_as.pk %}"><span class="fa fa-edit"></span> {{ user_as.isd_as_str }}</a></span></td>
     <td>{{ user_as.label|default:"-" }}</td>
     <td>{{ user_as.attachment_point }}</td>
     <td>
