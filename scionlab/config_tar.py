@@ -103,12 +103,10 @@ def _add_vagrantfiles(host, tar):
     """
     tar_add_textfile(tar, "Vagrantfile", _expand_vagrantfile_template(host))
 
-    # Add services and scripts:
+    # Add extra files:
     # Note: in the future, some of these may be included in the "box".
-    service_files = ["scion.service", "scionupgrade.service",
-                     "scionupgrade.timer"]
-    script_files = ["run.sh", "scion_install_script.sh", "scionupgrade.sh"]
-    for f in service_files + script_files:
+    script_files = ["run.sh"]
+    for f in script_files:
         tar.add(_hostfiles_path(f), arcname=f)
 
 
