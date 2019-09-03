@@ -17,11 +17,8 @@ Vagrant.configure(2) do |config|
 
     echo 'copy SCIONLab config'
     mkdir -p /etc/scion/
-    scion cp -r /vagrant/gen /etc/scion/
+    cp -r /vagrant/gen /etc/scion/
     chown -R scion:scion /etc/scion/
-    if [ -f /vagrant/client.conf ]; then
-      cp /vagrant/client.conf /etc/openvpn
-    fi
 
     echo 'install SCIONLab'
     echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list
@@ -61,5 +58,5 @@ Unattended-Upgrade::Automatic-Reboot-Time "02:00";' > /etc/apt/apt.conf.d/51unat
     vb.name = "${vmname}"
   end
   config.vm.hostname = "${hostname}"
-  config.vm.provision "shell", privileged: true, inline: $$setup_scion
+  config.vm.provision "shell", privileged: true, inline: $setup_scion
 end
