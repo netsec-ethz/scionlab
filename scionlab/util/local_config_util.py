@@ -193,9 +193,9 @@ def write_ia_file(archive, as_):
                        as_.isd_as_path_str())
 
 
-def write_service_file(archive, bound_to):
-    srv_file = _build_service_file(bound_to)
-    archive.write_config('scionlab.service', srv_file)
+def write_services_file(archive, services):
+    srv_file = '\n'.join(services)
+    archive.write_text('scionlab-services.txt', srv_file)
 
 
 def _make_supervisord_conf(name, cmd, envs, priority=100, startsecs=5):
@@ -210,32 +210,6 @@ def _make_supervisord_conf(name, cmd, envs, priority=100, startsecs=5):
         'startsecs': str(startsecs),
         'priority': str(priority),
         'command':  cmd,
-    }
-    return config
-
-
-def _build_service_file(bound_to):
-    """
-    Creates the SCIONLab systemd service file for this host that enables start/stop/restart all
-    relevant services/border routers at once in this host.
-    :param list bound_to: list of other services' names this unit will bind to
-    """
-    config = configparser.ConfigParser()
-    config.optionxform = lambda option: option
-    config['Unit'] = {
-        'Description': 'SCIONLab',
-        'Documentation': 'https://www.scionlab.org',
-        'After': 'network-online.target',
-        'Wants': 'network-online.target',
-        'BindsTo': ' '.join(bound_to),
-    }
-    config['Service'] = {
-        'Type': 'oneshot',
-        'RemainAfterExit': 'True',
-        'ExecStart': '/bin/true',
-    }
-    config['Install'] = {
-        'WantedBy': 'multi-user.target'
     }
     return config
 
