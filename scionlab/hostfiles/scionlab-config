@@ -281,28 +281,42 @@ def install_config(tar):
 
 
 def install_scion_config(tmpdir):
-    """ Copies gen to /etc/scion """
+    """ Moves gen to /etc/scion/gen """
     sc = SCION_CONFIG_PATH
     if not os.path.isdir(sc):
         _error_exit('No SCION configuration directory found at %s', sc)
     _mv_dir(tmpdir, 'gen', sc)
+    subprocess.run(['chown', 'scion.scion', os.path.join(SCION_CONFIG_PATH, 'gen')])
     restart_scion()
 
 
 def install_scionlab_service(tmpdir):
-    """ Copies the scionlab.service file to SERVICE_FILES_DIR """
-    exists, changed = _install_file(tmpdir, 'scionlab.service', SERVICE_FILES_DIR)
-    if not exists:
-        _error_exit("Could not find the file scionlab.service in %s", tmpdir)
-    subprocess.run(['systemctl', 'enable', 'scionlab.service'], check=True)
-    if changed:
+    """ Creates the appropriate dependencies for scionlab.target """
+
+    scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
+    if not os.path.exists(scionlab_services):
+        _error_exit("Could not find the scionlab-services.txt file in %s", tmpdir)
+
+    # 1. remove existing links to scionlab.target
+    wants = '/etc/systemd/system/scionlab.target.wants/'
+    if os.path.exists(wants):
+        for f in os.listdir(wants):
+            f = os.path.join(wants, f)
+            os.remove(f)
         subprocess.run(['systemctl', 'daemon-reload'], check=True)
+
+    # 2. add links to scionlab.target
+    with open(scionlab_services, 'r') as f:
+        services = f.readlines()
+    for srv in services:
+        srv = srv.strip()
+        subprocess.run(['systemctl', 'enable', srv])
 
 
 def restart_scion():
     # TODO quick reload: only restart if set of processes changed, otherwise trigger config
     # reloading
-    subprocess.run(['systemctl', 'restart', 'scionlab.service'], check=True)
+    subprocess.run(['systemctl', 'restart', 'scionlab.target'], check=True)
 
 
 def install_vpn_client_config(tmpdir):
