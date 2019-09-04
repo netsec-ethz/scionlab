@@ -44,10 +44,7 @@ def generate_user_as_config_tar(user_as, fileobj):
     """
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
-        _add_config_info(host, tar)
-        scion_config.create_gen(host, TarWriter(tar))
-        _add_vpn_config(host, tar)
-
+        _add_config_info(host, tar, with_version=False)
         if user_as.installation_type == UserAS.VM:
             tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
             _add_vagrantfiles(host, tar)
@@ -129,11 +126,11 @@ def _expand_vagrantfile_template(host):
     )
 
 
-def _add_config_info(host, tar):
-    tar_add_textfile(tar, "gen/scionlab-config.json", _generate_config_info_json(host))
+def _add_config_info(host, tar, with_version=True):
+    tar_add_textfile(tar, "gen/scionlab-config.json", _generate_config_info_json(host, with_version))
 
 
-def _generate_config_info_json(host):
+def _generate_config_info_json(host, with_version):
     """
     Return a JSON-formatted string; a dict containing the authentication parameters for the host
     and the current configuration version number.
@@ -143,9 +140,10 @@ def _generate_config_info_json(host):
     config_info = {
         'host_id': host.uid,
         'host_secret': host.secret,
-        'version': host.config_version,
         'url': settings.SCIONLAB_SITE
     }
+    if with_version:
+        config_info['version'] = host.config_version
     return json.dumps(config_info)
 
 

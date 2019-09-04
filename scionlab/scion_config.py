@@ -85,7 +85,7 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
 
     generator.write_dispatcher_config(archive)
     generator.write_ia_file(archive, as_)
-    generator.write_service_file(archive, _get_systemd_services(processes))
+    generator.write_services_file(archive, _get_systemd_services(processes))
 
 
 def _generate_topology_from_DB(as_):
