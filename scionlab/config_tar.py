@@ -44,12 +44,39 @@ def generate_user_as_config_tar(user_as, fileobj):
     """
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
-        _add_config_info(host, tar, with_version=False)
         if user_as.installation_type == UserAS.VM:
-            tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
-            _add_vagrantfiles(host, tar)
+            _add_user_as_type_vm_files(tar, host)
         else:
-            tar.add(_hostfiles_path("README_dedicated.md"), arcname="README.md")
+            _add_user_as_type_dedicated_files(tar, host)
+
+
+def _add_user_as_type_vm_files(tar, host):
+    """
+    The configuration tar for a VM user AS contains:
+    - Vagrantfile
+    - run.sh
+    - README
+    - scionlab-services.txt file listing the services running in the host
+    - config_info file (scionlab-config.json) inside the gen directory
+    """
+    _add_config_info(host, tar, with_version=False)
+    tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
+    _add_vagrantfiles(host, tar)
+
+
+def _add_user_as_type_dedicated_files(tar, host):
+    """
+    The configuration tar for a DEDICATED user AS contains:
+    - README
+    - scionlab-services.txt file listing the services running in the host
+    - config_info file (scionlab-config.json) inside the gen directory
+    - full gen directory
+    - VPN file client.conf (if using VPN)
+    """
+    _add_config_info(host, tar, with_version=True)
+    scion_config.create_gen(host, TarWriter(tar))
+    _add_vpn_config(host, tar)
+    tar.add(_hostfiles_path("README_dedicated.md"), arcname="README.md")
 
 
 def generate_host_config_tar(host, fileobj):
@@ -60,7 +87,7 @@ def generate_host_config_tar(host, fileobj):
     :param fileobj: writable, file-like object for output
     """
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
-        _add_config_info(host, tar)
+        _add_config_info(host, tar, with_version=True)
         scion_config.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
 
@@ -126,7 +153,7 @@ def _expand_vagrantfile_template(host):
     )
 
 
-def _add_config_info(host, tar, with_version=True):
+def _add_config_info(host, tar, with_version):
     tar_add_textfile(tar, "gen/scionlab-config.json", _generate_config_info_json(host, with_version))
 
 
