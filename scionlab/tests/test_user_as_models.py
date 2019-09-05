@@ -505,7 +505,8 @@ class UpdateUserASTests(TestCase):
         user_as = create_random_useras(self,
                                        seed=seed,
                                        attachment_point=attachment_point,
-                                       use_vpn=True)
+                                       use_vpn=True,
+                                       force_public_ip=True)
         update_useras(self, user_as, use_vpn=False)
         check_random_useras(self,
                             user_as,
