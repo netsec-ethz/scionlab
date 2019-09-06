@@ -279,7 +279,7 @@ def _write_as_conf_and_path_policy(archive, elem_dir, as_):
 def _build_disp_conf():
     conf = _build_common_conf('dispatcher', PROM_PORT_DI)
     conf.update({
-        'dispatcher': {'ID': 'dispatcher'},
+        'dispatcher': {'ID': 'dispatcher', 'SocketFileMode': '0777'},
     })
     return conf
 
