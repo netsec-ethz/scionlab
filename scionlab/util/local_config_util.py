@@ -300,7 +300,11 @@ def _build_bs_conf(instance_name, instance_path, prometheus_port):
         'beaconDB': {
             'Backend': 'sqlite',
             'Connection': '%s.beacon.db' % os.path.join(SCION_VAR_DIR, instance_name),
-        }
+        },
+        'BS': {
+            'RevTTL': '20s',
+            'RevOverlap': '5s'
+        },
     })
     return conf
 
