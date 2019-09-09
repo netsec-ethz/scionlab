@@ -505,8 +505,7 @@ class UpdateUserASTests(TestCase):
         user_as = create_random_useras(self,
                                        seed=seed,
                                        attachment_point=attachment_point,
-                                       use_vpn=True,
-                                       force_public_ip=True)
+                                       use_vpn=True)
         update_useras(self, user_as, use_vpn=False)
         check_random_useras(self,
                             user_as,
@@ -552,6 +551,7 @@ class UpdateUserASTests(TestCase):
                             user_as,
                             seed=seed,
                             attachment_point=attachment_point,
+                            public_ip=None,
                             use_vpn=True)
 
         # Check VPN client IP has not changed:
