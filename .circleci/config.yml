@@ -182,7 +182,12 @@ jobs:
             docker stop update_AS
 
             # Check change was deployed and connection still works
-            docker exec infraAS1303 /bin/bash -c 'until [ `grep "127.0.0.111" -s -r ${SC}/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done; until ${SC}/bin/showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done; until ${SC}/bin/scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.111] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
+            # i) IP was updated
+            docker exec infraAS1303 /bin/bash -c 'until [ `grep "127.0.0.111" -s -r ${SC}/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done;'
+            # ii) Showpaths displays the paths
+            docker exec infraAS1303 /bin/bash -c 'until ${SC}/bin/showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done;'
+            # iii) SCMP completes without error for 10 echo requests
+            docker exec infraAS1303 /bin/bash -c 'until ${SC}/bin/scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.111] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
 
       - run:
           name: Test TRC update
