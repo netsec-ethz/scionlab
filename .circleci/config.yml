@@ -168,6 +168,7 @@ jobs:
 
             # Start the huey consumer
             docker exec -d coord /bin/bash -c 'cd /home/circleci/repo/scionlab && . /tmp/venv/bin/activate && PYTHONPATH=/tmp/scion/python python manage.py run_huey -w 8 &'
+            sleep 10
 
             # Change internal IP of infraAS1303
             docker run --net circleci_as_net -dt --name update_AS\
@@ -182,7 +183,12 @@ jobs:
             docker stop update_AS
 
             # Check change was deployed and connection still works
-            docker exec infraAS1303 /bin/bash -c 'until [ `grep "127.0.0.111" -s -r ${SC}/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done; until ${SC}/bin/showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done; until ${SC}/bin/scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.111] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
+            # i) IP was updated
+            docker exec infraAS1303 /bin/bash -c 'until [ `grep "127.0.0.111" -s -r ${SC}/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done;'
+            # ii) Showpaths displays the paths
+            docker exec infraAS1303 /bin/bash -c 'until ${SC}/bin/showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done;'
+            # iii) SCMP completes without error for 10 echo requests
+            docker exec infraAS1303 /bin/bash -c 'until ${SC}/bin/scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.111] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
 
       - run:
           name: Test TRC update
@@ -210,6 +216,7 @@ jobs:
                 docker exec coreAS1301 /bin/bash -c "${SC}/reloadASConfig.sh"
                 docker exec infraAS1303 /bin/bash -c "${SC}/reloadASConfig.sh"
                 docker exec infraAS1305 /bin/bash -c "${SC}/reloadASConfig.sh"
+                sleep 10
 
                 # Check that TRCs were updated
                 docker exec coreAS1301 /bin/bash -c "cat ${SC}/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc;" >> "./TRC_V${TRC_version}.json"
