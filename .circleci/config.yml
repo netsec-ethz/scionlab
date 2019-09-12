@@ -210,6 +210,7 @@ jobs:
                 docker exec coreAS1301 /bin/bash -c "${SC}/reloadASConfig.sh"
                 docker exec infraAS1303 /bin/bash -c "${SC}/reloadASConfig.sh"
                 docker exec infraAS1305 /bin/bash -c "${SC}/reloadASConfig.sh"
+                sleep 10
 
                 # Check that TRCs were updated
                 docker exec coreAS1301 /bin/bash -c "cat ${SC}/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc;" >> "./TRC_V${TRC_version}.json"
