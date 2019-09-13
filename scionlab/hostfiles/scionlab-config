@@ -286,7 +286,7 @@ def install_scion_config(tmpdir):
     if not os.path.isdir(sc):
         _error_exit('No SCION configuration directory found at %s', sc)
     _mv_dir(tmpdir, 'gen', sc)
-    subprocess.run(['chown', 'scion.scion', os.path.join(SCION_CONFIG_PATH, 'gen')])
+    subprocess.run(['chown', '-R', 'scion:scion', os.path.join(SCION_CONFIG_PATH, 'gen')])
     restart_scion()
 
 
