@@ -552,6 +552,7 @@ class UpdateUserASTests(TestCase):
                             user_as,
                             seed=seed,
                             attachment_point=attachment_point,
+                            public_ip=None,
                             use_vpn=True)
 
         # Check VPN client IP has not changed:
