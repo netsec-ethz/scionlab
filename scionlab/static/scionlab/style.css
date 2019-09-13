@@ -48,6 +48,10 @@ main {
   font-weight: 300;
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
 
 /* Tweaks for forms (crispy-forms with bootstrap4 template pack)
 -------------------------------------------------- */
