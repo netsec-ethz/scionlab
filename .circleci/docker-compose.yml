@@ -24,14 +24,6 @@ services:
     entrypoint: /bin/bash
     command: -c "./scionlab/.circleci/setup/coord.sh"
 
-  zookeeper:
-    image: zookeeper:latest
-    container_name: zookeeper
-    networks:
-      as_net:
-        ipv4_address: 172.31.0.11
-    restart: always
-
   coreAS1301:
     build:
       context: .
@@ -42,7 +34,6 @@ services:
     image: scionhost:tmp
     container_name: coreAS1301
     depends_on:
-      - zookeeper
       - coord
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
@@ -67,7 +58,6 @@ services:
     image: scionhost:tmp
     container_name: infraAS1303
     depends_on:
-      - zookeeper
       - coreAS1301
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
@@ -91,7 +81,6 @@ services:
     image: scionhost:tmp
     container_name: infraAS1305
     depends_on:
-      - zookeeper
       - coreAS1301
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
@@ -114,8 +103,6 @@ services:
         - SC=${SC}
     image: scionhost:tmp
     container_name: coreAS1401
-    depends_on:
-      - zookeeper
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
@@ -139,7 +126,6 @@ services:
     image: scionhost:tmp
     container_name: infraAS1405
     depends_on:
-      - zookeeper
       - coreAS1401
     working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
@@ -153,5 +139,5 @@ services:
     tty: true
     # waits for binaries and setup script to be loaded, then a user AS to connect and run scmp echos
     entrypoint: /bin/bash
-    command: -c "until [ -e ${SC}/VPNexistingAS.sh ]; do sleep 1; done; ${SC}/VPNexistingAS.sh; grep 'Successfully verified PCB' -r $${SC}/logs/; $${SC}/bin/scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch $${SC}/done; sleep 120; echo 'reloading AP'; ${SC}/reloadASConfig.sh; cat;"
+    command: -c "until [ -e ${SC}/VPNexistingAS.sh ]; do sleep 1; done; ${SC}/VPNexistingAS.sh; grep 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch $${SC}/done; sleep 120; echo 'reloading AP'; ${SC}/reloadASConfig.sh; cat;"
 
