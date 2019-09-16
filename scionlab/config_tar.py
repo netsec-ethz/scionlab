@@ -154,7 +154,8 @@ def _expand_vagrantfile_template(host):
 
 
 def _add_config_info(host, tar, with_version):
-    tar_add_textfile(tar, "gen/scionlab-config.json", _generate_config_info_json(host, with_version))
+    tar_add_textfile(tar, "gen/scionlab-config.json",
+                     _generate_config_info_json(host, with_version))
 
 
 def _generate_config_info_json(host, with_version):
