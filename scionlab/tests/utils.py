@@ -411,22 +411,23 @@ def check_tarball_user_as(testcase, response, user_as):
     tar = _check_open_tarball(testcase, response)
     files = ['README.md']
     if user_as.installation_type == UserAS.VM:
-        files += ["Vagrantfile", "scion.service", "scionupgrade.service", "scionupgrade.timer",
-                  "run.sh", "scion_install_script.sh", "scionupgrade.sh"]
-    testcase.assertTrue(sorted(['gen'] + files), _tar_ls(tar, ''))
-    _check_tarball_gen(testcase, tar, user_as.hosts.get())
+        files += ["Vagrantfile", "run.sh"]
+    testcase.assertEquals(sorted(['gen'] + files), _tar_ls(tar, ''))
 
     if user_as.installation_type == UserAS.VM:
+        # check gen/ only has the scionlab-config.json file
+        testcase.assertEquals(['scionlab-config.json'], _tar_ls(tar, 'gen/'))
         # appropriate README?
         readme = tar.extractfile('README.md').read().decode()
         testcase.assertTrue(readme.startswith('# SCIONLabVM'))
-
         # Vagrantfile template expanded correctly?
         vagrantfile = tar.extractfile('Vagrantfile')
         lines = [l.decode() for l in vagrantfile]
         name_lines = [l.strip() for l in lines if l.strip().startswith('vb.name')]
         testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_id])
     else:
+        # check the full content of gen/
+        _check_tarball_gen(testcase, tar, user_as.hosts.get())
         readme = tar.extractfile('README.md').read().decode()
         testcase.assertTrue(readme.startswith('# SCIONLab Dedicated'))
 
