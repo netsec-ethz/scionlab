@@ -33,4 +33,6 @@ def instance_indicator(request):
         mode = settings.INSTANCE_NAME
     if settings.DEBUG:
         mode += '[debug]'
+    if hasattr(settings, 'MAINTENANCE') and settings.MAINTENANCE:
+        mode += '[maintenance]'
     return {'instance_indicator': mode}
