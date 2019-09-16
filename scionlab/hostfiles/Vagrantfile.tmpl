@@ -18,7 +18,7 @@ Vagrant.configure(2) do |config|
     cp -r /vagrant/gen/scionlab-config.json /etc/scion/gen/
 
     echo 'install SCIONLab'
-    echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list
+    echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" > /etc/apt/sources.list.d/scionlab.list
     echo -e "`crontab -l`""\n`date -d '07:00 UTC' '+%M %H'` * * * apt-get update; apt-get install -y --only-upgrade scionlab" | crontab
     apt-get update > /dev/null
     apt-get install -y scionlab  # this also installs and runs scionlab-config
