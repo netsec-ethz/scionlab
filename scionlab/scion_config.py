@@ -22,6 +22,17 @@ import scionlab.util.local_config_util as generator
 SERVICE_TYPES_CONTROL_PLANE = [Service.BS, Service.CS, Service.PS]
 SERVICE_TYPES_SERVER_APPS = [Service.BW, Service.PP]
 
+SERVICES_TO_SYSTEMD_NAMES = {
+    Service.BS: 'scion-beacon-server',
+    Service.CS: 'scion-certificate-server',
+    Service.PS: 'scion-path-server',
+    'BR': 'scion-border-router',
+    'SD': 'scion-daemon',
+}
+SYSTEMD_NAMES_ALWAYS_PRESENT = [
+    'scion-dispatcher.service'
+]
+
 
 def create_gen(host, archive):
     """
@@ -58,10 +69,10 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
         instance_name = service_names.get(service)
         if service.type in SERVICE_TYPES_CONTROL_PLANE:
             generator.generate_instance_dir(archive, as_, service.type, topo_dict,
-                                            instance_name, service.port + PROM_PORT_OFFSET)
+                                            instance_name, service.port() + PROM_PORT_OFFSET)
         elif service.type in SERVICE_TYPES_SERVER_APPS:
             generator.generate_server_app_dir(archive, as_, service.type,
-                                              instance_name, host.internal_ip, service.port)
+                                              instance_name, host.internal_ip, service.port())
         else:
             continue
         processes.append(instance_name)
@@ -74,6 +85,7 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
 
     generator.write_dispatcher_config(archive)
     generator.write_ia_file(archive, as_)
+    generator.write_services_file(archive, _get_systemd_services(processes))
 
 
 def _generate_topology_from_DB(as_):
@@ -99,8 +111,7 @@ def _generate_topology_from_DB(as_):
 
     service_names = _get_service_names(as_, service_types=SERVICE_TYPES_CONTROL_PLANE)
     _topo_add_control_services(topo_dict, service_names, address_type)
-
-    _topo_add_zookeeper(topo_dict, as_)
+    topo_dict[generator.KEY_DI] = {}
 
     return topo_dict, router_names, service_names
 
@@ -184,7 +195,7 @@ def _topo_add_control_services(topo_dict, service_names, as_address_type):
         addrs = {
             "Public": {
                 "Addr": service.host.internal_ip,
-                "L4Port": service.port
+                "L4Port": service.port()
             }
         }
         # XXX(matzf): use optional bind_ip, but only if the internal_ip matches public_ip;
@@ -196,21 +207,12 @@ def _topo_add_control_services(topo_dict, service_names, as_address_type):
         if service.host.bind_ip and service.host.internal_ip == service.host.public_ip:
             addrs["Bind"] = {
                 "Addr": service.host.bind_ip,
-                "L4Port": service.port,
+                "L4Port": service.port(),
             }
         service_type_entry[service_name] = {
             "Addrs": {
                 as_address_type: addrs
             }
-        }
-
-
-def _topo_add_zookeeper(topo_dict, as_):
-    for id, service in enumerate(as_.services.filter(type=Service.ZK), start=1):
-        zookeeper_dict = topo_dict.setdefault(generator.KEY_ZK, {})
-        zookeeper_dict[str(id)] = {
-            "Addr": service.host.internal_ip,
-            "L4Port": service.port
         }
 
 
@@ -260,3 +262,21 @@ def _get_service_names(as_, service_types):
             service_name = "%s%s-%s" % (service.type.lower(), as_.isd_as_path_str(), id)
             service_names[service] = service_name
     return service_names
+
+
+def _get_systemd_services(processes):
+    """
+    converts process names ('cs17-ffaa_1_a-1')
+    to systemd names ('scion-certificate-server@17-ffaa_1_a-1.service')
+    :param list processes: list of process names e.g. ['cs17-ffaa_1_a-1']
+    """
+    units = []
+    for p in processes:
+        type_ = p[:2].upper()
+        name = p[2:]
+        systemd_unit = SERVICES_TO_SYSTEMD_NAMES.get(type_)
+        if systemd_unit is None:
+            continue
+        unit = '{sysd}@{name}.service'.format(sysd=systemd_unit, name=name)
+        units.append(unit)
+    return units + SYSTEMD_NAMES_ALWAYS_PRESENT

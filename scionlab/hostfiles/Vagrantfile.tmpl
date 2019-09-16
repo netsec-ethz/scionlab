@@ -6,15 +6,45 @@ ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
 Vagrant.require_version ">= 1.8.1"
 
 Vagrant.configure(2) do |config|
-  $$setup_scion = <<-SCRIPT
-    # install ntpd so we keep this box time-synchronized:
-    sudo apt-get update >/dev/null && sudo apt-get install -y --no-remove ntp
+  $setup_scion = <<-'SCRIPT'
+    set -e
 
-    /vagrant/scion_install_script.sh -g /vagrant/gen/ -v /vagrant/client.conf -s /vagrant/scion.service \
-      -a ~/.bash_aliases -u /vagrant/scionupgrade.sh \
-      -t /vagrant/scionupgrade -c
+    echo 'install needed standard packages'
+    apt-get update >/dev/null
+    apt-get install -y apt-transport-https ntp openvpn
+
+    echo 'copy SCIONLab config file'
+    mkdir -p /etc/scion/gen
+    cp -r /vagrant/gen/scionlab-config.json /etc/scion/gen/
+
+    echo 'install SCIONLab'
+    echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" > /etc/apt/sources.list.d/scionlab.list
+    echo -e "`crontab -l`""\n`date -d '07:00 UTC' '+%M %H'` * * * apt-get update; apt-get install -y --only-upgrade scionlab" | crontab
+    apt-get update > /dev/null
+    apt-get install -y scionlab  # this also installs and runs scionlab-config
+
+    echo 'configure time sync'
+    sed -i -- 's/^\(\s*start-stop-daemon\s*--start\s*--quiet\s*--oknodo\s*--exec\s*\/usr\/sbin\/VBoxService\)$/\1 -- --disable-timesync/g' /etc/init.d/virtualbox-guest-utils || true
+    systemctl daemon-reload
+    systemctl restart virtualbox-guest-utils
+    systemctl enable ntp
+    # not needed: sed -i "s/^NTPD_OPTS='\(.*\)'/NTPD_OPTS=\'\1\ -g'/g" /etc/default/ntp
+    echo -e "tinker panic 0\n" >> /etc/ntp.conf
+    sed -i 's/\(pool .*\)$/\1 minpoll 1 maxpoll 6/g' /etc/ntp.conf
+
+    echo 'configure unattended upgrades (automatic security upgrades)'
+    echo 'Unattended-Upgrade::Allowed-Origins {
+"${distro_id}:${distro_codename}-security";
+"${distro_id}ESM:${distro_codename}";
+};
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "02:00";' > /etc/apt/apt.conf.d/51unattended-upgrades-security
+
+    # TODO(juagargi): install scion-apps
+    echo "SCIONLab VM ready"
   SCRIPT
-  config.vm.box = "scion/ubuntu-16.04-64-scion"
+
+  config.vm.box = "ubuntu/xenial64"
   # BR port forwarding not necessary for OpenVPN setup and depends on connection
   ${PortForwarding}
   config.vm.network "forwarded_port", guest: 31042, host: 31042, protocol: "udp"
@@ -26,5 +56,5 @@ Vagrant.configure(2) do |config|
     vb.name = "${vmname}"
   end
   config.vm.hostname = "${hostname}"
-  config.vm.provision "shell", privileged: false, inline: $$setup_scion
+  config.vm.provision "shell", privileged: true, inline: $setup_scion
 end

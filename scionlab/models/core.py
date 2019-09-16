@@ -36,17 +36,15 @@ from scionlab.util import as_ids
 from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.defines import (
-    MAX_PORT,
     MAX_INTERFACE_ID,
     DEFAULT_PUBLIC_PORT,
     DEFAULT_INTERNAL_PORT,
     DEFAULT_CONTROL_PORT,
-    DEFAULT_BS_PORT,
-    DEFAULT_PS_PORT,
-    DEFAULT_CS_PORT,
-    DEFAULT_ZK_PORT,
-    DEFAULT_BW_PORT,
-    DEFAULT_PP_PORT,
+    BS_PORT,
+    PS_PORT,
+    CS_PORT,
+    BW_PORT,
+    PP_PORT,
     DISPATCHER_PORT,
     DEFAULT_HOST_INTERNAL_IP,
     DEFAULT_LINK_MTU,
@@ -390,7 +388,7 @@ class AS(TimestampedModel):
             internal_ip=internal_ip or DEFAULT_HOST_INTERNAL_IP
         )
 
-        default_services = (Service.BS, Service.PS, Service.CS, Service.ZK)
+        default_services = (Service.BS, Service.PS, Service.CS)
         for service_type in default_services:
             Service.objects.create(host=host, type=service_type)
 
@@ -441,6 +439,8 @@ class AS(TimestampedModel):
 
 
 class HostManager(models.Manager):
+    use_in_migrations = True
+
     def create(self, uid=None, secret=None, **kwargs):
         uid = uid or uuid.uuid4().hex
         secret = secret or uuid.uuid4().hex
@@ -608,22 +608,6 @@ class Host(models.Model):
         """
         return self.config_version_deployed < self.config_version
 
-    def find_free_port(self, ip, min, max=MAX_PORT, preferred=None):
-        """
-        Get a free port for this IP address in the given range.
-
-        Note: if more than one port needs to be assigned, use the PortMap returned by get_port_map
-        instead.
-
-        :param ip: IP address or `None` for the unspecified address
-        :param int min: Start of acceptable port range
-        :param int max: Optional, end (included) of acceptable port range
-        :param int preferred: Optional, preferred port. Will be selected if free (range not checked)
-        :returns: Port
-        :raises: RuntimeError if no port could be found
-        """
-        return self.get_port_map().get_port(ip, min, max, preferred)
-
     def get_port_map(self):
         """
         Find a set of ports used.
@@ -642,9 +626,6 @@ class Host(models.Model):
             portmap.add(interface.get_public_ip(), interface.public_port)
             if interface.get_bind_ip():
                 portmap.add(interface.get_bind_ip(), interface.bind_port)
-
-        for port, in self.services.values_list('port'):
-            portmap.add(self.internal_ip, port)
 
         for port, in self.vpn_servers.values_list('server_port'):
             portmap.add(self.internal_ip, port)
@@ -1183,12 +1164,11 @@ class BorderRouter(models.Model):
 
 
 class ServiceManager(models.Manager):
-    def create(self, host, type, port=None):
+    def create(self, host, type):
         """
         Create a Service object.
         :param Host host: the host, defines the AS
-        :param str type: Service type (Service.BS, PS, CS, ZK, BW, or PP)
-        :param int port: optional, port, assigned automatically if not specified
+        :param str type: Service type (Service.BS, PS, CS, BW, or PP)
         :returns: Service
         """
         host.AS.hosts.bump_config()
@@ -1196,7 +1176,6 @@ class ServiceManager(models.Manager):
             AS=host.AS,
             host=host,
             type=type,
-            port=port or Service._find_service_port(host, type)
         )
 
 
@@ -1208,24 +1187,21 @@ class Service(models.Model):
     BS = 'BS'
     PS = 'PS'
     CS = 'CS'
-    ZK = 'ZK'
     BW = 'BW'
     PP = 'PP'
     SERVICE_TYPES = (
         (BS, 'Beacon Server'),
         (PS, 'Path Server'),
         (CS, 'Certificate Server'),
-        (ZK, 'Zookeeper'),
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
     )
-    DEFAULT_PORTS = {
-        BS: DEFAULT_BS_PORT,
-        PS: DEFAULT_PS_PORT,
-        CS: DEFAULT_CS_PORT,
-        ZK: DEFAULT_ZK_PORT,
-        BW: DEFAULT_BW_PORT,
-        PP: DEFAULT_PP_PORT,
+    SERVICE_PORTS = {
+        BS: BS_PORT,
+        PS: PS_PORT,
+        CS: CS_PORT,
+        BW: BW_PORT,
+        PP: PP_PORT,
     }
 
     AS = models.ForeignKey(
@@ -1238,13 +1214,18 @@ class Service(models.Model):
         related_name='services',
         on_delete=models.CASCADE
     )
-    port = models.PositiveIntegerField(blank=True)
+
     type = models.CharField(
         choices=SERVICE_TYPES,
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
 
     objects = ServiceManager()
+
+    def port(self):
+        if self.type not in self.SERVICE_PORTS:
+            raise KeyError('Unknown type %s' % self.type)
+        return self.SERVICE_PORTS[self.type]
 
     def _pre_delete(self):
         """
@@ -1254,42 +1235,22 @@ class Service(models.Model):
         """
         Service._bump_affected(self.host, self.type)
 
-    def update(self, host=_placeholder, port=_placeholder):
+    def update(self, host=_placeholder):
         """
         Update the given fields of the
         :param Host host: optional, the host
-        :param str port: optional, port. A free port is selected if `None` is passed and the host is
-                         changed.
         """
         prev_host = self.host
-        prev_info = [self.host, self.port]
 
         if host is not _placeholder:
             if host != self.host:
                 self._bump_affected(self.host, self.type)
             self.host = host
 
-        if port is not _placeholder:
-            if port is not None:
-                self.port = port
-            elif self.host != prev_host:
-                self.port = Service._find_service_port(self.host, self.type)
-
         self.save()
 
-        curr_info = [self.host, self.port]
-        if curr_info != prev_info:
+        if self.host != prev_host:
             self._bump_affected(self.host, self.type)
-
-    @staticmethod
-    def _find_service_port(host, type):
-        """
-        Helper to assign the public port.
-        :param Host host: host
-        :param str type: Service type
-        """
-        default_port = Service.DEFAULT_PORTS[type]
-        return host.find_free_port(host.internal_ip, min=default_port)
 
     @staticmethod
     def _bump_affected(host, type, prev_host=None):
@@ -1300,7 +1261,7 @@ class Service(models.Model):
         :param str type: Service type
         :param Host prev_host:
         """
-        if type in [Service.BS, Service.PS, Service.CS, Service.ZK]:
+        if type in [Service.BS, Service.PS, Service.CS]:
             host.AS.hosts.bump_config()
         else:
             host.bump_config()

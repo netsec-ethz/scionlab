@@ -44,15 +44,39 @@ def generate_user_as_config_tar(user_as, fileobj):
     """
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
-        _add_config_info(host, tar)
-        scion_config.create_gen(host, TarWriter(tar))
-        _add_vpn_config(host, tar)
-
         if user_as.installation_type == UserAS.VM:
-            tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
-            _add_vagrantfiles(host, tar)
+            _add_user_as_type_vm_files(tar, host)
         else:
-            tar.add(_hostfiles_path("README_dedicated.md"), arcname="README.md")
+            _add_user_as_type_dedicated_files(tar, host)
+
+
+def _add_user_as_type_vm_files(tar, host):
+    """
+    The configuration tar for a VM user AS contains:
+    - Vagrantfile
+    - run.sh
+    - README
+    - scionlab-services.txt file listing the services running in the host
+    - config_info file (scionlab-config.json) inside the gen directory
+    """
+    _add_config_info(host, tar, with_version=False)
+    tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
+    _add_vagrantfiles(host, tar)
+
+
+def _add_user_as_type_dedicated_files(tar, host):
+    """
+    The configuration tar for a DEDICATED user AS contains:
+    - README
+    - scionlab-services.txt file listing the services running in the host
+    - config_info file (scionlab-config.json) inside the gen directory
+    - full gen directory
+    - VPN file client.conf (if using VPN)
+    """
+    _add_config_info(host, tar, with_version=True)
+    scion_config.create_gen(host, TarWriter(tar))
+    _add_vpn_config(host, tar)
+    tar.add(_hostfiles_path("README_dedicated.md"), arcname="README.md")
 
 
 def generate_host_config_tar(host, fileobj):
@@ -63,7 +87,7 @@ def generate_host_config_tar(host, fileobj):
     :param fileobj: writable, file-like object for output
     """
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
-        _add_config_info(host, tar)
+        _add_config_info(host, tar, with_version=True)
         scion_config.create_gen(host, TarWriter(tar))
         _add_vpn_config(host, tar)
 
@@ -103,12 +127,10 @@ def _add_vagrantfiles(host, tar):
     """
     tar_add_textfile(tar, "Vagrantfile", _expand_vagrantfile_template(host))
 
-    # Add services and scripts:
+    # Add extra files:
     # Note: in the future, some of these may be included in the "box".
-    service_files = ["scion.service", "scionupgrade.service",
-                     "scionupgrade.timer"]
-    script_files = ["run.sh", "scion_install_script.sh", "scionupgrade.sh"]
-    for f in service_files + script_files:
+    script_files = ["run.sh"]
+    for f in script_files:
         tar.add(_hostfiles_path(f), arcname=f)
 
 
@@ -123,18 +145,20 @@ def _expand_vagrantfile_template(host):
 
     with open(_hostfiles_path("Vagrantfile.tmpl")) as f:
         vagrant_tmpl = f.read()
-    return string.Template(vagrant_tmpl).substitute(
+
+    return string.Template(vagrant_tmpl).safe_substitute(
         PortForwarding=forwarding_string,
         hostname="scionlab-" + host.AS.as_id.replace(":", "-"),
         vmname="SCIONLabVM-" + host.AS.as_id,
     )
 
 
-def _add_config_info(host, tar):
-    tar_add_textfile(tar, "gen/scionlab-config.json", _generate_config_info_json(host))
+def _add_config_info(host, tar, with_version):
+    tar_add_textfile(tar, "gen/scionlab-config.json",
+                     _generate_config_info_json(host, with_version))
 
 
-def _generate_config_info_json(host):
+def _generate_config_info_json(host, with_version):
     """
     Return a JSON-formatted string; a dict containing the authentication parameters for the host
     and the current configuration version number.
@@ -144,9 +168,10 @@ def _generate_config_info_json(host):
     config_info = {
         'host_id': host.uid,
         'host_secret': host.secret,
-        'version': host.config_version,
         'url': settings.SCIONLAB_SITE
     }
+    if with_version:
+        config_info['version'] = host.config_version
     return json.dumps(config_info)
 
 
