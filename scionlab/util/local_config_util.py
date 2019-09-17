@@ -15,10 +15,11 @@
 # Stdlib
 import configparser
 import os
-import pathlib
+from functools import partial
 
 # SCION
 from scionlab.models.core import Service
+
 from scionlab.defines import (
     PROPAGATE_TIME_CORE,
     PROPAGATE_TIME_NONCORE,
@@ -33,6 +34,7 @@ from scionlab.defines import (
     SCION_LOG_DIR,
     SCION_VAR_DIR,
 )
+
 from lib.crypto.asymcrypto import (
     get_core_sig_key_file_path,
     get_enc_key_file_path,
@@ -48,14 +50,11 @@ from lib.crypto.util import (
 )
 from lib.defines import (
     AS_CONF_FILE,
-    PROJECT_ROOT,
     SCIOND_API_SOCKDIR,
-    PATH_POLICY_FILE,
     GEN_PATH,
 )
 
 
-DEFAULT_PATH_POLICY_FILE = "topology/PathPolicy.yml"
 DEFAULT_ENV = ['TZ=UTC']
 
 KEY_BR = 'BorderRouters'
@@ -97,7 +96,7 @@ def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
     else:
         assert stype == 'BS'
         program = 'beacon_srv'
-        gen_toml = _build_bs_conf
+        gen_toml = partial(_build_bs_conf, as_=as_)
     full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
     cmd = '{program} -config {dir}/{srv}.toml'.format(
         program=os.path.join(SCION_BINARY_DIR, program),
@@ -110,7 +109,7 @@ def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
                        gen_toml(name, full_elem_dir, prometheus_port))
 
     _write_topo(archive, elem_dir, tp)
-    _write_as_conf_and_path_policy(archive, elem_dir, as_)
+    _write_as_conf(archive, elem_dir)
     _write_certs_trc(archive, elem_dir, as_)
     _write_keys(archive, elem_dir, as_)
 
@@ -159,7 +158,7 @@ def generate_sciond_config(archive, as_, tp, name):
                        _build_sciond_conf(name, full_elem_dir, as_.isd_as_str(), PROM_PORT_SD))
 
     _write_topo(archive, elem_dir, tp)
-    _write_as_conf_and_path_policy(archive, elem_dir, as_)
+    _write_as_conf(archive, elem_dir)
     _write_certs_trc(archive, elem_dir, as_)
 
 
@@ -261,19 +260,15 @@ def _write_topo(archive, elem_dir, tp):
     archive.write_json((elem_dir, 'topology.json'), tp)
 
 
-def _write_as_conf_and_path_policy(archive, elem_dir, as_):
-    propagate_time = PROPAGATE_TIME_CORE if as_.is_core else PROPAGATE_TIME_NONCORE
+def _write_as_conf(archive, elem_dir):
     conf = {
         'RegisterTime': 5,
-        'PropagateTime': propagate_time,
+        'PropagateTime': 5,
         'CertChainVersion': 0,
         'RegisterPath': True,
         'PathSegmentTTL': 21600,
     }
     archive.write_yaml((elem_dir, AS_CONF_FILE), conf)
-
-    default_path_policy = pathlib.Path(PROJECT_ROOT, DEFAULT_PATH_POLICY_FILE).read_text()
-    archive.write_text((elem_dir, PATH_POLICY_FILE), default_path_policy)
 
 
 def _build_disp_conf():
@@ -294,7 +289,8 @@ def _build_br_conf(instance_name, instance_path, prometheus_port):
     return conf
 
 
-def _build_bs_conf(instance_name, instance_path, prometheus_port):
+def _build_bs_conf(instance_name, instance_path, prometheus_port, as_):
+    interval = '{}s'.format(PROPAGATE_TIME_CORE if as_.is_core else PROPAGATE_TIME_NONCORE)
     conf = _build_quic_goservice_conf(instance_name, instance_path, prometheus_port, BS_QUIC_PORT)
     conf.update({
         'beaconDB': {
@@ -302,6 +298,8 @@ def _build_bs_conf(instance_name, instance_path, prometheus_port):
             'Connection': '%s.beacon.db' % os.path.join(SCION_VAR_DIR, instance_name),
         },
         'BS': {
+            'OriginationInterval': interval,
+            'PropagationInterval': interval,
             'RevTTL': '20s',
             'RevOverlap': '5s'
         },
