@@ -290,7 +290,7 @@ def _build_br_conf(instance_name, instance_path, prometheus_port):
 
 
 def _build_bs_conf(instance_name, instance_path, prometheus_port, as_):
-    interval = '%ss' % (PROPAGATE_TIME_CORE if as_.is_core else PROPAGATE_TIME_NONCORE)
+    interval = '{}s'.format(PROPAGATE_TIME_CORE if as_.is_core else PROPAGATE_TIME_NONCORE)
     conf = _build_quic_goservice_conf(instance_name, instance_path, prometheus_port, BS_QUIC_PORT)
     conf.update({
         'beaconDB': {
