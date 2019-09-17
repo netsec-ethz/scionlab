@@ -347,8 +347,7 @@ def _build_sciond_conf(instance_name, instance_path, host, prometheus_port):
             'Reliable': os.path.join(SCIOND_API_SOCKDIR, "default.sock"),
             'Unix': os.path.join(SCIOND_API_SOCKDIR, "default.unix"),
             'SocketFileMode': '0777',
-            # XXX(matzf): Should rather be the host addr?
-            'Public': '%s,[127.0.0.1]:0' % host.AS.isd_as_str(),
+            'Public': '{IA},[{ip}]:0'.format(IA=host.AS.isd_as_str(), ip=host.internal_ip),
             'PathDB': {
                 'Connection': '%s.path.db' % os.path.join(SCION_VAR_DIR, instance_name),
             },
