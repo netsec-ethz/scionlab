@@ -15,11 +15,14 @@
 # Stdlib
 import configparser
 import os
+from functools import partial
 
 # SCION
 from scionlab.models.core import Service
 
 from scionlab.defines import (
+    PROPAGATE_TIME_CORE,
+    PROPAGATE_TIME_NONCORE,
     PROM_PORT_DI,
     PROM_PORT_SD,
     BS_QUIC_PORT,
@@ -93,7 +96,7 @@ def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
     else:
         assert stype == 'BS'
         program = 'beacon_srv'
-        gen_toml = _build_bs_conf
+        gen_toml = partial(_build_bs_conf, as_=as_)
     full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
     cmd = '{program} -config {dir}/{srv}.toml'.format(
         program=os.path.join(SCION_BINARY_DIR, program),
@@ -286,7 +289,8 @@ def _build_br_conf(instance_name, instance_path, prometheus_port):
     return conf
 
 
-def _build_bs_conf(instance_name, instance_path, prometheus_port):
+def _build_bs_conf(instance_name, instance_path, prometheus_port, as_):
+    interval = '%ss' % (PROPAGATE_TIME_CORE if as_.is_core else PROPAGATE_TIME_NONCORE)
     conf = _build_quic_goservice_conf(instance_name, instance_path, prometheus_port, BS_QUIC_PORT)
     conf.update({
         'beaconDB': {
@@ -294,6 +298,8 @@ def _build_bs_conf(instance_name, instance_path, prometheus_port):
             'Connection': '%s.beacon.db' % os.path.join(SCION_VAR_DIR, instance_name),
         },
         'BS': {
+            'OriginationInterval': interval,
+            'PropagationInterval': interval,
             'RevTTL': '20s',
             'RevOverlap': '5s'
         },
