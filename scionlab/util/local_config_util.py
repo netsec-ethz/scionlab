@@ -15,7 +15,6 @@
 # Stdlib
 import configparser
 import os
-import pathlib
 
 # SCION
 from scionlab.models.core import Service
@@ -48,14 +47,11 @@ from lib.crypto.util import (
 )
 from lib.defines import (
     AS_CONF_FILE,
-    PROJECT_ROOT,
     SCIOND_API_SOCKDIR,
-    PATH_POLICY_FILE,
     GEN_PATH,
 )
 
 
-DEFAULT_PATH_POLICY_FILE = "topology/PathPolicy.yml"
 DEFAULT_ENV = ['TZ=UTC']
 
 KEY_BR = 'BorderRouters'
@@ -110,7 +106,7 @@ def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
                        gen_toml(name, full_elem_dir, prometheus_port))
 
     _write_topo(archive, elem_dir, tp)
-    _write_as_conf_and_path_policy(archive, elem_dir)
+    _write_as_conf(archive, elem_dir)
     _write_certs_trc(archive, elem_dir, as_)
     _write_keys(archive, elem_dir, as_)
 
@@ -159,7 +155,7 @@ def generate_sciond_config(archive, as_, tp, name):
                        _build_sciond_conf(name, full_elem_dir, as_.isd_as_str(), PROM_PORT_SD))
 
     _write_topo(archive, elem_dir, tp)
-    _write_as_conf_and_path_policy(archive, elem_dir)
+    _write_as_conf(archive, elem_dir)
     _write_certs_trc(archive, elem_dir, as_)
 
 
@@ -261,7 +257,7 @@ def _write_topo(archive, elem_dir, tp):
     archive.write_json((elem_dir, 'topology.json'), tp)
 
 
-def _write_as_conf_and_path_policy(archive, elem_dir):
+def _write_as_conf(archive, elem_dir):
     conf = {
         'RegisterTime': 5,
         'PropagateTime': 5,
@@ -270,9 +266,6 @@ def _write_as_conf_and_path_policy(archive, elem_dir):
         'PathSegmentTTL': 21600,
     }
     archive.write_yaml((elem_dir, AS_CONF_FILE), conf)
-
-    default_path_policy = pathlib.Path(PROJECT_ROOT, DEFAULT_PATH_POLICY_FILE).read_text()
-    archive.write_text((elem_dir, PATH_POLICY_FILE), default_path_policy)
 
 
 def _build_disp_conf():
