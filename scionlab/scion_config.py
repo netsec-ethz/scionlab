@@ -56,29 +56,28 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
     """
 
     as_ = host.AS
-
     processes = []
 
     for router in host.border_routers.iterator():
         instance_name = router_names[router]
-        generator.generate_instance_dir(archive, as_, 'BR', topo_dict, instance_name,
+        generator.generate_instance_dir(archive, host, 'BR', topo_dict, instance_name,
                                         router.internal_port + PROM_PORT_OFFSET)
         processes.append(instance_name)
 
     for service in host.services.all():
         instance_name = service_names.get(service)
         if service.type in SERVICE_TYPES_CONTROL_PLANE:
-            generator.generate_instance_dir(archive, as_, service.type, topo_dict,
+            generator.generate_instance_dir(archive, host, service.type, topo_dict,
                                             instance_name, service.port() + PROM_PORT_OFFSET)
         elif service.type in SERVICE_TYPES_SERVER_APPS:
-            generator.generate_server_app_dir(archive, as_, service.type,
-                                              instance_name, host.internal_ip, service.port())
+            generator.generate_server_app_dir(archive, host, service.type,
+                                              instance_name, service.port())
         else:
             continue
         processes.append(instance_name)
 
     sciond_name = "sd%s" % as_.isd_as_path_str()
-    generator.generate_sciond_config(archive, as_, topo_dict, sciond_name)
+    generator.generate_sciond_config(archive, host, topo_dict, sciond_name)
     processes.append(sciond_name)
 
     generator.write_supervisord_group_config(archive, as_, processes)
