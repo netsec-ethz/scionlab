@@ -21,7 +21,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.dispatch import receiver
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import F, Q, Count
 from django.db.models.signals import pre_delete, post_delete
 
 import lib.crypto.asymcrypto
@@ -1097,6 +1097,13 @@ class BorderRouterManager(models.Manager):
         :returns: BorderRouter
         """
         return host.border_routers.first() or self.create(host=host)
+
+    def iterator_non_empty(self):
+        """
+        Returns the iterator for all border routers that have at least one interface
+        :returns iterator
+        """
+        return self.annotate(num_ifaces=Count('interfaces')).filter(num_ifaces__gt=0).iterator()
 
 
 class BorderRouter(models.Model):

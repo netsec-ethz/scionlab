@@ -179,6 +179,18 @@ class LinkModificationTests(TestCase):
             list(as_a.hosts.all() | as_b.hosts.all() | as_c.hosts.all())
         )
 
+    def test_empty_border_router(self):
+        as_a = self._as_a()
+        as_b = self._as_b()
+        self.assertEqual(as_b.border_routers.count(), 0)
+        self.assertEqual(len([0 for _ in as_b.border_routers.iterator_non_empty()]), 0)
+        link = Link.objects.create_from_ases(Link.PROVIDER, as_a, as_b)
+        self.assertEqual(as_b.border_routers.count(), 1)
+        self.assertEqual(len([0 for _ in as_b.border_routers.iterator_non_empty()]), 1)
+        link.delete()
+        self.assertEqual(as_b.border_routers.count(), 1)
+        self.assertEqual(len([0 for _ in as_b.border_routers.iterator_non_empty()]), 0)
+
     def _sanity_check_link(self, link):
         self.assertIsNotNone(link)
         self.assertNotEqual(link.interfaceA, link.interfaceB)
