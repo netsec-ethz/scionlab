@@ -58,7 +58,7 @@ def _create_gen(host, archive, topo_dict, router_names, service_names):
     as_ = host.AS
     processes = []
 
-    for router in host.border_routers.iterator():
+    for router in host.border_routers.iterator_non_empty():
         instance_name = router_names[router]
         generator.generate_instance_dir(archive, host, 'BR', topo_dict, instance_name,
                                         router.internal_port + PROM_PORT_OFFSET)
