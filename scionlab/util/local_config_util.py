@@ -28,7 +28,6 @@ from scionlab.defines import (
     PS_QUIC_PORT,
     CS_QUIC_PORT,
     SD_QUIC_PORT,
-    SCION_BINARY_DIR,
     SCION_CONFIG_DIR,
     SCION_LOG_DIR,
     SCION_VAR_DIR,
@@ -96,14 +95,14 @@ def generate_instance_dir(archive, host, stype, tp, name, prometheus_port):
         assert stype == 'BS'
         program = 'beacon_srv'
         gen_toml = _build_bs_conf
-    full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
     cmd = '{program} -config {dir}/{srv}.toml'.format(
-        program=os.path.join(SCION_BINARY_DIR, program),
-        dir=full_elem_dir,
+        program=os.path.join('bin', program),
+        dir=elem_dir,
         srv=stype.lower())
 
     archive.write_config((elem_dir, 'supervisord.conf'),
                          _make_supervisord_conf(name, cmd, env))
+    full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
     archive.write_toml((elem_dir, stype.lower()+'.toml'),
                        gen_toml(name, full_elem_dir, host, prometheus_port))
 
@@ -127,12 +126,12 @@ def generate_server_app_dir(archive, host, app_type, name, app_port):
     elem_dir = _elem_dir(host.AS, name)
     if app_type == Service.BW:
         cmd = 'bash -c "sleep 10 && exec {program} -s {ia},[{ip}]:{port}"'.format(
-            program=os.path.join(SCION_BINARY_DIR, 'bwtestserver'),
+            program=os.path.join('bin', 'bwtestserver'),
             ia=ia, ip=host_ip, port=app_port)
     elif app_type == Service.PP:
         cmd = ('bash -c "sleep 10 && exec {program} -mode server -local '
                '{ia},[{ip}]:{port}"').format(
-            program=os.path.join(SCION_BINARY_DIR, 'pingpong'),
+            program=os.path.join('bin', 'pingpong'),
             ia=ia, ip=host_ip, port=app_port)
     archive.write_config((elem_dir, 'supervisord.conf'),
                          _make_supervisord_conf(name, cmd, DEFAULT_ENV, priority=200, startsecs=15))
@@ -145,14 +144,14 @@ def generate_sciond_config(archive, host, tp, name):
     :param dict tp: the topology as a dict of dicts.
     """
     elem_dir = _elem_dir(host.AS, "endhost")
-    full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
     superv = _make_supervisord_conf(name,
                                     '{program} -config "{config}"'.format(
-                                        program=os.path.join(SCION_BINARY_DIR, 'sciond'),
-                                        config=os.path.join(full_elem_dir, 'sd.toml')),
+                                        program=os.path.join('bin', 'sciond'),
+                                        config=os.path.join(elem_dir, 'sd.toml')),
                                     DEFAULT_ENV)
     archive.write_config((elem_dir, 'supervisord.conf'), superv)
 
+    full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
     archive.write_toml((elem_dir, 'sd.toml'),
                        _build_sciond_conf(name, full_elem_dir, host, PROM_PORT_SD))
 
@@ -173,8 +172,8 @@ def write_dispatcher_config(archive):
     them into the dispatcher folder.
     """
     cmd = '"{program}" "-config" "{config}"'.format(
-        program=os.path.join(SCION_BINARY_DIR, 'godispatcher'),
-        config=os.path.join(SCION_CONFIG_DIR, GEN_PATH, 'dispatcher', 'disp.toml'))
+        program=os.path.join('bin', 'godispatcher'),
+        config=os.path.join(GEN_PATH, 'dispatcher', 'disp.toml'))
     superv = _make_supervisord_conf('dispatcher',
                                     cmd,
                                     DEFAULT_ENV,
@@ -202,8 +201,8 @@ def _make_supervisord_conf(name, cmd, envs, priority=100, startsecs=5):
         'autostart': 'false',
         'autorestart': 'true',
         'environment': ','.join(envs),
-        'stdout_logfile': '%s.OUT' % os.path.join(SCION_LOG_DIR, name),
-        'stderr_logfile': '%s.ERR' % os.path.join(SCION_LOG_DIR, name),
+        'stdout_logfile': '%s.OUT' % os.path.join('logs', name),
+        'stderr_logfile': '%s.ERR' % os.path.join('logs', name),
         'startretries': '0',
         'startsecs': str(startsecs),
         'priority': str(priority),

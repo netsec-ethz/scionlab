@@ -47,7 +47,6 @@ DEFAULT_LINK_BANDWIDTH = 1000
 PROPAGATE_TIME_CORE = 60  # lower beaconing frequency in cores to save resources
 PROPAGATE_TIME_NONCORE = 5  # higher frequency in non-cores ASes to have quicker startup
 
-SCION_BINARY_DIR = "/usr/bin"
 SCION_CONFIG_DIR = "/etc/scion"
 SCION_LOG_DIR = "/var/log/scion"
 SCION_VAR_DIR = "/var/lib/scion"
