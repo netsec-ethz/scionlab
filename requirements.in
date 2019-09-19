@@ -16,6 +16,7 @@ toml
 
 # SCION dependencies:
 # these are dependencies of the scion-python libraries that we use
+cython  # required to install pycapnp
 lz4
 pycapnp
 pygments  # accidental dependency, just for stack traces somewhere
