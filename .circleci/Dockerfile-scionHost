@@ -17,6 +17,19 @@ COPY ./setup/reloadASConfig.sh ${SC}/reloadASConfig.sh
 RUN sudo mkdir -p /var/log/scion/
 RUN mkdir ${SC}/gen-cache
 
+# packages install binaries in /usr/bin . Supervisord expects them in $SC/bin
+RUN mkdir -p ${SC}/bin
+RUN ln -s /usr/bin/godispatcher bin/godispatcher
+RUN ln -s /usr/bin/sciond bin/sciond
+RUN ln -s /usr/bin/border bin/border
+RUN ln -s /usr/bin/beacon_srv bin/beacon_srv
+RUN ln -s /usr/bin/path_srv bin/path_srv
+RUN ln -s /usr/bin/cert_srv bin/cert_srv
+
+# Configuration in /etc/scion/gen but supervisord uses $SC/gen to reference toml files
+RUN ln -s /etc/scion/gen ${SC}/gen
+RUN rm -rf ${SC}/logs
+RUN ln -s /var/log/scion ${SC}/logs
 
 # Add environment variables for execution
 ENV PYTHONPATH ${SC}/python
