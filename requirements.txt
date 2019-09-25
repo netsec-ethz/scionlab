@@ -76,6 +76,9 @@ django-crispy-forms==1.7.2 \
 django-extensions==2.1.6 \
     --hash=sha256:109004f80b6f45ad1f56addaa59debca91d94aa0dc1cb19678b9364b4fe9b6f4 \
     --hash=sha256:307766e5e6c1caffe76c5d99239d8115d14ae3f7cab2cd991fcffd763dad904b
+django-maintenance-mode==0.13.3 \
+    --hash=sha256:0afcfa6ff4a87348e40c44f58f8a8c4cd3e8eca40ddcdbeb620b68ca78ecbf9c \
+    --hash=sha256:473850f80e7762ae586f8347129e73e0d23b89a36b98a70e0c06f1778cacff7c
 django-recaptcha2==1.4.1 \
     --hash=sha256:9ea90db0cec502741be1066c09ec1b8e02a73162a319a042e78e67c4605087af \
     --hash=sha256:c0b43851b05c6bf6ebb5ecc890c13ccedacd9bb33d64b4291c74dd6fcbc89366

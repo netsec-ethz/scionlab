@@ -4,6 +4,7 @@ django-crispy-forms
 django-extensions
 django-recaptcha2
 django-registration
+django-maintenance-mode
 graphviz
 gunicorn
 huey
