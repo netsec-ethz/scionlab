@@ -13,15 +13,6 @@
 # limitations under the License.
 
 
-def grafana_url(request):
-    """
-    Inject the `settings.GRAFANA_URL` into the request context to make
-    it available for the navbar in the scionlab/base.html template
-    """
-    from django.conf import settings
-    return {'grafana_url': settings.GRAFANA_URL}
-
-
 def instance_indicator(request):
     """
     Inject a `instance_indicator` string to indicate dev/testing instances.
