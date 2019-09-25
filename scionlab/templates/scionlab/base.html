@@ -73,15 +73,7 @@
 
   <main class="container" role="main">
     <h3>{% block content_title %}{% endblock content_title %}</h3>
-    {% if not 'maintenance' in instance_indicator %}
-      {% block content %}base.html{% endblock content %}
-    {% else %}
-      <div class="alert alert-info">
-        <p>
-          SCIONLab is currently in maintenance mode. Please come back later.
-        </p>
-      </div>
-    {% endif %}
+    {% block content %}base.html{% endblock content %}
   </main>
 
   <footer class="footer">
