@@ -96,6 +96,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 # Note: do not change this file to enable maintenance mode. Just run
 #   python manage.py maitenance_mode <on|off>
 MAINTENANCE_MODE_IGNORE_ADMIN_SITE = True
+MAINTENANCE_MODE_STATE_FILE_PATH = os.path.join(BASE_DIR, 'run', 'maintenance_mode_state.txt')
 
 # ##### DEFAULT SETTINGS CONFIGURATION ####################
 MAX_ASES_ADMIN = 50
