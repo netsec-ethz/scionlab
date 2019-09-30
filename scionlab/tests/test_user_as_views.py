@@ -71,7 +71,8 @@ class UserASFormTests(TestCase):
     valid_form_params = [
         param(attachment_point="1", use_vpn=True),
         param(attachment_point="1", use_vpn=True, installation_type='VM'),
-        param(attachment_point="1", use_vpn=True, installation_type='DEDICATED'),
+        param(attachment_point="1", use_vpn=True, installation_type='PKG'),
+        param(attachment_point="1", use_vpn=True, installation_type='SRC'),
         param(attachment_point="1", use_vpn=True, label="This is a label"),
         param(attachment_point="1", use_vpn=True, public_port=54321),
         param(attachment_point="1", public_ip=_test_ip),

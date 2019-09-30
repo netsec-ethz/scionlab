@@ -123,7 +123,7 @@ def _create_user_as(attachment_point, label="Some label"):
     return UserAS.objects.create(
         owner=get_testuser(),
         attachment_point=attachment_point,
-        installation_type=UserAS.DEDICATED,
+        installation_type=UserAS.PKG,
         label=label,
         use_vpn=False,
         public_ip=str(ipaddress.ip_address(test_public_ip)+2),
