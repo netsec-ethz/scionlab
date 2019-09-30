@@ -19,6 +19,7 @@
 import io
 import json
 import pathlib
+import shutil
 import tarfile
 import time
 import toml
@@ -74,6 +75,20 @@ class BaseArchiveWriter:
         config.write(f)
         self.write_text(path, f.getvalue())
 
+    def add(self, path, src):
+        """
+        Add file `src` to the archive at given path.
+        :param path: name for the file in the archive
+        :param src: file to be read from disk
+        """
+        raise NotImplementedError()
+
+    def add_dir(self, path):
+        """
+        Add a directory at `path`.
+        """
+        raise NotImplementedError()
+
     def _normalize_path(self, path):
         if isinstance(path, tuple):
             return str(pathlib.PurePosixPath(*path))
@@ -95,6 +110,15 @@ class FileArchiveWriter(BaseArchiveWriter):
         filepath.parent.mkdir(parents=True, exist_ok=True)
         filepath.write_text(content)
 
+    def add(self, path, src):
+        filepath = pathlib.Path(self.root, self._normalize_path(path))
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, str(filepath))
+
+    def add_dir(self, path):
+        filepath = pathlib.Path(self.root, self._normalize_path(path))
+        filepath.mkdir(parents=True, exist_ok=True)
+
 
 class TarWriter(BaseArchiveWriter):
     """
@@ -111,6 +135,14 @@ class TarWriter(BaseArchiveWriter):
     def write_text(self, path, content):
         path = self._normalize_path(path)
         tar_add_textfile(self.tar, path, content)
+
+    def add(self, path, src):
+        path = self._normalize_path(path)
+        self.tar.add(src, arcname=path)
+
+    def add_dir(self, path):
+        path = self._normalize_path(path)
+        tar_add_dir(self.tar, path)
 
 
 def tar_add_textfile(tar, path, content):

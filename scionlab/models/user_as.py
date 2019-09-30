@@ -151,10 +151,12 @@ class UserASManager(models.Manager):
 
 class UserAS(AS):
     VM = 'VM'
-    DEDICATED = 'DEDICATED'
+    PKG = 'PKG'
+    SRC = 'SRC'
     INSTALLATION_TYPES = (
-        (VM, 'Install inside a virtual machine'),
-        (DEDICATED, 'Install on a dedicated system (for experts)')
+        (VM, 'Run SCION in a Vagrant virtual machine'),
+        (PKG, 'SCION installation from *.deb packages'),
+        (SRC, 'SCION installation from sources (for developers)'),
     )
 
     attachment_point = models.ForeignKey(

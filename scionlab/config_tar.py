@@ -16,17 +16,19 @@ import json
 import os
 import string
 import tarfile
+import pathlib
 from contextlib import closing
 
 from django.conf import settings
 from scionlab import scion_config
+from scionlab.defines import GEN_PATH
 from scionlab.models.user_as import UserAS
 from scionlab.openvpn_config import (
     generate_vpn_client_config,
     generate_vpn_server_config,
     ccd_config,
 )
-from scionlab.util.archive import TarWriter, tar_add_textfile, tar_add_dir
+from scionlab.util.archive import TarWriter
 
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
@@ -44,13 +46,17 @@ def generate_user_as_config_tar(user_as, fileobj):
     """
     host = user_as.hosts.get()
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
+        archive = TarWriter(tar)
         if user_as.installation_type == UserAS.VM:
-            _add_user_as_type_vm_files(tar, host)
+            _add_files_user_as_vm(archive, host)
+        elif user_as.installation_type == UserAS.PKG:
+            _add_files_user_as_dedicated(archive, host, scion_config.ProcessControl.SYSTEMD)
         else:
-            _add_user_as_type_dedicated_files(tar, host)
+            assert user_as.installation_type == UserAS.SRC
+            _add_files_user_as_dedicated(archive, host, scion_config.ProcessControl.SUPERVISORD)
 
 
-def _add_user_as_type_vm_files(tar, host):
+def _add_files_user_as_vm(archive, host):
     """
     The configuration tar for a VM user AS contains:
     - Vagrantfile
@@ -59,24 +65,26 @@ def _add_user_as_type_vm_files(tar, host):
     - scionlab-services.txt file listing the services running in the host
     - config_info file (scionlab-config.json) inside the gen directory
     """
-    _add_config_info(host, tar, with_version=False)
-    tar.add(_hostfiles_path("README_vm.md"), arcname="README.md")
-    _add_vagrantfiles(host, tar)
+    _add_config_info(host, archive, with_version=False)
+    _add_vagrantfiles(host, archive)
+    archive.add("README.md", _hostfiles_path("README_vm.md"))
 
 
-def _add_user_as_type_dedicated_files(tar, host):
+def _add_files_user_as_dedicated(archive, host, process_control):
     """
-    The configuration tar for a DEDICATED user AS contains:
+    The configuration tar for a SRC or PKG user AS contains:
     - README
     - scionlab-services.txt file listing the services running in the host
     - config_info file (scionlab-config.json) inside the gen directory
-    - full gen directory
+    - full gen directory:
     - VPN file client.conf (if using VPN)
     """
-    _add_config_info(host, tar, with_version=True)
-    scion_config.create_gen(host, TarWriter(tar))
-    _add_vpn_config(host, tar)
-    tar.add(_hostfiles_path("README_dedicated.md"), arcname="README.md")
+
+    _add_config_info(host, archive, with_version=True)
+    _add_ia_file(host, archive)
+    scion_config.create_gen(host, archive, process_control)
+    _add_vpn_config(host, archive)
+    archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
 
 def generate_host_config_tar(host, fileobj):
@@ -87,9 +95,11 @@ def generate_host_config_tar(host, fileobj):
     :param fileobj: writable, file-like object for output
     """
     with closing(tarfile.open(mode='w:gz', fileobj=fileobj)) as tar:
-        _add_config_info(host, tar, with_version=True)
-        scion_config.create_gen(host, TarWriter(tar))
-        _add_vpn_config(host, tar)
+        archive = TarWriter(tar)
+        _add_config_info(host, archive, with_version=True)
+        _add_ia_file(host, archive)
+        _add_vpn_config(host, archive)
+        scion_config.create_gen(host, archive, scion_config.ProcessControl.SYSTEMD)
 
 
 def is_empty_config(host):
@@ -102,36 +112,31 @@ def is_empty_config(host):
             and not host.vpn_servers.exists())
 
 
-def _add_vpn_config(host, tar):
+def _add_vpn_config(host, archive):
     """
     Generate the VPN config files and add them to the tar.
     """
     vpn_clients = list(host.vpn_clients.filter(active=True))
     for vpn_client in vpn_clients:
         client_config = generate_vpn_client_config(vpn_client)
-        tar_add_textfile(tar, "client.conf", client_config)
+        archive.write_text("client.conf", client_config)
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
-        tar_add_textfile(tar, "server.conf", generate_vpn_server_config(vpn_server))
-        tar_add_dir(tar, 'ccd')
+        archive.write_text("server.conf", generate_vpn_server_config(vpn_server))
+        archive.add_dir("ccd")
         for vpn_client in vpn_server.clients.iterator():
             common_name, config_string = ccd_config(vpn_client)
-            tar_add_textfile(tar, 'ccd/' + common_name, config_string)
+            archive.write_text("ccd/" + common_name, config_string)
 
 
-def _add_vagrantfiles(host, tar):
+def _add_vagrantfiles(host, archive):
     """
     Add the Vagrantfiles and additional required files to the tar.
     Expands the 'Vagrantfile.tmpl'-template.
     """
-    tar_add_textfile(tar, "Vagrantfile", _expand_vagrantfile_template(host))
-
-    # Add extra files:
-    # Note: in the future, some of these may be included in the "box".
-    script_files = ["run.sh"]
-    for f in script_files:
-        tar.add(_hostfiles_path(f), arcname=f)
+    archive.write_text("Vagrantfile", _expand_vagrantfile_template(host))
+    archive.add("run.sh", _hostfiles_path("run.sh"))
 
 
 def _expand_vagrantfile_template(host):
@@ -143,8 +148,7 @@ def _expand_vagrantfile_template(host):
     else:
         forwarding_string = ''
 
-    with open(_hostfiles_path("Vagrantfile.tmpl")) as f:
-        vagrant_tmpl = f.read()
+    vagrant_tmpl = pathlib.Path(_hostfiles_path("Vagrantfile.tmpl")).read_text()
 
     return string.Template(vagrant_tmpl).safe_substitute(
         PortForwarding=forwarding_string,
@@ -153,9 +157,9 @@ def _expand_vagrantfile_template(host):
     )
 
 
-def _add_config_info(host, tar, with_version):
-    tar_add_textfile(tar, "gen/scionlab-config.json",
-                     _generate_config_info_json(host, with_version))
+def _add_config_info(host, archive, with_version):
+    archive.write_text((GEN_PATH, 'scionlab-config.json'),
+                       _generate_config_info_json(host, with_version))
 
 
 def _generate_config_info_json(host, with_version):
@@ -173,6 +177,11 @@ def _generate_config_info_json(host, with_version):
     if with_version:
         config_info['version'] = host.config_version
     return json.dumps(config_info)
+
+
+def _add_ia_file(host, archive):
+    archive.write_text((GEN_PATH, 'ia'),
+                       host.AS.isd_as_path_str())
 
 
 def _hostfiles_path(filename):

@@ -87,7 +87,7 @@ def create_and_check_useras(testcase,
                             public_ip=None,
                             bind_ip=None,
                             bind_port=None,
-                            installation_type=UserAS.DEDICATED,
+                            installation_type=UserAS.PKG,
                             label='label foo'):
     """
     Helper function for testing. Create a UserAS and verify that things look right.
@@ -293,7 +293,7 @@ def _get_random_useras_params(seed, force_public_ip=False, force_bind_ip=False, 
         kwargs.setdefault('bind_ip', None)
         kwargs.setdefault('bind_port', None)
 
-    kwargs.setdefault('installation_type', r.choice((UserAS.DEDICATED, UserAS.VM)))
+    kwargs.setdefault('installation_type', r.choice((UserAS.VM, UserAS.PKG, UserAS.SRC)))
     randstr = r.getrandbits(1024).to_bytes(1024//8, 'little').decode('utf8', 'ignore')
     kwargs.setdefault('label', randstr)
 

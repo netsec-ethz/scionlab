@@ -32,6 +32,7 @@ from scionlab.defines import (
     SCION_CONFIG_DIR,
     SCION_LOG_DIR,
     SCION_VAR_DIR,
+    GEN_PATH,
 )
 
 from lib.crypto.asymcrypto import (
@@ -50,7 +51,6 @@ from lib.crypto.util import (
 from lib.defines import (
     AS_CONF_FILE,
     SCIOND_API_SOCKDIR,
-    GEN_PATH,
 )
 
 
