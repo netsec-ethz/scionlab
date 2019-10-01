@@ -365,9 +365,6 @@ def _build_common_conf(logfile_name, prometheus_port):
                 'Path': '%s.log' % os.path.join(SCION_LOG_DIR, logfile_name),
                 'Level': 'debug',
             },
-            'console': {
-                'Level': 'crit',
-            },
         },
     }
     return conf
