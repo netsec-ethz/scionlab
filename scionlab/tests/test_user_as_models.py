@@ -269,11 +269,13 @@ def _get_random_useras_params(seed, force_public_ip=False, force_bind_ip=False, 
         return r.choice([True, False])
 
     use_vpn = kwargs.setdefault('use_vpn', _randbool())
+    # Make AP choice both with/without VPN to always consume same amount of random state
+    candidate_AP_vpn = r.choice(AttachmentPoint.objects.filter(vpn__isnull=False))
+    candidate_AP_novpn = r.choice(AttachmentPoint.objects.all())
     if use_vpn:
-        candidate_APs = AttachmentPoint.objects.filter(vpn__isnull=False)
+        kwargs.setdefault('attachment_point', candidate_AP_vpn)
     else:
-        candidate_APs = AttachmentPoint.objects.all()
-    kwargs.setdefault('attachment_point', r.choice(candidate_APs))
+        kwargs.setdefault('attachment_point', candidate_AP_novpn)
     kwargs.setdefault('owner', get_testuser())
 
     public_ip = '172.31.0.%i' % r.randint(10, 254)
@@ -345,7 +347,7 @@ class GenerateUserASIDTests(TestCase):
 
 
 class VPNServerTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def test_create_new(self):
         ap = AttachmentPoint.objects.first()
@@ -376,7 +378,7 @@ class VPNServerTests(TestCase):
 
 
 class CreateUserASTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
@@ -478,7 +480,7 @@ class CreateUserASTests(TestCase):
 
 
 class UpdateUserASTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
@@ -687,7 +689,7 @@ class UpdateUserASTests(TestCase):
 
 
 class ActivateUserASTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
         setup_vpn_attachment_point(AttachmentPoint.objects.first())
@@ -731,7 +733,7 @@ class ActivateUserASTests(TestCase):
 
 
 class DeleteUserASTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
         setup_vpn_attachment_point(AttachmentPoint.objects.first())

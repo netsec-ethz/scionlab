@@ -19,11 +19,9 @@ from parameterized import parameterized, param
 from django.urls import reverse
 from django_webtest import WebTest
 from scionlab.models.user_as import UserAS, AttachmentPoint
-from scionlab.models.vpn import VPN
 from scionlab.defines import DEFAULT_PUBLIC_PORT
 from scionlab.fixtures.testuser import get_testuser, TESTUSER_EMAIL
 from scionlab.fixtures import testtopo
-from scionlab.openvpn_config import write_vpn_ca_config
 from scionlab.tests import utils
 from scionlab.views.user_as_views import UserASForm
 
@@ -51,21 +49,8 @@ def _create_ases_for_testuser(num):
         )
 
 
-def _setup_vpn_attachment_point():
-    """ Setup VPN for the first AP """
-    if VPN.objects.count() == 0:
-        write_vpn_ca_config()
-    # TODO(matzf): move to a fixture once the VPN stuff is somewhat stable
-    ap = AttachmentPoint.objects.all()[0]
-    ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
-                                subnet='10.0.8.0/24',
-                                server_vpn_ip='10.0.8.1',
-                                server_port=4321)
-    ap.save()
-
-
 class UserASFormTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     # Valid form parameters
     valid_form_params = [
@@ -95,9 +80,6 @@ class UserASFormTests(TestCase):
         # the attachment point doesn't support IPv6
         param(attachment_point="1", use_vpn=False, public_ip=_test_ipv6),
     ]
-
-    def setUp(self):
-        _setup_vpn_attachment_point()
 
     def test_render_create(self):
         form = UserASForm(user=get_testuser())
@@ -189,7 +171,7 @@ class UserASFormTests(TestCase):
 
 
 class UserASPageTests(WebTest):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def test_create_as_button(self):
         """
@@ -241,7 +223,7 @@ class UserASPageTests(WebTest):
 
 
 class UserASCreateTests(WebTest):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     @staticmethod
     def get_ap_strs():
@@ -251,7 +233,6 @@ class UserASCreateTests(WebTest):
         return [as_str(as_def) for as_def in testtopo.ases if as_def.is_ap]
 
     def setUp(self):
-        _setup_vpn_attachment_point()
         self.attachment_points = self.get_ap_strs()
 
     def test_get_create_form(self):
@@ -325,7 +306,7 @@ class UserASCreateTests(WebTest):
 
 
 class UserASActivateTests(WebTest):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def test_cycle_active(self):
         def check_active(active, user_as, edit_page):
@@ -349,7 +330,7 @@ class UserASActivateTests(WebTest):
 
 
 class UserASGetConfigTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def test_get_config(self):
         _create_ases_for_testuser(get_testuser().max_num_ases())

@@ -1,5 +1,3 @@
-#!/bin/sh
-#
 # Copyright 2019 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+from scionlab.fixtures import testuser, testtopo
 
-rm run/dev.sqlite3 || true
 
-python manage.py migrate
+def create_testdata():
+    testuser.create_testuser_admin()
+    testuser.create_testuser()
 
-python manage.py loaddata scionlab/fixtures/testdata.yaml
-
-cp scionlab/fixtures/dev_root_ca_*.pem run/
+    testtopo.create_testtopo()

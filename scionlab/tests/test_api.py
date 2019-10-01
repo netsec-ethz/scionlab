@@ -20,7 +20,7 @@ from scionlab.tests.utils import basic_auth
 
 
 class GetHostConfigTests(TestCase):
-    fixtures = ['testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
         # Avoid duplication, get this info here:
@@ -85,7 +85,7 @@ class GetHostConfigTests(TestCase):
 
 
 class GetHostConfigExtraServicesTests(TestCase):
-    fixtures = ['testtopo-ases-links-extraserv']
+    fixtures = ['testdata']
 
     @staticmethod
     def _get_url(host):
@@ -111,7 +111,7 @@ class GetHostConfigExtraServicesTests(TestCase):
 
 
 class PostHostConfigVersionTests(TestCase):
-    fixtures = ['testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
         # Avoid duplication, get this info here:
