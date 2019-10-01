@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from scionlab.fixtures import testuser, testtopo
+from scionlab.fixtures import testtopo, testuser, testuseras
 
 
 def create_testdata():
-    testuser.create_testuser_admin()
-    testuser.create_testuser()
-
     testtopo.create_testtopo()
+    testuser.create_testusers()
+    testuseras.create_testuserases()

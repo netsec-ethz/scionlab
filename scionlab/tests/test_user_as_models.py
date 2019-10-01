@@ -42,18 +42,6 @@ test_bind_ip = '192.168.1.2'
 test_bind_port = 6666
 
 
-def setup_vpn_attachment_point(ap):
-    """ Setup a VPN server config for the given attachment point """
-    if VPN.objects.count() == 0:
-        write_vpn_ca_config()
-    # TODO(matzf): move to a fixture once the VPN stuff is somewhat stable
-    ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
-                                subnet='10.0.8.0/24',
-                                server_vpn_ip='10.0.8.1',
-                                server_port=4321)
-    ap.save()
-
-
 def get_provider_link(parent_as, child_as):
     """
     Get the PROVIDER link from `parent_as` to `child_as`.
@@ -352,13 +340,13 @@ class VPNServerTests(TestCase):
     def test_create_new(self):
         ap = AttachmentPoint.objects.first()
         prev_version = ap.AS.hosts.first().config_version
-        setup_vpn_attachment_point(ap)
+        self.setup_vpn_attachment_point(ap)
         self.assertGreater(ap.AS.hosts.first().config_version, prev_version)
         self.assertEqual(ap.vpn.server, ap.AS.hosts.first())
 
     def test_update_vpn(self):
         ap = AttachmentPoint.objects.first()
-        setup_vpn_attachment_point(ap)
+        self.setup_vpn_attachment_point(ap)
         server = ap.vpn.server
         prev_version = server.config_version
         ap.vpn.update(subnet='10.0.8.0/22')
@@ -366,7 +354,7 @@ class VPNServerTests(TestCase):
 
     def test_change_vpn_server(self):
         ap = AttachmentPoint.objects.first()
-        setup_vpn_attachment_point(ap)
+        self.setup_vpn_attachment_point(ap)
         old_server = ap.vpn.server
         old_server_prev_version = old_server.config_version
         new_server = Host.objects.create()
@@ -376,12 +364,19 @@ class VPNServerTests(TestCase):
         self.assertGreater(old_server.config_version, old_server_prev_version)
         self.assertGreater(new_server.config_version, new_server_prev_version)
 
+    def _setup_vpn_attachment_point(self, ap):
+        """ Setup a VPN server config for the given attachment point """
+        ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
+                                    subnet='10.0.8.0/24',
+                                    server_vpn_ip='10.0.8.1',
+                                    server_port=4321)
+        ap.save()
+
 
 class CreateUserASTests(TestCase):
     fixtures = ['testdata']
 
     def setUp(self):
-        setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
     @parameterized.expand(zip(range(testtopo_num_attachment_points)))
@@ -483,7 +478,6 @@ class UpdateUserASTests(TestCase):
     fixtures = ['testdata']
 
     def setUp(self):
-        setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
     def test_enable_vpn(self):
@@ -624,10 +618,10 @@ class UpdateUserASTests(TestCase):
 
     def test_cycle_ap_vpn(self):
         seed = 6
-        for ap in AttachmentPoint.objects.filter(vpn__isnull=True).iterator():
-            setup_vpn_attachment_point(ap)
+        aps = list(AttachmentPoint.objects.filter(vpn_isnull=False))
+        self.assertTrue(len(aps) >= 2, "Should have at least two APs with VPN for this test")
 
-        attachment_point_iter = iter(list(AttachmentPoint.objects.all()) * 2)
+        attachment_point_iter = iter(aps * 2)
         attachment_point = next(attachment_point_iter)
         user_as = create_random_useras(self,
                                        seed=seed,
@@ -692,7 +686,6 @@ class ActivateUserASTests(TestCase):
     fixtures = ['testdata']
 
     def setUp(self):
-        setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
     def test_cycle_active(self):
@@ -736,7 +729,6 @@ class DeleteUserASTests(TestCase):
     fixtures = ['testdata']
 
     def setUp(self):
-        setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
     def test_delete_single(self):
