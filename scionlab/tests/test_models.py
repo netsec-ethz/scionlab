@@ -15,6 +15,7 @@
 from unittest.mock import patch
 from django.test import TestCase
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
+from scionlab.fixtures import testtopo
 from scionlab.tests import utils
 
 
@@ -84,7 +85,7 @@ class InitASTests(TestCase):
 
 
 class UpdateASKeysTests(TestCase):
-    fixtures = ['testtopo-ases']
+    fixtures = ['testdata']
 
     def test_update_keys(self):
         Host.objects.reset_needs_config_deployment()
@@ -106,11 +107,15 @@ class UpdateASKeysTests(TestCase):
 
 
 class LinkModificationTests(TestCase):
-    fixtures = ['testtopo-ases']
+    fixtures = []
 
     AS_SCMN = 'ffaa:0:1101'
     AS_ETHZ = 'ffaa:0:1102'
     AS_SWTH = 'ffaa:0:1103'
+
+    def setUp(self):
+        testtopo.create_isds()
+        testtopo.create_ases()
 
     def _as_a(self):
         return AS.objects.get(as_id=self.AS_SCMN)
@@ -213,7 +218,7 @@ class LinkModificationTests(TestCase):
 
 
 class DeleteASTests(TestCase):
-    fixtures = ['testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
         patcher = patch('scionlab.models.core.AS._post_delete',

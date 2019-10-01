@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright 2019 ETH Zurich
+# Copyright 2018 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +16,16 @@
 
 set -e
 
-rm run/dev.sqlite3 || true
+# backup db
+tempdir=`mktemp -d`
+mv run/dev.sqlite3 $tempdir
 
-python manage.py migrate
+# init new db
+python manage.py migrate -v 1
 
-python manage.py loaddata scionlab/fixtures/testdata.yaml
+# create and dump data for fixture
+python manage.py shell -c 'from scionlab.fixtures.testdata import create_testdata; create_testdata()'
+python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testdata.yaml
 
-cp scionlab/fixtures/dev_root_ca_*.pem run/
+# get db back
+mv $tempdir/dev.sqlite3 run/

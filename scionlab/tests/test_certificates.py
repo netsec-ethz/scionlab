@@ -91,7 +91,7 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
 
 
 class TRCAndCoreASCertificateTestsISD19(TestCase):
-    fixtures = ['testtopo-ases']
+    fixtures = ['testdata']
 
     isd19_core_ases = ['19-ffaa:0:1301', '19-ffaa:0:1302']
 

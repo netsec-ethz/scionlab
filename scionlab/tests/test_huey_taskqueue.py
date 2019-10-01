@@ -170,7 +170,7 @@ def scheduled_tasks_by_name(name):
 
 
 class DeployHostConfigTests(TransactionTestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
         # Ensure we start the test with a clean queue
