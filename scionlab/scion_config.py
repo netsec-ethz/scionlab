@@ -87,11 +87,12 @@ class ProcessControl(enum.Enum):
     SYSTEMD = 0
     SUPERVISORD = 1
 
+
 def create_gen(host, archive, process_control):
     """
     Generate the gen/ folder for the :host: in the given archive-writer
-    :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     :param host: Host object
+    :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     :param ProcessControl process_control: configuration generated for installation with
                                            supervisord/systemd
     """
@@ -227,7 +228,7 @@ class ConfigGenerator:
         self.archive.write_config((elem_dir, 'supervisord.conf'), conf)
 
     def _write_disp_supervisord_conf(self):
-        cmd = 'bin/dispatcher -config %s' % os.join(GEN_PATH, 'dispatcher', 'disp.toml')
+        cmd = 'bin/dispatcher -config %s' % os.path.join(GEN_PATH, 'dispatcher', 'disp.toml')
         conf = _build_supervisord_conf('dispatcher', cmd, DEFAULT_ENV, priority=50, startsecs=1)
         self.archive.write_config((GEN_PATH, 'dispatcher', 'supervisord.conf'), conf)
 

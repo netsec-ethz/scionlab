@@ -154,7 +154,7 @@ def _expand_vagrantfile_template(host):
 
 
 def _add_config_info(host, archive, with_version):
-    archive.write_text((GEN_PATH, 'scionlab-config.json'),
+    archive.write_json((GEN_PATH, 'scionlab-config.json'),
                        _generate_config_info_json(host, with_version))
 
 
@@ -172,7 +172,7 @@ def _generate_config_info_json(host, with_version):
     }
     if with_version:
         config_info['version'] = host.config_version
-    return json.dumps(config_info)
+    return config_info
 
 
 def _add_ia_file(host, archive):
