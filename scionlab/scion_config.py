@@ -15,6 +15,7 @@
 import configparser
 import enum
 import os
+from collections import OrderedDict
 
 from scionlab.models.core import Service
 from scionlab.scion_topology import TopologyInfo
@@ -82,6 +83,7 @@ CMDS = {
     TYPE_BR: 'border',
     TYPE_SD: 'sciond',
 }
+
 
 class ProcessControl(enum.Enum):
     SYSTEMD = 0
@@ -395,17 +397,17 @@ class _ConfigBuilder:
 
 def _build_supervisord_conf(program_id, cmd, envs, priority=100, startsecs=5):
     config = configparser.ConfigParser()
-    config['program:' + program_id] = {
-        'autostart': 'false',
-        'autorestart': 'true',
-        'environment': ','.join(envs),
-        'stdout_logfile': '%s.OUT' % os.path.join(SCION_LOG_DIR, program_id),
-        'stderr_logfile': '%s.ERR' % os.path.join(SCION_LOG_DIR, program_id),
-        'startretries': '0',
-        'startsecs': str(startsecs),
-        'priority': str(priority),
-        'command':  cmd,
-    }
+    config['program:' + program_id] = OrderedDict([
+        ('autostart', 'false'),
+        ('autorestart', 'true'),
+        ('environment', ','.join(envs)),
+        ('stdout_logfile', '%s.OUT' % os.path.join(SCION_LOG_DIR, program_id)),
+        ('stderr_logfile', '%s.ERR' % os.path.join(SCION_LOG_DIR, program_id)),
+        ('startretries', '0'),
+        ('startsecs', str(startsecs)),
+        ('priority', str(priority)),
+        ('command',  cmd),
+    ])
     return config
 
 
@@ -422,8 +424,10 @@ def _trc_filename(isd, version):
     """
     return 'ISD%s-V%s.trc' % (isd.isd_id, version)
 
+
 def _isd_as_dir(as_):
     return os.path.join(GEN_PATH, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
+
 
 def _get_systemd_services(instance_names):
     """
@@ -441,5 +445,3 @@ def _get_systemd_services(instance_names):
         unit = '{sysd}@{name}.service'.format(sysd=systemd_unit, name=name)
         units.append(unit)
     return units + SYSTEMD_NAMES_ALWAYS_PRESENT
-
-

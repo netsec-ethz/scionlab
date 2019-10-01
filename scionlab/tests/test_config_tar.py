@@ -14,14 +14,13 @@
 
 import os
 import yaml
-from parameterized import parameterized
 
 from django.test import TestCase
 
 from scionlab.config_tar import generate_host_config_tar, generate_user_as_config_tar
-from scionlab.fixtures.testuser import get_testuser
-from scionlab.models.core import Host, Service
-from scionlab.models.user_as import AttachmentPoint, UserAS
+from scionlab.fixtures.testuser import get_testuser_exbert
+from scionlab.models.core import Service
+from scionlab.models.user_as import UserAS
 from scionlab.util.archive import DictWriter
 
 
@@ -32,51 +31,26 @@ _DATA_DIR = os.path.join(_TEST_DIR, 'data/test_config_tar/')
 _RECREATE_TEST_DATA = os.getenv('RECREATE_TEST_DATA', False)
 
 
-def _create_user_as(installation_type, use_vpn):
-    return UserAS.objects.create(
-        owner=get_testuser(),
-        attachment_point=AttachmentPoint.objects.filter(vpn__isnull=False).first(),
-        installation_type=installation_type,
-        label="covfefe",
-        use_vpn=use_vpn,
-        public_ip='172.31.0.111',
-        public_port=54321,
-    )
-
-
 class ConfigTarRegressionTests(TestCase):
     fixtures = ['testdata']
 
     def setUp(self):
         self.maxDiff = None
 
-    def test_host_first(self):
-        host = Host.objects.first()
-        archive = DictWriter()
-        generate_host_config_tar(host, archive)
-        self._check_archive(archive)
-
-    def test_host_extra(self):
+    def test_host(self):
         extra_srv = Service.objects.filter(type__in=[Service.PP, Service.BW]).first()
         host = extra_srv.host
         archive = DictWriter()
         generate_host_config_tar(host, archive)
-        self._check_archive(archive)
+        self._check_archive('host_%i' % host.id, archive)
 
-    @parameterized.expand([(UserAS.VM, False,),
-                           (UserAS.PKG, False,),
-                           (UserAS.PKG, True,),
-                           (UserAS.SRC, False)])
-    def test_user_as(self, installation_type, use_vpn):
-        return # XXX
+    def test_user_as(self):
+        for user_as in UserAS.objects.filter(owner=get_testuser_exbert()).iterator():
+            archive = DictWriter()
+            generate_user_as_config_tar(user_as, archive)
+            self._check_archive('user_as_%i' % user_as.id, archive)
 
-        user_as = _create_user_as(installation_type, use_vpn)
-        archive = DictWriter()
-        generate_user_as_config_tar(user_as, archive)
-        self._check_archive(archive)
-
-    def _check_archive(self, archive):
-        test_id = self.id().lstrip(__name__)
+    def _check_archive(self, test_id, archive):
         test_data_file = os.path.join(_DATA_DIR, test_id + ".yml")
         if not _RECREATE_TEST_DATA:
 
