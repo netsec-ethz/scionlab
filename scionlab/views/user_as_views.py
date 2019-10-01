@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import ipaddress
+import tarfile
+from contextlib import closing
 
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect, HttpResponseForbidden
@@ -30,6 +32,7 @@ from scionlab.defines import MAX_PORT
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.util.http import HttpResponseAttachment
 from scionlab import config_tar
+from scionlab.util.archive import TarWriter
 
 
 class UserASForm(forms.ModelForm):
@@ -276,7 +279,8 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
                         user=user_as.owner.email,
                         ia=user_as.isd_as_path_str())
         resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
-        config_tar.generate_user_as_config_tar(user_as, resp)
+        with closing(tarfile.open(mode='w:gz', fileobj=resp)) as tar:
+            config_tar.generate_user_as_config_tar(user_as, TarWriter(tar))
         return resp
 
 
