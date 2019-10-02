@@ -31,7 +31,6 @@ from scionlab.fixtures import testtopo
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
 from scionlab.util import as_ids
-from scionlab.openvpn_config import write_vpn_ca_config
 
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 
