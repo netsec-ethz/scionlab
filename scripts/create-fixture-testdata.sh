@@ -27,5 +27,9 @@ python manage.py migrate -v 1
 python manage.py shell -c 'from scionlab.fixtures.testdata import create_testdata; create_testdata()'
 python manage.py dumpdata --format=yaml scionlab > scionlab/fixtures/testdata.yaml
 
+# fixup timestamps to reduce noise
+# Note: these timestamps are only informative and are not supposed to change the behaviour in any way
+sed 's/\(created_date\|modified_date\|date_joined\): .*$/\1: 2019-10-02 03:00:00.00/' -i scionlab/fixtures/testdata.yaml
+
 # get db back
 mv $tempdir/dev.sqlite3 run/

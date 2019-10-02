@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-from unittest.mock import patch
 from collections import namedtuple
 from scionlab.models.core import ISD, AS, Link, Host, Service
 from scionlab.models.user_as import AttachmentPoint
@@ -132,16 +130,8 @@ def create_isds():
 
 
 def create_ases():
-    r = random.Random(0)
-
-    def seeded_random_bytes(size=32):
-        return bytes(r.getrandbits(8) for _ in range(size))
-
-    # Somewhat scary trick; to reduce noise when regenerating the fixture from scratch,
-    # make the AS keys somewhat deterministic by replacing os.urandom with seeded "random" bytes.
-    with patch('os.urandom', side_effect=seeded_random_bytes):
-        for as_def in ases:
-            _create_as(**as_def._asdict())
+    for as_def in ases:
+        _create_as(**as_def._asdict())
 
     # Initialise TRCs and certificates. Deferred in AS creation to start with TRC/cert versions 1.
     for isd in ISD.objects.iterator():
