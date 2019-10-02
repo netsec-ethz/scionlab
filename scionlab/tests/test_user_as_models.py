@@ -339,13 +339,13 @@ class VPNServerTests(TestCase):
     def test_create_new(self):
         ap = AttachmentPoint.objects.first()
         prev_version = ap.AS.hosts.first().config_version
-        self.setup_vpn_attachment_point(ap)
+        self._setup_vpn_attachment_point(ap)
         self.assertGreater(ap.AS.hosts.first().config_version, prev_version)
         self.assertEqual(ap.vpn.server, ap.AS.hosts.first())
 
     def test_update_vpn(self):
         ap = AttachmentPoint.objects.first()
-        self.setup_vpn_attachment_point(ap)
+        self._setup_vpn_attachment_point(ap)
         server = ap.vpn.server
         prev_version = server.config_version
         ap.vpn.update(subnet='10.0.8.0/22')
@@ -353,7 +353,7 @@ class VPNServerTests(TestCase):
 
     def test_change_vpn_server(self):
         ap = AttachmentPoint.objects.first()
-        self.setup_vpn_attachment_point(ap)
+        self._setup_vpn_attachment_point(ap)
         old_server = ap.vpn.server
         old_server_prev_version = old_server.config_version
         new_server = Host.objects.create()
@@ -419,7 +419,7 @@ class CreateUserASTests(TestCase):
 
     def test_server_vpn_ip(self):
         """ Its IP is not at the beginning of the subnet """
-        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
+        attachment_point = AttachmentPoint.objects.filter(AS__as_id='ffaa:0:1404').get()
         vpn = attachment_point.vpn
         server_orig_ip = ip_address(vpn.server_vpn_ip)
         vpn.server_vpn_ip = str(server_orig_ip + 1)
@@ -557,16 +557,18 @@ class UpdateUserASTests(TestCase):
         self.assertEqual(vpn_client.ip, vpn_client_ip)
 
     def test_vpn_client_next_ip(self):
-        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
-        vpn_server = VPN.objects.first()
+        attachment_point = AttachmentPoint.objects.filter(AS__as_id='ffaa:0:1404').get()
+        vpn = attachment_point.vpn
+        vpn.clients.all().delete()  # check creation of first client
+
         user_as = create_and_check_useras(self,
                                           attachment_point=attachment_point,
                                           owner=get_testuser(),
                                           use_vpn=True,
                                           public_port=50000)
         vpn_client = user_as.hosts.get().vpn_clients.get()
-        # consecutive:
-        self.assertEqual(ip_address(vpn_server.server_vpn_ip) + 1,
+        # consecutive: (assumes server at begin of IP range, not the case for all APs in testdata)
+        self.assertEqual(ip_address(vpn.server_vpn_ip) + 1,
                          ip_address(vpn_client.ip))
         # leave a gap at the beginning
         former_vpn_ip = ip_address(vpn_client.ip)
@@ -617,7 +619,7 @@ class UpdateUserASTests(TestCase):
 
     def test_cycle_ap_vpn(self):
         seed = 6
-        aps = list(AttachmentPoint.objects.filter(vpn_isnull=False))
+        aps = list(AttachmentPoint.objects.filter(vpn__isnull=False))
         self.assertTrue(len(aps) >= 2, "Should have at least two APs with VPN for this test")
 
         attachment_point_iter = iter(aps * 2)

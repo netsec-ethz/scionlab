@@ -112,9 +112,9 @@ extra_services = [
 
 # VPNs for APs, except 1303
 vpns = [
-   VPNDef(_expand_as_id(0x1107), "10.0.8.1", 1194, "10.0.0.0/16"),
-   VPNDef(_expand_as_id(0x1404), "10.0.8.1", 1194, "10.0.0.0/16"),
-   VPNDef(_expand_as_id(0x1405), "10.0.8.1", 1194, "10.0.0.0/16"),
+   VPNDef(_expand_as_id(0x1107), "10.0.8.1", 1194, "10.0.0.0/16"),  # odd subnet, used in prod!
+   VPNDef(_expand_as_id(0x1404), "10.0.8.1", 1194, "10.0.8.0/24"),
+   VPNDef(_expand_as_id(0x1405), "10.8.0.1", 1194, "10.8.0.0/16"),
 ]
 
 

@@ -161,8 +161,8 @@ Vagrantfile: |
   end
 gen/scionlab-config.json: |-
   {
-    "host_id": "b8134a9b13434d138c1f8ebf1040c18c",
-    "host_secret": "c3dbbca0de8145238bc56a6a05762c03",
+    "host_id": "2ad1478e82b54616a98a74dbad84f6fc",
+    "host_secret": "a40b31cbd7554fec9128553af093b9c3",
     "url": "http://localhost:8000"
   }
 run.sh: "#!/usr/bin/env bash\n\n# BEGIN subcommand functions\n\nVB=\"virtualbox\"\n\

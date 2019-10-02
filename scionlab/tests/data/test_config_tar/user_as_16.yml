@@ -131,8 +131,8 @@ Vagrantfile: "# -*- mode: ruby -*-\n# vi: set ft=ruby :\n\nENV['VAGRANT_DEFAULT_
   \ privileged: true, inline: $setup_scion\nend\n"
 gen/scionlab-config.json: |-
   {
-    "host_id": "3890cefbfb364fb3bac5f50bcfc36da8",
-    "host_secret": "29ff4113bc0e4b9385e4dd723213483c",
+    "host_id": "d5eba63d64ad4dd19174be40fb38a395",
+    "host_secret": "d81791e47e364881b64a8fae86d86d8c",
     "url": "http://localhost:8000"
   }
 run.sh: "#!/usr/bin/env bash\n\n# BEGIN subcommand functions\n\nVB=\"virtualbox\"\n\
