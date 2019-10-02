@@ -28,7 +28,7 @@ _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 _DATA_DIR = os.path.join(_TEST_DIR, 'data/test_config_tar/')
 
 
-_RECREATE_TEST_DATA = os.getenv('RECREATE_TEST_DATA', False)
+_RECREATE_TEST_RESULTS = os.getenv('RECREATE_TEST_RESULTS', False)
 
 
 class ConfigTarRegressionTests(TestCase):
@@ -52,7 +52,7 @@ class ConfigTarRegressionTests(TestCase):
 
     def _check_archive(self, test_id, archive):
         test_data_file = os.path.join(_DATA_DIR, test_id + ".yml")
-        if not _RECREATE_TEST_DATA:
+        if not _RECREATE_TEST_RESULTS:
 
             actual = archive.dict
             with open(test_data_file) as f:
@@ -70,6 +70,7 @@ class ConfigTarRegressionTests(TestCase):
         else:
             with open(test_data_file, 'w') as f:
                 yaml.dump(_strs_as_literals(archive.dict), stream=f)
+            print(test_data_file)
 
 
 # Helper to dump strings in literal style, e.g. {'foo': 'bla\nbla'} becomes
