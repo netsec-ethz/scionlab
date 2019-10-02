@@ -27,6 +27,7 @@ from collections import OrderedDict
 JSONFIELDS = ['trc', 'trc_priv_keys', 'certificate_chain', 'core_certificate']
 
 
+# See: https://stackoverflow.com/a/21912744/4666991
 def ordered_load(stream, Loader=yaml.SafeLoader, object_pairs_hook=OrderedDict):
     class OrderedLoader(Loader):
         pass
