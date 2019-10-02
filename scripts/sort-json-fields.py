@@ -64,7 +64,7 @@ def main(argv):
                 try:
                     d = json.loads(v)
                     fields[k] = json.dumps(d, sort_keys=True)
-                except:
+                except json.JSONDecodeError:
                     continue
 
     with open(filename, 'w') as f:
