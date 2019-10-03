@@ -4,7 +4,6 @@
 
 from __future__ import print_function
 import yaml
-import pathlib
 
 TESTDATA_FILE = 'scionlab/fixtures/testdata.yaml'
 TEST_ASES = [
@@ -34,7 +33,8 @@ for host in hosts.values():
             'SCIONLAB_HOST_ID': host['uid'],
             'SCIONLAB_HOST_SECRET': host['secret'],
         }
-        env_str = '\n'.join('%s=%s' % (k, v) for k, v in envs.items())
-        pathlib.Path(env_filename).write_text(env_str)
+        env_str = ''.join('%s=%s\n' % (k, v) for k, v in envs.items())
+        with open(env_filename, 'w') as f:
+            f.write(env_str)
         print(env_filename, ':')
         print(env_str)
