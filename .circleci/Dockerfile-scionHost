@@ -27,4 +27,4 @@ RUN apt-get update && apt-get install --assume-yes scionlab
 COPY scionlab/hostfiles/scionlab-config /usr/bin/
 
 
-CMD ["/usr/bin/systemd"]
+CMD ["/bin/systemd"]
