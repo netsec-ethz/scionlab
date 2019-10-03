@@ -87,16 +87,14 @@ jobs:
 
       - run:
           name: Extract host configuration info from testdata.yaml fixture
-          working_directory: ~/project/.circleci
           command: |
             pip install pyyaml
-            python setup/generate-host-envs.py
+            python .circleci/setup/generate-host-envs.py
 
       - run:
           name: Build container images
           working_directory: ~/project/.circleci
           command: |
-            set -x
             export as1301_ip=172.31.0.110 as1303_ip=172.31.0.111 as1305_ip=172.31.0.112
             docker-compose build
 
