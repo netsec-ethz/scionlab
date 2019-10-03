@@ -95,7 +95,6 @@ jobs:
           name: Build container images
           working_directory: ~/project/.circleci
           command: |
-            export as1301_ip=172.31.0.110 as1303_ip=172.31.0.111 as1305_ip=172.31.0.112
             docker-compose build
 
       - run:
@@ -118,11 +117,13 @@ jobs:
           command: |
             set -x
             docker-compose up -d as1301 as1303 as1305
+
             for c in as1301 as1303 as1305; do
               docker-compose exec $c /bin/bash -c \
                 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             done
 
+            docker-compose logs
 
       - run:
           name: Check SCION connections
