@@ -1116,4 +1116,5 @@ scionlab-services.txt: |-
   scion-beacon-server@20-ffaa_1_3-1.service
   scion-path-server@20-ffaa_1_3-1.service
   scion-certificate-server@20-ffaa_1_3-1.service
+  scion-daemon@20-ffaa_1_3.service
   scion-dispatcher.service

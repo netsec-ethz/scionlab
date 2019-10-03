@@ -203,7 +203,8 @@ class ConfigGenerator:
 
     def _write_systemd_services_file(self):
         instance_names = [r.instance_name for r in self._routers()] + \
-                         [s.instance_name for s in self._services()]
+                         [s.instance_name for s in self._services()] + \
+                         ["sd%s" % self.AS.isd_as_path_str()]
         unit_names = _get_systemd_services(instance_names)
         self.archive.write_text('scionlab-services.txt', '\n'.join(unit_names))
 

@@ -1450,6 +1450,7 @@ scionlab-services.txt: |-
   scion-beacon-server@17-ffaa_0_1107-1.service
   scion-path-server@17-ffaa_0_1107-1.service
   scion-certificate-server@17-ffaa_0_1107-1.service
+  scion-daemon@17-ffaa_0_1107.service
   scion-dispatcher.service
 server.conf: |
   mode server
