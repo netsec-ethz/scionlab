@@ -124,11 +124,11 @@ jobs:
             set -x
             docker-compose -f .circleci/docker-compose.yml up -d as1301 as1303 as1305
             for c in as1301 as1303 as1305; do
-              docker-compse -f .circleci/docker-compose.yml exec $c /bin/bash -c \
-                                          'scionlab-config' \
-                                          ' --host-id ${SCIONLAB_HOST_ID}'\
-                                          ' --host-secret ${SCIONLAB_HOST_SECRET}'\
-                                          ' --url http://coord:8000'
+              docker-compose -f .circleci/docker-compose.yml exec $c /bin/bash -c \
+                'scionlab-config' \
+                ' --host-id ${SCIONLAB_HOST_ID}'\
+                ' --host-secret ${SCIONLAB_HOST_SECRET}'\
+                ' --url http://coord:8000'
             done
 
 
@@ -137,9 +137,14 @@ jobs:
           command: |
             set -x
             # Wait for beaconing to start
-            docker exec as1305 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
-            docker exec as1301 /bin/bash -c "scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
-            docker exec as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
+            docker exec as1305 /bin/bash -c \
+              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; ' \
+              'scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
+            docker exec as1301 /bin/bash -c \
+              'scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
+            docker exec as1303 /bin/bash -c \
+              'grep -m 5 "Registered beacons" -r /var/log/scion/; ' \
+              'scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
 
       - run:
           name: Check deploy
