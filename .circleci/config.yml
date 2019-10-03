@@ -91,7 +91,7 @@ jobs:
           name: Extract host configuration info from testdata.yaml fixture
           command: |
             pip install pyyaml
-            python setup/generate-host-envs.py
+            python .circleci/setup/generate-host-envs.py
 
       - run:
           name: Build container images
