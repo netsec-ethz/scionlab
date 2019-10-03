@@ -2,7 +2,7 @@
 set -e
 
 # Get configuration
-curl --fail -u ${CUSER}:${CSECRET} http://coord:8000/api/host/${CUSER}/config -o /tmp/host_config.tar
+scionlab-config --host-id ${CUSER} --host-secret ${CSECRET} --url http://coord:8000/
 rm /etc/scion/gen -rf
 tar -C /etc/scion/ -xf /tmp/host_config.tar
 

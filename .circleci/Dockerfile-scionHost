@@ -1,23 +1,28 @@
-FROM ethznetsec/scion_base:latest
+FROM ubuntu:xenial
 
-ARG SCION_SRC
-ARG SC
+# systemd
+ENV container docker
+RUN apt-get update && apt get install --assume-yes systemd
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+rm -f /lib/systemd/system/multi-user.target.wants/*; \
+rm -f /etc/systemd/system/*.wants/*; \
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*; \
+rm -f /lib/systemd/system/anaconda.target.wants/*;
+VOLUME [ "/sys/fs/cgroup" ]
 
 # Update
-RUN sudo apt-get update && sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev
+RUN apt-get update && apt-get install --assume-yes libpcap0.8 libpcap0.8-dev openssh-server inotify-tools
 
-# Checkout SCION
-RUN git clone ${SCION_SRC} -b scionlab --depth 1 ${SC}
+# Install SCION
+RUN apt-get update && apt-get install --assume-yes apt-transport-https
+RUN bash -c 'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
+RUN apt-get update && apt-get install --assume-yes scionlab
 
-RUN sudo apt-get update && sudo apt-get install --assume-yes apt-transport-https
-RUN sudo bash -c 'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
-RUN sudo apt-get update && sudo apt-get install --assume-yes scionlab
-
-COPY ./setup/reloadASConfig.sh ${SC}/reloadASConfig.sh
-RUN sudo mkdir -p /var/log/scion/
-RUN mkdir ${SC}/gen-cache
+# Overwrite scionlab-config script with version from repo
+COPY scionlab/hostfiles/scionlab-config /usr/bin/
 
 
-# Add environment variables for execution
-ENV PYTHONPATH ${SC}/python
-ENV SC ${SC}
+CMD ["/usr/bin/systemd"]

@@ -10,7 +10,9 @@ networks:
 
 services:
   coord:
-    image:  circleci/python:3.6.1
+    build:
+      context: ..
+      dockerfile: Dockerfile-coord
     container_name: coord
     working_dir: /home/circleci/repo
     environment:
@@ -26,16 +28,11 @@ services:
 
   coreAS1301:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
     container_name: coreAS1301
     depends_on:
       - coord
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
         ipv4_address: ${coreAS1301IP}
@@ -50,16 +47,11 @@ services:
 
   infraAS1303:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
     container_name: infraAS1303
     depends_on:
       - coreAS1301
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
         ipv4_address: ${infraAS1303IP}
@@ -73,16 +65,11 @@ services:
 
   infraAS1305:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
     container_name: infraAS1305
     depends_on:
       - coreAS1301
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
         ipv4_address: ${infraAS1305IP}
@@ -96,14 +83,9 @@ services:
 
   coreAS1401:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
     container_name: coreAS1401
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
         ipv4_address: ${coreAS1401IP}
@@ -118,16 +100,11 @@ services:
 
   infraAS1405:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
     container_name: infraAS1405
     depends_on:
       - coreAS1401
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
     networks:
       as_net:
         ipv4_address: ${infraAS1405IP}

@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Get scion dependency
-git clone https://github.com/netsec-ethz/netsec-scion.git -b scionlab --depth 1 /tmp/scion
-
-# Get code under test from executor
-cd ~/repo; until [ -d ./scionlab ]; do sleep 10; done
-cd scionlab
-
 # Regular coordinator installation procedure
 python3 -m venv /tmp/venv
 . /tmp/venv/bin/activate
