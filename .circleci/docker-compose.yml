@@ -30,14 +30,11 @@ services:
     networks:
       as_net:
         ipv4_address: ${core_as1301IP}
-    user: scion
     environment:
       # host id/secret from fixture
       CUSER: 098625df419a48279761954bb7b4ce78
       CSECRET: 10cc1584deea4a10b9210a4c03c2d872
-    tty: true
-    entrypoint: /bin/bash
-    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
+    privileged: true
 
   infra_as1303:
     build:
@@ -49,13 +46,10 @@ services:
     networks:
       as_net:
         ipv4_address: ${infra_as1303IP}
-    user: scion
     environment:
       CUSER: f5422107f7354c55b9f54a4befe0f58d
       CSECRET: a2532f97fe144a88944e2860e525f220
-    tty: true
-    entrypoint: /bin/bash
-    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
+    privileged: true
 
   infra_as1305:
     build:
@@ -67,13 +61,10 @@ services:
     networks:
       as_net:
         ipv4_address: ${infra_as1305IP}
-    user: scion
     environment:
       CUSER: 4a715f91a023481fb21e61669777238f
       CSECRET: ab4c5aa179be4a37ba7db180517ea6f5
-    tty: true
-    entrypoint: /bin/bash
-    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
+    privileged: true
 
   core_as1401:
     build:
@@ -83,7 +74,6 @@ services:
     networks:
       as_net:
         ipv4_address: ${core_as1401IP}
-    user: scion
     environment:
       CUSER: 528974e4534147858b305e1435de8658
       CSECRET: 30d63340acba4c4d8f84dc62417b58df
@@ -102,7 +92,6 @@ services:
     networks:
       as_net:
         ipv4_address: ${infra_as1405IP}
-    user: scion
     privileged: true
     environment:
       CUSER: 2c872b10a8a348949cf181a1cb8b9a62

@@ -97,9 +97,16 @@ jobs:
             docker-compose -f .circleci/docker-compose.yml build
 
       - run:
-          name: Setup coordinator
+          name: Start coordinator
           command: |
             docker-compose -f .circleci/docker-compose.yml up -d coord
+            docker-compose -f .circleci/docker-compose.yml logs coord 
+
+            # We start another container with curl in the same network as `coord` to check `coord` is ready.
+            # All exposed ports from `coord` are available on `localhost` in this new container.
+            docker run --net circleci_as_net --name curl_test\
+              --rm --entrypoint /bin/bash ubuntu:xenial -c "curl --retry 5 --retry-delay 1 http://coord:8000/login/"
+
 
       # Start integration tests
       - run:
@@ -109,13 +116,10 @@ jobs:
             # docker-compose will have started 4 containers, the one with the coordinator will be named `coord`
             # Then we have one core AS container core_as1301, two infra ASes infra_as1303 and infra_as1305.
 
-            # We start another container with curl in the same network as `coord` to check `coord` is ready.
-            # All exposed ports from `coord` are available on `localhost` in this new container.
-            docker run --net circleci_as_net --name curl_test\
-              --rm --entrypoint /bin/bash ubuntu:xenial -c "until curl --retry 5 --retry-delay 1 http://coord:8000/login/ 2>/dev/null; do sleep 0.1; done;"
-
             docker-compose -f .circleci/docker-compose.yml up -d core_as1301 infra_as1303 infra_as1305
-            docker exec core_as1301 /bin/bash -c 'scionlab-config ... && wait ...'
+            docker exec core_as1301 /bin/bash -c "scionlab-config --host-id ${core_as1301_uid} --host-secret ${core_as1301_secret} --url http://coord:8000"
+            docker exec core_as1301 /bin/bash -c "scionlab-config --host-id ${core_as1301_uid} --host-secret ${core_as1301_secret} --url http://coord:8000"
+            docker exec core_as1301 /bin/bash -c "scionlab-config --host-id ${core_as1301_uid} --host-secret ${core_as1301_secret} --url http://coord:8000"
 
       - run:
           name: Check SCION connections
