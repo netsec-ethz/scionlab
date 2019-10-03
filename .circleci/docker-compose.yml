@@ -26,16 +26,16 @@ services:
     entrypoint: /bin/bash
     command: -c "./scionlab/.circleci/setup/coord.sh"
 
-  coreAS1301:
+  core_as1301:
     build:
       context: ..
       dockerfile: Dockerfile-scionHost
-    container_name: coreAS1301
+    container_name: core_as1301
     depends_on:
       - coord
     networks:
       as_net:
-        ipv4_address: ${coreAS1301IP}
+        ipv4_address: ${core_as1301IP}
     user: scion
     environment:
       # host id/secret from fixture
@@ -45,16 +45,16 @@ services:
     entrypoint: /bin/bash
     command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
 
-  infraAS1303:
+  infra_as1303:
     build:
       context: ..
       dockerfile: Dockerfile-scionHost
-    container_name: infraAS1303
+    container_name: infra_as1303
     depends_on:
-      - coreAS1301
+      - core_as1301
     networks:
       as_net:
-        ipv4_address: ${infraAS1303IP}
+        ipv4_address: ${infra_as1303IP}
     user: scion
     environment:
       CUSER: f5422107f7354c55b9f54a4befe0f58d
@@ -63,16 +63,16 @@ services:
     entrypoint: /bin/bash
     command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
 
-  infraAS1305:
+  infra_as1305:
     build:
       context: ..
       dockerfile: Dockerfile-scionHost
-    container_name: infraAS1305
+    container_name: infra_as1305
     depends_on:
-      - coreAS1301
+      - core_as1301
     networks:
       as_net:
-        ipv4_address: ${infraAS1305IP}
+        ipv4_address: ${infra_as1305IP}
     user: scion
     environment:
       CUSER: 4a715f91a023481fb21e61669777238f
@@ -81,14 +81,14 @@ services:
     entrypoint: /bin/bash
     command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
 
-  coreAS1401:
+  core_as1401:
     build:
       context: ..
       dockerfile: Dockerfile-scionHost
-    container_name: coreAS1401
+    container_name: core_as1401
     networks:
       as_net:
-        ipv4_address: ${coreAS1401IP}
+        ipv4_address: ${core_as1401IP}
     user: scion
     environment:
       CUSER: 528974e4534147858b305e1435de8658
@@ -98,16 +98,16 @@ services:
     entrypoint: /bin/bash
     command: -c "until [ -e ${SC}/reloadASConfig.sh ]; do sleep 1; done; ${SC}/reloadASConfig.sh; cat;"
 
-  infraAS1405:
+  infra_as1405:
     build:
       context: ..
       dockerfile: Dockerfile-scionHost
-    container_name: infraAS1405
+    container_name: infra_as1405
     depends_on:
-      - coreAS1401
+      - core_as1401
     networks:
       as_net:
-        ipv4_address: ${infraAS1405IP}
+        ipv4_address: ${infra_as1405IP}
     user: scion
     privileged: true
     environment:
