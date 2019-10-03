@@ -93,7 +93,7 @@ jobs:
           command: |
             pwd
             pip install pyyaml
-            python .circleci/setup/generate-host-envs.py
+            python setup/generate-host-envs.py
 
       - run:
           name: Build container images
@@ -275,7 +275,7 @@ jobs:
       - run:
           name: Wind down the containers
           command: |
-            docker-compose -f .circleci/docker-compose.yml down
+            docker-compose down
           when: always
 
 workflows:
