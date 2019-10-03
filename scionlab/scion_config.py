@@ -386,9 +386,8 @@ class _ConfigBuilder:
                 'file': {
                     'Path': '%s.log' % os.path.join(self.log_dir, logfile_name),
                     'Level': 'debug',
-                },
-                'console': {
-                    'Level': 'crit',
+                    'MaxAge': 3,
+                    'MaxBackups': 1,
                 },
             },
         }
