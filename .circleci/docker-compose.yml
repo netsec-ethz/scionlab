@@ -42,7 +42,7 @@ services:
   infra_as1303:
     build:
       context: ..
-      dockerfile: Dockerfile-scionHost
+      dockerfile: .circleci/Dockerfile-scionHost
     container_name: infra_as1303
     depends_on:
       - core_as1301
@@ -60,7 +60,7 @@ services:
   infra_as1305:
     build:
       context: ..
-      dockerfile: Dockerfile-scionHost
+      dockerfile: .circleci/Dockerfile-scionHost
     container_name: infra_as1305
     depends_on:
       - core_as1301
@@ -78,7 +78,7 @@ services:
   core_as1401:
     build:
       context: ..
-      dockerfile: Dockerfile-scionHost
+      dockerfile: .circleci/Dockerfile-scionHost
     container_name: core_as1401
     networks:
       as_net:
@@ -95,7 +95,7 @@ services:
   infra_as1405:
     build:
       context: ..
-      dockerfile: Dockerfile-scionHost
+      dockerfile: .circleci/Dockerfile-scionHost
     container_name: infra_as1405
     depends_on:
       - core_as1401

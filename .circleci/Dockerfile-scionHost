@@ -1,8 +1,14 @@
 FROM ubuntu:xenial
 
+# Install base
+RUN apt-get update && apt-get install --assume-yes \
+  systemd \
+  libpcap0.8 libpcap0.8-dev \ 
+  apt-transport-https \
+  openssh-server inotify-tools
+
 # systemd
 ENV container docker
-RUN apt-get update && apt-get install --assume-yes systemd
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = systemd-tmpfiles-setup.service ] || rm -f $i; done); \
 rm -f /lib/systemd/system/multi-user.target.wants/*; \
 rm -f /etc/systemd/system/*.wants/*; \
@@ -13,11 +19,7 @@ rm -f /lib/systemd/system/basic.target.wants/*; \
 rm -f /lib/systemd/system/anaconda.target.wants/*;
 VOLUME [ "/sys/fs/cgroup" ]
 
-# Update
-RUN apt-get update && apt-get install --assume-yes libpcap0.8 libpcap0.8-dev openssh-server inotify-tools
-
 # Install SCION
-RUN apt-get update && apt-get install --assume-yes apt-transport-https
 RUN bash -c 'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
 RUN apt-get update && apt-get install --assume-yes scionlab
 
