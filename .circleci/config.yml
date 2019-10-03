@@ -246,7 +246,6 @@ jobs:
               exit 0
             fi
             echo "Start containers required for VPN AP and verify they are working"
-            export as1401_ip=172.31.0.113 as1405_ip=172.31.0.114
             docker-compose -f .circleci/docker-compose.yml create as1401 as1405
 
             # Load setup files

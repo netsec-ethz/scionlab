@@ -61,10 +61,10 @@ services:
       dockerfile: .circleci/Dockerfile-scionHost
     networks:
       as_net:
-        ipv4_address: ${as1401_ip}
+        ipv4_address: 172.31.0.113
     env_file: /tmp/as1401.env
-    privileged: true
-    command: -c "until [ -e ${SC}/reloadASConfig.sh ]; do sleep 1; done; ${SC}/reloadASConfig.sh; cat;"
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
   as1405:
     build:
@@ -74,13 +74,8 @@ services:
       - as1401
     networks:
       as_net:
-        ipv4_address: ${as1405_ip}
+        ipv4_address: 172.31.0.114
     privileged: true
-    environment:
-      CUSER: 2c872b10a8a348949cf181a1cb8b9a62
-      CSECRET: c16f444f48034dc7bdd1b747f2428986
-    tty: true
-    # waits for binaries and setup script to be loaded, then a user AS to connect and run scmp echos
-    entrypoint: /bin/bash
-    command: -c "until [ -e ${SC}/VPNexistingAS.sh ]; do sleep 1; done; ${SC}/VPNexistingAS.sh; grep 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch $${SC}/done; sleep 120; echo 'reloading AP'; ${SC}/reloadASConfig.sh; cat;"
-
+    env_file: /tmp/as1405.env
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
