@@ -24,11 +24,10 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/br.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/br17-ffaa_0_1107-1.log"
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
   {
@@ -252,11 +251,10 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/br.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/br17-ffaa_0_1107-2.log"
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/certs/ISD17-ASffaa_0_1107-V1.crt: |-
   {
@@ -498,11 +496,10 @@ gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/bs.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/bs17-ffaa_0_1107-1.log"
 gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
   {
@@ -803,11 +800,10 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/cs17-ffaa_0_1107-1.log"
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-decrypt.key: |-
   R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
@@ -1045,11 +1041,10 @@ gen/ISD17/ASffaa_0_1107/endhost/sd.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/sd17-ffaa_0_1107.log"
 
   [sd.PathDB]
@@ -1287,11 +1282,10 @@ gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/ps.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/ps17-ffaa_0_1107-1.log"
 
   [ps.PathDB]
@@ -1436,11 +1430,10 @@ gen/dispatcher/disp.toml: |
   [metrics]
   Prometheus = "[127.0.0.1]:30441"
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/dispatcher.log"
 gen/ia: |-
   17-ffaa_0_1107

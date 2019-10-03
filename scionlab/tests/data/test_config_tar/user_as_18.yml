@@ -133,11 +133,10 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/br.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/br20-ffaa_1_3-1.log"
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
   {
@@ -336,11 +335,10 @@ gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/bs.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/bs20-ffaa_1_3-1.log"
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
   {
@@ -605,11 +603,10 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/cs.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/cs20-ffaa_1_3-1.log"
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-decrypt.key: |-
   kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
@@ -804,11 +801,10 @@ gen/ISD20/ASffaa_1_3/endhost/sd.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/sd20-ffaa_1_3.log"
 
   [sd.PathDB]
@@ -1003,11 +999,10 @@ gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/ps.toml: |
   [discovery.static]
   Enable = false
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/ps20-ffaa_1_3-1.log"
 
   [ps.PathDB]
@@ -1102,11 +1097,10 @@ gen/dispatcher/disp.toml: |
   [metrics]
   Prometheus = "[127.0.0.1]:30441"
 
-  [logging.console]
-  Level = "crit"
-
   [logging.file]
   Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
   Path = "/var/log/scion/dispatcher.log"
 gen/ia: |-
   20-ffaa_1_3
