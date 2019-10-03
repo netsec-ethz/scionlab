@@ -90,6 +90,7 @@ jobs:
       - run:
           name: Extract host configuration info from testdata.yaml fixture
           command: |
+            pwd
             pip install pyyaml
             python .circleci/setup/generate-host-envs.py
 
