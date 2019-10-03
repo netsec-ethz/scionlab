@@ -82,11 +82,7 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
 
-    working_directory: ~/repo
-    environment:
-      BASH_ENV: "~/repo/.circleci/bash_env.sh"
-      SCION_SRC: "https://github.com/netsec-ethz/netsec-scion"
-      SC: "/home/scion/go/src/github.com/scionproto/scion"
+    working_directory: ~/repo/.circleci
 
     steps:
       - checkout
@@ -95,36 +91,35 @@ jobs:
           name: Extract host configuration info from testdata.yaml fixture
           command: |
             pip install pyyaml
-            python .circleci/setup/generate-host-envs.py
+            python setup/generate-host-envs.py
 
       - run:
           name: Build container images
           command: |
             set -x
             export as1301_ip=172.31.0.110 as1303_ip=172.31.0.111 as1305_ip=172.31.0.112
-            docker-compose -f .circleci/docker-compose.yml build
+            docker-compose build
 
       - run:
           name: Start coordinator
           command: |
-            docker-compose -f .circleci/docker-compose.yml up -d coord
-            docker-compose -f .circleci/docker-compose.yml logs coord
+            docker-compose up -d coord
+            docker-compose logs coord
 
             # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
             # NOTE: uses python:3.6 to re-use already fetched image from `coord` which contains curl
-            docker run --net circleci_as_net \
-              --entrypoint /bin/bash python:3.6 -c "wget --tries 10 --retry-connrefused http://coord:8000/login/"
-
+            docker run --net circleci_as_net --entrypoint /bin/bash python:3.6 -c \
+              'wget --tries 10 --retry-connrefused http://coord:8000/login/'
 
       # Start integration tests
       - run:
           name: Start ASes in containers
           command: |
             set -x
-            docker-compose -f .circleci/docker-compose.yml up -d as1301 as1303 as1305
+            docker-compose up -d as1301 as1303 as1305
             for c in as1301 as1303 as1305; do
-              docker-compose -f .circleci/docker-compose.yml exec $c /bin/bash -c \
+              docker-compose exec $c /bin/bash -c \
                 'scionlab-config' \
                 ' --host-id ${SCIONLAB_HOST_ID}'\
                 ' --host-secret ${SCIONLAB_HOST_SECRET}'\
@@ -137,14 +132,18 @@ jobs:
           command: |
             set -x
             # Wait for beaconing to start
-            docker exec as1305 /bin/bash -c \
-              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; ' \
-              'scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
-            docker exec as1301 /bin/bash -c \
+            docker-compose exec -T as1303 /bin/bash -c \
+              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
+            docker-compose exec -T as1305 /bin/bash -c \
+              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
+
+            # Check that we can SCMP
+            docker-compose exec -T as1301 /bin/bash -c \
               'scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
-            docker exec as1303 /bin/bash -c \
-              'grep -m 5 "Registered beacons" -r /var/log/scion/; ' \
-              'scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
+            docker-compose exec -T as1303 /bin/bash -c \
+              'scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+            docker-compose exec -T as1305 /bin/bash -c \
+              'scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
           name: Check deploy
