@@ -92,6 +92,9 @@ jobs:
           name: Extract host configuration info from testdata.yaml fixture
           command: |
             pwd
+            ls
+            ls ..
+            ls ~/project/
             pip install pyyaml
             python setup/generate-host-envs.py
 
