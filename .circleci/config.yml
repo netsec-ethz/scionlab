@@ -106,8 +106,9 @@ jobs:
 
             # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
+            # NOTE: uses python:3.6 to re-use already fetched image from `coord` which contains curl
             docker run --net circleci_as_net --name curl_test\
-              --rm --entrypoint /bin/bash ubuntu:xenial -c "curl --retry 5 --retry-delay 1 http://coord:8000/login/"
+              --rm --entrypoint /bin/bash python:3.6 -c "curl --retry 5 --retry-delay 1 http://coord:8000/login/"
 
 
       # Start integration tests
