@@ -772,7 +772,7 @@ gen/ISD20/ASffaa_1_3/endhost/certs/ISD20-V1.trc: |-
   }
 gen/ISD20/ASffaa_1_3/endhost/sd.toml: |
   [general]
-  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/sd20-ffaa_1_3"
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/endhost"
   ID = "sd20-ffaa_1_3"
   ReconnectToDispatcher = true
 

@@ -691,7 +691,7 @@ gen/ISD17/ASffaa_1_5/endhost/certs/ISD17-V1.trc: |-
   }
 gen/ISD17/ASffaa_1_5/endhost/sd.toml: |
   [general]
-  ConfigDir = "gen/ISD17/ASffaa_1_5/sd17-ffaa_1_5"
+  ConfigDir = "gen/ISD17/ASffaa_1_5/endhost"
   ID = "sd17-ffaa_1_5"
   ReconnectToDispatcher = true
 

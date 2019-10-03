@@ -330,9 +330,10 @@ class _ConfigBuilder:
         return conf
 
     def build_sciond_conf(self, host):
-        instance_name = "sd%s" % host.AS.isd_as_path_str()
+        instance_name = 'sd%s' % host.AS.isd_as_path_str()
+        instance_dir = 'endhost'
         conf = self._build_goservice_conf(instance_name, host.internal_ip, SD_QUIC_PORT,
-                                          PROM_PORT_SD)
+                                          PROM_PORT_SD, instance_dir=instance_dir)
         conf.update({
             'sd': {
                 'Reliable': os.path.join(SCIOND_API_SOCKDIR, "default.sock"),
@@ -346,9 +347,10 @@ class _ConfigBuilder:
         })
         return conf
 
-    def _build_goservice_conf(self, instance_name, host_ip, quic_port, prometheus_port):
+    def _build_goservice_conf(self, instance_name, host_ip, quic_port, prometheus_port,
+                              instance_dir=None):
         """ Builds the toml configuration common to SD,BS,CS and PS """
-        conf = self._build_base_goservice_conf(instance_name, prometheus_port)
+        conf = self._build_base_goservice_conf(instance_name, prometheus_port, instance_dir)
         conf['general']['ReconnectToDispatcher'] = True
         conf.update({
             'trustDB': {
@@ -364,13 +366,13 @@ class _ConfigBuilder:
         })
         return conf
 
-    def _build_base_goservice_conf(self, instance_name, prometheus_port):
+    def _build_base_goservice_conf(self, instance_name, prometheus_port, instance_dir=None):
         """ Builds the toml configuration common to SD,BS,CS,PS and BR """
         conf = self._build_common_conf(instance_name, prometheus_port)
         conf.update({
             'general': {
                 'ID': instance_name,
-                'ConfigDir': os.path.join(self.config_isd_as_dir, instance_name),
+                'ConfigDir': os.path.join(self.config_isd_as_dir, instance_dir or instance_name),
             },
             'discovery': {
                 'static': {'Enable': False},

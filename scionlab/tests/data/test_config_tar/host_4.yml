@@ -1012,7 +1012,7 @@ gen/ISD17/ASffaa_0_1107/endhost/certs/ISD17-V1.trc: |-
   }
 gen/ISD17/ASffaa_0_1107/endhost/sd.toml: |
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/sd17-ffaa_0_1107"
+  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/endhost"
   ID = "sd17-ffaa_0_1107"
   ReconnectToDispatcher = true
 
