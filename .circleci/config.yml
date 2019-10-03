@@ -82,24 +82,19 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
 
-    working_directory: ~/project/.circleci
-
     steps:
-      - checkout:
-          path: ~/project/
+      - checkout
 
       - run:
           name: Extract host configuration info from testdata.yaml fixture
+          working_directory: ~/project/.circleci
           command: |
-            pwd
-            ls
-            ls ..
-            ls ~/project/
             pip install pyyaml
             python setup/generate-host-envs.py
 
       - run:
           name: Build container images
+          working_directory: ~/project/.circleci
           command: |
             set -x
             export as1301_ip=172.31.0.110 as1303_ip=172.31.0.111 as1305_ip=172.31.0.112
@@ -107,6 +102,7 @@ jobs:
 
       - run:
           name: Start coordinator
+          working_directory: ~/project/.circleci
           command: |
             docker-compose up -d coord
             docker-compose logs coord
@@ -120,6 +116,7 @@ jobs:
       # Start integration tests
       - run:
           name: Start ASes in containers
+          working_directory: ~/project/.circleci
           command: |
             set -x
             docker-compose up -d as1301 as1303 as1305
@@ -134,6 +131,7 @@ jobs:
 
       - run:
           name: Check SCION connections
+          working_directory: ~/project/.circleci
           command: |
             set -x
             # Wait for beaconing to start
@@ -242,6 +240,7 @@ jobs:
 
       - run:
           name: Start VPN containers and verify the connection over VPN works
+          working_directory: ~/project/.circleci
           command: |
             set -x
             # Skip if not running locally, since CircleCI does not support docker privileged
@@ -277,6 +276,7 @@ jobs:
 
       - run:
           name: Wind down the containers
+          working_directory: ~/project/.circleci
           command: |
             docker-compose down
           when: always
