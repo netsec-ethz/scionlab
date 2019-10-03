@@ -16,7 +16,7 @@ TEST_ASES = [
 ]
 
 with open(TESTDATA_FILE) as f:
-    data = yaml.load(f)
+    data = yaml.load(f, Loader=yaml.SafeLoader)
 
 ases = {}
 hosts = {}
