@@ -93,6 +93,7 @@ jobs:
           name: Setup coordinator
           command: |
             set -x
+            export core_as1301IP=172.31.0.110 infra_as1303IP=172.31.0.111 infra_as1305IP=172.31.0.112
             docker-compose -f .circleci/docker-compose.yml up -d coord
 
       # Start integration tests
@@ -108,7 +109,6 @@ jobs:
             docker run --net circleci_as_net --name curl_test\
               --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://coord:8000/login/ 2>/dev/null; do sleep 0.1; done;"
 
-            export core_as1301IP=172.31.0.110 infra_as1303IP=172.31.0.111 infra_as1305IP=172.31.0.112
             docker-compose -f .circleci/docker-compose.yml up -d core_as1301 infra_as1303 infra_as1305
             docker exec core_as1301 /bin/bash -c 'scionlab-config ... && wait ...'
 

@@ -12,24 +12,18 @@ services:
   coord:
     build:
       context: ..
-      dockerfile: Dockerfile-coord
+      dockerfile: .circleci/Dockerfile-coord
     container_name: coord
-    working_dir: /home/circleci/repo
-    environment:
-      PYTHONPATH: /tmp/scion/python
     networks:
       as_net:
         ipv4_address: 172.31.0.10
     ports:
       - "8432:8000"
-    # waits for setup script to be loaded
-    entrypoint: /bin/bash
-    command: -c "./scionlab/.circleci/setup/coord.sh"
 
   core_as1301:
     build:
       context: ..
-      dockerfile: Dockerfile-scionHost
+      dockerfile: .circleci/Dockerfile-scionHost
     container_name: core_as1301
     depends_on:
       - coord
