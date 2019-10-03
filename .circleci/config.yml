@@ -92,17 +92,22 @@ jobs:
       - checkout
 
       - run:
+          name: Extract host configuration info from testdata.yaml fixture
+          command: |
+            python3 .circleci/setup/generate-host-envs.py
+
+      - run:
           name: Build container images
           command: |
             set -x
-            export core_as1301IP=172.31.0.110 infra_as1303IP=172.31.0.111 infra_as1305IP=172.31.0.112
+            export as1301_ip=172.31.0.110 as1303_ip=172.31.0.111 as1305_ip=172.31.0.112
             docker-compose -f .circleci/docker-compose.yml build
 
       - run:
           name: Start coordinator
           command: |
             docker-compose -f .circleci/docker-compose.yml up -d coord
-            docker-compose -f .circleci/docker-compose.yml logs coord 
+            docker-compose -f .circleci/docker-compose.yml logs coord
 
             # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
@@ -113,38 +118,39 @@ jobs:
 
       # Start integration tests
       - run:
-          name: Start containers
+          name: Start ASes in containers
           command: |
             set -x
-            # docker-compose will have started 4 containers, the one with the coordinator will be named `coord`
-            # Then we have one core AS container core_as1301, two infra ASes infra_as1303 and infra_as1305.
+            docker-compose -f .circleci/docker-compose.yml up -d as1301 as1303 as1305
+            for c in as1301 as1303 as1305; do
+              docker exec $c /bin/bash -c 'scionlab-config'\
+                                          ' --host-id ${SCIONLAB_HOST_ID}'\
+                                          ' --host-secret ${SCIONLAB_HOST_SECRET}'\
+                                          ' --url http://coord:8000'
+            done
 
-            docker-compose -f .circleci/docker-compose.yml up -d core_as1301 infra_as1303 infra_as1305
-            docker exec core_as1301 /bin/bash -c "scionlab-config --host-id ${core_as1301_uid} --host-secret ${core_as1301_secret} --url http://coord:8000"
-            docker exec core_as1301 /bin/bash -c "scionlab-config --host-id ${core_as1301_uid} --host-secret ${core_as1301_secret} --url http://coord:8000"
-            docker exec core_as1301 /bin/bash -c "scionlab-config --host-id ${core_as1301_uid} --host-secret ${core_as1301_secret} --url http://coord:8000"
 
       - run:
           name: Check SCION connections
           command: |
             set -x
             # Wait for beaconing to start
-            docker exec infra_as1305 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
-            docker exec core_as1301 /bin/bash -c "scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
-            docker exec infra_as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
+            docker exec as1305 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
+            docker exec as1301 /bin/bash -c "scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
+            docker exec as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
 
       - run:
           name: Check deploy
           command: |
             set -x
             # Recheck 1303
-            docker exec infra_as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
+            docker exec as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
 
             # Setup ssh
             ssh-keygen -t rsa -b 4096 -C "deploy" -f ~/.ssh/deploy_rsa -N ""
-            docker cp ~/.ssh/deploy_rsa.pub infra_as1303:/tmp/
-            docker cp ./scionlab/hostfiles/scionlab-config infra_as1303:/tmp/scionlab-config
-            docker exec -d infra_as1303 /bin/bash -c "sudo mkdir /var/run/sshd && mkdir ~/.ssh && cat /tmp/deploy_rsa.pub >> ~/.ssh/authorized_keys && sudo mv /tmp/scionlab-config /usr/bin/scionlab-config && sudo chmod +x /usr/bin/scionlab-config && sudo cp /home/scion/.local/bin/supervisorctl /usr/bin/; sudo /usr/sbin/sshd"
+            docker cp ~/.ssh/deploy_rsa.pub as1303:/tmp/
+            docker cp ./scionlab/hostfiles/scionlab-config as1303:/tmp/scionlab-config
+            docker exec -d as1303 /bin/bash -c "sudo mkdir /var/run/sshd && mkdir ~/.ssh && cat /tmp/deploy_rsa.pub >> ~/.ssh/authorized_keys && sudo mv /tmp/scionlab-config /usr/bin/scionlab-config && sudo chmod +x /usr/bin/scionlab-config && sudo cp /home/scion/.local/bin/supervisorctl /usr/bin/; sudo /usr/sbin/sshd"
             docker exec coord /bin/bash -c 'mkdir -p ~/.ssh'
             docker cp ~/.ssh/deploy_rsa coord:/home/circleci/.ssh/
 
@@ -152,7 +158,7 @@ jobs:
             docker exec -d coord /bin/bash -c 'cd /home/circleci/repo/scionlab && . /tmp/venv/bin/activate && PYTHONPATH=/tmp/scion/python python manage.py run_huey -w 8 &'
             sleep 10
 
-            # Change internal IP of infra_as1303
+            # Change internal IP of as1303
             docker run --net circleci_as_net -dt --name update_AS\
                   --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url 'admin/scionlab/host/7/change/' --data '{\"AS\": 7, \"internal_ip\": \"172.31.0.111\", \"public_ip\": \"172.31.0.111\", \"managed\": \"on\",\"ssh_host\": \"172.31.0.111\", \"secret\": \"a2532f97fe144a88944e2860e525f220\"}' --action update; cat"
             docker cp .circleci/setup/admin_action.py update_AS:/tmp/admin_action.py
@@ -164,64 +170,64 @@ jobs:
 
             # Check change was deployed and connection still works
             # i) IP was updated
-            docker exec infra_as1303 /bin/bash -c 'until [ `grep "172.31.0.111" -s -r /etc/scion/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done;'
+            docker exec as1303 /bin/bash -c 'until [ `grep "172.31.0.111" -s -r /etc/scion/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done;'
             # ii) Showpaths displays the paths
-            docker exec infra_as1303 /bin/bash -c 'until showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done;'
+            docker exec as1303 /bin/bash -c 'until showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done;'
             # iii) SCMP completes without error for 10 echo requests
-            docker exec infra_as1303 /bin/bash -c 'until scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
+            docker exec as1303 /bin/bash -c 'until scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
 
       - run:
           name: Test TRC update
           command: |
             set -x
             # Restart ASes
-            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d infra_as1303 infra_as1305
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d as1303 as1305
             AS_ID=1305 # largest AS ID in the ISD
             TRC_version=1 # initial TRC version
 
             for n in 1 3; do
                 echo $AS_ID
                 # Show current TRC
-                docker exec core_as1301 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
+                docker exec as1301 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
 
                 # Add core AS(es) for ISD 19
-                docker run --net circleci_as_net -d --name add_core_AS\
+                docker run --net circleci_as_net -d --name add_AS\
                   --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url admin/scionlab/as/add/ --action add --prev_ia ${AS_ID} --count ${n}" # largest AS ID in the ISD, number of new core ASes
-                docker cp .circleci/setup/admin_action.py add_core_AS:/tmp/admin_action.py
+                docker cp .circleci/setup/admin_action.py add_AS:/tmp/admin_action.py
                 AS_ID=$(( $AS_ID + $n ))
                 TRC_version=$(( $TRC_version + $n ))
                 sleep 10
 
                 # Reload configurations
-                docker exec core_as1301 /bin/bash -c "${SC}/reloadASConfig.sh"
-                docker exec infra_as1303 /bin/bash -c "${SC}/reloadASConfig.sh"
-                docker exec infra_as1305 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec as1301 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec as1303 /bin/bash -c "${SC}/reloadASConfig.sh"
+                docker exec as1305 /bin/bash -c "${SC}/reloadASConfig.sh"
                 sleep 10
 
                 # Check that TRCs were updated
-                docker exec core_as1301 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc;" >> "./TRC_V${TRC_version}.json"
-                docker exec infra_as1303 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc;"
-                docker exec infra_as1305 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc;"
+                docker exec as1301 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc;" >> "./TRC_V${TRC_version}.json"
+                docker exec as1303 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc;"
+                docker exec as1305 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc;"
 
                 # Check that infra still works
                 sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
-                docker exec core_as1301 /bin/bash -c "scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
-                docker exec infra_as1305 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
-                docker exec infra_as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
+                docker exec as1301 /bin/bash -c "scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
+                docker exec as1305 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
+                docker exec as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
             done
 
-            core_countV2=$(jq '.CoreASes | length' ./TRC_V2.json)
-            echo "Expected 3 core ASes in TRC V2, got ${core_countV2}"
-            core_countV5=$(jq '.CoreASes | length' ./TRC_V5.json)
-            echo "Expected 6 core ASes in TRC V5, got ${core_countV5}"
+            countV2=$(jq '.CoreASes | length' ./TRC_V2.json)
+            echo "Expected 3 core ASes in TRC V2, got ${countV2}"
+            countV5=$(jq '.CoreASes | length' ./TRC_V5.json)
+            echo "Expected 6 core ASes in TRC V5, got ${countV5}"
 
-            # We capture the exit codes from the infra_as containers
-            #E1303=$(docker wait infra_as1303)
-            #E1305=$(docker wait infra_as1305)
-            #echo -e "Exit codes:\n\t\tinfra_as1303: ${E1303}\n\t\tinfra_as1305: ${E1305}"
-            #docker logs core_as1301
-            #docker logs infra_as1303
-            #docker logs infra_as1305
+            # We capture the exit codes from the as containers
+            #E1303=$(docker wait as1303)
+            #E1305=$(docker wait as1305)
+            #echo -e "Exit codes:\n\t\tas1303: ${E1303}\n\t\tas1305: ${E1305}"
+            #docker logs as1301
+            #docker logs as1303
+            #docker logs as1305
 
       - run:
           name: Start VPN containers and verify the connection over VPN works
@@ -233,18 +239,18 @@ jobs:
               exit 0
             fi
             echo "Start containers required for VPN AP and verify they are working"
-            export core_as1401IP=172.31.0.113 infra_as1405IP=172.31.0.114
-            docker-compose -f .circleci/docker-compose.yml create core_as1401 infra_as1405
+            export as1401_ip=172.31.0.113 as1405_ip=172.31.0.114
+            docker-compose -f .circleci/docker-compose.yml create as1401 as1405
 
             # Load setup files
-            for dst_AS in core_as1401 infra_as1405; do
+            for dst_AS in as1401 as1405; do
                 for f in $(ls .circleci/setup/); do
                     docker cp .circleci/setup/${f} ${dst_AS}:${SC}/
                 done
             done
-            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d core_as1401 infra_as1405
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d as1401 as1405
             # Wait for AP to be set up (key generation is slow)
-            docker exec infra_as1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 0.1; done;"
+            docker exec as1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 0.1; done;"
             echo "AP started"
 
             # Start user AS container, create user AS and connect:

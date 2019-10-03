@@ -13,85 +13,62 @@ services:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-coord
-    container_name: coord
     networks:
       as_net:
         ipv4_address: 172.31.0.10
     ports:
       - "8432:8000"
 
-  core_as1301:
+  as1301:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
-    container_name: core_as1301
-    depends_on:
-      - coord
     networks:
       as_net:
-        ipv4_address: ${core_as1301IP}
-    environment:
-      # host id/secret from fixture
-      CUSER: 098625df419a48279761954bb7b4ce78
-      CSECRET: 10cc1584deea4a10b9210a4c03c2d872
+        ipv4_address: ${as1301_ip}
+    env_file: /tmp/as1301.env
     privileged: true
 
-  infra_as1303:
+  as1303:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
-    container_name: infra_as1303
-    depends_on:
-      - core_as1301
     networks:
       as_net:
-        ipv4_address: ${infra_as1303IP}
-    environment:
-      CUSER: f5422107f7354c55b9f54a4befe0f58d
-      CSECRET: a2532f97fe144a88944e2860e525f220
+        ipv4_address: ${as1303_ip}
+    env_file: /tmp/as1303.env
     privileged: true
 
-  infra_as1305:
+  as1305:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
-    container_name: infra_as1305
-    depends_on:
-      - core_as1301
     networks:
       as_net:
-        ipv4_address: ${infra_as1305IP}
-    environment:
-      CUSER: 4a715f91a023481fb21e61669777238f
-      CSECRET: ab4c5aa179be4a37ba7db180517ea6f5
+        ipv4_address: ${as1305_ip}
+    env_file: /tmp/as1305.env
     privileged: true
 
-  core_as1401:
+  as1401:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
-    container_name: core_as1401
     networks:
       as_net:
-        ipv4_address: ${core_as1401IP}
-    environment:
-      CUSER: 528974e4534147858b305e1435de8658
-      CSECRET: 30d63340acba4c4d8f84dc62417b58df
-    tty: true
-    # waits for binaries and setup script to be loaded, then keeps beaconing
-    entrypoint: /bin/bash
+        ipv4_address: ${as1401_ip}
+    env_file: /tmp/as1401.env
+    privileged: true
     command: -c "until [ -e ${SC}/reloadASConfig.sh ]; do sleep 1; done; ${SC}/reloadASConfig.sh; cat;"
 
-  infra_as1405:
+  as1405:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
-    container_name: infra_as1405
     depends_on:
-      - core_as1401
+      - as1401
     networks:
       as_net:
-        ipv4_address: ${infra_as1405IP}
+        ipv4_address: ${as1405_ip}
     privileged: true
     environment:
       CUSER: 2c872b10a8a348949cf181a1cb8b9a62
