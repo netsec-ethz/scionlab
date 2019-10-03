@@ -121,7 +121,7 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/br.toml: |
   Profile = false
 
   [general]
-  ConfigDir = "gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1"
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1"
   ID = "br20-ffaa_1_3-1"
 
   [metrics]
@@ -312,7 +312,7 @@ gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/bs.toml: |
   Connection = "/var/lib/scion/bs20-ffaa_1_3-1.beacon.db"
 
   [general]
-  ConfigDir = "gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1"
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1"
   ID = "bs20-ffaa_1_3-1"
   ReconnectToDispatcher = true
 
@@ -577,7 +577,7 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/cs.toml: |
   ReissueTimeout = "5s"
 
   [general]
-  ConfigDir = "gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1"
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1"
   ID = "cs20-ffaa_1_3-1"
   ReconnectToDispatcher = true
 
@@ -772,7 +772,7 @@ gen/ISD20/ASffaa_1_3/endhost/certs/ISD20-V1.trc: |-
   }
 gen/ISD20/ASffaa_1_3/endhost/sd.toml: |
   [general]
-  ConfigDir = "gen/ISD20/ASffaa_1_3/sd20-ffaa_1_3"
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/sd20-ffaa_1_3"
   ID = "sd20-ffaa_1_3"
   ReconnectToDispatcher = true
 
@@ -973,7 +973,7 @@ gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/master1.key: |-
   YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/ps.toml: |
   [general]
-  ConfigDir = "gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1"
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1"
   ID = "ps20-ffaa_1_3-1"
   ReconnectToDispatcher = true
 

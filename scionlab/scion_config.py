@@ -256,7 +256,7 @@ class _ConfigBuilder:
     """
     def __init__(self, config_dir, log_dir, var_dir, isd_as_dir):
         self.config_dir = config_dir
-        self.config_isd_as_dir = os.path.join(isd_as_dir)
+        self.config_isd_as_dir = os.path.join(config_dir, isd_as_dir)
         self.log_dir = log_dir
         self.var_dir = var_dir
 
