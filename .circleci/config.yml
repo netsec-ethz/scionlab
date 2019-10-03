@@ -94,7 +94,7 @@ jobs:
       - run:
           name: Extract host configuration info from testdata.yaml fixture
           command: |
-            python3 .circleci/setup/generate-host-envs.py
+            python .circleci/setup/generate-host-envs.py
 
       - run:
           name: Build container images
