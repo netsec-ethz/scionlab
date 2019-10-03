@@ -2,6 +2,7 @@
 # Write the information to /tmp/asXY.env files, so it can easily be consumed in the docker-compose
 # setup.
 
+from __future__ import print_function
 import yaml
 import pathlib
 
@@ -35,5 +36,5 @@ for host in hosts.values():
         }
         env_str = '\n'.join('%s=%s' % (k, v) for k, v in envs.items())
         pathlib.Path(env_filename).write_text(env_str)
-        print env_filename, ':'
-        print env_str
+        print(env_filename, ':')
+        print(env_str)
