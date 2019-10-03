@@ -90,10 +90,15 @@ jobs:
       - checkout
 
       - run:
-          name: Setup coordinator
+          name: Build container images
           command: |
             set -x
             export core_as1301IP=172.31.0.110 infra_as1303IP=172.31.0.111 infra_as1305IP=172.31.0.112
+            docker-compose -f .circleci/docker-compose.yml build
+
+      - run:
+          name: Setup coordinator
+          command: |
             docker-compose -f .circleci/docker-compose.yml up -d coord
 
       # Start integration tests
@@ -107,7 +112,7 @@ jobs:
             # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
             docker run --net circleci_as_net --name curl_test\
-              --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://coord:8000/login/ 2>/dev/null; do sleep 0.1; done;"
+              --rm --entrypoint /bin/bash ubuntu:xenial -c "until curl --retry 5 --retry-delay 1 http://coord:8000/login/ 2>/dev/null; do sleep 0.1; done;"
 
             docker-compose -f .circleci/docker-compose.yml up -d core_as1301 infra_as1303 infra_as1305
             docker exec core_as1301 /bin/bash -c 'scionlab-config ... && wait ...'
