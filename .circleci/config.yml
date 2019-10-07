@@ -34,7 +34,7 @@ jobs:
           - v3-dependencies-
 
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: |
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
@@ -52,7 +52,7 @@ jobs:
 
       # run flake8
       - run:
-          name: run flake8 style checker
+          name: Run flake8 style checker
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/flake8/
@@ -60,13 +60,10 @@ jobs:
 
       # run Django's tests (using nose as the test runner)
       - run:
-          name: run tests
+          name: Run tests
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/django/
-            # Create migrations, otherwise test DB will not be initialised properly
-            # TODO: remove once migrations are checked in!
-            PYTHONPATH=/tmp/scion/python python manage.py makemigrations scionlab
             PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
