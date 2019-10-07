@@ -53,3 +53,4 @@ def update_core_keys(as_ids):
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scionlab.settings.development')
     django.setup()
+    main()
