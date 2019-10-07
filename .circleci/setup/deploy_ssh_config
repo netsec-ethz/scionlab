@@ -1,9 +1,11 @@
-# This is the ssh_config file for the automatic deployment 
+# This is the ssh_config file for the deployment in the integration tests
 
-Host as*
-    User scionlab
-    StrictHostKeyChecking no
-    IdentityFile /home/circleci/.ssh/deploy_rsa
-    HashKnownHosts yes
-    GSSAPIAuthentication yes
-    GSSAPIDelegateCredentials no
+User scionlab
+IdentityFile /home/circleci/.ssh/deploy_rsa
+IdentitiesOnly yes
+UserKnownHostsFile /dev/null
+StrictHostKeyChecking no
+PasswordAuthentication no
+ServerAliveInterval 300
+ServerAliveCountMax 2
+ConnectTimeout 20

@@ -160,39 +160,22 @@ jobs:
               'scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
-          name: Check deploy
+          name: "Push changes to AS ffaa:0:1303"
+          no_output_time: "1m"
           command: |
             set -x
 
-            # Setup ssh
-            ssh-keygen -t rsa -b 4096 -C "deploy" -f ~/.ssh/deploy_rsa -N ""
-            docker cp ~/.ssh/deploy_rsa.pub as1303:/tmp/
-            docker exec -d as1303 /bin/bash -c "sudo mkdir /var/run/sshd && mkdir ~/.ssh && cat /tmp/deploy_rsa.pub >> ~/.ssh/authorized_keys"
-            docker exec coord /bin/bash -c 'mkdir -p ~/.ssh'
-            docker cp ~/.ssh/deploy_rsa coord:/home/circleci/.ssh/
-
-            # Start the huey consumer
-            docker exec -d coord /bin/bash -c 'cd /home/circleci/repo/scionlab && . /tmp/venv/bin/activate && PYTHONPATH=/tmp/scion/python python manage.py run_huey -w 8 &'
+            # Start the huey worker (in the 'coord' container, it shares the db-file)
+            docker-compose exec -Td coord /bin/bash -c 'python manage.py run_huey -w 8'
             sleep 10
 
-            # Change internal IP of as1303
-            docker run --net circleci_as_net -dt --name update_AS\
-                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url 'admin/scionlab/host/7/change/' --data '{\"AS\": 7, \"internal_ip\": \"172.31.0.111\", \"public_ip\": \"172.31.0.111\", \"managed\": \"on\",\"ssh_host\": \"172.31.0.111\", \"secret\": \"a2532f97fe144a88944e2860e525f220\"}' --action update; cat"
-            docker cp .circleci/setup/admin_action.py update_AS:/tmp/admin_action.py
+            # Generate new AS-keys for 1303 and push the new configuration.
+            # This waits until the configuration has been deployed.
+            docker-compose exec coord python manage.py shell .circleci/actions/update-keys.py "ffaa:0:1303"
 
-            # Trigger a manual deployment
-            docker exec -d update_AS\
-                  /bin/bash -c "sleep 10; python3 /tmp/admin_action.py --url 'admin/scionlab/host/' --data '{\"action\": \"trigger_config_deployment\", \"select_across\": 0, \"index\": 0,\"_selected_action\": 7}' --action trigger"
-            docker stop update_AS
-
-            # Check change was deployed and connection still works
-            # i) IP was updated
-            docker exec as1303 /bin/bash -c 'until [ `grep "172.31.0.111" -s -r /etc/scion/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done;'
-            # ii) Showpaths displays the paths
-            docker exec as1303 /bin/bash -c 'until showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done;'
-            # iii) SCMP completes without error for 10 echo requests
-            docker exec as1303 /bin/bash -c 'until scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
-
+            # Check that connection still works
+            docker exec as1303 /bin/bash -c \
+              'scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
       - run:
           name: Test TRC update
           command: |
