@@ -14,26 +14,42 @@
 
 """ Update AS keys for AS with given ids """
 
+import argparse
 import os
-import sys
 
 import django
 
 
-def main(argv):
-    for as_id in argv[1:]:
-        print("Update keys for AS %s" % as_id)
-        update_keys(as_id)
+def main():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('as_ids', nargs='+')
+    parser.add_argument('--core-keys', action='store_true',
+                        help='update core keys (default: update AS keys)')
+
+    args = parser.parse_args()
+
+    if args.core_keys:
+        print("Update keys for AS %s" % args.as_ids)
+        update_keys(args.as_ids)
+    else:
+        print("Update core keys for %s" % args.as_ids)
+        update_core_keys(args.as_ids)
 
 
-def update_keys(as_id):
+def update_keys(as_ids):
     from scionlab.models.core import AS
 
-    as_ = AS.objects.filter(as_id=as_id).get()
-    as_.update_keys()
+    for as_ in AS.objects.filter(as_id__in=as_ids).iterator():
+        as_.update_keys()
+
+
+def update_core_keys(as_ids):
+    from scionlab.models.core import AS
+
+    ases = AS.objects.filter(as_id__in=as_ids)
+    AS.update_core_as_keys(ases)
 
 
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scionlab.settings.development')
     django.setup()
-    main(sys.argv)
