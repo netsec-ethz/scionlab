@@ -95,6 +95,7 @@ jobs:
           name: Build container images
           working_directory: ~/project/.circleci
           command: |
+            sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
             docker-compose build
 
       - run:
