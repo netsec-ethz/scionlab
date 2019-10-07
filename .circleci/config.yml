@@ -100,7 +100,7 @@ jobs:
           working_directory: ~/project/.circleci
           command: |
             docker-compose run -T coord /bin/bash scripts/init-test-db.sh
-            docker-compose up coord
+            docker-compose up -d coord
 
             # We start another container with curl in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
