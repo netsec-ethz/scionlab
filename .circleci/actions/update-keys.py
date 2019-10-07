@@ -14,19 +14,19 @@
 
 """ Update AS keys and trigger re-deployment """
 
-import os
 import sys
 import time
-
-import django
 from django.db import transaction
 
 from scionlab.models.core import AS, Host
 import scionlab.tasks
 
 
-def main(argv):
-    as_id = argv[1]
+AS_ID = "ffaa:0:1303"
+
+
+def main():
+    as_id = AS_ID
     print("Update keys for AS %s" % as_id)
     update_keys(as_id)
 
@@ -52,6 +52,4 @@ def wait_until_deployed(as_id):
 
 
 if __name__ == '__main__':
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scionlab.settings.development')
-    django.setup()
-    main(sys.argv)
+    main()

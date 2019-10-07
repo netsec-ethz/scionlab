@@ -170,7 +170,7 @@ jobs:
 
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
-            docker-compose exec -T coord python .circleci/actions/update-keys.py "ffaa:0:1303"
+            docker-compose exec -T coord python manage.py shell < .circleci/actions/update-keys.py
 
             # Check that connection still works
             docker exec as1303 /bin/bash -c \
