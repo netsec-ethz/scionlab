@@ -18,6 +18,19 @@ services:
         ipv4_address: 172.31.0.10
     ports:
       - "8432:8000"
+    volumes:
+      - ./run/:/scionlab/run/
+
+  huey:
+    build:
+      context: ..
+      dockerfile: .circleci/Dockerfile-coord
+    command: manage.py run_huey -w 8
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.11
+    volumes:
+      - ./run/:/scionlab/run/
 
   as1301:
     build:

@@ -139,7 +139,7 @@ jobs:
       - run:
           name: Check SCION connections
           working_directory: ~/project/.circleci
-          no_output_time: "3m"
+          no_output_time: "3m0s"
           command: |
             set -x
 
@@ -160,20 +160,21 @@ jobs:
       - run:
           name: "Push changes to AS ffaa:0:1303"
           working_directory: ~/project/.circleci
-          no_output_time: "1m"
+          no_output_time: "1m0s"
           command: |
             set -x
 
-            # Start the huey worker (in the 'coord' container, it shares the db-file)
-            docker-compose exec -Td coord python manage.py run_huey -w 8
-            sleep 10
-
             prev_version=`docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version`
+
+            # Start the huey worker
+            docker-compose up huey
 
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
             docker-compose exec -T coord /bin/bash -c \
               'PYTHONPATH=$PYTHONPATH:. python .circleci/actions/update-keys.py ffaa:0:1303'
+
+            docker-compose logs huey
 
             # Check that
             # i) configuration was deployed

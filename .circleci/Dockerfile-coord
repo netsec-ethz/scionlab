@@ -5,11 +5,11 @@ ENV PYTHONUNBUFFERED 1
 RUN git clone https://github.com/netsec-ethz/netsec-scion.git -b scionlab --depth 1 /tmp/scion
 
 RUN pip install --upgrade pip
-COPY requirements.txt dev-requirements.txt /home/circleci/repo/
-WORKDIR /home/circleci/repo/
+COPY requirements.txt dev-requirements.txt /scionlab/
+WORKDIR /scionlab/
 RUN pip install -r requirements.txt -r dev-requirements.txt
 
-COPY . /home/circleci/repo/
+COPY . /scionlab/
 
 # Fixup django settings for the integration tests:
 RUN sed -i 's/^SCIONLAB_SITE = .*/SCIONLAB_SITE = "http:\/\/coord:8000"/' scionlab/settings/development.py
@@ -21,4 +21,4 @@ RUN mkdir ~/.ssh && cp .circleci/setup/deploy_ssh_config ~/.ssh/ssh_config; cp .
 ENV PYTHONPATH /tmp/scion/python
 RUN scripts/init-test-db.sh
 
-CMD ["python","manage.py","runserver","0.0.0.0:8000"]
+CMD ["scripts/init-test-db.sh; exec manage.py runserver 0.0.0.0:8000"]
