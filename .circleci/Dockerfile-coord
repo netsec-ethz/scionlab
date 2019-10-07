@@ -20,4 +20,4 @@ RUN mkdir ~/.ssh && cp .circleci/setup/deploy_ssh_config ~/.ssh/ssh_config; cp .
 # Load fixtures and initalize test DB
 ENV PYTHONPATH /tmp/scion/python
 
-CMD ["manage.py","runserver","0.0.0.0:8000"]
+CMD ["python", "manage.py","runserver","0.0.0.0:8000"]

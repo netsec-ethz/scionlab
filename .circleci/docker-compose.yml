@@ -25,7 +25,7 @@ services:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-coord
-    command: manage.py run_huey -w 8
+    command: python manage.py run_huey -w 8
     networks:
       as_net:
         ipv4_address: 172.31.0.11
