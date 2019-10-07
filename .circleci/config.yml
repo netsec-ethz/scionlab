@@ -162,6 +162,7 @@ jobs:
 
       - run:
           name: "Push changes to AS ffaa:0:1303"
+          working_directory: ~/project/.circleci
           no_output_time: "1m"
           command: |
             set -x
@@ -177,6 +178,7 @@ jobs:
             # Check that connection still works
             docker exec as1303 /bin/bash -c \
               'scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+
       - run:
           name: Test TRC update
           command: |
