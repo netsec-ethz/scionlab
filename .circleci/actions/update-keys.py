@@ -12,50 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Update AS keys and trigger re-deployment """
+""" Update AS keys for AS with given ids """
 
 import os
 import sys
-import time
 
 import django
-from django.db import transaction
 
-
-AS_ID = "ffaa:0:1303"
-TIMEOUT = 60
 
 def main(argv):
-    as_id = argv[1]
-    print("Update keys for AS %s" % as_id)
-    update_keys(as_id)
-
-    print("Await confirmation that AS %s has been deployed" % as_id)
-    wait_until_deployed(as_id)
-    print("Deployment of AS %s confirmed." % as_id)
+    for as_id in argv[1:]:
+        print("Update keys for AS %s" % as_id)
+        update_keys(as_id)
 
 
-@transaction.atomic
 def update_keys(as_id):
-    import scionlab.tasks
     from scionlab.models.core import AS
 
     as_ = AS.objects.filter(as_id=as_id).get()
     as_.update_keys()
-
-    for h in as_.hosts.iterator():
-        assert h.managed
-        assert h.ssh_host
-        scionlab.tasks.deploy_host_config(h)
-
-
-def wait_until_deployed(as_id):
-    from scionlab.models.core import Host
-
-    timeout = time.time() + TIMEOUT
-    while time.time() < timeout and \
-            Host.objects.needs_config_deployment().filter(AS__as_id=as_id).exists():
-        time.sleep(1)
 
 
 if __name__ == '__main__':

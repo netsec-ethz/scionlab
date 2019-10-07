@@ -100,7 +100,7 @@ jobs:
           working_directory: ~/project/.circleci
           command: |
             docker-compose run -T coord /bin/bash -c \
-            './scripts/init-test-db.sh && \
+             './scripts/init-test-db.sh && \
               cp .circleci/setup/deploy_ssh_config run/ssh_config && \
               cp .circleci/setup/deploy_rsa* run/'
 
@@ -176,7 +176,9 @@ jobs:
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
             docker-compose exec -T coord /bin/bash -c \
-              'PYTHONPATH=$PYTHONPATH:. python .circleci/actions/update-keys.py ffaa:0:1303'
+             'export PYTHONPATH=$PYTHONPATH:.; \
+              python .circleci/actions/update-keys.py ffaa:0:1303; \
+              python .circleci/actions/push-deploy.py ffaa:0:1303'
 
             docker-compose logs huey
 
