@@ -151,11 +151,11 @@ jobs:
 
             # Check that we can SCMP
             docker-compose exec -T as1301 /bin/bash -c \
-              'scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
+              'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
             docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
             docker-compose exec -T as1305 /bin/bash -c \
-              'scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+              'scmp echo -c 5 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
           name: "Push changes to AS ffaa:0:1303"
@@ -170,11 +170,11 @@ jobs:
 
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
-            docker-compose exec -T coord python manage.py shell < .circleci/actions/update-keys.py
+            docker-compose exec -T coord python manage.py shell < actions/update-keys.py
 
             # Check that connection still works
             docker exec as1303 /bin/bash -c \
-              'scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
           name: Test TRC update
