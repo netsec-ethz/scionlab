@@ -135,7 +135,7 @@ jobs:
 
             for c in as1301 as1303 as1305; do
               docker-compose exec $c /bin/bash -c \
-                'systemctl is-failed scionlab && false || true'
+                'systemctl is-failed scion-* && false || true'
             done
 
       - run:
@@ -167,8 +167,7 @@ jobs:
             # Setup ssh
             ssh-keygen -t rsa -b 4096 -C "deploy" -f ~/.ssh/deploy_rsa -N ""
             docker cp ~/.ssh/deploy_rsa.pub as1303:/tmp/
-            docker cp ./scionlab/hostfiles/scionlab-config as1303:/tmp/scionlab-config
-            docker exec -d as1303 /bin/bash -c "sudo mkdir /var/run/sshd && mkdir ~/.ssh && cat /tmp/deploy_rsa.pub >> ~/.ssh/authorized_keys && sudo mv /tmp/scionlab-config /usr/bin/scionlab-config && sudo chmod +x /usr/bin/scionlab-config && sudo cp /home/scion/.local/bin/supervisorctl /usr/bin/; sudo /usr/sbin/sshd"
+            docker exec -d as1303 /bin/bash -c "sudo mkdir /var/run/sshd && mkdir ~/.ssh && cat /tmp/deploy_rsa.pub >> ~/.ssh/authorized_keys"
             docker exec coord /bin/bash -c 'mkdir -p ~/.ssh'
             docker cp ~/.ssh/deploy_rsa coord:/home/circleci/.ssh/
 

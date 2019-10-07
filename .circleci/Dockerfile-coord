@@ -4,22 +4,23 @@ ENV PYTHONUNBUFFERED 1
 # Get scion dependency
 RUN git clone https://github.com/netsec-ethz/netsec-scion.git -b scionlab --depth 1 /tmp/scion
 
-COPY . /home/circleci/repo/
+COPY requirements.txt dev-requirements.txt /home/circleci/repo/
 WORKDIR /home/circleci/repo/
 
-# Regular coordinator installation procedure
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt -r dev-requirements.txt
 
-# Load fixtures and initalize test DB
-ENV PYTHONPATH /tmp/scion/python
+COPY . /home/circleci/repo/
 
+# Load fixtures and initalize test DB
 RUN scripts/init-test-db.sh
 
-# XXX: 
-#ocker exec coord /bin/bash -c 'echo "SCIONLAB_SITE = \"http://coord:8000\"" >> ~/repo/scionlab/scionlab/settings/development.py'
-#
-# Update coordinator url config
-#docker cp .circleci/setup/ssh_config coord:/home/circleci/repo/scionlab/run/ssh_config
+# Fixup django settings for the integration tests:
+RUN sed -i 's/^SCIONLAB_SITE = .*/SCIONLAB_SITE = "http://coord:8000"/' scionlab/scionlab/settings/development.py
+
+# Install SSH config for host deployment
+RUN mkdir ~/.ssh && cp .circleci/setup/deploy_ssh_config .ssh/ssh_config; cp .circleci/setup/deploy_rsa* .ssh/
+
+ENV PYTHONPATH /tmp/scion/python
 
 CMD ["python","manage.py","runserver","0.0.0.0:8000"]

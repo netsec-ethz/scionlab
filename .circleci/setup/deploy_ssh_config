@@ -1,0 +1,9 @@
+# This is the ssh_config file for the automatic deployment 
+
+Host as*
+    User scionlab
+    StrictHostKeyChecking no
+    IdentityFile /home/circleci/.ssh/deploy_rsa
+    HashKnownHosts yes
+    GSSAPIAuthentication yes
+    GSSAPIDelegateCredentials no
