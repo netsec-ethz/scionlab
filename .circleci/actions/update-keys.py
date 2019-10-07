@@ -29,11 +29,11 @@ def main():
     args = parser.parse_args()
 
     if args.core_keys:
-        print("Update keys for AS %s" % args.as_ids)
-        update_keys(args.as_ids)
-    else:
         print("Update core keys for %s" % args.as_ids)
         update_core_keys(args.as_ids)
+    else:
+        print("Update keys for AS %s" % args.as_ids)
+        update_keys(args.as_ids)
 
 
 def update_keys(as_ids):
