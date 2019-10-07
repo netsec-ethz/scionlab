@@ -14,7 +14,8 @@ COPY . /scionlab/
 # Fixup django settings for the integration tests:
 RUN sed -i 's/^SCIONLAB_SITE = .*/SCIONLAB_SITE = "http:\/\/coord:8000"/' scionlab/settings/development.py
 
-# Load fixtures and initalize test DB
-ENV PYTHONPATH /tmp/scion/python
+# Add scion to PYTHONPATH
+# Add /scionlab/ to PYTHONPATH to simplify running the scripts in .circleci/actions/
+ENV PYTHONPATH /tmp/scion/python:/scionlab/
 
 CMD ["python", "manage.py","runserver","0.0.0.0:8000"]
