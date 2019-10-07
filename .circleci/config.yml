@@ -165,12 +165,12 @@ jobs:
             set -x
 
             # Start the huey worker (in the 'coord' container, it shares the db-file)
-            docker-compose exec -Td coord /bin/bash -c 'python manage.py run_huey -w 8'
+            docker-compose exec -Td coord python manage.py run_huey -w 8
             sleep 10
 
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
-            docker-compose exec coord python manage.py shell .circleci/actions/update-keys.py "ffaa:0:1303"
+            docker-compose exec -T coord python .circleci/actions/update-keys.py "ffaa:0:1303"
 
             # Check that connection still works
             docker exec as1303 /bin/bash -c \
