@@ -168,11 +168,17 @@ jobs:
             docker-compose exec -Td coord python manage.py run_huey -w 8
             sleep 10
 
+            prev_version=`docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version`
+
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
             docker-compose exec -T coord python manage.py shell < actions/update-keys.py
 
-            # Check that connection still works
+            # Check that
+            # i) configuration was deployed
+            new_version=`docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version`
+            [ "$prev_version" -lt "$new_version" ]
+            # ii) connection still works
             docker-compose exec -T as1303 /bin/bash -c \
               'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
