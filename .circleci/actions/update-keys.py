@@ -23,7 +23,7 @@ from django.db import transaction
 
 
 AS_ID = "ffaa:0:1303"
-
+TIMEOUT = 60
 
 def main(argv):
     as_id = argv[1]
@@ -52,7 +52,9 @@ def update_keys(as_id):
 def wait_until_deployed(as_id):
     from scionlab.models.core import Host
 
-    while Host.objects.needs_config_deployment().filter(AS__as_id=as_id).exists():
+    timeout = time.time() + TIMEOUT
+    while time.time() < timeout and \
+            Host.objects.needs_config_deployment().filter(AS__as_id=as_id).exists():
         time.sleep(1)
 
 

@@ -99,7 +99,11 @@ jobs:
           name: Start coordinator
           working_directory: ~/project/.circleci
           command: |
-            docker-compose run -T coord /bin/bash scripts/init-test-db.sh
+            docker-compose run -T coord /bin/bash -c \
+            './scripts/init-test-db.sh && \
+              cp .circleci/setup/deploy_ssh_config run/ssh_config && \
+              cp .circleci/setup/deploy_rsa* run/'
+
             docker-compose up -d coord
 
             # We start another container with curl in the same network as `coord` to check `coord` is ready.

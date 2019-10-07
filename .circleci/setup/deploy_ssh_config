@@ -1,7 +1,7 @@
 # This is the ssh_config file for the deployment in the integration tests
 
 User scionlab
-IdentityFile /home/circleci/.ssh/deploy_rsa
+IdentityFile /scionlab/run/deploy_rsa
 IdentitiesOnly yes
 UserKnownHostsFile /dev/null
 StrictHostKeyChecking no

@@ -14,9 +14,6 @@ COPY . /scionlab/
 # Fixup django settings for the integration tests:
 RUN sed -i 's/^SCIONLAB_SITE = .*/SCIONLAB_SITE = "http:\/\/coord:8000"/' scionlab/settings/development.py
 
-# Install SSH config for host deployment
-RUN mkdir ~/.ssh && cp .circleci/setup/deploy_ssh_config ~/.ssh/ssh_config; cp .circleci/setup/deploy_rsa* ~/.ssh/
-
 # Load fixtures and initalize test DB
 ENV PYTHONPATH /tmp/scion/python
 
