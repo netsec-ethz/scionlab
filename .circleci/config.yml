@@ -126,12 +126,26 @@ jobs:
             docker-compose logs
 
       - run:
+          name: Check AS services status
+          working_directory: ~/project/.circleci
+          command: |
+            set -x
+
+            sleep 10  # Give the services enough time to start (or fail)
+
+            for c in as1301 as1303 as1305; do
+              docker-compose exec $c /bin/bash -c \
+                'systemctl is-failed scionlab && false || true'
+            done
+
+      - run:
           name: Check SCION connections
           working_directory: ~/project/.circleci
           no_output_time: "3m"
           command: |
             set -x
-            # Wait for beaconing to start
+
+            # Wait for beacons
             docker-compose exec -T as1303 /bin/bash -c \
               'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
             docker-compose exec -T as1305 /bin/bash -c \
@@ -149,8 +163,6 @@ jobs:
           name: Check deploy
           command: |
             set -x
-            # Recheck 1303
-            docker exec as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
 
             # Setup ssh
             ssh-keygen -t rsa -b 4096 -C "deploy" -f ~/.ssh/deploy_rsa -N ""
