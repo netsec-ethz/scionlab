@@ -172,7 +172,8 @@ jobs:
 
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
-            docker-compose exec -T coord python manage.py shell < actions/update-keys.py
+            docker-compose exec -T coord /bin/bash -c \
+              'PYTHONPATH=$PYTHONPATH:. python .circleci/actions/update-keys.py ffaa:0:1303'
 
             # Check that
             # i) configuration was deployed
@@ -186,10 +187,6 @@ jobs:
           name: Test TRC update
           command: |
             set -x
-            # Restart ASes
-            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d as1303 as1305
-            AS_ID=1305 # largest AS ID in the ISD
-            TRC_version=1 # initial TRC version
 
             for n in 1 3; do
                 echo $AS_ID

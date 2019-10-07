@@ -14,18 +14,19 @@
 
 """ Update AS keys and trigger re-deployment """
 
+import os
+import sys
 import time
-from django.db import transaction
 
-from scionlab.models.core import AS, Host
-import scionlab.tasks
+import django
+from django.db import transaction
 
 
 AS_ID = "ffaa:0:1303"
 
 
-def main():
-    as_id = AS_ID
+def main(argv):
+    as_id = argv[1]
     print("Update keys for AS %s" % as_id)
     update_keys(as_id)
 
@@ -36,6 +37,9 @@ def main():
 
 @transaction.atomic
 def update_keys(as_id):
+    import scionlab.tasks
+    from scionlab.models.core import AS
+
     as_ = AS.objects.filter(as_id=as_id).get()
     as_.update_keys()
 
@@ -46,9 +50,13 @@ def update_keys(as_id):
 
 
 def wait_until_deployed(as_id):
+    from scionlab.models.core import Host
+
     while Host.objects.needs_config_deployment().filter(AS__as_id=as_id).exists():
         time.sleep(1)
 
 
 if __name__ == '__main__':
-    main()
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scionlab.settings.development')
+    django.setup()
+    main(sys.argv)
