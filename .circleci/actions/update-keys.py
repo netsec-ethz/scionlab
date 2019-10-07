@@ -14,7 +14,6 @@
 
 """ Update AS keys and trigger re-deployment """
 
-import sys
 import time
 from django.db import transaction
 
