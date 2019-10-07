@@ -21,4 +21,4 @@ RUN mkdir ~/.ssh && cp .circleci/setup/deploy_ssh_config ~/.ssh/ssh_config; cp .
 ENV PYTHONPATH /tmp/scion/python
 RUN scripts/init-test-db.sh
 
-CMD ["scripts/init-test-db.sh; exec manage.py runserver 0.0.0.0:8000"]
+CMD ["/bin/bash","-c","scripts/init-test-db.sh; exec manage.py runserver 0.0.0.0:8000"]
