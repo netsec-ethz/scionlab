@@ -102,7 +102,9 @@ jobs:
             docker-compose run -T coord /bin/bash -c \
              './scripts/init-test-db.sh && \
               cp .circleci/setup/deploy_ssh_config run/ssh_config && \
-              cp .circleci/setup/deploy_rsa* run/'
+              cp .circleci/setup/deploy_rsa* run/ && \
+              chmod 644 run/deploy_rsa.pub && \
+              chmod 600 run/deploy_rsa'
 
             docker-compose up -d coord
 
