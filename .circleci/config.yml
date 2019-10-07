@@ -167,7 +167,7 @@ jobs:
             prev_version=`docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version`
 
             # Start the huey worker
-            docker-compose up huey
+            docker-compose up -d huey
 
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
