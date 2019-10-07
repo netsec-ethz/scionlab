@@ -52,7 +52,7 @@ def wait_until_deployed(as_ids):
 
 def _needs_deployment(as_ids):
     from scionlab.models.core import Host
-    return Host.objects.needs_config_deployment().filter(AS__as_id__in=as_ids).list()
+    return list(Host.objects.needs_config_deployment().filter(AS__as_id__in=as_ids))
 
 
 if __name__ == '__main__':
