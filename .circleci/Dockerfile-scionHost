@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install --assume-yes scionlab
 # Add 'scionlab' user with passwordless sudo & configure authorized_keys to allow automatic deployment
 RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
 RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
-COPY .circleci/setup/deploy_authorized_keys /home/scionlab/.ssh/authorized_keys
+COPY --chown=scionlab:scionlab .circleci/setup/deploy_authorized_keys /home/scionlab/.ssh/authorized_keys
 
 # Overwrite scionlab-config script with version from repo
 COPY scionlab/hostfiles/scionlab-config /usr/bin/
