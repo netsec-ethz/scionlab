@@ -182,6 +182,7 @@ jobs:
               python .circleci/actions/push-deploy.py ffaa:0:1303'
 
             docker-compose logs huey
+            docker-compose logs coord
 
             # Check that
             # i) configuration was deployed
@@ -210,6 +211,7 @@ jobs:
               python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
 
             docker-compose logs huey
+            docker-compose logs coord
 
             # Check that TRCs were updated
             TRC_version=$((TRC_version + 1))
