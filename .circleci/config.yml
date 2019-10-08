@@ -192,7 +192,7 @@ jobs:
               'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
-          name: Test TRC update
+          name: Test TRC update and push changes
           working_directory: ~/project/.circleci
           command: |
             set -x
@@ -206,7 +206,7 @@ jobs:
             # XXX: update keys for non-core ASes force recreation AS certs.
             docker-compose exec -T coord /bin/bash -c \
              'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301; \
-              python .circleci/actions/update-keys.py ffaa:0:1303 ffaa:0:1305; \ 
+              python .circleci/actions/update-keys.py ffaa:0:1303 ffaa:0:1305; \
               python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
 
             docker-compose logs huey
