@@ -98,7 +98,7 @@ def create_gen(host, archive, process_control):
     :param ProcessControl process_control: configuration generated for installation with
                                            supervisord/systemd
     """
-    generator = ConfigGenerator(host, archive)
+    generator = _ConfigGenerator(host, archive)
     if process_control == ProcessControl.SUPERVISORD:
         generator.generate_for_supervisord()
     else:
@@ -106,7 +106,12 @@ def create_gen(host, archive, process_control):
         generator.generate_for_systemd()
 
 
-class ConfigGenerator:
+class _ConfigGenerator:
+    """
+    Generate the configuration for the given host into an archive.
+    This class exists mainly to avoid passing the same information (host, AS, topology information
+    and archive writer) to all the helper functions.
+    """
     def __init__(self, host, archive):
         self.host = host
         self.archive = archive
@@ -252,7 +257,7 @@ class ConfigGenerator:
 
 class _ConfigBuilder:
     """
-    Helper object for `ConfigGenerator`
+    Helper object for `_ConfigGenerator`
     Builds the *.toml-configuration for the SCION services.
     """
     def __init__(self, config_dir, log_dir, var_dir, isd_as_dir):
