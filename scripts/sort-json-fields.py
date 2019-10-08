@@ -61,7 +61,7 @@ def main(argv):
     for obj in data:
         fields = obj['fields']
         for k, v in fields.items():
-            if k in JSONFIELDS:
+            if k in JSONFIELDS and v:
                 try:
                     d = json.loads(v)
                     fields[k] = json.dumps(d, sort_keys=True)
