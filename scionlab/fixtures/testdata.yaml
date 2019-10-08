@@ -908,8 +908,8 @@
     public_ip: 192.0.2.11
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 192.0.2.11
     uid: e5ad96d3f36b4446b37ea9a4ffb3eafb
     secret: cb5b15539c1d4c96a155d8303e04bb45
     config_version: 9
@@ -922,8 +922,8 @@
     public_ip: 192.0.2.12
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 192.0.2.12
     uid: 33425be7bb7846e6ab912bb2ac34f7c4
     secret: 0ec9ad28d8294787801e98eb71aa2c03
     config_version: 8
@@ -936,8 +936,8 @@
     public_ip: 192.0.2.13
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 192.0.2.13
     uid: 721042b3287247e2bce88f9ac100e209
     secret: 7e534fd6770c4fd2a0f9cf6a308cfff6
     config_version: 8
@@ -964,8 +964,8 @@
     public_ip: 172.31.0.110
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 172.31.0.110
     uid: 098625df419a48279761954bb7b4ce78
     secret: 10cc1584deea4a10b9210a4c03c2d872
     config_version: 10
@@ -978,8 +978,8 @@
     public_ip: 192.0.2.32
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 192.0.2.32
     uid: caa113f40be64f0abc41e606f185aa91
     secret: 92e0373a17c641e2a3a0c780b2866b81
     config_version: 8
@@ -1006,8 +1006,8 @@
     public_ip: 192.0.2.34
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 192.0.2.34
     uid: 7457ef85245a46a1a3167bc1344b00d4
     secret: b2729e7601374c1d84faa14d8b9b276c
     config_version: 8
@@ -1020,8 +1020,8 @@
     public_ip: 172.31.0.112
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 172.31.0.112
     uid: 4a715f91a023481fb21e61669777238f
     secret: ab4c5aa179be4a37ba7db180517ea6f5
     config_version: 8
@@ -1034,8 +1034,8 @@
     public_ip: 172.31.0.113
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 172.31.0.113
     uid: 528974e4534147858b305e1435de8658
     secret: 30d63340acba4c4d8f84dc62417b58df
     config_version: 9
@@ -1048,8 +1048,8 @@
     public_ip: 192.0.2.42
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 192.0.2.42
     uid: a17fe6ea1b9d450686985b7d744f03f5
     secret: 388ea729a9e14ecfb4bc7b8b50b4d914
     config_version: 9
@@ -1062,8 +1062,8 @@
     public_ip: 192.0.2.43
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 192.0.2.43
     uid: 68e4438888cd4cfbafb476c20a90eb1f
     secret: 68f4632b0080439f9ea983d7bbb32514
     config_version: 9
@@ -1104,8 +1104,8 @@
     public_ip: 192.0.2.46
     bind_ip: null
     label: null
-    managed: false
-    ssh_host: null
+    managed: true
+    ssh_host: 192.0.2.46
     uid: ec10ed6da2654045806fe1c1c65b9c53
     secret: 174e077e02c340338365626fc6a2a0ac
     config_version: 8
