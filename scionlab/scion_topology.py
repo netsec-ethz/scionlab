@@ -30,6 +30,16 @@ TYPES_TO_KEYS = {
 
 
 class TopologyInfo:
+    """
+    TopologyInfo creates the router/service-IDs and the topology.json-dict for an AS.
+
+    The routers/services in `self.routers` and `self.services` are
+    scionlab.models.core.BorderRouter/Service objects, marked up with the additional attributes
+        `instance_name`
+        `instance_id`
+
+    """
+
     def __init__(self, as_):
         self.AS = as_
         self._make_topo()
