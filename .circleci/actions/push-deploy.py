@@ -24,7 +24,7 @@ TIMEOUT = 60
 def main(argv):
     as_ids = argv[1:]
     trigger_deployment(as_ids)
-    print("Await confirmation that AS %s have been deployed" % as_ids)
+    print("Await confirmation that config has been deployed")
     wait_until_deployed(as_ids)
 
 
@@ -35,7 +35,7 @@ def trigger_deployment(as_ids):
         assert h.managed
         assert h.ssh_host
         scionlab.tasks.deploy_host_config(h)
-        print("Deployment enqueued for %s", h)
+        print("Deployment enqueued for %s" % h)
 
 
 def wait_until_deployed(as_ids):

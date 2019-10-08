@@ -170,7 +170,7 @@ jobs:
           command: |
             set -x
 
-            prev_version=`docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version`
+            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
 
             # Start the huey worker
             docker-compose up -d huey
@@ -185,7 +185,7 @@ jobs:
 
             # Check that
             # i) configuration was deployed
-            new_version=`docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version`
+            new_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
             [ "$prev_version" -lt "$new_version" ]
             # ii) connection still works
             docker-compose exec -T as1303 /bin/bash -c \
@@ -198,33 +198,33 @@ jobs:
             set -x
 
             # Show current TRC
-            docker-compose exec -T as1301 /bin/bash -c 'cat $(find /etc/scion/gen -name *.trc | head)'
+            TRC_version=1
+            docker-compose exec -T as1301 cat "/etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
+            prev_trc_version=$(docker-compose exec -T as1301 /bin/bash -c 'cat $(find /etc/scion/gen -name *.trc | head -n 1)' | jq .Version)
 
             # Update core keys which requires creating a new TRC
+            # XXX: update keys for non-core ASes force recreation AS certs.
             docker-compose exec -T coord /bin/bash -c \
              'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301; \
+              python .circleci/actions/update-keys.py ffaa:0:1303 ffaa:0:1305; \ 
               python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
 
             docker-compose logs huey
 
             # Check that TRCs were updated
-            docker exec as1301 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc;"
-            docker exec as1303 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc;"
-            docker exec as1305 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc;"
+            TRC_version=$((TRC_version + 1))
+            docker-compose exec -T as1301 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc"
 
             # Check that infra still works
             sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
-            docker exec as1301 /bin/bash -c "scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
-            docker exec as1305 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
-            docker exec as1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
-
-            # We capture the exit codes from the as containers
-            #E1303=$(docker wait as1303)
-            #E1305=$(docker wait as1305)
-            #echo -e "Exit codes:\n\t\tas1303: ${E1303}\n\t\tas1305: ${E1305}"
-            #docker logs as1301
-            #docker logs as1303
-            #docker logs as1305
+            docker-compose exec -T as1301 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
+            docker-compose exec -T as1303 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+            docker-compose exec -T as1305 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
           name: Start VPN containers and verify the connection over VPN works
