@@ -45,7 +45,7 @@ def wait_until_deployed(as_ids):
         time.sleep(1)
 
     if left:
-        print("Timout while waiting for confirmation of deployment from hosts:\n", "\n".join(map(str, left)))
+        print("Timout while waiting for confirmation of deployment from hosts:\n", left)
     else:
         print("Deployment successful")
 
