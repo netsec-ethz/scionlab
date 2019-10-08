@@ -15,15 +15,25 @@
 # Stdlib
 import configparser
 import os
-import pathlib
-from string import Template
 
 # SCION
 from scionlab.models.core import Service
+
 from scionlab.defines import (
     PROPAGATE_TIME_CORE,
     PROPAGATE_TIME_NONCORE,
+    PROM_PORT_DI,
+    PROM_PORT_SD,
+    BS_QUIC_PORT,
+    PS_QUIC_PORT,
+    CS_QUIC_PORT,
+    SD_QUIC_PORT,
+    SCION_BINARY_DIR,
+    SCION_CONFIG_DIR,
+    SCION_LOG_DIR,
+    SCION_VAR_DIR,
 )
+
 from lib.crypto.asymcrypto import (
     get_core_sig_key_file_path,
     get_enc_key_file_path,
@@ -39,141 +49,151 @@ from lib.crypto.util import (
 )
 from lib.defines import (
     AS_CONF_FILE,
-    PROJECT_ROOT,
     SCIOND_API_SOCKDIR,
-    PATH_POLICY_FILE,
     GEN_PATH,
 )
 
-DEFAULT_PATH_POLICY_FILE = "topology/PathPolicy.yml"
+
 DEFAULT_ENV = ['TZ=UTC']
 
 KEY_BR = 'BorderRouters'
 KEY_BS = 'BeaconService'
 KEY_CS = 'CertificateService'
 KEY_PS = 'PathService'
-KEY_ZK = 'ZookeeperService'
+KEY_DI = 'Discovery'
 
 TYPES_TO_KEYS = {
     "BR": KEY_BR,
     "BS": KEY_BS,
     "CS": KEY_CS,
     "PS": KEY_PS,
-    "ZK": KEY_ZK,
 }
 
 
-def generate_instance_dir(archive, as_, stype, tp, name, prometheus_port):
+def generate_instance_dir(archive, host, stype, tp, name, prometheus_port):
     """
     Generate the service instance directory for the gen folder
-    :param AS as_: AS in which the instance runs
+    :param Host host: Host in which the instance runs
     :param str directory: base directory of the gen folder
     :param str stype: service type
     :param tp: topology dict
     :param str name: instance name
     :return:
     """
-    elem_dir = _elem_dir(as_, name)
-
-    prom_addr = "127.0.0.1:%i" % prometheus_port
+    elem_dir = _elem_dir(host.AS, name)
     env = DEFAULT_ENV.copy()
     if stype == 'BR':
         env.append('GODEBUG="cgocheck=0"')
-        cmd = 'bin/border -id=%s -confd=%s -log.age=2 -prom=%s' % (name, elem_dir, prom_addr)
+        program = 'border'
+        gen_toml = _build_br_conf
     elif stype == 'CS':
-        cmd = 'bin/cert_srv -config "%s/csconfig.toml"' % elem_dir
+        program = 'cert_srv'
+        gen_toml = _build_cs_conf
     elif stype == 'PS':
-        cmd = 'bin/path_srv -config %s/psconfig.toml' % elem_dir
-    else:  # beacon server
+        program = 'path_srv'
+        gen_toml = _build_ps_conf
+    else:
         assert stype == 'BS'
-        env.append('PYTHONPATH=python/:.')
-        cmd = ('python/bin/beacon_server --filter_isd_loops --prom {prom} --sciond_path '
-               '/run/shm/sciond/default.sock "{instance}" "{elem_dir}"'
-               ).format(prom=prom_addr, instance=name, elem_dir=elem_dir)
+        program = 'beacon_srv'
+        gen_toml = _build_bs_conf
+    full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
+    cmd = '{program} -config {dir}/{srv}.toml'.format(
+        program=os.path.join(SCION_BINARY_DIR, program),
+        dir=full_elem_dir,
+        srv=stype.lower())
 
     archive.write_config((elem_dir, 'supervisord.conf'),
                          _make_supervisord_conf(name, cmd, env))
-
-    if stype == 'PS':
-        archive.write_toml((elem_dir, 'psconfig.toml'),
-                           _build_ps_conf(name, elem_dir))
-    elif stype == 'CS':
-        archive.write_toml((elem_dir, 'csconfig.toml'),
-                           _build_cs_conf(name, elem_dir))
+    archive.write_toml((elem_dir, stype.lower()+'.toml'),
+                       gen_toml(name, full_elem_dir, host, prometheus_port))
 
     _write_topo(archive, elem_dir, tp)
-    _write_as_conf_and_path_policy(archive, elem_dir, as_)
-    _write_certs_trc(archive, elem_dir, as_)
-    _write_keys(archive, elem_dir, as_)
+    _write_as_conf(archive, elem_dir)
+    _write_certs_trc(archive, elem_dir, host.AS)
+    _write_keys(archive, elem_dir, host.AS)
 
 
-def generate_server_app_dir(archive, as_, app_type, name, host_ip, app_port):
+def generate_server_app_dir(archive, host, app_type, name, app_port):
     """
     Generates a server application directory
     :param archive: object writing the content
     :param str app_type: server application type
-    :param AS as_: AS where the server apps run
+    :param Host host: Host where the server apps run
     :param str name application name e.g. pp1-ff00_0_111-1
-    :param str host_ip: the host IP where that application is reachable
     :param int app_port: the host port where that application is reachable
     """
-    ia = as_.isd_as_str()
-    elem_dir = _elem_dir(as_, name)
+    ia = host.AS.isd_as_str()
+    host_ip = host.internal_ip
+    elem_dir = _elem_dir(host.AS, name)
     if app_type == Service.BW:
-        cmd = 'bash -c "sleep 10 && exec bin/bwtestserver -s {ia},[{ip}]:{port}"'.format(
+        cmd = 'bash -c "sleep 10 && exec {program} -s {ia},[{ip}]:{port}"'.format(
+            program=os.path.join(SCION_BINARY_DIR, 'bwtestserver'),
             ia=ia, ip=host_ip, port=app_port)
     elif app_type == Service.PP:
-        cmd = ('bash -c "sleep 10 && exec bin/pingpong -mode server -local '
-               '{ia},[{ip}]:{port}"').format(ia=ia, ip=host_ip, port=app_port)
+        cmd = ('bash -c "sleep 10 && exec {program} -mode server -local '
+               '{ia},[{ip}]:{port}"').format(
+            program=os.path.join(SCION_BINARY_DIR, 'pingpong'),
+            ia=ia, ip=host_ip, port=app_port)
     archive.write_config((elem_dir, 'supervisord.conf'),
                          _make_supervisord_conf(name, cmd, DEFAULT_ENV, priority=200, startsecs=15))
 
 
-def generate_sciond_config(archive, as_, tp, name):
+def generate_sciond_config(archive, host, tp, name):
     """
     Writes the endhost folder into the given location.
-    :param AS as_: AS of the sciond instance
+    :param Host host: Host of the sciond instance
     :param dict tp: the topology as a dict of dicts.
     """
-    elem_dir = _elem_dir(as_, "endhost")
-
+    elem_dir = _elem_dir(host.AS, "endhost")
+    full_elem_dir = os.path.join(SCION_CONFIG_DIR, elem_dir)
     superv = _make_supervisord_conf(name,
-                                    'bin/sciond -config "%s/sciond.toml"' % elem_dir,
+                                    '{program} -config "{config}"'.format(
+                                        program=os.path.join(SCION_BINARY_DIR, 'sciond'),
+                                        config=os.path.join(full_elem_dir, 'sd.toml')),
                                     DEFAULT_ENV)
     archive.write_config((elem_dir, 'supervisord.conf'), superv)
 
-    archive.write_toml((elem_dir, 'sciond.toml'),
-                       _build_sciond_conf(name, elem_dir, as_.isd_as_str()))
+    archive.write_toml((elem_dir, 'sd.toml'),
+                       _build_sciond_conf(name, full_elem_dir, host, PROM_PORT_SD))
 
     _write_topo(archive, elem_dir, tp)
-    _write_as_conf_and_path_policy(archive, elem_dir, as_)
-    _write_certs_trc(archive, elem_dir, as_)
+    _write_as_conf(archive, elem_dir)
+    _write_certs_trc(archive, elem_dir, host.AS)
 
 
 def write_supervisord_group_config(archive, as_, processes):
     config = configparser.ConfigParser()
     config['group:' + "as%s" % as_.isd_as_path_str()] = {'programs': ",".join(processes)}
-    archive.write_config((_isd_as_dir(as_), 'supervisord.conf'), config)
+    archive.write_config((GEN_PATH, _isd_as_dir(as_), 'supervisord.conf'), config)
 
 
 def write_dispatcher_config(archive):
     """
-    Creates the supervisord and zlog files for the dispatcher and writes
+    Creates the supervisord files for the dispatcher and writes
     them into the dispatcher folder.
     """
+    cmd = '"{program}" "-config" "{config}"'.format(
+        program=os.path.join(SCION_BINARY_DIR, 'godispatcher'),
+        config=os.path.join(SCION_CONFIG_DIR, GEN_PATH, 'dispatcher', 'disp.toml'))
     superv = _make_supervisord_conf('dispatcher',
-                                    'bin/dispatcher',
-                                    DEFAULT_ENV + ['ZLOG_CFG=gen/dispatcher/dispatcher.zlog.conf'],
-                                    priority=50)
-    archive.write_config('gen/dispatcher/supervisord.conf', superv)
-
-    zlog_templ = Template(pathlib.Path(PROJECT_ROOT, "topology/zlog.tmpl").read_text())
-    zlog = zlog_templ.substitute(name='dispatcher', elem='dispatcher')
-    archive.write_text('gen/dispatcher/dispatcher.zlog.conf', zlog)
+                                    cmd,
+                                    DEFAULT_ENV,
+                                    priority=50,
+                                    startsecs=1)
+    archive.write_config(os.path.join(GEN_PATH, 'dispatcher', 'supervisord.conf'),
+                         superv)
+    archive.write_toml(os.path.join(GEN_PATH, 'dispatcher', 'disp.toml'),
+                       _build_disp_conf())
 
 
 def write_ia_file(archive, as_):
-    archive.write_text('gen/ia', as_.isd_as_path_str())
+    archive.write_text(os.path.join(GEN_PATH, 'ia'),
+                       as_.isd_as_path_str())
+
+
+def write_services_file(archive, services):
+    srv_file = '\n'.join(services)
+    archive.write_text('scionlab-services.txt', srv_file)
 
 
 def _make_supervisord_conf(name, cmd, envs, priority=100, startsecs=5):
@@ -182,22 +202,22 @@ def _make_supervisord_conf(name, cmd, envs, priority=100, startsecs=5):
         'autostart': 'false',
         'autorestart': 'true',
         'environment': ','.join(envs),
-        'stdout_logfile': 'logs/%s.OUT' % name,
-        'stderr_logfile': 'logs/%s.ERR' % name,
+        'stdout_logfile': '%s.OUT' % os.path.join(SCION_LOG_DIR, name),
+        'stderr_logfile': '%s.ERR' % os.path.join(SCION_LOG_DIR, name),
         'startretries': '0',
         'startsecs': str(startsecs),
         'priority': str(priority),
-        'command':  cmd
+        'command':  cmd,
     }
     return config
 
 
 def _isd_as_dir(as_):
-    return os.path.join(GEN_PATH, "ISD%s/AS%s" % (as_.isd.isd_id, as_.as_path_str()))
+    return os.path.join("ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
 
 
 def _elem_dir(as_, elem_id):
-    return os.path.join(_isd_as_dir(as_), elem_id)
+    return os.path.join(GEN_PATH, _isd_as_dir(as_), elem_id)
 
 
 def _cert_chain_filename(as_, version):
@@ -239,36 +259,62 @@ def _write_topo(archive, elem_dir, tp):
     archive.write_json((elem_dir, 'topology.json'), tp)
 
 
-def _write_as_conf_and_path_policy(archive, elem_dir, as_):
-
-    if as_.is_core:
-        propagate_time = PROPAGATE_TIME_CORE
-    else:
-        propagate_time = PROPAGATE_TIME_NONCORE
-
+def _write_as_conf(archive, elem_dir):
     conf = {
         'RegisterTime': 5,
-        'PropagateTime': propagate_time,
+        'PropagateTime': 5,
         'CertChainVersion': 0,
         'RegisterPath': True,
         'PathSegmentTTL': 21600,
     }
     archive.write_yaml((elem_dir, AS_CONF_FILE), conf)
 
-    default_path_policy = pathlib.Path(PROJECT_ROOT, DEFAULT_PATH_POLICY_FILE).read_text()
-    archive.write_text((elem_dir, PATH_POLICY_FILE), default_path_policy)
 
-
-def _build_ps_conf(instance_name, instance_path):
-    conf = _build_common_goservice_conf(instance_name, instance_path)
+def _build_disp_conf():
+    conf = _build_common_conf('dispatcher', PROM_PORT_DI)
     conf.update({
-        'infra': {
-            'Type': "PS"
+        'dispatcher': {'ID': 'dispatcher', 'SocketFileMode': '0777'},
+    })
+    return conf
+
+
+def _build_br_conf(instance_name, instance_path, host, prometheus_port):
+    conf = _build_base_goservice_conf(instance_name, instance_path, prometheus_port)
+    conf.update({
+        'br': {
+            'Profile': False,
+        }
+    })
+    return conf
+
+
+def _build_bs_conf(instance_name, instance_path, host, prometheus_port):
+    interval = '{}s'.format(PROPAGATE_TIME_CORE if host.AS.is_core else PROPAGATE_TIME_NONCORE)
+    conf = _build_goservice_conf(instance_name, instance_path, host.internal_ip,
+                                 BS_QUIC_PORT, prometheus_port)
+    conf.update({
+        'beaconDB': {
+            'Backend': 'sqlite',
+            'Connection': '%s.beacon.db' % os.path.join(SCION_VAR_DIR, instance_name),
         },
+        'BS': {
+            'OriginationInterval': interval,
+            'PropagationInterval': interval,
+            'RevTTL': '20s',
+            'RevOverlap': '5s'
+        },
+    })
+    return conf
+
+
+def _build_ps_conf(instance_name, instance_path, host, prometheus_port):
+    conf = _build_goservice_conf(instance_name, instance_path, host.internal_ip,
+                                 PS_QUIC_PORT, prometheus_port)
+    conf.update({
         'ps': {
             'PathDB': {
                 'Backend': 'sqlite',
-                'Connection': 'gen-cache/%s.path.db' % instance_name,
+                'Connection': '%s.path.db' % os.path.join(SCION_VAR_DIR, instance_name),
             },
             'SegSync': True,
         },
@@ -276,14 +322,12 @@ def _build_ps_conf(instance_name, instance_path):
     return conf
 
 
-def _build_cs_conf(instance_name, instance_path):
-    conf = _build_common_goservice_conf(instance_name, instance_path)
+def _build_cs_conf(instance_name, instance_path, host, prometheus_port):
+    conf = _build_goservice_conf(instance_name, instance_path, host.internal_ip,
+                                 CS_QUIC_PORT, prometheus_port)
     conf.update({
         'sd_client': {
             'Path': os.path.join(SCIOND_API_SOCKDIR, 'default.sock')
-        },
-        'infra': {
-            'Type': "CS"
         },
         'cs': {
             'LeafReissueTime': "6h",
@@ -295,40 +339,69 @@ def _build_cs_conf(instance_name, instance_path):
     return conf
 
 
-def _build_sciond_conf(instance_name, instance_path, ia):
-    conf = _build_common_goservice_conf(instance_name, instance_path)
+def _build_sciond_conf(instance_name, instance_path, host, prometheus_port):
+    conf = _build_goservice_conf(instance_name, instance_path, host.internal_ip,
+                                 SD_QUIC_PORT, prometheus_port)
     conf.update({
         'sd': {
             'Reliable': os.path.join(SCIOND_API_SOCKDIR, "default.sock"),
             'Unix': os.path.join(SCIOND_API_SOCKDIR, "default.unix"),
-            'Public': '%s,[127.0.0.1]:0' % ia,  # XXX(matzf): Should rather be the host addr?
+            'SocketFileMode': '0777',
+            'Public': '{IA},[{ip}]:0'.format(IA=host.AS.isd_as_str(), ip=host.internal_ip),
             'PathDB': {
-                'Connection': 'gen-cache/%s.path.db' % instance_name,
+                'Connection': '%s.path.db' % os.path.join(SCION_VAR_DIR, instance_name),
             },
         },
     })
     return conf
 
 
-def _build_common_goservice_conf(instance_name, instance_path):
-    """ Helper: return common settings for golang CS/PS/sciond """
-    return {
+def _build_common_conf(logfile_name, prometheus_port):
+    """ Builds the toml configuration common to all services (disp,SD,BS,CS,PS and BR) """
+    conf = {
+        'metrics': {'Prometheus': '[127.0.0.1]:%s' % prometheus_port},
+        'logging': {
+            'file': {
+                'Path': '%s.log' % os.path.join(SCION_LOG_DIR, logfile_name),
+                'Level': 'debug',
+                'MaxAge': 3,
+                'MaxBackups': 1,
+            },
+        },
+    }
+    return conf
+
+
+def _build_base_goservice_conf(instance_name, instance_path, prometheus_port):
+    """ Builds the toml configuration common to SD,BS,CS,PS and BR """
+    conf = _build_common_conf(instance_name, prometheus_port)
+    conf.update({
         'general': {
             'ID': instance_name,
             'ConfigDir': instance_path,
-            'ReconnectToDispatcher': True,  # XXX(matzf): for CS, topology/go.py this is False. Why?
         },
-        'logging': {
-            'file': {
-                'Path': 'logs/%s.log' % instance_name,
-                'Level': 'debug',
-            },
-            'console': {
-                'Level': 'crit',
-            },
+        'discovery': {
+            'static': {'Enable': False},
+            'dynamic': {'Enable': False},
         },
-        'TrustDB': {
+    })
+    return conf
+
+
+def _build_goservice_conf(instance_name, instance_path, host_ip, quic_port, prometheus_port):
+    """ Builds the toml configuration common to SD,BS,CS and PS """
+    conf = _build_base_goservice_conf(instance_name, instance_path, prometheus_port)
+    conf['general']['ReconnectToDispatcher'] = True
+    conf.update({
+        'trustDB': {
             'Backend': 'sqlite',
-            'Connection': 'gen-cache/%s.trust.db' % instance_name,
-        }
-    }
+            'Connection': '%s.trust.db' % os.path.join(SCION_VAR_DIR, instance_name),
+        },
+        'quic': {
+            'KeyFile':  os.path.join(SCION_CONFIG_DIR, 'gen-certs/tls.key'),
+            'CertFile': os.path.join(SCION_CONFIG_DIR, 'gen-certs/tls.pem'),
+            'ResolutionFraction': 0.4,
+            'Address': '[{host}]:{port}'.format(host=host_ip, port=quic_port)
+        },
+    })
+    return conf

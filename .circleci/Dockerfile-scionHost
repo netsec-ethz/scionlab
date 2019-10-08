@@ -6,16 +6,15 @@ ARG SC
 # Update
 RUN sudo apt-get update && sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev
 
-# Install SCION
+# Checkout SCION
 RUN git clone ${SCION_SRC} -b scionlab --depth 1 ${SC}
 
-RUN cd ${SC} && ./env/deps
-
-RUN cd ${SC} && make
-## To be replaced by the package installation
+RUN sudo apt-get update && sudo apt-get install --assume-yes apt-transport-https
+RUN sudo bash -c 'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
+RUN sudo apt-get update && sudo apt-get install --assume-yes scionlab
 
 COPY ./setup/reloadASConfig.sh ${SC}/reloadASConfig.sh
-COPY ./setup/share_zk.sh ${SC}/share_zk.sh
+RUN sudo mkdir -p /var/log/scion/
 RUN mkdir ${SC}/gen-cache
 
 

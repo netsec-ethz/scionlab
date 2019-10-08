@@ -30,7 +30,7 @@ while getopts ":p:g:v:s:z:ha:cu:t:" opt; do
       gen_dir=$OPTARG
       ;;
     v)
-      vpn_config_file=$OPTARG
+      vpn_config_files="$OPTARG $vpn_config_files"
       ;;
     s)
       scion_service_path=$OPTARG
@@ -207,16 +207,28 @@ then
   echo "alias checkbeacons='tail -f $SC/logs/bs*.DEBUG'" >> "$aliases_file"
 fi
 
-if  [[ ( ! -z ${vpn_config_file+x} ) && -r ${vpn_config_file} ]]
+configured_vpn=0
+if  [[ ( ! -z ${vpn_config_files+x} ) ]]
 then
-    echo "VPN configuration specified! Configuring it!"
-
-    sudo apt-get -y install openvpn
-
-    sudo cp "$vpn_config_file" /etc/openvpn/client.conf
-    sudo chmod 600 /etc/openvpn/client.conf
-    sudo systemctl start openvpn@client
-    sudo systemctl enable openvpn@client
+  for vpn_config_file in ${vpn_config_files:0:-1}
+  do
+    if [[ -r ${vpn_config_file} ]]
+    then
+      if [ $configured_vpn -eq 0 ]
+      then
+        echo "VPN configuration specified! Installing OpenVPN ..."
+        sudo apt-get -y install openvpn
+        configured_vpn=1
+      fi
+      echo "Adding VPN client ..."
+      local client_file=${vpn_config_file##*/}
+      local client_name=${client_file%.conf}
+      sudo cp "$vpn_config_file" /etc/openvpn/$client_file
+      sudo chmod 600 /etc/openvpn/$client_file
+      sudo systemctl start openvpn@$client_name
+      sudo systemctl enable openvpn@$client_name
+    fi
+  done
 fi
 
 tempfile=$(mktemp)

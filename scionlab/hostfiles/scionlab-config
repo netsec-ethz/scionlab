@@ -20,7 +20,9 @@ The scionlab-config script fetches the bundled configuration for a scionlab host
 the scionlab.org coordination website and installs it in this machine.
 
 Prerequisites:
-    - an installation of SCION (with all its dependencies)
+    - must be run as root.
+    - an installation of SCION (with all its dependencies) either in the form of packages
+        or in the old form, which will be replaced with the packages form by this script.
     - openvpn installed, if used
 """
 
@@ -41,10 +43,10 @@ import time
 from collections import namedtuple
 
 
-DEFAULT_SCION_PATH = os.path.expanduser('~/go/src/github.com/scionproto/scion')
-SCION_PATH = os.environ.get('SC', DEFAULT_SCION_PATH)
+SCION_CONFIG_PATH = '/etc/scion/'
+SERVICE_FILES_DIR = '/etc/systemd/system/'
 
-DEFAULT_CONFIG_INFO_PATH = os.path.join(SCION_PATH, 'gen/scionlab-config.json')
+DEFAULT_CONFIG_INFO_PATH = os.path.join(SCION_CONFIG_PATH, 'gen/scionlab-config.json')
 DEFAULT_COORDINATOR_URL = 'https://www.scionlab.org'
 REQUEST_TIMEOUT_SECONDS = 10
 
@@ -65,6 +67,8 @@ def main(argv):
     sys.tracebacklimit = -1
     args = parse_command_line_args(argv)
 
+    if os.geteuid() != 0:
+        _error_exit("The script must be run as root")
     if not args.tar:
         config_info = get_config_info(args)
         config = fetch_config(config_info)
@@ -181,7 +185,8 @@ def fetch_config(config_info):
         host_id=config_info.host_id
     )
 
-    # version may be None (if "--force" is used or if version is not in the config info file)
+    # version may be None (if "--force" is used or if version is not in the config info file and
+    # we will behave like --force here if the config is not yet ready for deb packages)
     data = {}
     if config_info.version:
         data['version'] = config_info.version
@@ -268,6 +273,7 @@ def install_config(tar):
         tmpdir = tempfile.mkdtemp()
         tar.extractall(path=tmpdir)
         install_vpn_client_config(tmpdir)
+        install_scionlab_service(tmpdir)
         install_scion_config(tmpdir)
         install_vpn_server_config(tmpdir)
     finally:
@@ -275,29 +281,49 @@ def install_config(tar):
 
 
 def install_scion_config(tmpdir):
-    sc = SCION_PATH
+    """ Moves gen to /etc/scion/gen """
+    sc = SCION_CONFIG_PATH
     if not os.path.isdir(sc):
-        _error_exit('No SCION installation found at $SC (%s).', sc)
+        _error_exit('No SCION configuration directory found at %s', sc)
     _mv_dir(tmpdir, 'gen', sc)
+    subprocess.run(['chown', '-R', 'scion:scion', os.path.join(SCION_CONFIG_PATH, 'gen')])
     restart_scion()
+
+
+def install_scionlab_service(tmpdir):
+    """ Creates the appropriate dependencies for scionlab.target """
+
+    scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
+    if not os.path.exists(scionlab_services):
+        _error_exit("Could not find the scionlab-services.txt file in %s", tmpdir)
+
+    # 1. remove existing links to scionlab.target
+    wants = '/etc/systemd/system/scionlab.target.wants/'
+    if os.path.exists(wants):
+        for f in os.listdir(wants):
+            f = os.path.join(wants, f)
+            os.remove(f)
+        subprocess.run(['systemctl', 'daemon-reload'], check=True)
+
+    # 2. add links to scionlab.target
+    with open(scionlab_services, 'r') as f:
+        services = f.readlines()
+    for srv in services:
+        srv = srv.strip()
+        subprocess.run(['systemctl', 'enable', srv])
 
 
 def restart_scion():
     # TODO quick reload: only restart if set of processes changed, otherwise trigger config
     # reloading
-    sc = SCION_PATH
-    scion_sh = os.path.join(sc, 'scion.sh')
-    supervisor_sh = os.path.join(sc, 'supervisor/supervisor.sh')
-    subprocess.check_call([scion_sh, 'stop'], cwd=sc)
-    subprocess.check_call([supervisor_sh, 'reload'], cwd=sc)
-    subprocess.check_call([scion_sh, 'start', 'nobuild'], cwd=sc)
+    subprocess.run(['systemctl', 'restart', 'scionlab.target'], check=True)
 
 
 def install_vpn_client_config(tmpdir):
     exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
     if changed:
         if exists:
-            _run_as_root(['systemctl', 'restart', 'openvpn@client'])
+            subprocess.run(['systemctl', 'restart', 'openvpn@client'], check=True)
             # ensure the interface is up; give up after 5 tries
             vpn_ready = False
             for i in range(5):
@@ -314,7 +340,7 @@ def install_vpn_client_config(tmpdir):
             else:
                 logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
         else:
-            _run_as_root(['systemctl', 'stop', 'openvpn@client'])
+            subprocess.run(['systemctl', 'stop', 'openvpn@client'], check=True)
 
 
 def install_vpn_server_config(tmpdir):
@@ -322,14 +348,15 @@ def install_vpn_server_config(tmpdir):
     if changed:
         if exists:
             if not os.path.exists('/etc/openvpn/dh.pem'):
-                _run_as_root(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'])
-            _run_as_root(['systemctl', 'restart', 'openvpn@server'])
+                subprocess.run(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'],
+                               check=True)
+            subprocess.run(['systemctl', 'restart', 'openvpn@server'], check=True)
         else:
-            _run_as_root(['systemctl', 'stop', 'openvpn@server'], check=False)
+            subprocess.run(['systemctl', 'stop', 'openvpn@server'], check=False)
 
     if exists:
-        _run_as_root(['rm', '-rf', '/etc/openvpn/ccd/'])
-        _run_as_root(['mv', os.path.join(tmpdir, 'ccd'), '/etc/openvpn/'])
+        subprocess.run(['rm', '-rf', '/etc/openvpn/ccd/'], check=True)
+        subprocess.run(['mv', os.path.join(tmpdir, 'ccd'), '/etc/openvpn/'], check=True)
 
 
 def _mv_dir(srcdir, dirname, dstdir):
@@ -349,29 +376,17 @@ def _install_file(srcdir, filename, dstdir):
     dstfilename = os.path.join(dstdir, filename)
     if not os.path.exists(srcfilename):
         if os.path.exists(dstfilename):
-            _run_as_root(['rm', dstfilename])
+            subprocess.run(['rm', dstfilename], check=True)
             return (False, True)
         return (False, False)
 
-    equal = _run_as_root(['diff', '-q', srcfilename, dstfilename],
-                         check=False,
-                         stdout=subprocess.DEVNULL,
-                         stderr=subprocess.DEVNULL) == 0
+    equal = subprocess.run(['diff', '-q', srcfilename, dstfilename],
+                           check=False,
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL).returncode == 0
     if not equal:
-        _run_as_root(['mv', srcfilename, dstfilename])
+        subprocess.run(['mv', srcfilename, dstfilename], check=True)
     return (True, not equal)
-
-
-def _run_as_root(args, check=True, **kwargs):
-    """
-    Convenience helper: run with sudo unless already running as root
-    Note: if in the future the scion-gen/-folder is also owned by root,
-          it will probably make more sense to simply require running this
-          script as root.
-    """
-    if os.getuid() != 0:
-        args = ['sudo'] + args
-    return subprocess.run(args, check=check, **kwargs).returncode
 
 
 def _get_argv():

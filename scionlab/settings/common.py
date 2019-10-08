@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'huey.contrib.djhuey',
+    'maintenance_mode',
 ]
 
 MIDDLEWARE = [
@@ -42,6 +43,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'maintenance_mode.middleware.MaintenanceModeMiddleware',
 ]
 
 ROOT_URLCONF = 'scionlab.urls'
@@ -57,7 +59,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'scionlab.context_processors.grafana_url',
+                'maintenance_mode.context_processors.maintenance_mode',
                 'scionlab.context_processors.instance_indicator',
             ],
         },
@@ -89,6 +91,12 @@ REGISTRATION_OPEN = True  # Accept new registrations
 
 # crispy_forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+# maintenance_mode:
+# Note: do not change this file to enable maintenance mode. Just run
+#   python manage.py maitenance_mode <on|off>
+MAINTENANCE_MODE_IGNORE_ADMIN_SITE = True
+MAINTENANCE_MODE_STATE_FILE_PATH = os.path.join(BASE_DIR, 'run', 'maintenance_mode_state.txt')
 
 # ##### DEFAULT SETTINGS CONFIGURATION ####################
 MAX_ASES_ADMIN = 50

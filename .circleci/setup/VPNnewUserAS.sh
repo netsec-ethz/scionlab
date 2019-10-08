@@ -19,23 +19,21 @@ sudo mknod /dev/net/tun c 10 20
 sudo chmod 600 /dev/net/tun
 
 # Use configuration from coordinator
-rm $SC/gen -rf
-tar -C $SC/ -xf /tmp/host_config.tar
+rm /etc/scion/gen -rf
+tar -C /etc/scion/ -xf /tmp/host_config.tar
 
 # Setup OpenVPN client
-sudo cp client.conf /etc/openvpn/
+sudo cp /etc/scion/client.conf /etc/openvpn/
 sudo openvpn --daemon ovpn-client --cd /etc/openvpn --config /etc/openvpn/client.conf
 until [ `ps ax | grep openvpn | grep -v "grep" | wc -l` -ge 1 ]; do sleep 1; done
 echo "VPN up"
-
-ZK_IP=$(dig +short zookeeper A); for f in $(find $SC/gen/ -name topology.json); do
-    jq ".ZookeeperService[]|=({Addr:\"$ZK_IP\", L4Port:.L4Port})" $f | sponge $f;
-done
 
 until ip a show tun0; do sleep 1; done
 echo "VPN tun0 up"
 
 cd $SC
+sed -i 's%../gen%/etc/scion/gen%g' supervisor/supervisord.conf
+
 ./supervisor/supervisor.sh stop all
 ./supervisor/supervisor.sh reload
 ./supervisor/supervisor.sh start all

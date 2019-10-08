@@ -24,15 +24,21 @@ DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-po
 DEFAULT_INTERNAL_PORT = 31045  # 30242-30251
 DEFAULT_CONTROL_PORT = 30045   # 30042-30051
 
-DEFAULT_BS_PORT = 31041  # 30252
-DEFAULT_PS_PORT = 31043  # 30253
-DEFAULT_CS_PORT = 31042  # 30254
-DEFAULT_ZK_PORT = 2181
-DEFAULT_BW_PORT = 40001
-DEFAULT_PP_PORT = 40002
+BS_PORT = 31041  # 30252
+PS_PORT = 31043  # 30253
+CS_PORT = 31042  # 30254
+BW_PORT = 40001
+PP_PORT = 40002
 DISPATCHER_PORT = 30041
 
+BS_QUIC_PORT = 30352  # QUIC port for the infrastructure's messenger
+PS_QUIC_PORT = 30353
+CS_QUIC_PORT = 30354
+SD_QUIC_PORT = 0
+
 PROM_PORT_OFFSET = 1000  # e.g. PS Prometheus port = PS.Public.Port + 1000 = 32043
+PROM_PORT_DI = 30441  # prometheus metrics exposed in go dispatcher
+PROM_PORT_SD = 30455  # where to expose prometheus metrics in sciond
 
 DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
 DEFAULT_LINK_MTU = 1500 - 20 - 8
@@ -40,3 +46,8 @@ DEFAULT_LINK_BANDWIDTH = 1000
 
 PROPAGATE_TIME_CORE = 60  # lower beaconing frequency in cores to save resources
 PROPAGATE_TIME_NONCORE = 5  # higher frequency in non-cores ASes to have quicker startup
+
+SCION_BINARY_DIR = "/usr/bin"
+SCION_CONFIG_DIR = "/etc/scion"
+SCION_LOG_DIR = "/var/log/scion"
+SCION_VAR_DIR = "/var/lib/scion"

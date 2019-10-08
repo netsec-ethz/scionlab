@@ -125,7 +125,7 @@ def _invoke_ssh_scionlab_config(ssh_host, host_id, host_secret):
     :param str host_id: id (primary key) of the Host object
     :param str host_secret: secret to authenticate request for this Host object
     """
-    command = ('scionlab-config'
+    command = ('sudo scionlab-config'
                ' --host-id {host_id}'
                ' --host-secret {host_secret}'
                ' --url "{url}"').format(
