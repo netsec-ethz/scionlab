@@ -40,12 +40,13 @@ def trigger_deployment(as_ids):
 
 def wait_until_deployed(as_ids):
     timeout = time.time() + TIMEOUT
-    left = _needs_deployment(as_ids)
-    while time.time() < timeout and left:
+    outstanding = _needs_deployment(as_ids)
+    while time.time() < timeout and outstanding:
         time.sleep(1)
+        outstanding = _needs_deployment(as_ids)
 
-    if left:
-        print("Timout while waiting for confirmation of deployment from hosts:\n", left)
+    if outstanding:
+        print("Timout while waiting for confirmation of deployment from hosts:\n", outstanding)
     else:
         print("Deployment successful")
 
