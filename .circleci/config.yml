@@ -203,11 +203,13 @@ jobs:
             prev_trc_version=$(docker-compose exec -T as1301 /bin/bash -c 'cat $(find /etc/scion/gen -name *.trc | head -n 1)' | jq .Version)
 
             # Update core keys which requires creating a new TRC
-            # XXX: update keys for non-core ASes force recreation AS certs.
+            # XXX: Update keys for non-core ASes force reissuing AS certs.
+            #      Otherwise we create an inconsistent gen/ folder, see
+            #      https://github.com/netsec-ethz/scionlab/issues/194.
             docker-compose exec -T coord /bin/bash -c \
              'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301; \
+              python .circleci/actions/update-keys.py ffaa:0:1303 ffaa:0:1305; \
               python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
-              #python .circleci/actions/update-keys.py ffaa:0:1303 ffaa:0:1305; \
 
             docker-compose logs huey
             docker-compose logs coord
@@ -215,17 +217,6 @@ jobs:
             # Check that TRCs were updated
             TRC_version=$((TRC_version + 1))
             docker-compose exec -T as1301 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
-
-            # clean the caches and force an update restart
-            docker-compose exec -T as1303 /bin/bash -c \
-             'systemctl stop scionlab.target;\
-              rm -rf /var/lib/scion/*;
-              scionlab-config --force'
-            docker-compose exec -T as1305 /bin/bash -c \
-             'systemctl stop scionlab.target;\
-              rm -rf /var/lib/scion/*;
-              scionlab-config --force'
-
             docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc"
             docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc"
 
