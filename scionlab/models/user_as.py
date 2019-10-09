@@ -403,9 +403,9 @@ class AttachmentPoint(models.Model):
                 iface.border_router = br
                 iface.save()
             br.save()
+        # squirrel away the *inactive* interfaces somewhere...
+        host.interfaces.inactive().update(border_router=infra_br)
+
         # delete old BRs
         if brs_to_delete:
             BorderRouter.objects.filter(pk__in=brs_to_delete).delete()
-
-        # squirrel away the *inactive* interfaces somewhere...
-        host.interfaces.inactive().update(border_router=infra_br)
