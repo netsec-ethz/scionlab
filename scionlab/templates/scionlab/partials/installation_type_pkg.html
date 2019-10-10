@@ -1,0 +1,26 @@
+<p>
+To install SCION from our *.deb packages, please follow the steps in the <a href="https://netsec-ethz.github.io/scion-tutorials/">tutorials</a>.
+As a very short summary, the commands to install the packages on Ubuntu are:
+<pre>
+sudo apt-get install apt-transport-https
+echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" | sudo tee /etc/apt/sources.list.d/scionlab.list
+sudo apt-get update
+sudo apt-get install scionlab
+</pre>
+</p>
+
+<p>
+Once you've saved your setup, you can deploy the configuration to your machine. The easiest and recommended way is to run the script <code>scionlab-config</code>:
+<pre>
+{% if host_id and host_secret %}
+scionlab-config --host-id={{host_id}} --host-secret={{host_secret}}
+{% else %}
+# host-id/secret will be displayed here after saving your configuration
+scionlab-config --host-id=&lt;...&gt; --host-secret=&lt;...&gt;  
+{% endif %}
+</pre>
+</p>
+
+<p>
+Alternatively, you can download the configuration tarfile with the link below and manually unpack it following the instructions in the tutorials.
+</p>

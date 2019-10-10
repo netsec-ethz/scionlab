@@ -25,7 +25,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django import forms
 from django.conf import settings
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column
+from crispy_forms.layout import Layout, Field, Row, Column
 from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT
@@ -57,7 +57,6 @@ class UserASForm(forms.ModelForm):
             'bind_port': "Bind Port",
         }
         help_texts = {
-            'label': "Optional short label for your AS",
             'attachment_point': "This SCIONLab-infrastructure AS will be the provider for your AS.",
             'public_ip': "The attachment point will use this IP for the overlay link to your AS.",
             'bind_ip': "(Optional) Specify the local IP/port "
@@ -66,6 +65,7 @@ class UserASForm(forms.ModelForm):
         widgets = {
             'installation_type': forms.RadioSelect(),
         }
+
     use_vpn = forms.BooleanField(
         required=False,
         label="Use VPN",
@@ -87,7 +87,7 @@ class UserASForm(forms.ModelForm):
         if instance:
             initial['use_vpn'] = instance.is_use_vpn()
             initial['public_port'] = instance.get_public_port()
-        self.helper = self._crispy_helper()
+        self.helper = self._crispy_helper(instance)
         super().__init__(*args, initial=initial, **kwargs)
 
     def clean(self):
@@ -154,7 +154,7 @@ class UserASForm(forms.ModelForm):
             )
             return self.instance
 
-    def _crispy_helper(self):
+    def _crispy_helper(self, instance):
         """
         Create the crispy-forms FormHelper. The form will then be rendered
         using {% crispy form %} in the template.
@@ -162,9 +162,11 @@ class UserASForm(forms.ModelForm):
         helper = FormHelper()
         helper.attrs['id'] = 'id_user_as_form'
         helper.layout = Layout(
+            AppendedText('label',
+                         text='<span class="fa fa-pencil"/>',
+                         title="Optional short label for your AS",
+                         placeholder='"My Test AS X"'),
             'attachment_point',
-            AppendedText('label', '<span class="fa fa-pencil"/>'),
-            'installation_type',
             'use_vpn',
             AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
             AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
@@ -179,7 +181,21 @@ class UserASForm(forms.ModelForm):
                 ),
                 css_id='row_id_bind_addr'
             ),
+            Field(
+                'installation_type',
+                template='scionlab/partials/installation_type_accordion.html',
+            ),
         )
+
+        # Inject some helpers into the context (crispy does the magic):
+        helper.accordion_templates = ["scionlab/partials/installation_type_vm.html",
+                                      "scionlab/partials/installation_type_pkg.html",
+                                      "scionlab/partials/installation_type_src.html"]
+
+        if instance and instance.pk:
+            host = instance.hosts.get()
+            helper.host_id = host.uid
+            helper.host_secret = host.secret
 
         return helper
 

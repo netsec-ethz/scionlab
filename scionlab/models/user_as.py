@@ -15,8 +15,9 @@
 import ipaddress
 
 from django import urls
-from django.db import models, transaction
 from django.core.exceptions import ValidationError
+from django.db import models, transaction
+from django.utils.html import format_html
 
 import scionlab.tasks
 from scionlab.models.core import (
@@ -154,9 +155,11 @@ class UserAS(AS):
     PKG = 'PKG'
     SRC = 'SRC'
     INSTALLATION_TYPES = (
-        (VM, 'Run SCION in a Vagrant virtual machine'),
+        (VM,  format_html('Run SCION in a <em>Vagrant</em> virtual machine '
+                          '<i class="text-muted">(simplest approach)</i>')),
         (PKG, 'SCION installation from *.deb packages'),
-        (SRC, 'SCION installation from sources (for developers)'),
+        (SRC, format_html('SCION installation from sources '
+                          '<i class="text-muted">(for developers)</i>')),
     )
 
     attachment_point = models.ForeignKey(
