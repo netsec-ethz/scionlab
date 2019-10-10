@@ -49,7 +49,8 @@ def check_as(testcase, as_):
     # TODO: generalize (topo checks)
     for interface in as_.interfaces.iterator():
         link = interface.link()
-        if link.type == Link.PROVIDER and link.interfaceB == interface:
+        # Check if the link is active, otherwise the ISD can be different
+        if link.type == Link.PROVIDER and link.interfaceB == interface and link.active:
             parent_as = link.interfaceA.AS
             testcase.assertEqual(parent_as.isd, as_.isd)
 

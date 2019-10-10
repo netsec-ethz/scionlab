@@ -11,174 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections import namedtuple
 
-import ipaddress
-
-from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse, reverse_lazy
+from django.shortcuts import render
 from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
-from django import forms
-from django.conf import settings
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column
-from crispy_forms.bootstrap import AppendedText
+from django.forms import BaseModelFormSet, modelformset_factory
 
-from scionlab.defines import MAX_PORT
-from scionlab.models.user_as import UserAS, AttachmentPoint
-from scionlab.util.http import HttpResponseAttachment
 from scionlab import config_tar
+from scionlab.util.http import HttpResponseAttachment
+from scionlab.models.core import Link
+from scionlab.models.user_as import UserAS, AttachmentPoint
+from scionlab.forms.user_as_form import UserASForm
+from scionlab.forms.attachment_link_form import AttachmentLinkForm, AttachmentLinksFormSet
 
 
-class UserASForm(forms.ModelForm):
-    """
-    Form for UserAS creation and update.
-    """
-    class Meta:
-        model = UserAS
-        fields = (
-            'label',
-            'attachment_point',
-            'installation_type',
-            'public_ip',
-            'bind_ip',
-            'bind_port'
-        )
-        labels = {
-            'label': "Label",
-            'attachment_point': "Attachment Point",
-            'public_ip': "Public IP address",
-            'bind_ip': "Bind IP address",
-            'bind_port': "Bind Port",
-        }
-        help_texts = {
-            'label': "Optional short label for your AS",
-            'attachment_point': "This SCIONLab-infrastructure AS will be the provider for your AS.",
-            'public_ip': "The attachment point will use this IP for the overlay link to your AS.",
-            'bind_ip': "(Optional) Specify the local IP/port "
-                       "if your border router is behind a NAT/firewall etc.",
-        }
-        widgets = {
-            'installation_type': forms.RadioSelect(),
-        }
-    use_vpn = forms.BooleanField(
-        required=False,
-        label="Use VPN",
-        help_text="Use an OpenVPN connection for the overlay link between the attachment point "
-                  "and the border router of my AS."
-    )
-    public_port = forms.IntegerField(
-        min_value=1024,
-        max_value=MAX_PORT,
-        initial=50000,
-        label="Public Port (UDP)",
-        help_text="The attachment point will use this port for the overlay link to your AS."
-    )
-
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user')
-        instance = kwargs.get('instance')
-        initial = kwargs.pop('initial', {})
-        if instance:
-            initial['use_vpn'] = instance.is_use_vpn()
-            initial['public_port'] = instance.get_public_port()
-        self.helper = self._crispy_helper()
-        super().__init__(*args, initial=initial, **kwargs)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if self.instance.pk is None:
-            self.user.check_as_quota()
-        if cleaned_data.get('use_vpn'):
-            cleaned_data.get('attachment_point').check_vpn_available()
-        elif 'public_ip' in self.errors:
-            assert('public_ip' not in cleaned_data)
-            return cleaned_data
-        else:
-            public_ip = cleaned_data.get('public_ip')
-            if not public_ip:
-                # public_ip cannot be empty when use_vpn is false
-                raise ValidationError(
-                    'Please provide a value for public IP, or enable "Use OpenVPN".',
-                    code='missing_public_ip_no_vpn'
-                )
-            ip_addr = ipaddress.ip_address(public_ip)
-
-            ap = cleaned_data['attachment_point']
-            if ip_addr.version not in ap.supported_ip_versions():
-                raise ValidationError('IP version {ipv} not supported by the selected '
-                                      'attachment point'.format(ipv=ip_addr.version),
-                                      code='unsupported_ip_version')
-
-            if (not settings.DEBUG and (not ip_addr.is_global or ip_addr.is_loopback)) or \
-                    ip_addr.is_multicast or \
-                    ip_addr.is_reserved or \
-                    ip_addr.is_link_local or \
-                    (ip_addr.version == 6 and ip_addr.is_site_local) or \
-                    ip_addr.is_unspecified:
-                self.add_error('public_ip',
-                               ValidationError("Public IP address must be a publically routable "
-                                               "address. It cannot be a multicast, loopback or "
-                                               "otherwise reserved address.",
-                                               code='invalid_public_ip'))
-        return cleaned_data
-
-    def save(self, commit=True):
-        if self.instance.pk is None:
-            return UserAS.objects.create(
-                owner=self.user,
-                label=self.cleaned_data['label'],
-                attachment_point=self.cleaned_data['attachment_point'],
-                installation_type=self.cleaned_data['installation_type'],
-                use_vpn=self.cleaned_data['use_vpn'],
-                public_ip=self.cleaned_data['public_ip'],
-                public_port=self.cleaned_data['public_port'],
-                bind_ip=self.cleaned_data['bind_ip'],
-                bind_port=self.cleaned_data['bind_port'],
-            )
-        else:
-            self.instance.update(
-                label=self.cleaned_data['label'],
-                attachment_point=self.cleaned_data['attachment_point'],
-                installation_type=self.cleaned_data['installation_type'],
-                use_vpn=self.cleaned_data['use_vpn'],
-                public_ip=self.cleaned_data['public_ip'],
-                public_port=self.cleaned_data['public_port'],
-                bind_ip=self.cleaned_data['bind_ip'],
-                bind_port=self.cleaned_data['bind_port'],
-            )
-            return self.instance
-
-    def _crispy_helper(self):
-        """
-        Create the crispy-forms FormHelper. The form will then be rendered
-        using {% crispy form %} in the template.
-        """
-        helper = FormHelper()
-        helper.attrs['id'] = 'id_user_as_form'
-        helper.layout = Layout(
-            'attachment_point',
-            AppendedText('label', '<span class="fa fa-pencil"/>'),
-            'installation_type',
-            'use_vpn',
-            AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-            AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
-            Row(
-                Column(
-                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                Column(
-                    AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                css_id='row_id_bind_addr'
-            ),
-        )
-
-        return helper
+# TODO: How much should this be?
+MAX_AP_PER_USERAS = 50
+AttachmentPointVPN = namedtuple('AttachmentPointVPN', ['attachment_point', 'vpn'])
 
 
 class UserASCreateView(CreateView):
@@ -190,13 +43,38 @@ class UserASCreateView(CreateView):
         user = self.request.user
         if user.num_ases() >= user.max_num_ases():
             return HttpResponseForbidden()
-        return super().get(request, *args, **kwargs)
+        context = {
+                'userASForm': UserASForm(user=user),
+                'addAttachmentLinkForm': AttachmentLinkForm(user=user)
+        }
+        return render(request, self.template_name, context=context)
 
     def post(self, request, *args, **kwargs):
         user = self.request.user
         if user.num_ases() >= user.max_num_ases():
             return HttpResponseForbidden()
-        return super().post(request, *args, **kwargs)
+        attachmentLinkForm = AttachmentLinkForm(request.POST, user=user)
+        # Trigger clean with `is_valid()' on attachmentLinkForm since 
+        # data from it are needed to validate the userASForm
+        attachmentLinkForm.is_valid()
+        attachment_point_vpn = AttachmentPointVPN(attachmentLinkForm.cleaned_data['attachment_point'],
+                                attachmentLinkForm.cleaned_data['use_vpn'])
+        userASForm = UserASForm(request.POST, user=user,
+                                attachment_points_vpn=[attachment_point_vpn]
+                               )
+        if not attachmentLinkForm.is_valid() or not userASForm.is_valid():
+            context = {
+                    'userASForm': userASForm,
+                    'addAttachmentLinkForm': attachmentLinkForm
+            }
+            return render(request, self.template_name, context=context)
+        else:
+            isd = attachment_point_vpn.attachment_point.AS.isd
+            userAS = UserAS.objects.create(user, userASForm.cleaned_data['installation_type'], isd,
+                                           public_ip=userASForm.cleaned_data['public_ip'],
+                                           label=userASForm.cleaned_data['label'])
+            attachmentLink = attachmentLinkForm.save(userAS)
+            return HttpResponseRedirect(reverse('user_as_detail', kwargs={'pk': userAS.pk}))
 
     def get_success_url(self):
         return reverse('user_as_detail', kwargs={'pk': self.object.pk})
@@ -226,6 +104,67 @@ class UserASDetailView(OwnedUserASQuerysetMixin, UpdateView):
     template_name = "scionlab/user_as_details.html"
     model = UserAS
     form_class = UserASForm
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        userAS = self.get_object()
+        attachmentLinksFormSet = modelformset_factory(Link,
+                                                      form=AttachmentLinkForm,
+                                                      fields=('active',),
+                                                      formset=AttachmentLinksFormSet,
+                                                      max_num=MAX_AP_PER_USERAS,
+                                                      validate_max=True)
+        attachmentLinksFormSet = attachmentLinksFormSet(queryset=Link.objects.filter(interfaceB__AS=userAS),
+                                                        form_kwargs={'user': user}
+                                                       )
+        context = {
+                'object': userAS,
+                'userASForm': UserASForm(user=user, instance=userAS),
+                'attachmentLinksFormSet': attachmentLinksFormSet
+        }
+        return render(request, self.template_name, context=context)
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        userAS = self.get_object()
+        attachmentLinksFormSet = modelformset_factory(Link,
+                                                      form=AttachmentLinkForm,
+                                                      fields=('active',),
+                                                      formset=AttachmentLinksFormSet,
+                                                      max_num=MAX_AP_PER_USERAS,
+                                                      validate_max=True)
+        attachmentLinksFormSet = attachmentLinksFormSet(request.POST, request.FILES,
+                                                        queryset=Link.objects.filter(interfaceB__AS=userAS),
+                                                        form_kwargs={'user': user}
+                                                       )
+        if not attachmentLinksFormSet.is_valid():
+            context = {
+                    'object': userAS,
+                    'userASForm': UserASForm(user=user),
+                    'attachmentLinksFormSet': attachmentLinksFormSet
+            }
+            return render(request, self.template_name, context=context)
+        else:
+            attachment_points_vpn = [AttachmentPointVPN(form.cleaned_data['attachment_point'],
+                                                        form.cleaned_data['use_vpn'])
+                                     for form in attachmentLinksFormSet.forms
+                                     if form.cleaned_data
+                                    ]
+            userASForm = UserASForm(request.POST, user=user, instance=userAS,
+                                    attachment_points_vpn=attachment_points_vpn,
+                                   )
+            if not userASForm.is_valid():
+                context = {
+                        'object': userAS,
+                        'userASForm': userASForm,
+                        'attachmentLinksFormSet': attachmentLinksFormSet
+                }
+                return render(request, self.template_name, context=context)
+            isd = attachment_points_vpn[0].attachment_point.AS.isd
+            userASForm.save()
+            attachmentLinksFormSet.save(userAS)
+            return HttpResponseRedirect(reverse('user_as_detail', kwargs={'pk': userAS.pk}))
+
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

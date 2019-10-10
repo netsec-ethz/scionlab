@@ -486,12 +486,12 @@ class Host(models.Model):
     public_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
-        help_text="Default public IP for for border router interfaces running on this host."
+        help_text="Default public IP for border router interfaces running on this host."
     )
     bind_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
-        help_text="Default bind IP for for border router interfaces running on this host."
+        help_text="Default bind IP for border router interfaces running on this host."
     )
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
@@ -640,7 +640,8 @@ class InterfaceManager(models.Manager):
                public_port=None,
                bind_ip=None,
                bind_port=None,
-               interface_id=None):
+               interface_id=None,
+               vpn_client=None):
         """
         Create an Interface
         :param BorderRouter border_router: The border router process running responsible for this
@@ -650,13 +651,17 @@ class InterfaceManager(models.Manager):
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, a free port is selected if bind IP set and not specified
         :param int interface_id: optional, the interface id for this interface.
+        :param VPNClient vpn_client: optional, the vpn client associated to this interface.
         """
         host = border_router.host
         as_ = host.AS
         ifid = interface_id or as_.find_interface_id()
 
         effective_public_ip = public_ip or host.public_ip
-        effective_bind_ip = bind_ip if public_ip else host.bind_ip
+        # In case there is a vpn_client specified for this Interface, bind_ip is None
+        effective_bind_ip = None
+        if not vpn_client:
+            effective_bind_ip = bind_ip if public_ip else host.bind_ip
 
         portmap = LazyPortMap(host.get_port_map)
         if public_port is None:
@@ -673,10 +678,11 @@ class InterfaceManager(models.Manager):
             interface_id=ifid,
             host=host,
             border_router=border_router,
-            public_ip=public_ip,
+            public_ip=vpn_client.ip if vpn_client else public_ip,
             public_port=public_port,
             bind_ip=bind_ip,
             bind_port=bind_port,
+            vpn_client=vpn_client
         )
 
     def active(self):
@@ -734,6 +740,10 @@ class Interface(models.Model):
             overrides the Host's default bind IP.""")
     bind_port = models.PositiveIntegerField(null=True, blank=True)
 
+    # Imported here to avoid circular dependencies
+    from scionlab.models.vpn import VPNClient
+    vpn_client = models.ForeignKey(VPNClient, on_delete=models.SET_NULL, null=True)
+
     objects = InterfaceManager()
 
     def __str__(self):
@@ -763,7 +773,8 @@ class Interface(models.Model):
                public_ip=_placeholder,
                public_port=_placeholder,
                bind_ip=_placeholder,
-               bind_port=_placeholder):
+               bind_port=_placeholder,
+               vpn_client=None):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
@@ -794,6 +805,7 @@ class Interface(models.Model):
                            public_ip_changed=self.get_public_ip() != prev_public_ip,
                            bind_ip_changed=self.get_bind_ip() != prev_bind_ip)
 
+        self.vpn_client = vpn_client
         self.save()
 
         diff_public = self._get_public_info() != prev_public_info
@@ -893,6 +905,13 @@ class Interface(models.Model):
         of only the local AS.
         """
         return [self.border_router, self.get_bind_ip(), self.bind_port]
+
+    @property
+    def has_active_vpn(self):
+        """
+        Returns whether the interface has an active VPNClient
+        """
+        return vpn_client is not None and vpn_client.active
 
 
 class LinkManager(models.Manager):
