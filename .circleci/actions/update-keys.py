@@ -21,7 +21,7 @@ import django
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Update AS keys or core-AS keys')
     parser.add_argument('as_ids', nargs='+')
     parser.add_argument('--core-keys', action='store_true',
                         help='update core keys (default: update AS keys)')
