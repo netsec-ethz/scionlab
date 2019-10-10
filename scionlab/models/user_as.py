@@ -157,7 +157,7 @@ class UserAS(AS):
     INSTALLATION_TYPES = (
         (VM,  format_html('Run SCION in a <em>Vagrant</em> virtual machine '
                           '<i class="text-muted">(simplest approach)</i>')),
-        (PKG, 'SCION installation from *.deb packages'),
+        (PKG, 'SCION installation from packages'),
         (SRC, format_html('SCION installation from sources '
                           '<i class="text-muted">(for developers)</i>')),
     )
