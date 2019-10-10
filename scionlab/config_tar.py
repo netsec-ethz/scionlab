@@ -55,12 +55,10 @@ def _add_files_user_as_vm(archive, host):
     The configuration tar for a VM user AS contains:
     - Vagrantfile
     - README
-    - config_info file (scionlab-config.json) inside the gen directory
 
     Does NOT contain the actual scion configuration (the "gen/" folder), as this will
     be fetched (using the host-api) during the Vagrant provisioning using scionlab-config.
     """
-    _add_config_info(host, archive, with_version=False)
     _add_vagrantfiles(host, archive)
     archive.add("README.md", _hostfiles_path("README_vm.md"))
 
@@ -145,6 +143,9 @@ def _expand_vagrantfile_template(host):
 
     return string.Template(vagrant_tmpl).safe_substitute(
         PortForwarding=forwarding_string,
+        host_id=host.uid,
+        host_secret=host.secret,
+        url=settings.SCIONLAB_SITE,
         hostname="scionlab-" + host.AS.as_id.replace(":", "-"),
         vmname="SCIONLabVM-" + host.AS.as_id,
     )

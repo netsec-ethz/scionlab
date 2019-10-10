@@ -409,23 +409,21 @@ def check_tarball_user_as(testcase, response, user_as):
     Check the http-response for downloading a UserAS-config tar-ball.
     """
     tar = _check_open_tarball(testcase, response)
-    files = ['README.md']
-    if user_as.installation_type == UserAS.VM:
-        files += ["Vagrantfile"]
-    testcase.assertEquals(sorted(['gen'] + files), _tar_ls(tar, ''))
 
     if user_as.installation_type == UserAS.VM:
-        # check gen/ only has the scionlab-config.json file
-        testcase.assertEquals(['scionlab-config.json'], _tar_ls(tar, 'gen/'))
+        testcase.assertEquals(sorted(['README.md', 'Vagrantfile']),
+                              _tar_ls(tar, ''))
         # appropriate README?
         readme = tar.extractfile('README.md').read().decode()
-        testcase.assertTrue(readme.startswith('# SCIONLabVM'))
+        testcase.assertTrue(readme.startswith('# SCIONLab VM'))
         # Vagrantfile template expanded correctly?
         vagrantfile = tar.extractfile('Vagrantfile')
         lines = [l.decode() for l in vagrantfile]
         name_lines = [l.strip() for l in lines if l.strip().startswith('vb.name')]
         testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_id])
     else:
+        testcase.assertEquals(sorted(['README.md', 'gen']),
+                              _tar_ls(tar, ''))
         # check the full content of gen/
         _check_tarball_gen(testcase, tar, user_as.hosts.get())
         readme = tar.extractfile('README.md').read().decode()
