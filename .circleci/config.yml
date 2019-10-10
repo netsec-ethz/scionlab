@@ -77,7 +77,8 @@ jobs:
   integration:
     machine:
       image: ubuntu-1604:201903-01
-      docker_layer_caching: true
+      # This is super nice and works like a charm BUT unfortunately it is now explicitly disabled on the free plan. Pitty
+      # docker_layer_caching: true
 
     steps:
       - checkout
