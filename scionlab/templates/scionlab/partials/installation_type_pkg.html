@@ -1,5 +1,5 @@
 <p>
-To install SCION from packages, please follow the steps in the <a href="https://netsec-ethz.github.io/scion-tutorials/">tutorials</a>.
+To install SCION from packages, please follow the steps in the <a href="https://netsec-ethz.github.io/scion-tutorials/" target="_blank">tutorials</a>.
 As a very short summary, the commands to install the packages on Ubuntu are:
 <pre>
 sudo apt-get install apt-transport-https
@@ -10,7 +10,7 @@ sudo apt-get install scionlab
 </p>
 
 <p>
-Once you've saved your setup, you can deploy the configuration to your machine. The easiest and recommended way is to run the script <code>scionlab-config</code>:
+Once you've saved your setup, you can deploy the configuration to your machine. The easiest way is to run the <code class="nowrap">scionlab-config</code> script:
 <pre>
 {% if host_id and host_secret %}
 scionlab-config --host-id={{host_id}} --host-secret={{host_secret}}
