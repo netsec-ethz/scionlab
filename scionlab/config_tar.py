@@ -56,7 +56,6 @@ def _add_files_user_as_vm(archive, host):
     - Vagrantfile
     - run.sh
     - README
-    - scionlab-services.txt file listing the services running in the host
     - config_info file (scionlab-config.json) inside the gen directory
 
     Does NOT contain the actual scion configuration (the "gen/" folder), as this will
@@ -71,9 +70,10 @@ def _add_files_user_as_dedicated(archive, host, process_control):
     """
     The configuration tar for a SRC or PKG user AS contains:
     - README
-    - scionlab-services.txt file listing the services running in the host
+    - if PKG: scionlab-services.txt file listing the services running in the host
     - config_info file (scionlab-config.json) inside the gen directory
     - full gen directory:
+        - if SRC: including supervisord files
     - VPN file client.conf (if using VPN)
     """
 
