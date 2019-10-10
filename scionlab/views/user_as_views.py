@@ -163,20 +163,20 @@ class UserASForm(forms.ModelForm):
         helper.attrs['id'] = 'id_user_as_form'
         helper.layout = Layout(
             AppendedText('label',
-                         text='<span class="fa fa-pencil"/>',
+                         text='<span class="fa fa-pencil"></span>',
                          title="Optional short label for your AS",
                          placeholder='"My Test AS X"'),
             'attachment_point',
             'use_vpn',
-            AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-            AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
+            AppendedText('public_ip', '<span class="fa fa-external-link"></span>'),
+            AppendedText('public_port', '<span class="fa fa-share-square-o"></span>'),
             Row(
                 Column(
-                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
+                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"></span>'),
                     css_class='form-group col-md-6 mb-0',
                 ),
                 Column(
-                    AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
+                    AppendedText('bind_port', '<span class="fa fa-share-square"></span>'),
                     css_class='form-group col-md-6 mb-0',
                 ),
                 css_id='row_id_bind_addr'

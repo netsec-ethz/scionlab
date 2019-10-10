@@ -9,7 +9,7 @@
 {# from crispy field.html #}
 <{% if tag %}{{ tag }}{% else %}div{% endif %} id="div_{{ field.auto_id }}" class="{% if not field|is_checkbox %}form-group{% if 'form-horizontal' in form_class %} row{% endif %}{% else %}{%if use_custom_control%}custom-control custom-checkbox{% else %}form-check{% endif %}{% endif %}{% if wrapper_class %} {{ wrapper_class }}{% endif %}{% if field.css_classes %} {{ field.css_classes }}{% endif %}">
     {% if field.label and not field|is_checkbox and form_show_labels %}
-        <label for="{{ field.id_for_label }}" class="{% if 'form-horizontal' in form_class %}col-form-label {% endif %}{{ label_class }}{% if field.field.required %} requiredField{% endif %}">
+        <label class="{% if 'form-horizontal' in form_class %}col-form-label {% endif %}{{ label_class }}{% if field.field.required %} requiredField{% endif %}">
             {{ field.label }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
         </label>
     {% endif %}
@@ -20,13 +20,13 @@
       {% for choice in field.field.choices %}
       <div class="card-header">
         <div class="form-check">
-          <input type="radio" class="form-check-input{%if is_bound %} is-{% if field.errors %}in{%endif%}valid{% endif %}"{% if choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} checked="checked"{% endif %} data-toggle="collapse" data-target="#collapse_{{ field.id_for_label }}_{{ forloop.counter }}" name="{{ field.html_name }}" id="id_{{ field.id_for_label }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>
-            <label for="id_{{ field.id_for_label }}_{{ forloop.counter }}" class="{%if use_custom_control%}custom-control-label{% else %}form-check-label{% endif %}">
+          <input type="radio" class="form-check-input{%if is_bound %} is-{% if field.errors %}in{%endif%}valid{% endif %}"{% if choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} checked="checked"{% endif %} data-toggle="collapse" data-target="#collapse_{{ field.html_name }}_{{ forloop.counter }}" name="{{ field.html_name }}" id="id_{{ field.html_name }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>
+            <label for="id_{{ field.html_name }}_{{ forloop.counter }}" class="{%if use_custom_control%}custom-control-label{% else %}form-check-label{% endif %}">
                 {{ choice.1|safe }}
             </label>
           </div>
       </div>
-      <div id="collapse_{{ field.id_for_label }}_{{ forloop.counter }}" class="collapse{% if choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} show{% endif %}" data-parent="#accordion_{{ field.auto_id }}">
+      <div id="collapse_{{ field.html_name }}_{{ forloop.counter }}" class="collapse{% if choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} show{% endif %}" data-parent="#accordion_{{ field.auto_id }}">
         <div class="card-body">
           {{ accordion_texts|slice:forloop.counter|last }} {# WHAT THE F... is this the only way to access a list by index??? #}
           {% include accordion_templates|slice:forloop.counter|last %} {# WHAT THE F... is this the only way to access a list by index??? #}
