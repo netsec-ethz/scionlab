@@ -54,7 +54,6 @@ def _add_files_user_as_vm(archive, host):
     """
     The configuration tar for a VM user AS contains:
     - Vagrantfile
-    - run.sh
     - README
     - config_info file (scionlab-config.json) inside the gen directory
 
@@ -131,7 +130,6 @@ def _add_vagrantfiles(host, archive):
     Expands the 'Vagrantfile.tmpl'-template.
     """
     archive.write_text("Vagrantfile", _expand_vagrantfile_template(host))
-    archive.add("run.sh", _hostfiles_path("run.sh"))
 
 
 def _expand_vagrantfile_template(host):

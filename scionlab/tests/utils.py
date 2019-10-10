@@ -411,7 +411,7 @@ def check_tarball_user_as(testcase, response, user_as):
     tar = _check_open_tarball(testcase, response)
     files = ['README.md']
     if user_as.installation_type == UserAS.VM:
-        files += ["Vagrantfile", "run.sh"]
+        files += ["Vagrantfile"]
     testcase.assertEquals(sorted(['gen'] + files), _tar_ls(tar, ''))
 
     if user_as.installation_type == UserAS.VM:
