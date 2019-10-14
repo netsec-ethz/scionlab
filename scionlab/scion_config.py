@@ -236,7 +236,7 @@ class _ConfigGenerator:
         self.archive.write_config((elem_dir, 'supervisord.conf'), conf)
 
     def _write_disp_supervisord_conf(self):
-        cmd = 'bin/dispatcher -config %s' % os.path.join(GEN_PATH, 'dispatcher', 'disp.toml')
+        cmd = 'bin/godispatcher -config %s' % os.path.join(GEN_PATH, 'dispatcher', 'disp.toml')
         conf = _build_supervisord_conf('dispatcher', cmd, DEFAULT_ENV, priority=50, startsecs=1)
         self.archive.write_config((GEN_PATH, 'dispatcher', 'supervisord.conf'), conf)
 

@@ -1052,7 +1052,7 @@ gen/dispatcher/supervisord.conf: |+
   startretries = 0
   startsecs = 1
   priority = 50
-  command = bin/dispatcher -config gen/dispatcher/disp.toml
+  command = bin/godispatcher -config gen/dispatcher/disp.toml
 
 gen/ia: |-
   17-ffaa_1_5
