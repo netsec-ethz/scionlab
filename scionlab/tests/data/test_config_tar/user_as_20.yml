@@ -122,8 +122,8 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/supervisord.conf: |+
   autostart = false
   autorestart = true
   environment = TZ=UTC,GODEBUG="cgocheck=0"
-  stdout_logfile = /var/log/scion/br17-ffaa_1_5-1.OUT
-  stderr_logfile = /var/log/scion/br17-ffaa_1_5-1.ERR
+  stdout_logfile = logs/br17-ffaa_1_5-1.OUT
+  stderr_logfile = logs/br17-ffaa_1_5-1.ERR
   startretries = 0
   startsecs = 5
   priority = 100
@@ -329,12 +329,12 @@ gen/ISD17/ASffaa_1_5/bs17-ffaa_1_5-1/supervisord.conf: |+
   autostart = false
   autorestart = true
   environment = TZ=UTC
-  stdout_logfile = /var/log/scion/bs17-ffaa_1_5-1.OUT
-  stderr_logfile = /var/log/scion/bs17-ffaa_1_5-1.ERR
+  stdout_logfile = logs/bs17-ffaa_1_5-1.OUT
+  stderr_logfile = logs/bs17-ffaa_1_5-1.ERR
   startretries = 0
   startsecs = 5
   priority = 100
-  command = bin/beacon_srv -config gen/ISD17/ASffaa_1_5/bs17-ffaa_1_5-1/.toml
+  command = bin/beacon_srv -config gen/ISD17/ASffaa_1_5/bs17-ffaa_1_5-1/bs.toml
 
 gen/ISD17/ASffaa_1_5/bs17-ffaa_1_5-1/topology.json: |-
   {
@@ -535,12 +535,12 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/supervisord.conf: |+
   autostart = false
   autorestart = true
   environment = TZ=UTC
-  stdout_logfile = /var/log/scion/cs17-ffaa_1_5-1.OUT
-  stderr_logfile = /var/log/scion/cs17-ffaa_1_5-1.ERR
+  stdout_logfile = logs/cs17-ffaa_1_5-1.OUT
+  stderr_logfile = logs/cs17-ffaa_1_5-1.ERR
   startretries = 0
   startsecs = 5
   priority = 100
-  command = bin/cert_srv -config gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/.toml
+  command = bin/cert_srv -config gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml
 
 gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/topology.json: |-
   {
@@ -727,14 +727,14 @@ gen/ISD17/ASffaa_1_5/endhost/sd.toml: |
   Path = "logs/sd17-ffaa_1_5.log"
 
   [sd.PathDB]
-  Connection = "/var/lib/scion/sd17-ffaa_1_5.path.db"
+  Connection = "gen-cache/sd17-ffaa_1_5.path.db"
 gen/ISD17/ASffaa_1_5/endhost/supervisord.conf: |+
   [program:sd17-ffaa_1_5]
   autostart = false
   autorestart = true
   environment = TZ=UTC
-  stdout_logfile = /var/log/scion/sd17-ffaa_1_5.OUT
-  stderr_logfile = /var/log/scion/sd17-ffaa_1_5.ERR
+  stdout_logfile = logs/sd17-ffaa_1_5.OUT
+  stderr_logfile = logs/sd17-ffaa_1_5.ERR
   startretries = 0
   startsecs = 5
   priority = 100
@@ -937,12 +937,12 @@ gen/ISD17/ASffaa_1_5/ps17-ffaa_1_5-1/supervisord.conf: |+
   autostart = false
   autorestart = true
   environment = TZ=UTC
-  stdout_logfile = /var/log/scion/ps17-ffaa_1_5-1.OUT
-  stderr_logfile = /var/log/scion/ps17-ffaa_1_5-1.ERR
+  stdout_logfile = logs/ps17-ffaa_1_5-1.OUT
+  stderr_logfile = logs/ps17-ffaa_1_5-1.ERR
   startretries = 0
   startsecs = 5
   priority = 100
-  command = bin/path_srv -config gen/ISD17/ASffaa_1_5/ps17-ffaa_1_5-1/.toml
+  command = bin/path_srv -config gen/ISD17/ASffaa_1_5/ps17-ffaa_1_5-1/ps.toml
 
 gen/ISD17/ASffaa_1_5/ps17-ffaa_1_5-1/topology.json: |-
   {
@@ -1047,8 +1047,8 @@ gen/dispatcher/supervisord.conf: |+
   autostart = false
   autorestart = true
   environment = TZ=UTC
-  stdout_logfile = /var/log/scion/dispatcher.OUT
-  stderr_logfile = /var/log/scion/dispatcher.ERR
+  stdout_logfile = logs/dispatcher.OUT
+  stderr_logfile = logs/dispatcher.ERR
   startretries = 0
   startsecs = 1
   priority = 50

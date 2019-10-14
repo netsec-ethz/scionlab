@@ -217,7 +217,7 @@ class _ConfigGenerator:
         for r in self._routers():
             self._write_supervisord_conf(r.instance_name, CMDS[TYPE_BR], 'br.toml', env=BORDER_ENV)
         for s in self._services():
-            self._write_supervisord_conf(s.instance_name, CMDS[s.type], '.toml')
+            self._write_supervisord_conf(s.instance_name, CMDS[s.type], '%s.toml' % s.type.lower())
 
         sd_prog_id = "sd%s" % self.AS.isd_as_path_str()
         self._write_supervisord_conf('endhost', CMDS[TYPE_SD], 'sd.toml', prog_id=sd_prog_id)
@@ -346,7 +346,7 @@ class _ConfigBuilder:
                 'SocketFileMode': '0777',
                 'Public': '{IA},[{ip}]:0'.format(IA=host.AS.isd_as_str(), ip=host.internal_ip),
                 'PathDB': {
-                    'Connection': '%s.path.db' % os.path.join(SCION_VAR_DIR, instance_name),
+                    'Connection': '%s.path.db' % os.path.join(self.var_dir, instance_name),
                 },
             },
         })
@@ -408,8 +408,8 @@ def _build_supervisord_conf(program_id, cmd, envs, priority=100, startsecs=5):
         ('autostart', 'false'),
         ('autorestart', 'true'),
         ('environment', ','.join(envs)),
-        ('stdout_logfile', '%s.OUT' % os.path.join(SCION_LOG_DIR, program_id)),
-        ('stderr_logfile', '%s.ERR' % os.path.join(SCION_LOG_DIR, program_id)),
+        ('stdout_logfile', '%s.OUT' % os.path.join('logs', program_id)),
+        ('stderr_logfile', '%s.ERR' % os.path.join('logs', program_id)),
         ('startretries', '0'),
         ('startsecs', str(startsecs)),
         ('priority', str(priority)),
