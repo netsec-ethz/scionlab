@@ -28,7 +28,19 @@ _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 _DATA_DIR = os.path.join(_TEST_DIR, 'data/test_config_tar/')
 
 
+# See scripts/recreate-test-results.sh
 _RECREATE_TEST_RESULTS = os.getenv('RECREATE_TEST_RESULTS', False)
+
+
+_HOWTO_RECREATE = """
+
+This is a regression test; the actual result differs from the expected, checked-in ground truth
+result in scionlab/tests/data/test_config_tar/.
+
+If you're sure that the ground truth data is wrong, update the expected output. Either
+- manually update the file, or
+- recreate all using scripts/recreate-test-results.sh -- double check the resulting diff!
+"""
 
 
 class ConfigTarRegressionTests(TestCase):
@@ -61,12 +73,14 @@ class ConfigTarRegressionTests(TestCase):
             # Do comparison in two stages to be able to make sense of any diff
             # Check same set of files:
             self.assertListEqual(list(sorted(expected.keys())),
-                                 list(sorted(actual.keys())))
+                                 list(sorted(actual.keys())),
+                                 "The list of generated files differ from the expected result" +
+                                 _HOWTO_RECREATE)
 
             # Check all files identical:
             for f in sorted(expected.keys()):
                 self.assertEqual(expected[f], actual[f],
-                                 'File %s differs' % f)
+                                 'File %s differs from expected result' % f + _HOWTO_RECREATE)
         else:
             with open(test_data_file, 'w') as f:
                 yaml.dump(_strs_as_literals(archive.dict), stream=f)
