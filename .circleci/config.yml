@@ -201,7 +201,6 @@ jobs:
             # Show current TRC
             TRC_version=1
             docker-compose exec -T as1301 cat "/etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
-            prev_trc_version=$(docker-compose exec -T as1301 /bin/bash -c 'cat $(find /etc/scion/gen -name *.trc | head -n 1)' | jq .Version)
 
             # Update core keys which requires creating a new TRC
             # XXX: Update keys for non-core ASes force reissuing AS certs.
