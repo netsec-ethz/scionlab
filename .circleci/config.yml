@@ -109,9 +109,9 @@ jobs:
 
             docker-compose up -d coord
 
-            # We start another container with curl in the same network as `coord` to check `coord` is ready.
+            # We start another container in the same network as `coord` to check `coord` is ready.
             # All exposed ports from `coord` are available on `localhost` in this new container.
-            # NOTE: uses python:3.6 to re-use already fetched image from `coord` which contains curl
+            # NOTE: uses python:3.6 to re-use already fetched image from `coord`; contains more tools than ubuntu:xenial
             docker run --net circleci_as_net --entrypoint /bin/bash python:3.6 -c \
               'wget --tries 10 --retry-connrefused http://coord:8000/login/'
 
