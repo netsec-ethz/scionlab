@@ -14,10 +14,10 @@ Once you've saved your setup, you can deploy the configuration to your machine. 
 </p>
 <pre>
 {% if host_id and host_secret %}
-scionlab-config --host-id={{host_id}} --host-secret={{host_secret}}
+sudo scionlab-config --host-id={{host_id}} --host-secret={{host_secret}}
 {% else %}
 # host-id/secret will be displayed here after saving your configuration
-scionlab-config --host-id=&lt;...&gt; --host-secret=&lt;...&gt;  
+sudo scionlab-config --host-id=&lt;...&gt; --host-secret=&lt;...&gt;
 {% endif %}
 </pre>
 
