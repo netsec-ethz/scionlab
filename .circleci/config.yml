@@ -140,7 +140,7 @@ jobs:
 
             for c in as1301 as1303 as1305; do
               docker-compose exec $c /bin/bash -c \
-                'systemctl is-failed scion-* && false || true'
+                '! systemctl is-failed scion-*'
             done
 
       - run:
