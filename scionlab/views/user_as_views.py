@@ -52,7 +52,9 @@ class UserASForm(forms.ModelForm):
         labels = {
             'label': "Label",
             'attachment_point': "Attachment Point",
-            'public_ip': "Public IP address",
+            # Hack: add "asteriskField"-span to make field look like required field, but will
+            # only be checked server side
+            'public_ip': 'Public IP address <span class="asteriskField">*</span>',
             'bind_ip': "Bind IP address",
             'bind_port': "Bind Port",
         }
