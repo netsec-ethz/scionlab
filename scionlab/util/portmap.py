@@ -83,9 +83,17 @@ class PortMap:
         is already present in the set of used ports.
         :param ip: ip address or `none` for the unspecified address
         :param int port: port
+        :returns bool: Whether or not the added port is already present
         """
         assert isinstance(port, int)
-        self.ports.setdefault(ip, set()).add(port)
+        if ip not in self.ports:
+            ports = set()
+            self.ports[ip] = ports
+        else:
+            ports = self.ports[ip]
+        clash = port in ports
+        ports.add(port)
+        return clash
 
     def update(self, ip, ports):
         """

@@ -103,8 +103,7 @@ def create_and_check_useras(testcase,
                             seed,
                             aps_conf: List[AttachmentPointConf],
                             vpn_choice: VPNChoice,
-                            owner,
-                            public_ip=None,
+                            owner, public_ip=None,
                             bind_ip=None,
                             installation_type=UserAS.DEDICATED,
                             label='label foo'):
@@ -482,7 +481,7 @@ class VPNServerTests(TestCase):
         self.assertGreater(new_server.config_version, new_server_prev_version)
 
 
-@with_fixtures(['testtopo-ases-links'])
+# FIXME: Generate attachment points without `with_fixtures(...)`
 def get_all_random_attachment_points(has_vpn: bool = False, seed=1) -> List[List[AttachmentPoint]]:
     """
     Generates a list of lists of AttachmentPoints.
@@ -491,11 +490,13 @@ def get_all_random_attachment_points(has_vpn: bool = False, seed=1) -> List[List
     of at least 2 elements
     :param bool has_vpn: use only VPN capable AttachmentPoints
     :param int has_vpn: use only VPN capable AttachmentPoints
+    :param int seed:
     :return List[List[AttachmentPoint]]:
     """
     r = random.Random(seed)
     aps_per_isd = {}
     aps_choice = []
+    testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
     for ap in AttachmentPoint.objects.all():
         aps_per_isd.setdefault(ap.AS.isd, [])
         aps_per_isd[ap.AS.isd].append(ap)

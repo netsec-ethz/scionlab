@@ -5,24 +5,16 @@
 {% block title %}Create User AS{% endblock %}
 
 {% block content %}
-<form action="{% url 'user_as_add' %}" method="post">
-  {% csrf_token %}
-  <div class="form-box">
-    <h2>Configuration</h2>
-    {% for field in userASForm %}
-      {{ field|as_crispy_field }}
-    {% endfor %}
-  {{ userASForm.non_field_errors }}
+    <form action="{% url 'user_as_add' %}" method="post">
+        {% csrf_token %}
+        <h2>Configuration</h2>
+        {% crispy form %}
 
-  <h2>Attachment point</h2>
-    {% for field in addAttachmentLinkForm %}
-      {{ field|as_crispy_field }}
-    {% endfor %}
-    {{ addAttachmentLinkForm.non_field_errors }}
-    <button type="submit" class="btn btn-primary savebtn">Create AS</button>
-  </div>
-</form>
+        <h2>Attachment point</h2>
+        {% crispy form.attachment_links_form_set %}
+        <button type="submit" class="btn btn-primary savebtn">Create AS</button>
+    </form>
 
-{% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}
+    {% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}
 
 {% endblock content %}

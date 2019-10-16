@@ -651,16 +651,19 @@ class InterfaceManager(models.Manager):
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, a free port is selected if bind IP set and not specified
         :param int interface_id: optional, the interface id for this interface.
-        :param VPNClient vpn_client: optional, the vpn client associated to this interface.
+        :param VPNClient vpn_client: the `vpn_client` associated to this Interface (only used to
+                                     avoid hitting the DB to retrieve it)
         """
         host = border_router.host
         as_ = host.AS
         ifid = interface_id or as_.find_interface_id()
 
         effective_public_ip = public_ip or host.public_ip
-        # In case there is a vpn_client specified for this Interface, bind_ip is None
-        effective_bind_ip = None
-        if not vpn_client:
+        if vpn_client is not None:
+            # If using VPN the `public_ip` is the one of the VPNClient and `bind_ip` is None
+            public_ip = vpn_client.ip
+            effective_bind_ip = None
+        else:
             effective_bind_ip = bind_ip if public_ip else host.bind_ip
 
         portmap = LazyPortMap(host.get_port_map)
@@ -678,11 +681,11 @@ class InterfaceManager(models.Manager):
             interface_id=ifid,
             host=host,
             border_router=border_router,
-            public_ip=vpn_client.ip if vpn_client else public_ip,
+            public_ip=public_ip,
             public_port=public_port,
             bind_ip=bind_ip,
             bind_port=bind_port,
-            vpn_client=vpn_client
+            is_over_vpn=vpn_client is not None
         )
 
     def active(self):
@@ -740,9 +743,7 @@ class Interface(models.Model):
             overrides the Host's default bind IP.""")
     bind_port = models.PositiveIntegerField(null=True, blank=True)
 
-    # Imported here to avoid circular dependencies
-    from scionlab.models.vpn import VPNClient
-    vpn_client = models.ForeignKey(VPNClient, on_delete=models.SET_NULL, null=True)
+    is_over_vpn = models.BooleanField(default=False)
 
     objects = InterfaceManager()
 
@@ -774,7 +775,7 @@ class Interface(models.Model):
                public_port=_placeholder,
                bind_ip=_placeholder,
                bind_port=_placeholder,
-               vpn_client=None):
+               is_over_vpn=_placeholder):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
@@ -785,6 +786,8 @@ class Interface(models.Model):
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, if bind IP is set, a free port is selected if `None` is
                               passed and either `host` or `bind_ip` are changed
+        :param bool is_over_vpn: optional, whether or not the traffic going over this Link interface
+                              through this interface is carried out over VPN
         """
         prev_host = self.host
         prev_public_ip = self.get_public_ip()
@@ -805,7 +808,7 @@ class Interface(models.Model):
                            public_ip_changed=self.get_public_ip() != prev_public_ip,
                            bind_ip_changed=self.get_bind_ip() != prev_bind_ip)
 
-        self.vpn_client = vpn_client
+        self.is_over_vpn = is_over_vpn
         self.save()
 
         diff_public = self._get_public_info() != prev_public_info
@@ -905,13 +908,6 @@ class Interface(models.Model):
         of only the local AS.
         """
         return [self.border_router, self.get_bind_ip(), self.bind_port]
-
-    @property
-    def has_active_vpn(self):
-        """
-        Returns whether the interface has an active VPNClient
-        """
-        return vpn_client is not None and vpn_client.active
 
 
 class LinkManager(models.Manager):

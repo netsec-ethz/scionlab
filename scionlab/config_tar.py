@@ -20,7 +20,6 @@ from contextlib import closing
 
 from django.conf import settings
 from scionlab import scion_config
-from scionlab.models.core import Interface
 from scionlab.models.user_as import UserAS
 from scionlab.openvpn_config import (
     generate_vpn_client_config,
@@ -107,10 +106,13 @@ def _add_vpn_config(host, tar):
     """
     Generate the VPN config files and add them to the tar.
     """
-    vpn_clients = list(host.vpn_clients.filter(active=True))
-    for client_no, vpn_client in enumerate(vpn_clients):
+    # XXX: Not handling the case where a UserAS has multiple VPN connections with the same AP
+    # (if this is even allowed)
+    vpn_clients = host.vpn_clients.filter(active=True).select_related('vpn__server__AS').all()
+    for vpn_client, vpn_server_as in map(lambda c: (c, c.vpn.server.AS), vpn_clients):
         client_config = generate_vpn_client_config(vpn_client)
-        tar_add_textfile(tar, "client_{}.conf".format(client_no), client_config)
+        vpn_server_as_id = vpn_server_as.as_id.replace(':', '-')
+        tar_add_textfile(tar, "client_{}.conf".format(vpn_server_as_id), client_config)
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
@@ -136,27 +138,19 @@ def _add_vagrantfiles(host, tar):
 
 
 def _expand_vagrantfile_template(host):
-    openvpn_clients_string = ''
-    forwarding_string = ''
-    vpn_ifaces = Interface.objects.filter(vpn_client__is_null=False, active=True).all()
-    for client_no in range(vpn_ifaces):
-        if openvpn_clients_string != '':
-            openvpn_clients_string += ''
-        openvpn_clients_string += '-v /vagrant/client_{}.conf'.format(client_no)
-
-    for iface in Interface.objects.filter(vpn_client__is_null=True, active=True).all():
-        port = iface.bind_port or iface.public_port
-        if forwarding_string != '':
-            forwarding_string += '\n'
-        forwarding_string += 'config.vm.network "forwarded_port",' \
-                             ' guest: {port}, host: {port}, protocol: "udp"'.format(port=port)
+    if host.vpn_clients.filter(active=True).exists():
+        interface = host.interfaces.get()
+        port = interface.bind_port or interface.public_port
+        forwarding_string = 'config.vm.network "forwarded_port",' \
+                            ' guest: {port}, host: {port}, protocol: "udp"'.format(port=port)
+    else:
+        forwarding_string = ''
 
     with open(_hostfiles_path("Vagrantfile.tmpl")) as f:
         vagrant_tmpl = f.read()
 
     return string.Template(vagrant_tmpl).safe_substitute(
         PortForwarding=forwarding_string,
-        OenVPNClients=openvpn_clients_string,
         hostname="scionlab-" + host.AS.as_id.replace(":", "-"),
         vmname="SCIONLabVM-" + host.AS.as_id,
     )

@@ -16,32 +16,92 @@ import ipaddress
 
 from django import forms
 from django.conf import settings
-from django.forms import BaseModelFormSet, modelformset_factory
+from django.forms import BaseModelFormSet
 from django.core.exceptions import ValidationError
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column
+from crispy_forms.layout import Layout, Row, Column, Div
 from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT
-from scionlab.models.core import Link, Interface, BorderRouter
-from scionlab.models.user_as import UserAS, AttachmentPoint
+from scionlab.models.core import Link
+from scionlab.models.user_as import AttachmentPoint
+from scionlab.util.portmap import PortMap
+
+
+class AttachmentLinksFormSetHelper(FormHelper):
+    """
+    Create the crispy-forms FormHelper. The form will then be rendered
+    using {% crispy form %} in the template.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(AttachmentLinksFormSetHelper, self).__init__(*args, **kwargs)
+        self.layout = Layout(
+            Div(
+                Div(
+                    Row(
+                        Column(
+                            'active',
+                            css_class='form-group col-md-2 mb-0',
+                        ),
+                        Column(
+                            'use_vpn',
+                            css_class='form-group col-md-5 mb-0',
+                        ),
+                        Column(
+                            'attachment_point',
+                            css_class='form-group col-md-5 mb-0',
+                        ),
+                    ),
+                    css_class="card-header"
+                ),
+                Div(
+                    Row(
+                        Column(
+                            AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
+                            css_class='form-group col-md-6 mb-0',
+                        ),
+                        Column(
+                            AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
+                            css_class='form-group col-md-6 mb-0',
+                        ),
+                        Column(
+                            AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
+                            css_class='form-group col-md-6 mb-0',
+                        ),
+                        Column(
+                            AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
+                            css_class='form-group col-md-6 mb-0',
+                        ),
+                    ),
+                    css_class="card-body"
+                ),
+                css_class="card",
+                style="margin-top: 16px;"
+            )
+        )
+        # We need this to render the AttachmentLinksFormSet along with the UserASForm
+        self.form_tag = False
+        self.disable_csrf = True
 
 
 class AttachmentLinksFormSet(BaseModelFormSet):
 
     def __init__(self, *args, **kwargs):
         super(AttachmentLinksFormSet, self).__init__(*args, **kwargs)
+        self.helper = AttachmentLinksFormSetHelper()
 
     def clean(self):
         if any(self.errors):
             # Don't bother validating the formset unless each form is valid on its own
-             return
-        public_ports = {}
+            return
         # Check isd and ports clash
         isd_set = set()
-        public_ports = {}
-        bind_ports = {}
+        public_ports_map = PortMap()
+        public_port_clashing_forms = []
+        bind_ports_map = PortMap()
+        bind_port_clashing_forms = []
         for form in self.forms:
             if self.can_delete and self._should_delete_form(form):
                 continue
@@ -50,30 +110,27 @@ class AttachmentLinksFormSet(BaseModelFormSet):
                 continue
             isd_set.add(form.cleaned_data['attachment_point'].AS.isd)
             if not form.cleaned_data['use_vpn']:
-                public_ports.setdefault(form.cleaned_data['public_port'], [])
-                public_ports[form.cleaned_data['public_port']].append(form)
-                if 'bind_port' in form.cleaned_data:
-                    bind_ports.setdefault(form.cleaned_data['bind_port'], [])
-                    bind_ports[form.cleaned_data['bind_port']].append(form)
-        # Public ports clash check
-        for port, forms in public_ports.items():
-            if len(forms) > 1:
-                for f in forms[1:]:
-                    f.add_error('public_port',
-                                ValidationError('The port is already in use',
-                                                code='public_port_clash'))
-        # Bind ports clash check
-        for port, forms in bind_ports.items():
-            if len(forms) > 1:
-                for f in forms[1:]:
-                    f.add_error('bind_port',
-                                ValidationError('The port is already in use',
-                                                code='bind_port_clash'))
+                if public_ports_map.add(form.cleaned_data['public_ip'],
+                                        form.cleaned_data['public_port']):
+                    public_port_clashing_forms.append(form)
+            if form.cleaned_data['bind_port']:
+                if bind_ports_map.add(form.cleaned_data['bind_ip'],
+                                      form.cleaned_data['bind_port']):
+                    bind_port_clashing_forms.append(form)
+        # Public ports clash errors adding
+        for form in public_port_clashing_forms:
+            form.add_error('public_port',
+                           ValidationError('The port is already in use',
+                                           code='public_port_clash'))
+        # Bind ports clash errors adding
+        for form in bind_port_clashing_forms:
+            form.add_error('bind_port',
+                           ValidationError('The port is already in use',
+                                           code='bind_port_clash'))
         # Same ISD check
         if len(isd_set) > 1:
             raise ValidationError("All attachment points must belong to the "
                                   "same ISD")
-
 
     def save(self, userAS):
         for form in self.forms:
@@ -81,10 +138,57 @@ class AttachmentLinksFormSet(BaseModelFormSet):
                 form.save(userAS)
 
 
+class AttachmentLinkFormHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        """
+        Create the crispy-forms FormHelper. The form will then be rendered
+        using {% crispy form %} in the template.
+        """
+        super(AttachmentLinkFormHelper, self).__init__(*args, **kwargs)
+        self.attrs['id'] = 'id_attachment_link_form'
+        self.layout = Layout(
+            Row(
+                Column(
+                    'use_vpn',
+                    css_class='form-group col-md-6 mb-0',
+                ),
+                Column(
+                    'attachment_point',
+                    css_class='form-group col-md-6 mb-0',
+                ),
+            ),
+            Row(
+                Column(
+                    AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
+                    css_class='form-group col-md-6 mb-0',
+                ),
+                Column(
+                    AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
+                    css_class='form-group col-md-6 mb-0',
+                ),
+            ),
+            Row(
+                Column(
+                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
+                    css_class='form-group col-md-6 mb-0',
+                ),
+                Column(
+                    AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
+                    css_class='form-group col-md-6 mb-0',
+                ),
+                css_id='row_id_bind_addr'
+            ),
+        )
+        # We need this to render the AttachmentLinkForm along with the UserASForm
+        self.form_tag = False
+        self.disable_csrf = True
+
+
 class AttachmentLinkForm(forms.ModelForm):
     """
     Form for creating and updating a Link involving a UserAS
     """
+
     class Meta:
         model = Link
         fields = ('active',)
@@ -98,7 +202,8 @@ class AttachmentLinkForm(forms.ModelForm):
         max_value=MAX_PORT,
         initial=50000,
         label="Public Port (UDP)",
-        help_text="The attachment point will use this port for the overlay link to your AS."
+        help_text="The attachment point will use this port"
+                  "for the overlay link to your AS."
     )
     bind_ip = forms.GenericIPAddressField(
         label="Bind IP address",
@@ -127,12 +232,12 @@ class AttachmentLinkForm(forms.ModelForm):
         if instance:
             initial['active'] = instance.active
             initial['attachment_point'] = AttachmentPoint.objects.get(AS=instance.interfaceA.AS)
-            initial['use_vpn'] = instance.interfaceB.vpn_client is not  None
+            initial['use_vpn'] = instance.interfaceB.is_over_vpn
             initial['public_ip'] = instance.interfaceB.public_ip
             initial['public_port'] = instance.interfaceB.public_port
             initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['bind_port'] = instance.interfaceB.bind_port
-        self.helper = self._crispy_helper()
+        self.helper = AttachmentLinkFormHelper()
         super().__init__(*args, initial=initial, **kwargs)
 
     def clean(self):
@@ -141,7 +246,7 @@ class AttachmentLinkForm(forms.ModelForm):
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
         elif 'public_ip' in self.errors:
-            assert('public_ip' not in cleaned_data)
+            assert ('public_ip' not in cleaned_data)
             return cleaned_data
         else:
             public_ip = cleaned_data.get('public_ip')
@@ -175,58 +280,24 @@ class AttachmentLinkForm(forms.ModelForm):
     def save(self, userAS, commit=True):
         active = self.cleaned_data['active']
         use_vpn = self.cleaned_data['use_vpn']
-        attachment_point = self.cleaned_data['attachment_point'] 
-        public_ip = self.cleaned_data['public_ip'] 
-        public_port = self.cleaned_data['public_port'] 
-        bind_ip = self.cleaned_data['bind_ip'] 
-        bind_port = self.cleaned_data['bind_port'] 
+        attachment_point = self.cleaned_data['attachment_point']
+        public_ip = self.cleaned_data['public_ip']
+        public_port = self.cleaned_data['public_port']
+        bind_ip = self.cleaned_data['bind_ip']
+        bind_port = self.cleaned_data['bind_port']
         if self.instance.pk is None:
-            userAS.create_attachment(attachment_point,
-                                     public_port,
-                                     public_ip=public_ip,
-                                     use_vpn=use_vpn,
-                                     bind_ip=bind_ip,
-                                     bind_port=bind_port)
-                                                   
+            return userAS.create_attachment(attachment_point,
+                                            public_port,
+                                            public_ip=public_ip,
+                                            use_vpn=use_vpn,
+                                            bind_ip=bind_ip,
+                                            bind_port=bind_port)
+
         else:
-            userAS.update_attachment(self.instance,
-                                     active,
-                                     public_port,
-                                     public_ip,
-                                     use_vpn,
-                                     bind_ip,
-                                     bind_port)
-
-    def _crispy_helper(self):
-        """
-        Create the crispy-forms FormHelper. The form will then be rendered
-        using {% crispy form %} in the template.
-        """
-        helper = FormHelper()
-        helper.attrs['id'] = 'id_user_as_form'
-        helper.layout = Layout(
-            'use_vpn',
-            Row(
-                Column(
-                    AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                Column(
-                    AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-            ),
-            Row(
-                Column(
-                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                Column(
-                    AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                css_id='row_id_bind_addr'
-            ),
-        )
-
-        return helper
+            return userAS.update_attachment(self.instance,
+                                            active,
+                                            public_port,
+                                            public_ip,
+                                            use_vpn,
+                                            bind_ip,
+                                            bind_port)
