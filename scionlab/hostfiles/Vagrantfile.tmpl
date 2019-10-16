@@ -13,15 +13,11 @@ Vagrant.configure(2) do |config|
     apt-get update >/dev/null
     apt-get install -y apt-transport-https ntp openvpn
 
-    echo 'copy SCIONLab config file'
-    mkdir -p /etc/scion/gen
-    cp -r /vagrant/gen/scionlab-config.json /etc/scion/gen/
-
     echo 'install SCIONLab'
     echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" > /etc/apt/sources.list.d/scionlab.list
     echo -e "`crontab -l`""\n`date -d '07:00 UTC' '+%M %H'` * * * apt-get update; apt-get install -y --only-upgrade scionlab" | crontab
     apt-get update > /dev/null
-    apt-get install -y scionlab  # this also installs and runs scionlab-config
+    apt-get install -y scionlab
 
     echo 'configure time sync'
     sed -i -- 's/^\(\s*start-stop-daemon\s*--start\s*--quiet\s*--oknodo\s*--exec\s*\/usr\/sbin\/VBoxService\)$/\1 -- --disable-timesync/g' /etc/init.d/virtualbox-guest-utils || true
@@ -39,6 +35,9 @@ Vagrant.configure(2) do |config|
 };
 Unattended-Upgrade::Automatic-Reboot "true";
 Unattended-Upgrade::Automatic-Reboot-Time "02:00";' > /etc/apt/apt.conf.d/51unattended-upgrades-security
+
+    # Fetch configuration from coordinator and start SCION
+    scionlab-config --host-id=${host_id} --host-secret=${host_secret} --url=${url}
 
     # TODO(juagargi): install scion-apps
     echo "SCIONLab VM ready"

@@ -3,10 +3,9 @@
 {% load crispy_forms_tags %}
 
 {% block title %}User AS{% endblock %}
+{% block content_title %}AS {{object.as_id }}{% endblock %}
 
 {% block content %}
-<h3>AS {{object.as_id }}</h3>
-
 
 {% crispy form %}
 

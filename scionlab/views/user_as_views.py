@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import ipaddress
+import tarfile
+from contextlib import closing
 
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect, HttpResponseForbidden
@@ -23,13 +25,14 @@ from django.views.generic.detail import SingleObjectMixin
 from django import forms
 from django.conf import settings
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column
+from crispy_forms.layout import Layout, Field, Row, Column
 from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.util.http import HttpResponseAttachment
 from scionlab import config_tar
+from scionlab.util.archive import TarWriter
 
 
 class UserASForm(forms.ModelForm):
@@ -49,12 +52,13 @@ class UserASForm(forms.ModelForm):
         labels = {
             'label': "Label",
             'attachment_point': "Attachment Point",
-            'public_ip': "Public IP address",
+            # Hack: add "asteriskField"-span to make field look like required field, but will
+            # only be checked server side
+            'public_ip': 'Public IP address <span class="asteriskField">*</span>',
             'bind_ip': "Bind IP address",
             'bind_port': "Bind Port",
         }
         help_texts = {
-            'label': "Optional short label for your AS",
             'attachment_point': "This SCIONLab-infrastructure AS will be the provider for your AS.",
             'public_ip': "The attachment point will use this IP for the overlay link to your AS.",
             'bind_ip': "(Optional) Specify the local IP/port "
@@ -63,6 +67,7 @@ class UserASForm(forms.ModelForm):
         widgets = {
             'installation_type': forms.RadioSelect(),
         }
+
     use_vpn = forms.BooleanField(
         required=False,
         label="Use VPN",
@@ -84,7 +89,7 @@ class UserASForm(forms.ModelForm):
         if instance:
             initial['use_vpn'] = instance.is_use_vpn()
             initial['public_port'] = instance.get_public_port()
-        self.helper = self._crispy_helper()
+        self.helper = self._crispy_helper(instance)
         super().__init__(*args, initial=initial, **kwargs)
 
     def clean(self):
@@ -151,7 +156,7 @@ class UserASForm(forms.ModelForm):
             )
             return self.instance
 
-    def _crispy_helper(self):
+    def _crispy_helper(self, instance):
         """
         Create the crispy-forms FormHelper. The form will then be rendered
         using {% crispy form %} in the template.
@@ -159,24 +164,40 @@ class UserASForm(forms.ModelForm):
         helper = FormHelper()
         helper.attrs['id'] = 'id_user_as_form'
         helper.layout = Layout(
+            AppendedText('label',
+                         text='<span class="fa fa-pencil"></span>',
+                         title="Optional short label for your AS",
+                         placeholder='"My Test AS X"'),
             'attachment_point',
-            AppendedText('label', '<span class="fa fa-pencil"/>'),
-            'installation_type',
             'use_vpn',
-            AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-            AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
+            AppendedText('public_ip', '<span class="fa fa-external-link"></span>'),
+            AppendedText('public_port', '<span class="fa fa-share-square-o"></span>'),
             Row(
                 Column(
-                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
+                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"></span>'),
                     css_class='form-group col-md-6 mb-0',
                 ),
                 Column(
-                    AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
+                    AppendedText('bind_port', '<span class="fa fa-share-square"></span>'),
                     css_class='form-group col-md-6 mb-0',
                 ),
                 css_id='row_id_bind_addr'
             ),
+            Field(
+                'installation_type',
+                template='scionlab/partials/installation_type_accordion.html',
+            ),
         )
+
+        # Inject some helpers into the context (crispy does the magic):
+        helper.accordion_templates = ["scionlab/partials/installation_type_vm.html",
+                                      "scionlab/partials/installation_type_pkg.html",
+                                      "scionlab/partials/installation_type_src.html"]
+
+        if instance and instance.pk:
+            host = instance.hosts.get()
+            helper.host_id = host.uid
+            helper.host_secret = host.secret
 
         return helper
 
@@ -276,7 +297,8 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
                         user=user_as.owner.email,
                         ia=user_as.isd_as_path_str())
         resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
-        config_tar.generate_user_as_config_tar(user_as, resp)
+        with closing(tarfile.open(mode='w:gz', fileobj=resp)) as tar:
+            config_tar.generate_user_as_config_tar(user_as, TarWriter(tar))
         return resp
 
 

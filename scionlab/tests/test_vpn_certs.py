@@ -143,7 +143,7 @@ class RootCASetupTests(TestCase):
 
 @override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)
 class VPNCertsTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases']
+    fixtures = ['testdata']
 
     def setUp(self):
         write_vpn_ca_config()
@@ -239,7 +239,7 @@ class VPNCertsTests(TestCase):
 
 @override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)
 class VPNCertsMissingCATests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases']
+    fixtures = ['testdata']
 
     def tearDown(self):
         # cleanup test files

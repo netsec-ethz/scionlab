@@ -1,23 +1,15 @@
 {{ attachment_points|json_script:"attachment_points" }}
 
 <script>
-$(document).ready(function () {
+$(document).ready(function() {
+  // Reset form to avoid stale dirty entries after page reload (firefox)
+  document.getElementById("id_user_as_form").reset();
   // Only enable save button when form is dirty:
-  // Check if the form is already dirty due to server side validation:
-  var has_invalid_fields = $("form-group.has-danger, form div.alert.alert-block").length > 0;
-  if(!has_invalid_fields){
-    // Disable Save button
-    $(".savebtn").prop('disabled', true);
-    // Reset form to avoid stale dirty entries after page reload (firefox)
-    document.getElementById("id_user_as_form").reset();
-    // Enable Save button when any input field changes
-    $(":input ").change(function(){
-      $(".savebtn").removeAttr('disabled');
-      window.onbeforeunload = function() { return ""; }
-    });
-  } else {
-    window.onbeforeunload = function() { return ""; }
-  }
+  // Disable Save button
+  $(".savebtn").prop('disabled', true);
+  // Enable Save button when any input field changes
+  $(":input").change(enable_savebtn)
+  $(":input").keyup(enable_savebtn)
   // When save button is clicked, don't show the navigate away warning
   $(".savebtn ").click(function(){
     window.onbeforeunload = null;
@@ -29,6 +21,12 @@ $(document).ready(function () {
   $("#id_attachment_point").change(update_use_vpn_enable);
   $("#id_use_vpn").change(update_ip_fields_show);
 });
+
+
+function enable_savebtn() {
+  $(".savebtn").removeAttr('disabled');
+  window.onbeforeunload = function() { return ""; }
+}
 
 var attachment_points = JSON.parse(document.getElementById('attachment_points').textContent);
 
