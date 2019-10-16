@@ -240,7 +240,7 @@ class OwnedUserASQuerysetMixin:
     To be used in a View that uses `django.views.generic.detail.SingleObjectMixin`
     """
     def get_queryset(self):
-        return UserAS.objects.filter(owner=self.request.user)
+        return super().get_queryset().filter(owner=self.request.user)
 
 
 class UserASDetailView(OwnedUserASQuerysetMixin, UpdateView):
@@ -305,6 +305,7 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
 class UserASesView(OwnedUserASQuerysetMixin, ListView):
     template_name = "scionlab/user.html"
     model = UserAS
+    ordering = ['as_id']
 
 
 def _add_attachment_point_data(context):
