@@ -75,6 +75,12 @@ class AttachmentLinksFormSetHelper(FormHelper):
                             css_class='form-group col-md-6 mb-0',
                         ),
                     ),
+                    Row(
+                        Column(
+                            'DELETE',
+                            css_class='text-danger form-group col-md-2 mb-0'
+                        )
+                    ),
                     css_class="card-body"
                 ),
                 css_class="card",
@@ -133,9 +139,16 @@ class AttachmentLinksFormSet(BaseModelFormSet):
                                   "same ISD")
 
     def save(self, userAS):
-        for form in self.forms:
-            if form.cleaned_data:
-                form.save(userAS)
+        for attachment_link in super().save(commit=False):
+            attachment_link.save(userAS)
+        # We save the deleted AP in a set so we only call the cleaning/updating methods once per AP
+        deleted_aps_set = set()
+        for attachment_link in self.deleted_objects:
+            deleted_aps_set.add(attachment_link.interfaceA.AS.attachment_point_info)
+            attachment_link.delete()
+        for ap in deleted_aps_set:
+            ap.split_border_routers()
+            ap.trigger_deployment()
 
 
 class AttachmentLinkFormHelper(FormHelper):
