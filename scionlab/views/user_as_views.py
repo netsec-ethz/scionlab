@@ -302,9 +302,13 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
         return resp
 
 
-class UserASesView(OwnedUserASQuerysetMixin, ListView):
+class UserASesView(ListView):
     template_name = "scionlab/user.html"
     model = UserAS
+    ordering = ['as_id']
+
+    def get_queryset(self):
+        return super().get_queryset().filter(owner=self.request.user)
 
 
 def _add_attachment_point_data(context):
