@@ -7,6 +7,12 @@ dev tun
 # Connecting to a UDP server
 proto udp
 
+# Enable server authentication
+remote-cert-tls server
+
+# Select prefered cipher available in ovpn 2.3
+cipher AES-256-CBC
+
 # IP and port of the server
 remote ${ServerIP} ${ServerPort}
 

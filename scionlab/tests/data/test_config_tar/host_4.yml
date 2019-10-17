@@ -1460,6 +1460,11 @@ server.conf: |
   port 1194
   proto udp
 
+  # 1. choice: recommended, long term
+  # 2. choice: compatible with clients with openvpn 2.3 and updated client.conf file
+  # 3. choice: compatible with older clients
+  ncp-ciphers AES-256-GCM:AES-256-CBC:BF-CBC
+
   topology subnet
   push "topology subnet"
   ifconfig 10.0.8.1 255.255.0.0
