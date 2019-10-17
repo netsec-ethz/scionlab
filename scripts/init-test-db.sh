@@ -20,8 +20,6 @@ rm run/dev.sqlite3 || true
 
 python manage.py migrate
 
-python manage.py loaddata scionlab/fixtures/testuser-admin.yaml \
-    scionlab/fixtures/testuser.yaml \
-    scionlab/fixtures/testtopo-ases-links.yaml
+python manage.py loaddata scionlab/fixtures/testdata.yaml
 
 cp scionlab/fixtures/dev_root_ca_*.pem run/

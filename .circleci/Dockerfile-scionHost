@@ -1,23 +1,39 @@
-FROM ethznetsec/scion_base:latest
+FROM ubuntu:xenial
 
-ARG SCION_SRC
-ARG SC
+# Install base
+RUN apt-get update && apt-get install --assume-yes \
+  systemd \
+  sudo \
+  apt-transport-https \
+  openssh-server
 
-# Update
-RUN sudo apt-get update && sudo apt-get install --assume-yes libpcap0.8 libpcap0.8-dev
+# systemd
+# Based on: https://developers.redhat.com/blog/2014/05/05/running-systemd-within-docker-container/
+#  - converted to ubuntu, i.e. fixed some paths and removed unnecessary cleanup
+#  - keep systemd-user-sessions.service, to allow login through SSH (login disabled on startup until this is run)
+ENV container docker
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+(cd /lib/systemd/system/multi-user.target.wants/; for i in *; do [ $i = systemd-user-sessions.service ] || rm -f $i; done); \
+rm -f /etc/systemd/system/*.wants/*; \
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*;
+VOLUME [ "/sys/fs/cgroup" ]
 
-# Checkout SCION
-RUN git clone ${SCION_SRC} -b scionlab --depth 1 ${SC}
+# systemctl enable sshd
+RUN ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
 
-RUN sudo apt-get update && sudo apt-get install --assume-yes apt-transport-https
-RUN sudo bash -c 'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
-RUN sudo apt-get update && sudo apt-get install --assume-yes scionlab
+# Install SCION
+RUN bash -c 'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
+RUN apt-get update && apt-get install --assume-yes scionlab
 
-COPY ./setup/reloadASConfig.sh ${SC}/reloadASConfig.sh
-RUN sudo mkdir -p /var/log/scion/
-RUN mkdir ${SC}/gen-cache
+# Add 'scionlab' user with passwordless sudo & configure authorized_keys to allow automatic deployment
+RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
+RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
+COPY --chown=scionlab:scionlab .circleci/setup/deploy_authorized_keys /home/scionlab/.ssh/authorized_keys
 
+# Overwrite scionlab-config script with version from repo
+COPY scionlab/hostfiles/scionlab-config /usr/bin/
 
-# Add environment variables for execution
-ENV PYTHONPATH ${SC}/python
-ENV SC ${SC}
+CMD ["/bin/systemd"]

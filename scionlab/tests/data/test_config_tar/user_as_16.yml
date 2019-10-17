@@ -1,0 +1,88 @@
+README.md: |
+  # SCIONLab VM
+
+  ## Install Vagrant and VirtualBox
+
+  Running your AS in a VM as suggested below requires Vagrant and VirtualBox.
+
+  Please install Vagrant and VirtualBox:
+    - https://www.virtualbox.org/wiki/Downloads
+    - https://www.vagrantup.com/docs/installation/
+
+  On recent Ubuntu or Debian systems, it may be enough to run
+
+    $ sudo apt-get install vagrant virtualbox
+
+
+  ## Using Vagrant to run the VM
+
+  Navigate your shell to the directory containing the Vagrantfile (and this README).
+  Note that all vagrant commands always need to be run in this directory!
+  To start your VM, run
+
+    $ vagrant up
+
+  When running you're VM for the first time, this will download the Ubuntu base box
+  and then install all the SCION packages and their dependencies.
+
+  This will already start the services for your SCIONLab AS.
+
+  Once the `vagrant up` command returns the prompt, you can connect to your VM to
+  start exploring:
+
+    $ vagrant ssh
+
+  The directory containing the Vagrant file is synced with the VM where the files
+  will appear in the `/vagrant/` directory.
+  This is convenient way to share files between your your host machine and your
+  VM, and allows to move data both ways.
+
+  To shutdown the VM, run
+
+    $ vagrant halt
+
+  To start it back up, just type `vagrant up` again. Finally, if you want to wipe
+  your VM, e.g. to start fresh, run `vagrant destroy`.
+
+  More information for `vagrant` commands can be found at:
+  https://www.vagrantup.com/docs/cli
+
+
+  ## Running SCION
+
+  The SCION infrastructure is automatically started when the VM boots up.
+
+  Please refer to the online tutorials for more information:
+  https://netsec-ethz.github.io/scion-tutorials/
+Vagrantfile: "# -*- mode: ruby -*-\n# vi: set ft=ruby :\n\nENV['VAGRANT_DEFAULT_PROVIDER']\
+  \ = 'virtualbox'\n\nVagrant.require_version \">= 1.8.1\"\n\nVagrant.configure(2)\
+  \ do |config|\n  $setup_scion = <<-'SCRIPT'\n    set -e\n\n    echo 'install needed\
+  \ standard packages'\n    apt-get update >/dev/null\n    apt-get install -y apt-transport-https\
+  \ ntp openvpn\n\n    echo 'install SCIONLab'\n    echo \"deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian\
+  \ all main\" > /etc/apt/sources.list.d/scionlab.list\n    echo -e \"`crontab -l`\"\
+  \"\\n`date -d '07:00 UTC' '+%M %H'` * * * apt-get update; apt-get install -y --only-upgrade\
+  \ scionlab\" | crontab\n    apt-get update > /dev/null\n    apt-get install -y scionlab\n\
+  \n    echo 'configure time sync'\n    sed -i -- 's/^\\(\\s*start-stop-daemon\\s*--start\\\
+  s*--quiet\\s*--oknodo\\s*--exec\\s*\\/usr\\/sbin\\/VBoxService\\)$/\\1 -- --disable-timesync/g'\
+  \ /etc/init.d/virtualbox-guest-utils || true\n    systemctl daemon-reload\n    systemctl\
+  \ restart virtualbox-guest-utils\n    systemctl enable ntp\n    # not needed: sed\
+  \ -i \"s/^NTPD_OPTS='\\(.*\\)'/NTPD_OPTS=\\'\\1\\ -g'/g\" /etc/default/ntp\n   \
+  \ echo -e \"tinker panic 0\\n\" >> /etc/ntp.conf\n    sed -i 's/\\(pool .*\\)$/\\\
+  1 minpoll 1 maxpoll 6/g' /etc/ntp.conf\n\n    echo 'configure unattended upgrades\
+  \ (automatic security upgrades)'\n    echo 'Unattended-Upgrade::Allowed-Origins\
+  \ {\n\"${distro_id}:${distro_codename}-security\";\n\"${distro_id}ESM:${distro_codename}\"\
+  ;\n};\nUnattended-Upgrade::Automatic-Reboot \"true\";\nUnattended-Upgrade::Automatic-Reboot-Time\
+  \ \"02:00\";' > /etc/apt/apt.conf.d/51unattended-upgrades-security\n\n    # Fetch\
+  \ configuration from coordinator and start SCION\n    scionlab-config --host-id=28b555e9a72249c58e0e8b15d2845700\
+  \ --host-secret=d0c6141a6d9b4a91b355d560835cfcd7 --url=http://localhost:8000\n\n\
+  \    # TODO(juagargi): install scion-apps\n    echo \"SCIONLab VM ready\"\n  SCRIPT\n\
+  \n  config.vm.box = \"ubuntu/xenial64\"\n  # forward border router port (unless\
+  \ using OpenVPN):\n  \n  # forward scion dispatcher port, for running SCION endhosts\
+  \ connected to the AS in this VM:\n  config.vm.network \"forwarded_port\", guest:\
+  \ 30041, host: 30041, protocol: \"udp\"\n  # forward \"webapp\" port:\n  config.vm.network\
+  \ \"forwarded_port\", guest: 8000, host: 8000, protocol: \"tcp\"\n  config.vm.provider\
+  \ \"virtualbox\" do |vb|\n    vb.customize [ \"setextradata\", :id, \"VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled\"\
+  , 1 ]\n    vb.customize [ \"modifyvm\", :id, \"--uartmode1\", \"disconnected\" ]\n\
+  \    vb.memory = \"2048\"\n    vb.name = \"SCIONLabVM-ffaa:1:1\"\n  end\n  config.vm.hostname\
+  \ = \"scionlab-ffaa-1-1\"\n  config.vm.provision \"shell\", privileged: true, inline:\
+  \ $setup_scion\nend\n"

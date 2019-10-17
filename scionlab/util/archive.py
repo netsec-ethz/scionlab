@@ -19,10 +19,12 @@
 import io
 import json
 import pathlib
+import shutil
 import tarfile
 import time
 import toml
 import yaml
+from collections import OrderedDict
 
 
 class BaseArchiveWriter:
@@ -56,7 +58,15 @@ class BaseArchiveWriter:
         Format dict as toml and write to file at given path.
         :param dict content:
         """
-        self.write_text(path, toml.dumps(content))
+
+        # toml doesnt seem to have a built in sort_keys; recursively sort keys
+        def _sort_keys(x):
+            if isinstance(x, dict):
+                return OrderedDict((k, _sort_keys(x[k])) for k in sorted(x.keys()))
+            else:
+                return x
+
+        self.write_text(path, toml.dumps(_sort_keys(content)))
 
     def write_yaml(self, path, content):
         """
@@ -73,6 +83,20 @@ class BaseArchiveWriter:
         f = io.StringIO()
         config.write(f)
         self.write_text(path, f.getvalue())
+
+    def add(self, path, src):
+        """
+        Add file `src` to the archive at given path.
+        :param path: name for the file in the archive
+        :param src: file to be read from disk
+        """
+        raise NotImplementedError()
+
+    def add_dir(self, path):
+        """
+        Add a directory at `path`.
+        """
+        raise NotImplementedError()
 
     def _normalize_path(self, path):
         if isinstance(path, tuple):
@@ -95,6 +119,15 @@ class FileArchiveWriter(BaseArchiveWriter):
         filepath.parent.mkdir(parents=True, exist_ok=True)
         filepath.write_text(content)
 
+    def add(self, path, src):
+        filepath = pathlib.Path(self.root, self._normalize_path(path))
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, str(filepath))
+
+    def add_dir(self, path):
+        filepath = pathlib.Path(self.root, self._normalize_path(path))
+        filepath.mkdir(parents=True, exist_ok=True)
+
 
 class TarWriter(BaseArchiveWriter):
     """
@@ -111,6 +144,14 @@ class TarWriter(BaseArchiveWriter):
     def write_text(self, path, content):
         path = self._normalize_path(path)
         tar_add_textfile(self.tar, path, content)
+
+    def add(self, path, src):
+        path = self._normalize_path(path)
+        self.tar.add(src, arcname=path)
+
+    def add_dir(self, path):
+        path = self._normalize_path(path)
+        tar_add_dir(self.tar, path)
 
 
 def tar_add_textfile(tar, path, content):
@@ -140,3 +181,24 @@ def tar_add_dir(tar, path, mode=0o755):
     m.mode = mode
     m.mtime = time.time()
     tar.addfile(m)
+
+
+class DictWriter(BaseArchiveWriter):
+    """
+    Implementation of an archive writer that writes to a flat dict.
+    This is used for testing.
+    """
+
+    def __init__(self):
+        self.dict = {}
+
+    def write_text(self, path, content):
+        path = self._normalize_path(path)
+        self.dict[path] = content
+
+    def add(self, path, src):
+        self.write_text(path, pathlib.Path(src).read_text())
+
+    def add_dir(self, path):
+        d = self._normalize_path(path) + "/"
+        self.dict[d] = None  # Just a marker

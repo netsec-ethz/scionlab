@@ -1,0 +1,51 @@
+{# Based on django-crispy-forms/crispy_forms/templates/bootstrap4/layout/radioselect.html #}
+{# Simplified, removed many of the unused checks and attributes no errors for installation type #}
+
+{# Expects `accordion_templates` in the context, as a list of one template-name for each field choice  #}
+
+{# Builds a field with the following structure:                                                   #}
+{# - field div                                                                                    #}
+{#   - label                                                                                      #}
+{#   - div accordion, responsible for opening _one_ of the collapse-items below (bootstrap)       #}
+{#   - div card                                                                                   #}
+{#       for each option:                                                                         #}
+{#       - card header                                                                            #}
+{#         - radio input and label                                                                #}
+{#       - div collapse, show for option initially selected                                       #}
+{#         - card body                                                                            #}
+{#           - include the template for this choice, specified in `accordion_templates`           #}
+
+{% load crispy_forms_filters %}
+{% load crispy_forms_field %}
+{% load l10n %}
+
+{# from crispy field.html, stripped down #}
+<div id="div_{{ field.auto_id }}" class="form-group">
+  {# the label for the field #}
+  {% if field.label and form_show_labels %}
+    <label class="{{ label_class }}{% if field.field.required %} requiredField{% endif %}">
+        {{ field.label }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
+    </label>
+  {% endif %}
+
+  {# the radioselect part #}
+  <div class="accordion" id="accordion_{{ field.auto_id }}">
+    <div class="card">
+      {% for choice in field.field.choices %}
+        <div class="card-header">
+          <div class="form-check">
+            <input type="radio" class="form-check-input{%if is_bound %} is-{% if field.errors %}in{%endif%}valid{% endif %}"{% if choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} checked="checked"{% endif %} data-toggle="collapse" data-target="#collapse_{{ field.html_name }}_{{ forloop.counter }}" name="{{ field.html_name }}" id="id_{{ field.html_name }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>
+              <label for="id_{{ field.html_name }}_{{ forloop.counter }}" class="form-check-label">
+                  {{ choice.1|safe }}
+              </label>
+            </div>
+        </div>
+        <div id="collapse_{{ field.html_name }}_{{ forloop.counter }}" class="collapse{% if choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} show{% endif %}" data-parent="#accordion_{{ field.auto_id }}">
+          <div class="card-body">
+            {% include accordion_templates|slice:forloop.counter|last %} {# WHAT THE F... is this the only way to access a list by index??? #}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
