@@ -10,134 +10,85 @@ networks:
 
 services:
   coord:
-    image:  circleci/python:3.6.1
-    container_name: coord
-    working_dir: /home/circleci/repo
-    environment:
-      PYTHONPATH: /tmp/scion/python
+    build:
+      context: ..
+      dockerfile: .circleci/Dockerfile-coord
     networks:
       as_net:
         ipv4_address: 172.31.0.10
     ports:
       - "8432:8000"
-    # waits for setup script to be loaded
-    entrypoint: /bin/bash
-    command: -c "./scionlab/.circleci/setup/coord.sh"
+    volumes:
+      - ./run/:/scionlab/run/
 
-  coreAS1301:
+  huey:
     build:
-      context: .
-      dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
-    container_name: coreAS1301
-    depends_on:
-      - coord
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
+      context: ..
+      dockerfile: .circleci/Dockerfile-coord
+    command: python manage.py run_huey -w 8
     networks:
       as_net:
-        ipv4_address: ${coreAS1301IP}
-    user: scion
-    environment:
-      # host id/secret from fixture
-      CUSER: 098625df419a48279761954bb7b4ce78
-      CSECRET: 10cc1584deea4a10b9210a4c03c2d872
-    tty: true
-    entrypoint: /bin/bash
-    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
+        ipv4_address: 172.31.0.11
+    volumes:
+      - ./run/:/scionlab/run/
 
-  infraAS1303:
+  as1301:
     build:
-      context: .
-      dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
-    container_name: infraAS1303
-    depends_on:
-      - coreAS1301
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
+      context: ..
+      dockerfile: .circleci/Dockerfile-scionHost
     networks:
       as_net:
-        ipv4_address: ${infraAS1303IP}
-    user: scion
-    environment:
-      CUSER: f5422107f7354c55b9f54a4befe0f58d
-      CSECRET: a2532f97fe144a88944e2860e525f220
-    tty: true
-    entrypoint: /bin/bash
-    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
-
-  infraAS1305:
-    build:
-      context: .
-      dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
-    container_name: infraAS1305
-    depends_on:
-      - coreAS1301
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
-    networks:
-      as_net:
-        ipv4_address: ${infraAS1305IP}
-    user: scion
-    environment:
-      CUSER: 4a715f91a023481fb21e61669777238f
-      CSECRET: ab4c5aa179be4a37ba7db180517ea6f5
-    tty: true
-    entrypoint: /bin/bash
-    command: -c "ls ${SC}/reloadASConfig.sh; ${SC}/reloadASConfig.sh; cat;"
-
-  coreAS1401:
-    build:
-      context: .
-      dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
-    container_name: coreAS1401
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
-    networks:
-      as_net:
-        ipv4_address: ${coreAS1401IP}
-    user: scion
-    environment:
-      CUSER: 528974e4534147858b305e1435de8658
-      CSECRET: 30d63340acba4c4d8f84dc62417b58df
-    tty: true
-    # waits for binaries and setup script to be loaded, then keeps beaconing
-    entrypoint: /bin/bash
-    command: -c "until [ -e ${SC}/reloadASConfig.sh ]; do sleep 1; done; ${SC}/reloadASConfig.sh; cat;"
-
-  infraAS1405:
-    build:
-      context: .
-      dockerfile: Dockerfile-scionHost
-      args:
-        - SCION_SRC=${SCION_SRC}
-        - SC=${SC}
-    image: scionhost:tmp
-    container_name: infraAS1405
-    depends_on:
-      - coreAS1401
-    working_dir: /home/scion/go/src/github.com/scionproto/scion
-    networks:
-      as_net:
-        ipv4_address: ${infraAS1405IP}
-    user: scion
+        ipv4_address: 172.31.0.110
+    env_file: /tmp/as1301.env
     privileged: true
-    environment:
-      CUSER: 2c872b10a8a348949cf181a1cb8b9a62
-      CSECRET: c16f444f48034dc7bdd1b747f2428986
-    tty: true
-    # waits for binaries and setup script to be loaded, then a user AS to connect and run scmp echos
-    entrypoint: /bin/bash
-    command: -c "until [ -e ${SC}/VPNexistingAS.sh ]; do sleep 1; done; ${SC}/VPNexistingAS.sh; grep 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch $${SC}/done; sleep 120; echo 'reloading AP'; ${SC}/reloadASConfig.sh; cat;"
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
+  as1303:
+    build:
+      context: ..
+      dockerfile: .circleci/Dockerfile-scionHost
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.111
+    env_file: /tmp/as1303.env
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  as1305:
+    build:
+      context: ..
+      dockerfile: .circleci/Dockerfile-scionHost
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.112
+    env_file: /tmp/as1305.env
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  as1401:
+    build:
+      context: ..
+      dockerfile: .circleci/Dockerfile-scionHost
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.113
+    env_file: /tmp/as1401.env
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  as1405:
+    build:
+      context: ..
+      dockerfile: .circleci/Dockerfile-scionHost
+    depends_on:
+      - as1401
+    networks:
+      as_net:
+        ipv4_address: 172.31.0.114
+    privileged: true
+    env_file: /tmp/as1405.env
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro

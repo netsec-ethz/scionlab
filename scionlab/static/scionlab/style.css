@@ -52,6 +52,11 @@ main {
   white-space: nowrap;
 }
 
+pre {
+  background: #f4f4f4;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
 
 /* Tweaks for forms (crispy-forms with bootstrap4 template pack)
 -------------------------------------------------- */

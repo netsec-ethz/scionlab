@@ -34,7 +34,7 @@ jobs:
           - v3-dependencies-
 
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: |
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
@@ -52,7 +52,7 @@ jobs:
 
       # run flake8
       - run:
-          name: run flake8 style checker
+          name: Run flake8 style checker
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/flake8/
@@ -60,13 +60,10 @@ jobs:
 
       # run Django's tests (using nose as the test runner)
       - run:
-          name: run tests
+          name: Run tests
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/django/
-            # Create migrations, otherwise test DB will not be initialised properly
-            # TODO: remove once migrations are checked in!
-            PYTHONPATH=/tmp/scion/python python manage.py makemigrations scionlab
             PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
@@ -78,168 +75,163 @@ jobs:
           destination: test-reports
 
   integration:
-    docker:
-      - image: circleci/python:3.6.1
-    working_directory: ~/repo
-    environment:
-      BASH_ENV: "~/repo/.circleci/bash_env.sh"
-      SCION_SRC: "https://github.com/netsec-ethz/netsec-scion"
-      SC: "/home/scion/go/src/github.com/scionproto/scion"
+    machine:
+      image: ubuntu-1604:201903-01
+      # This is super nice and works like a charm BUT unfortunately it is now explicitly disabled on the free plan. Pitty
+      # docker_layer_caching: true
 
     steps:
       - checkout
 
-      - setup_remote_docker:
-         docker_layer_caching: true
+      - run:
+          name: Extract host configuration info from testdata.yaml fixture
+          command: |
+            pip install pyyaml
+            python .circleci/setup/generate-host-envs.py
 
       - run:
-          name: Setup local execution alias
+          name: Build container images
+          working_directory: ~/project/.circleci
           command: |
-            if [[ ${CIRCLE_ENV} == *"local"* ]]; then
-              echo "Setting up local execution aliases"
-              echo "shopt -s expand_aliases" >> ./${local_env}
-              echo "alias docker='sudo -E docker'" >> ./${local_env}
-              echo "alias docker-compose='sudo -E docker-compose'" >> ./${local_env}
-              # BASH_ENV gets sourced before each run step
-            fi
+            sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
+            docker-compose build
 
       - run:
-          name: Setup coordinator
+          name: Start coordinator
+          working_directory: ~/project/.circleci
           command: |
-            set -x
-            # XXX(matzf) This could probably mount the tested code, instead of fiddly copying.
-            # Otherwise, Dockerfile!
+            docker-compose run -T coord /bin/bash -c \
+             './scripts/init-test-db.sh && \
+              cp .circleci/setup/deploy_ssh_config run/ssh_config && \
+              cp .circleci/setup/deploy_rsa* run/ && \
+              chmod 644 run/deploy_rsa.pub && \
+              chmod 600 run/deploy_rsa'
 
-            # We first start only the coordinator
-            docker-compose -f .circleci/docker-compose.yml create coord
-            # create is deprecated in v18, use no-start when circleci updates its images
-            # docker-compose -f .circleci/docker-compose.yml up --no-start coord
-            docker cp ./ coord:/home/circleci/repo/scionlab
-            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coord
+            docker-compose up -d coord
+
+            # We start another container in the same network as `coord` to check `coord` is ready.
+            # All exposed ports from `coord` are available on `localhost` in this new container.
+            # NOTE: uses python:3.6 to re-use already fetched image from `coord`; contains more tools than ubuntu:xenial
+            docker run --net circleci_as_net --entrypoint /bin/bash python:3.6 -c \
+              'wget --tries 10 --retry-connrefused http://coord:8000/login/'
 
       # Start integration tests
       - run:
-          name: Start containers
+          name: Start ASes in containers
+          working_directory: ~/project/.circleci
           command: |
             set -x
-            # docker-compose will have started 4 containers, the one with the coordinator will be named `coord`
-            # Then we have one core AS container coreAS1301, two infra ASes infraAS1303 and infraAS1305.
+            docker-compose up -d as1301 as1303 as1305
 
-            # We start another container with curl in the same network as `coord` to check `coord` is ready.
-            # All exposed ports from `coord` are available on `localhost` in this new container.
-            docker run --net circleci_as_net --name curl_test\
-              --rm --entrypoint /bin/bash circleci/buildpack-deps:xenial -c "until curl --retry 5 --retry-delay 1 http://172.31.0.10:8000/login/ 2>/dev/null; do sleep 0.1; done;"
+            for c in as1301 as1303 as1305; do
+              docker-compose exec $c /bin/bash -c \
+                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+            done
 
-            export coreAS1301IP=172.31.0.110 infraAS1303IP=172.31.0.111 infraAS1305IP=172.31.0.112
-            docker-compose -f .circleci/docker-compose.yml create coreAS1301 infraAS1303 infraAS1305
-            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coreAS1301 infraAS1303 infraAS1305
+            docker-compose logs
+
+      - run:
+          name: Check AS services status
+          working_directory: ~/project/.circleci
+          command: |
+            set -x
+
+            sleep 10  # Give the services enough time to start (or fail)
+
+            for c in as1301 as1303 as1305; do
+              docker-compose exec $c /bin/bash -c \
+                '! systemctl is-failed scion-*'
+            done
 
       - run:
           name: Check SCION connections
+          working_directory: ~/project/.circleci
+          no_output_time: "3m0s"
           command: |
             set -x
-            # Wait for the SCION services to start
-            docker exec coreAS1301 /bin/bash -c 'cd ${SC}; until [ `./supervisor/supervisor.sh status | grep RUNNING | wc -l` -ge 6 ]; do sleep 0.1; done;'
-            # Wait for beaconing to start
-            docker exec infraAS1305 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];'
-            docker exec coreAS1301 /bin/bash -c "scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
-            docker exec infraAS1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
+
+            # Wait for beacons
+            docker-compose exec -T as1303 /bin/bash -c \
+              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
+            docker-compose exec -T as1305 /bin/bash -c \
+              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
+
+            # Check that we can SCMP
+            docker-compose exec -T as1301 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
+            docker-compose exec -T as1303 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+            docker-compose exec -T as1305 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
-          name: Check deploy
+          name: "Push changes to AS ffaa:0:1303"
+          working_directory: ~/project/.circleci
+          no_output_time: "1m0s"
           command: |
             set -x
-            # Recheck 1303
-            docker exec infraAS1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
-            # Update coordinator url config
-            docker exec coord /bin/bash -c 'echo "SCIONLAB_SITE = \"http://coord:8000\"" >> ~/repo/scionlab/scionlab/settings/development.py'
-            docker cp .circleci/setup/ssh_config coord:/home/circleci/repo/scionlab/run/ssh_config
 
-            # Setup ssh
-            ssh-keygen -t rsa -b 4096 -C "deploy" -f ~/.ssh/deploy_rsa -N ""
-            docker cp ~/.ssh/deploy_rsa.pub infraAS1303:/tmp/
-            docker cp ./scionlab/hostfiles/scionlab-config infraAS1303:/tmp/scionlab-config
-            docker exec -d infraAS1303 /bin/bash -c "sudo apt-get install -y openssh-server inotify-tools && sudo mkdir /var/run/sshd && mkdir ~/.ssh && cat /tmp/deploy_rsa.pub >> ~/.ssh/authorized_keys && sudo mv /tmp/scionlab-config /usr/bin/scionlab-config && sudo chmod +x /usr/bin/scionlab-config && sudo cp /home/scion/.local/bin/supervisorctl /usr/bin/; sudo /usr/sbin/sshd"
-            docker exec coord /bin/bash -c 'mkdir -p ~/.ssh'
-            docker cp ~/.ssh/deploy_rsa coord:/home/circleci/.ssh/
+            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
 
-            # Start the huey consumer
-            docker exec -d coord /bin/bash -c 'cd /home/circleci/repo/scionlab && . /tmp/venv/bin/activate && PYTHONPATH=/tmp/scion/python python manage.py run_huey -w 8 &'
-            sleep 10
+            # Start the huey worker
+            docker-compose up -d huey
 
-            # Change internal IP of infraAS1303
-            docker run --net circleci_as_net -dt --name update_AS\
-                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url 'admin/scionlab/host/7/change/' --data '{\"AS\": 7, \"internal_ip\": \"172.31.0.111\", \"public_ip\": \"172.31.0.111\", \"managed\": \"on\",\"ssh_host\": \"172.31.0.111\", \"secret\": \"a2532f97fe144a88944e2860e525f220\"}' --action update; cat"
-            docker cp .circleci/setup/admin_action.py update_AS:/tmp/admin_action.py
+            # Generate new AS-keys for 1303 and push the new configuration.
+            # This waits until the configuration has been deployed.
+            docker-compose exec -T coord /bin/bash -c \
+             'python .circleci/actions/update-keys.py ffaa:0:1303; \
+              python .circleci/actions/push-deploy.py ffaa:0:1303'
 
-            # Trigger a manual deployment
-            docker exec -d update_AS\
-                  /bin/bash -c "sleep 10; python3 /tmp/admin_action.py --url 'admin/scionlab/host/' --data '{\"action\": \"trigger_config_deployment\", \"select_across\": 0, \"index\": 0,\"_selected_action\": 7}' --action trigger"
-            docker stop update_AS
+            docker-compose logs huey
 
-            # Check change was deployed and connection still works
-            # i) IP was updated
-            docker exec infraAS1303 /bin/bash -c 'until [ `grep "172.31.0.111" -s -r /etc/scion/gen/ | wc -l` -ge 1 ]; do sleep 0.1; done;'
-            # ii) Showpaths displays the paths
-            docker exec infraAS1303 /bin/bash -c 'until showpaths -sciond /run/shm/sciond/default.sock -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301; do sleep 1; done;'
-            # iii) SCMP completes without error for 10 echo requests
-            docker exec infraAS1303 /bin/bash -c 'until scmp echo -c 10 -interval 10ms -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]; do sleep 0.1; done'
+            # Check that
+            # i) configuration was deployed
+            new_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
+            [ "$prev_version" -lt "$new_version" ]
+            # ii) connection still works
+            docker-compose exec -T as1303 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
-          name: Test TRC update
+          name: Test TRC update and push changes
+          working_directory: ~/project/.circleci
           command: |
             set -x
-            # Restart ASes
-            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d infraAS1303 infraAS1305
-            AS_ID=1305 # largest AS ID in the ISD
-            TRC_version=1 # initial TRC version
 
-            for n in 1 3; do
-                echo $AS_ID
-                # Show current TRC
-                docker exec coreAS1301 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
+            # Show current TRC
+            TRC_version=1
+            docker-compose exec -T as1301 cat "/etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
 
-                # Add core AS(es) for ISD 19
-                docker run --net circleci_as_net -d --name add_core_AS\
-                  --rm --entrypoint /bin/bash circleci/python:3.6.1 -c "pip3 install --user requests; until [ -e /tmp/admin_action.py ]; do sleep 0.1; done; python3 /tmp/admin_action.py --url admin/scionlab/as/add/ --action add --prev_ia ${AS_ID} --count ${n}" # largest AS ID in the ISD, number of new core ASes
-                docker cp .circleci/setup/admin_action.py add_core_AS:/tmp/admin_action.py
-                AS_ID=$(( $AS_ID + $n ))
-                TRC_version=$(( $TRC_version + $n ))
-                sleep 10
+            # Update core keys which requires creating a new TRC
+            # XXX: Update keys for non-core ASes force reissuing AS certs.
+            #      Otherwise we create an inconsistent gen/ folder, see
+            #      https://github.com/netsec-ethz/scionlab/issues/194.
+            docker-compose exec -T coord /bin/bash -c \
+             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301; \
+              python .circleci/actions/update-keys.py ffaa:0:1303 ffaa:0:1305; \
+              python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
 
-                # Reload configurations
-                docker exec coreAS1301 /bin/bash -c "${SC}/reloadASConfig.sh"
-                docker exec infraAS1303 /bin/bash -c "${SC}/reloadASConfig.sh"
-                docker exec infraAS1305 /bin/bash -c "${SC}/reloadASConfig.sh"
-                sleep 10
+            docker-compose logs huey
+            docker-compose logs coord
 
-                # Check that TRCs were updated
-                docker exec coreAS1301 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc;" >> "./TRC_V${TRC_version}.json"
-                docker exec infraAS1303 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc;"
-                docker exec infraAS1305 /bin/bash -c "cat /etc/scion/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc;"
+            # Check that TRCs were updated
+            TRC_version=$((TRC_version + 1))
+            docker-compose exec -T as1301 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc"
 
-                # Check that infra still works
-                sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
-                docker exec coreAS1301 /bin/bash -c "scmp echo -c 10 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]"
-                docker exec infraAS1305 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
-                docker exec infraAS1303 /bin/bash -c "grep -m 5 'Registered beacons' -r /var/log/scion/; scmp echo -c 10 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1];"
-            done
-
-            core_countV2=$(jq '.CoreASes | length' ./TRC_V2.json)
-            echo "Expected 3 core ASes in TRC V2, got ${core_countV2}"
-            core_countV5=$(jq '.CoreASes | length' ./TRC_V5.json)
-            echo "Expected 6 core ASes in TRC V5, got ${core_countV5}"
-
-            # We capture the exit codes from the infraAS containers
-            #E1303=$(docker wait infraAS1303)
-            #E1305=$(docker wait infraAS1305)
-            #echo -e "Exit codes:\n\t\tinfraAS1303: ${E1303}\n\t\tinfraAS1305: ${E1305}"
-            #docker logs coreAS1301
-            #docker logs infraAS1303
-            #docker logs infraAS1305
+            # Check that infra still works
+            sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
+            docker-compose exec -T as1301 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
+            docker-compose exec -T as1303 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+            docker-compose exec -T as1305 /bin/bash -c \
+              'scmp echo -c 5 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
           name: Start VPN containers and verify the connection over VPN works
+          working_directory: ~/project/.circleci
           command: |
             set -x
             # Skip if not running locally, since CircleCI does not support docker privileged
@@ -248,18 +240,17 @@ jobs:
               exit 0
             fi
             echo "Start containers required for VPN AP and verify they are working"
-            export coreAS1401IP=172.31.0.113 infraAS1405IP=172.31.0.114
-            docker-compose -f .circleci/docker-compose.yml create coreAS1401 infraAS1405
+            docker-compose -f .circleci/docker-compose.yml create as1401 as1405
 
             # Load setup files
-            for dst_AS in coreAS1401 infraAS1405; do
+            for dst_AS in as1401 as1405; do
                 for f in $(ls .circleci/setup/); do
                     docker cp .circleci/setup/${f} ${dst_AS}:${SC}/
                 done
             done
-            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d coreAS1401 infraAS1405
+            docker-compose -f .circleci/docker-compose.yml up --no-recreate -d as1401 as1405
             # Wait for AP to be set up (key generation is slow)
-            docker exec infraAS1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 0.1; done;"
+            docker exec as1405 /bin/bash -c "until [ -e ${SC}/done ]; do sleep 0.1; done;"
             echo "AP started"
 
             # Start user AS container, create user AS and connect:
@@ -272,12 +263,6 @@ jobs:
             echo "Waiting for beaconing before starting VPN client SCMPs"
             docker exec -e SC=${SC} userAS1 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
             docker stop userAS1; docker rm userAS1;
-
-      - run:
-          name: Wind down the containers
-          command: |
-            docker-compose -f .circleci/docker-compose.yml down
-          when: always
 
 workflows:
   version: 2

@@ -31,7 +31,7 @@ class LoginRequiredRedirectTests(TestCase):
     def tearDown(selfself):
         del os.environ['RECAPTCHA_DISABLE']  # Reenable captcha
 
-    fixtures = ['testuser']
+    fixtures = ['testdata']
 
     def test_not_logged_in(self):
         """
@@ -87,7 +87,7 @@ class PasswordWebTests(WebTest):
     def tearDown(selfself):
         del os.environ['RECAPTCHA_DISABLE']  # Reenable captcha
 
-    fixtures = ['testuser']
+    fixtures = ['testdata']
 
     def test_reset_pwd(self):
         """

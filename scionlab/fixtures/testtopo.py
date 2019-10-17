@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-from unittest.mock import patch
 from collections import namedtuple
 from scionlab.models.core import ISD, AS, Link, Host, Service
 from scionlab.models.user_as import AttachmentPoint
@@ -24,7 +22,7 @@ from scionlab.models.vpn import VPN
 ISDdef = namedtuple('ISDdef', ['isd_id', 'label'])
 ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'public_ip', 'is_core', 'is_ap'])
 LinkDef = namedtuple('LinkDef', ['type', 'as_id_a', 'as_id_b'])
-VPNDef = namedtuple('VPNDef', ['server', 'vpn_ip', 'vpn_port', 'subnet', 'AP'])
+VPNDef = namedtuple('VPNDef', ['as_id', 'vpn_ip', 'vpn_port', 'subnet'])
 
 
 def _expand_as_id(as_id_tail):
@@ -105,50 +103,52 @@ links = [
 
 # other than default services
 extra_services = [
-    ('ffaa:0:1107', Service.PP),
-    ('ffaa:0:1107', Service.BW),
+    (_expand_as_id(0x1107), Service.PP),
+    (_expand_as_id(0x1107), Service.BW),
+    (_expand_as_id(0x1406), Service.BW),
 ]
 
-# VPNs
+# VPNs for APs, except 1303
 vpns = [
-   # Asia AP VPN
-   VPNDef(14, "10.0.8.1", 1194, "10.0.0.0/16", "14"),
+   VPNDef(_expand_as_id(0x1107), "10.0.8.1", 1194, "10.0.0.0/16"),  # odd subnet, used in prod!
+   VPNDef(_expand_as_id(0x1404), "10.0.8.1", 1194, "10.0.8.0/24"),
+   VPNDef(_expand_as_id(0x1405), "10.8.0.1", 1194, "10.8.0.0/16"),
 ]
 
 
-def create_testtopo_isds():
+def create_testtopo():
+    create_isds()
+    create_ases()
+    create_links()
+    create_vpn()
+    create_extraservices()
+
+
+def create_isds():
     for isd_def in isds:
         ISD.objects.create(**isd_def._asdict())
 
 
-def create_testtopo_ases():
-    r = random.Random(0)
-
-    def seeded_random_bytes(size=32):
-        return bytes(r.getrandbits(8) for _ in range(size))
-
-    # Somewhat scary trick; to reduce noise when regenerating the fixture from scratch,
-    # make the AS keys somewhat deterministic by replacing os.urandom with seeded "random" bytes.
-    with patch('os.urandom', side_effect=seeded_random_bytes):
-        for as_def in ases:
-            _create_as(**as_def._asdict())
+def create_ases():
+    for as_def in ases:
+        _create_as(**as_def._asdict())
 
     # Initialise TRCs and certificates. Deferred in AS creation to start with TRC/cert versions 1.
     for isd in ISD.objects.iterator():
         isd.init_trc_and_certificates()
 
 
-def create_testtopo_links():
+def create_links():
     for link_def in links:
         _create_as_link(**link_def._asdict())
 
 
-def create_testtopo_vpn():
+def create_vpn():
     for vpn_def in vpns:
         _create_vpn(**vpn_def._asdict())
 
 
-def create_testtopo_extraservices():
+def create_extraservices():
     for as_serv in extra_services:
         host = Host.objects.get(AS__as_id=as_serv[0])
         Service.objects.create(host=host, type=as_serv[1])
@@ -165,11 +165,14 @@ def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
         init_certificates=False  # Defer certificates generation
     )
 
+    # Infrastracture hosts are typically managed.
+    # This is also used in the integration tests for some ASes.
+    for host in as_.hosts.iterator():
+        host.managed = True
+        host.ssh_host = host.public_ip
+        host.save()
+
     if is_ap:
-        for host in as_.hosts.iterator():
-            host.managed = True
-            host.ssh_host = host.public_ip
-            host.save()
         AttachmentPoint.objects.create(AS=as_)
 
 
@@ -179,10 +182,12 @@ def _create_as_link(type, as_id_a, as_id_b):
     Link.objects.create_from_ases(type, as_a, as_b)
 
 
-def _create_vpn(server, vpn_ip, vpn_port, subnet, AP):
-    vpn = VPN.objects.create(server=Host.objects.get(id=server),
+def _create_vpn(as_id, vpn_ip, vpn_port, subnet):
+    as_ = AS.objects.get(as_id=as_id)
+    server = as_.hosts.get()
+    vpn = VPN.objects.create(server=server,
                              server_vpn_ip=vpn_ip, server_port=vpn_port, subnet=subnet)
     # Add vpn to AP
-    ap = AttachmentPoint.objects.get(AS_id=AP)
+    ap = as_.attachment_point_info
     ap.vpn = vpn
     ap.save()

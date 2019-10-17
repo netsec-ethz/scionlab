@@ -1,0 +1,1120 @@
+README.md: |
+  # SCIONLab Dedicated
+  SCIONLab Dedicated System configuration
+
+  This is the SCION configuration for a dedicated system.
+
+
+  ## Setup of the system
+
+  You need to install SCION to the system, and/or update it to the version you need, manually.
+  There is documentation on how to do it under:
+  https://netsec-ethz.github.io/scion-tutorials/native_setup/ubuntu_x86_build/
+  If you are running your AS not in a conventional Ubuntu system, check the more general:
+  https://netsec-ethz.github.io/scion-tutorials/
+
+  If, on the other hand, you wish SCION to be kept up to date automatically, and you don't mind running a VM, consider getting the configuration for a VM instead.
+
+
+  ## Further information
+
+  You can find more information about the SCION architecture in:
+  https://www.scion-architecture.net/
+  As well as tutorials, videos, publications, source code and much more!
+client.conf: |
+  # Specify that we are a client
+  client
+
+  # We use a TUN device, a virtual point-to-point IP link
+  dev tun
+
+  # Connecting to a UDP server
+  proto udp
+
+  # IP and port of the server
+  remote 192.0.2.44 1194
+
+  # Keep trying indefinitely to resolve the
+  # host name of the OpenVPN server.
+  resolv-retry infinite
+
+  # Do not bind to a specific local port number
+  nobind
+
+  # Preserve state accross restarts
+  persist-key
+  persist-tun
+
+  # Enable compression on the VPN link.
+  comp-lzo
+
+  # Log verbosity
+  verb 3
+
+  # Silence repeating messages
+  mute 10
+  <ca>
+  -----BEGIN CERTIFICATE-----
+  MIICiDCCAjKgAwIBAgIUY03EscLp/tV8/HiQuWm/cAGhnyIwDQYJKoZIhvcNAQEL
+  BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
+  MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
+  MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
+  aW5mLmV0aHouY2gwHhcNMTkwMzE4MTYxMzI4WhcNMjExMjEyMTYxMzI4WjCBljEL
+  MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
+  BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMQ8wDQYDVQQDDAZFVEggQ0ExETAPBgNV
+  BCkMCFNDSU9OVlBOMSYwJAYJKoZIhvcNAQkBFhdzY2lvbkBsaXN0cy5pbmYuZXRo
+  ei5jaDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQCYEEeAWRrJkwZv+8KQrhX/pPxJ
+  f89V1DT5V26f7cpXvYX++UD6wWN/nvrlxWMn0ogFXMXTzF4vzjbkDdr+TUWzAgMB
+  AAGjVjBUMB8GA1UdIwQYMBaAFNnSpWmZlqsECJAaMqXfa5s+QCU/MB0GA1UdDgQW
+  BBTZ0qVpmZarBAiQGjKl32ubPkAlPzASBgNVHRMBAf8ECDAGAQH/AgEAMA0GCSqG
+  SIb3DQEBCwUAA0EAFM4SoKTgWogTbZv2hUK5RZOFnxHfFmdt58lWh8ddYnjBftVO
+  H/MPzcX6Zss1ys5GCJpf2G2uKJJxTtstqEBEsg==
+  -----END CERTIFICATE-----
+  </ca>
+  <cert>
+  -----BEGIN CERTIFICATE-----
+  MIIDLzCCAtmgAwIBAgIUL8UCzU5jvPAeIwVOKW9mMntQDcQwDQYJKoZIhvcNAQEL
+  BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
+  MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
+  MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
+  aW5mLmV0aHouY2gwHhcNMTkxMDAyMTEwNzQxWhcNMjExMDAxMTEwNzQxWjCBrDEL
+  MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
+  BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMSUwIwYDVQQDDBxleGJlcnRAc2Npb25s
+  YWIub3JnX2ZmYWFfMV8zMREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJ
+  ARYXc2Npb25AbGlzdHMuaW5mLmV0aHouY2gwgZ8wDQYJKoZIhvcNAQEBBQADgY0A
+  MIGJAoGBAKD9u0fLYiqPac5IsYOQA3M2bmHmW2tVtr6l/AaxoUTukRG17EYoIXGr
+  PJwhHI76PULope4bqsT7vMGZvE0gSH+GFDH3rRD4F0ie7nb13Y8FGnt46WAR5TbG
+  6NIGlJgWLRArjfNeDAQs6a3vuFMS5Ox2PEpEQBdwCZxqF8YOoUAfAgMBAAGjgaIw
+  gZ8wJwYDVR0RBCAwHoIcZXhiZXJ0QHNjaW9ubGFiLm9yZ19mZmFhXzFfMzAfBgNV
+  HSMEGDAWgBTZ0qVpmZarBAiQGjKl32ubPkAlPzAdBgNVHQ4EFgQU1W7EKLUD1I/9
+  Y/fWXYGB7M3pIYIwDgYDVR0PAQH/BAQDAgeAMBYGA1UdJQEB/wQMMAoGCCsGAQUF
+  BwMCMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQAtLKwgrlpb0cSSa72d
+  SZmuW9qGeG+5qD1NBudMV8eI37IpGBMzqgneCLhuCr2Z0DtOWQb57bvoIA3TlXgQ
+  acgv
+  -----END CERTIFICATE-----
+  </cert>
+  <key>
+  -----BEGIN RSA PRIVATE KEY-----
+  MIICXAIBAAKBgQCg/btHy2Iqj2nOSLGDkANzNm5h5ltrVba+pfwGsaFE7pERtexG
+  KCFxqzycIRyO+j1C6KXuG6rE+7zBmbxNIEh/hhQx960Q+BdInu529d2PBRp7eOlg
+  EeU2xujSBpSYFi0QK43zXgwELOmt77hTEuTsdjxKREAXcAmcahfGDqFAHwIDAQAB
+  AoGAIQ85sCqRxA+jOJsw6MVgD/6zeCMnzsjROCE5ud4sMc2TuMFU/assAv2Y+q7K
+  AIpenijMOjMwRDc1scPyKRxiBop7KfYIlOY/XAcwy6SOTKXlFGBLJMCHOOyQBQds
+  zzcMrTtiBMJym/uyTT5CgCrRticuLZKEQ/DUL/PR8fN3Q0ECQQDUA2jrbjDnfHTZ
+  ifoIV8VNB2Q7QvWJSuG5bTQaulQDPx83oqUznyfsPXfeYqCeKl/7CRaPIy0C8qoH
+  EYJ1QVUxAkEAwmRl9S4xsS9PD+fWzP7vpT9x/QWfAL9IncRTyJav5OXe17Rd3oA3
+  eh05EAIRUDVgEQzWykTHBi1qh9CzuhHWTwJBAM4xisb94f4gopw3fr7CbhbeS3L/
+  SkF+XE20kWo1MSP/LeM0AatU7MTrezsDfOaWm8ZQLmqDcXFehFJfixtysOECQGoG
+  WnnkzSOn+wZg3A6JSeomdaSciUHeEtxB9bSlQ6CkI+wgq0YtRpTrFXF+vzSxOAl0
+  qD5ATxE2ejFDipOFIQ8CQByn/pmF+R5MROop2U5jtBiY7anElkIMhKPTQbeRkO6O
+  sI7Vy6JwwTziNs9QvB1PWndRZXSWuiamODVFh8F7KYo=
+  -----END RSA PRIVATE KEY-----
+  </key>
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/as.yml: |
+  CertChainVersion: 0
+  PathSegmentTTL: 21600
+  PropagateTime: 5
+  RegisterPath: true
+  RegisterTime: 5
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/br.toml: |
+  [br]
+  Profile = false
+
+  [general]
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1"
+  ID = "br20-ffaa_1_3-1"
+
+  [metrics]
+  Prometheus = "[127.0.0.1]:32045"
+
+  [discovery.dynamic]
+  Enable = false
+
+  [discovery.static]
+  Enable = false
+
+  [logging.file]
+  Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
+  Path = "/var/log/scion/br20-ffaa_1_3-1.log"
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
+  {
+    "0": {
+      "CanIssue": false,
+      "Comment": "AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538790,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Subject": "20-ffaa:1:3",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "TRCVersion": 1,
+      "Version": 1
+    },
+    "1": {
+      "CanIssue": true,
+      "Comment": "Core AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538791,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "hh0Zz2S/5tkyEfkFuWISoIWrKYU/HpX7ENIb9XnbbAxWI6CySZnd7knAvvS8Mu6poScbpgzBoZ4Bcdl1I5yYAg==",
+      "Subject": "20-ffaa:0:1401",
+      "SubjectEncKey": "",
+      "SubjectSignKey": "n536OdkjoLgqV/IaCb+O0KI6dAvjWXYrSL0rYgqW5c0=",
+      "TRCVersion": 1,
+      "Version": 1
+    }
+  }
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
+  {
+    "CertLogs": {},
+    "CoreASes": {
+      "20-ffaa:0:1401": {
+        "OfflineKey": "r6iwQEz6Z920bWQ12bMSXlhHghF50Zp/znb/w9xuTxM=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "puYLyXVGmt4ECh/955LzVfkp8+s3WbsVkGW+xqON4nE=",
+        "OnlineKeyAlg": "ed25519"
+      },
+      "20-ffaa:0:1402": {
+        "OfflineKey": "C5LY3VzmQidX3g2AQebR3j8UMbOFMUU3PGtFGxMalSs=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "V3Qzeommpj1WvGL70Gzw3ZQ8KVyo5XwraanVzweQBAg=",
+        "OnlineKeyAlg": "ed25519"
+      }
+    },
+    "CreationTime": 1570002792,
+    "Description": "ISD 20 (Korea)",
+    "ExpirationTime": 1601538792,
+    "GracePeriod": 0,
+    "ISD": 20,
+    "Quarantine": false,
+    "QuorumCAs": 0,
+    "QuorumTRC": 2,
+    "RAINS": {},
+    "RootCAs": {},
+    "Signatures": {
+      "20-ffaa:0:1401": "E6ZEnPHMW4xuuEE/sH0169pogpvwG4KW0AwLxEvXF3zwV1SOGTBPW5s3a4HyF1TtX5meR6X1QMPiyHXzxFgeDA==",
+      "20-ffaa:0:1402": "K54bnVOopf3sr9oKZkP/ZpRyhY6vcofsZ35IwA2R18LvUa4iAiAIs/6erpFn9wkQJAogKVnvtv9g031dy7TXBw=="
+    },
+    "ThresholdEEPKI": 0,
+    "Version": 1
+  }
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-decrypt.key: |-
+  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-sig.seed: |-
+  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/master0.key: |-
+  YckGa2+R6a9Vtj/sI12CNw==
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/master1.key: |-
+  YckGa2+R6a9Vtj/sI12CNw==
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/topology.json: |-
+  {
+    "BeaconService": {
+      "bs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31041
+            }
+          }
+        }
+      }
+    },
+    "BorderRouters": {
+      "br20-ffaa_1_3-1": {
+        "CtrlAddr": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 30045
+            }
+          }
+        },
+        "Interfaces": {
+          "1": {
+            "Bandwidth": 1000,
+            "ISD_AS": "20-ffaa:0:1404",
+            "LinkTo": "PARENT",
+            "MTU": 1472,
+            "Overlay": "UDP/IPv4",
+            "PublicOverlay": {
+              "Addr": "10.0.8.2",
+              "OverlayPort": 54321
+            },
+            "RemoteOverlay": {
+              "Addr": "10.0.8.1",
+              "OverlayPort": 50000
+            }
+          }
+        },
+        "InternalAddrs": {
+          "IPv4": {
+            "PublicOverlay": {
+              "Addr": "127.0.0.1",
+              "OverlayPort": 31045
+            }
+          }
+        }
+      }
+    },
+    "CertificateService": {
+      "cs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31042
+            }
+          }
+        }
+      }
+    },
+    "Core": false,
+    "Discovery": {},
+    "ISD_AS": "20-ffaa:1:3",
+    "MTU": 1472,
+    "Overlay": "UDP/IPv4",
+    "PathService": {
+      "ps20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31043
+            }
+          }
+        }
+      }
+    }
+  }
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/as.yml: |
+  CertChainVersion: 0
+  PathSegmentTTL: 21600
+  PropagateTime: 5
+  RegisterPath: true
+  RegisterTime: 5
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/bs.toml: |
+  [BS]
+  OriginationInterval = "5s"
+  PropagationInterval = "5s"
+  RevOverlap = "5s"
+  RevTTL = "20s"
+
+  [beaconDB]
+  Backend = "sqlite"
+  Connection = "/var/lib/scion/bs20-ffaa_1_3-1.beacon.db"
+
+  [general]
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1"
+  ID = "bs20-ffaa_1_3-1"
+  ReconnectToDispatcher = true
+
+  [metrics]
+  Prometheus = "[127.0.0.1]:32041"
+
+  [quic]
+  Address = "[127.0.0.1]:30352"
+  CertFile = "/etc/scion/gen-certs/tls.pem"
+  KeyFile = "/etc/scion/gen-certs/tls.key"
+  ResolutionFraction = 0.4
+
+  [trustDB]
+  Backend = "sqlite"
+  Connection = "/var/lib/scion/bs20-ffaa_1_3-1.trust.db"
+
+  [discovery.dynamic]
+  Enable = false
+
+  [discovery.static]
+  Enable = false
+
+  [logging.file]
+  Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
+  Path = "/var/log/scion/bs20-ffaa_1_3-1.log"
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
+  {
+    "0": {
+      "CanIssue": false,
+      "Comment": "AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538790,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Subject": "20-ffaa:1:3",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "TRCVersion": 1,
+      "Version": 1
+    },
+    "1": {
+      "CanIssue": true,
+      "Comment": "Core AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538791,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "hh0Zz2S/5tkyEfkFuWISoIWrKYU/HpX7ENIb9XnbbAxWI6CySZnd7knAvvS8Mu6poScbpgzBoZ4Bcdl1I5yYAg==",
+      "Subject": "20-ffaa:0:1401",
+      "SubjectEncKey": "",
+      "SubjectSignKey": "n536OdkjoLgqV/IaCb+O0KI6dAvjWXYrSL0rYgqW5c0=",
+      "TRCVersion": 1,
+      "Version": 1
+    }
+  }
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
+  {
+    "CertLogs": {},
+    "CoreASes": {
+      "20-ffaa:0:1401": {
+        "OfflineKey": "r6iwQEz6Z920bWQ12bMSXlhHghF50Zp/znb/w9xuTxM=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "puYLyXVGmt4ECh/955LzVfkp8+s3WbsVkGW+xqON4nE=",
+        "OnlineKeyAlg": "ed25519"
+      },
+      "20-ffaa:0:1402": {
+        "OfflineKey": "C5LY3VzmQidX3g2AQebR3j8UMbOFMUU3PGtFGxMalSs=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "V3Qzeommpj1WvGL70Gzw3ZQ8KVyo5XwraanVzweQBAg=",
+        "OnlineKeyAlg": "ed25519"
+      }
+    },
+    "CreationTime": 1570002792,
+    "Description": "ISD 20 (Korea)",
+    "ExpirationTime": 1601538792,
+    "GracePeriod": 0,
+    "ISD": 20,
+    "Quarantine": false,
+    "QuorumCAs": 0,
+    "QuorumTRC": 2,
+    "RAINS": {},
+    "RootCAs": {},
+    "Signatures": {
+      "20-ffaa:0:1401": "E6ZEnPHMW4xuuEE/sH0169pogpvwG4KW0AwLxEvXF3zwV1SOGTBPW5s3a4HyF1TtX5meR6X1QMPiyHXzxFgeDA==",
+      "20-ffaa:0:1402": "K54bnVOopf3sr9oKZkP/ZpRyhY6vcofsZ35IwA2R18LvUa4iAiAIs/6erpFn9wkQJAogKVnvtv9g031dy7TXBw=="
+    },
+    "ThresholdEEPKI": 0,
+    "Version": 1
+  }
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/as-decrypt.key: |-
+  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/as-sig.seed: |-
+  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/master0.key: |-
+  YckGa2+R6a9Vtj/sI12CNw==
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/master1.key: |-
+  YckGa2+R6a9Vtj/sI12CNw==
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/topology.json: |-
+  {
+    "BeaconService": {
+      "bs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31041
+            }
+          }
+        }
+      }
+    },
+    "BorderRouters": {
+      "br20-ffaa_1_3-1": {
+        "CtrlAddr": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 30045
+            }
+          }
+        },
+        "Interfaces": {
+          "1": {
+            "Bandwidth": 1000,
+            "ISD_AS": "20-ffaa:0:1404",
+            "LinkTo": "PARENT",
+            "MTU": 1472,
+            "Overlay": "UDP/IPv4",
+            "PublicOverlay": {
+              "Addr": "10.0.8.2",
+              "OverlayPort": 54321
+            },
+            "RemoteOverlay": {
+              "Addr": "10.0.8.1",
+              "OverlayPort": 50000
+            }
+          }
+        },
+        "InternalAddrs": {
+          "IPv4": {
+            "PublicOverlay": {
+              "Addr": "127.0.0.1",
+              "OverlayPort": 31045
+            }
+          }
+        }
+      }
+    },
+    "CertificateService": {
+      "cs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31042
+            }
+          }
+        }
+      }
+    },
+    "Core": false,
+    "Discovery": {},
+    "ISD_AS": "20-ffaa:1:3",
+    "MTU": 1472,
+    "Overlay": "UDP/IPv4",
+    "PathService": {
+      "ps20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31043
+            }
+          }
+        }
+      }
+    }
+  }
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/as.yml: |
+  CertChainVersion: 0
+  PathSegmentTTL: 21600
+  PropagateTime: 5
+  RegisterPath: true
+  RegisterTime: 5
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
+  {
+    "0": {
+      "CanIssue": false,
+      "Comment": "AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538790,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Subject": "20-ffaa:1:3",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "TRCVersion": 1,
+      "Version": 1
+    },
+    "1": {
+      "CanIssue": true,
+      "Comment": "Core AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538791,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "hh0Zz2S/5tkyEfkFuWISoIWrKYU/HpX7ENIb9XnbbAxWI6CySZnd7knAvvS8Mu6poScbpgzBoZ4Bcdl1I5yYAg==",
+      "Subject": "20-ffaa:0:1401",
+      "SubjectEncKey": "",
+      "SubjectSignKey": "n536OdkjoLgqV/IaCb+O0KI6dAvjWXYrSL0rYgqW5c0=",
+      "TRCVersion": 1,
+      "Version": 1
+    }
+  }
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
+  {
+    "CertLogs": {},
+    "CoreASes": {
+      "20-ffaa:0:1401": {
+        "OfflineKey": "r6iwQEz6Z920bWQ12bMSXlhHghF50Zp/znb/w9xuTxM=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "puYLyXVGmt4ECh/955LzVfkp8+s3WbsVkGW+xqON4nE=",
+        "OnlineKeyAlg": "ed25519"
+      },
+      "20-ffaa:0:1402": {
+        "OfflineKey": "C5LY3VzmQidX3g2AQebR3j8UMbOFMUU3PGtFGxMalSs=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "V3Qzeommpj1WvGL70Gzw3ZQ8KVyo5XwraanVzweQBAg=",
+        "OnlineKeyAlg": "ed25519"
+      }
+    },
+    "CreationTime": 1570002792,
+    "Description": "ISD 20 (Korea)",
+    "ExpirationTime": 1601538792,
+    "GracePeriod": 0,
+    "ISD": 20,
+    "Quarantine": false,
+    "QuorumCAs": 0,
+    "QuorumTRC": 2,
+    "RAINS": {},
+    "RootCAs": {},
+    "Signatures": {
+      "20-ffaa:0:1401": "E6ZEnPHMW4xuuEE/sH0169pogpvwG4KW0AwLxEvXF3zwV1SOGTBPW5s3a4HyF1TtX5meR6X1QMPiyHXzxFgeDA==",
+      "20-ffaa:0:1402": "K54bnVOopf3sr9oKZkP/ZpRyhY6vcofsZ35IwA2R18LvUa4iAiAIs/6erpFn9wkQJAogKVnvtv9g031dy7TXBw=="
+    },
+    "ThresholdEEPKI": 0,
+    "Version": 1
+  }
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/cs.toml: |
+  [cs]
+  IssuerReissueTime = "3d"
+  LeafReissueTime = "6h"
+  ReissueRate = "10s"
+  ReissueTimeout = "5s"
+
+  [general]
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1"
+  ID = "cs20-ffaa_1_3-1"
+  ReconnectToDispatcher = true
+
+  [metrics]
+  Prometheus = "[127.0.0.1]:32042"
+
+  [quic]
+  Address = "[127.0.0.1]:30354"
+  CertFile = "/etc/scion/gen-certs/tls.pem"
+  KeyFile = "/etc/scion/gen-certs/tls.key"
+  ResolutionFraction = 0.4
+
+  [sd_client]
+  Path = "/run/shm/sciond/default.sock"
+
+  [trustDB]
+  Backend = "sqlite"
+  Connection = "/var/lib/scion/cs20-ffaa_1_3-1.trust.db"
+
+  [discovery.dynamic]
+  Enable = false
+
+  [discovery.static]
+  Enable = false
+
+  [logging.file]
+  Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
+  Path = "/var/log/scion/cs20-ffaa_1_3-1.log"
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-decrypt.key: |-
+  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-sig.seed: |-
+  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/master0.key: |-
+  YckGa2+R6a9Vtj/sI12CNw==
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/master1.key: |-
+  YckGa2+R6a9Vtj/sI12CNw==
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/topology.json: |-
+  {
+    "BeaconService": {
+      "bs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31041
+            }
+          }
+        }
+      }
+    },
+    "BorderRouters": {
+      "br20-ffaa_1_3-1": {
+        "CtrlAddr": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 30045
+            }
+          }
+        },
+        "Interfaces": {
+          "1": {
+            "Bandwidth": 1000,
+            "ISD_AS": "20-ffaa:0:1404",
+            "LinkTo": "PARENT",
+            "MTU": 1472,
+            "Overlay": "UDP/IPv4",
+            "PublicOverlay": {
+              "Addr": "10.0.8.2",
+              "OverlayPort": 54321
+            },
+            "RemoteOverlay": {
+              "Addr": "10.0.8.1",
+              "OverlayPort": 50000
+            }
+          }
+        },
+        "InternalAddrs": {
+          "IPv4": {
+            "PublicOverlay": {
+              "Addr": "127.0.0.1",
+              "OverlayPort": 31045
+            }
+          }
+        }
+      }
+    },
+    "CertificateService": {
+      "cs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31042
+            }
+          }
+        }
+      }
+    },
+    "Core": false,
+    "Discovery": {},
+    "ISD_AS": "20-ffaa:1:3",
+    "MTU": 1472,
+    "Overlay": "UDP/IPv4",
+    "PathService": {
+      "ps20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31043
+            }
+          }
+        }
+      }
+    }
+  }
+gen/ISD20/ASffaa_1_3/endhost/as.yml: |
+  CertChainVersion: 0
+  PathSegmentTTL: 21600
+  PropagateTime: 5
+  RegisterPath: true
+  RegisterTime: 5
+gen/ISD20/ASffaa_1_3/endhost/certs/ISD20-ASffaa_1_3-V1.crt: |-
+  {
+    "0": {
+      "CanIssue": false,
+      "Comment": "AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538790,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Subject": "20-ffaa:1:3",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "TRCVersion": 1,
+      "Version": 1
+    },
+    "1": {
+      "CanIssue": true,
+      "Comment": "Core AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538791,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "hh0Zz2S/5tkyEfkFuWISoIWrKYU/HpX7ENIb9XnbbAxWI6CySZnd7knAvvS8Mu6poScbpgzBoZ4Bcdl1I5yYAg==",
+      "Subject": "20-ffaa:0:1401",
+      "SubjectEncKey": "",
+      "SubjectSignKey": "n536OdkjoLgqV/IaCb+O0KI6dAvjWXYrSL0rYgqW5c0=",
+      "TRCVersion": 1,
+      "Version": 1
+    }
+  }
+gen/ISD20/ASffaa_1_3/endhost/certs/ISD20-V1.trc: |-
+  {
+    "CertLogs": {},
+    "CoreASes": {
+      "20-ffaa:0:1401": {
+        "OfflineKey": "r6iwQEz6Z920bWQ12bMSXlhHghF50Zp/znb/w9xuTxM=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "puYLyXVGmt4ECh/955LzVfkp8+s3WbsVkGW+xqON4nE=",
+        "OnlineKeyAlg": "ed25519"
+      },
+      "20-ffaa:0:1402": {
+        "OfflineKey": "C5LY3VzmQidX3g2AQebR3j8UMbOFMUU3PGtFGxMalSs=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "V3Qzeommpj1WvGL70Gzw3ZQ8KVyo5XwraanVzweQBAg=",
+        "OnlineKeyAlg": "ed25519"
+      }
+    },
+    "CreationTime": 1570002792,
+    "Description": "ISD 20 (Korea)",
+    "ExpirationTime": 1601538792,
+    "GracePeriod": 0,
+    "ISD": 20,
+    "Quarantine": false,
+    "QuorumCAs": 0,
+    "QuorumTRC": 2,
+    "RAINS": {},
+    "RootCAs": {},
+    "Signatures": {
+      "20-ffaa:0:1401": "E6ZEnPHMW4xuuEE/sH0169pogpvwG4KW0AwLxEvXF3zwV1SOGTBPW5s3a4HyF1TtX5meR6X1QMPiyHXzxFgeDA==",
+      "20-ffaa:0:1402": "K54bnVOopf3sr9oKZkP/ZpRyhY6vcofsZ35IwA2R18LvUa4iAiAIs/6erpFn9wkQJAogKVnvtv9g031dy7TXBw=="
+    },
+    "ThresholdEEPKI": 0,
+    "Version": 1
+  }
+gen/ISD20/ASffaa_1_3/endhost/sd.toml: |
+  [general]
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/endhost"
+  ID = "sd20-ffaa_1_3"
+  ReconnectToDispatcher = true
+
+  [metrics]
+  Prometheus = "[127.0.0.1]:30455"
+
+  [quic]
+  Address = "[127.0.0.1]:0"
+  CertFile = "/etc/scion/gen-certs/tls.pem"
+  KeyFile = "/etc/scion/gen-certs/tls.key"
+  ResolutionFraction = 0.4
+
+  [sd]
+  Public = "20-ffaa:1:3,[127.0.0.1]:0"
+  Reliable = "/run/shm/sciond/default.sock"
+  SocketFileMode = "0777"
+  Unix = "/run/shm/sciond/default.unix"
+
+  [trustDB]
+  Backend = "sqlite"
+  Connection = "/var/lib/scion/sd20-ffaa_1_3.trust.db"
+
+  [discovery.dynamic]
+  Enable = false
+
+  [discovery.static]
+  Enable = false
+
+  [logging.file]
+  Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
+  Path = "/var/log/scion/sd20-ffaa_1_3.log"
+
+  [sd.PathDB]
+  Connection = "/var/lib/scion/sd20-ffaa_1_3.path.db"
+gen/ISD20/ASffaa_1_3/endhost/topology.json: |-
+  {
+    "BeaconService": {
+      "bs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31041
+            }
+          }
+        }
+      }
+    },
+    "BorderRouters": {
+      "br20-ffaa_1_3-1": {
+        "CtrlAddr": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 30045
+            }
+          }
+        },
+        "Interfaces": {
+          "1": {
+            "Bandwidth": 1000,
+            "ISD_AS": "20-ffaa:0:1404",
+            "LinkTo": "PARENT",
+            "MTU": 1472,
+            "Overlay": "UDP/IPv4",
+            "PublicOverlay": {
+              "Addr": "10.0.8.2",
+              "OverlayPort": 54321
+            },
+            "RemoteOverlay": {
+              "Addr": "10.0.8.1",
+              "OverlayPort": 50000
+            }
+          }
+        },
+        "InternalAddrs": {
+          "IPv4": {
+            "PublicOverlay": {
+              "Addr": "127.0.0.1",
+              "OverlayPort": 31045
+            }
+          }
+        }
+      }
+    },
+    "CertificateService": {
+      "cs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31042
+            }
+          }
+        }
+      }
+    },
+    "Core": false,
+    "Discovery": {},
+    "ISD_AS": "20-ffaa:1:3",
+    "MTU": 1472,
+    "Overlay": "UDP/IPv4",
+    "PathService": {
+      "ps20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31043
+            }
+          }
+        }
+      }
+    }
+  }
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/as.yml: |
+  CertChainVersion: 0
+  PathSegmentTTL: 21600
+  PropagateTime: 5
+  RegisterPath: true
+  RegisterTime: 5
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
+  {
+    "0": {
+      "CanIssue": false,
+      "Comment": "AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538790,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Subject": "20-ffaa:1:3",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "TRCVersion": 1,
+      "Version": 1
+    },
+    "1": {
+      "CanIssue": true,
+      "Comment": "Core AS Certificate",
+      "EncAlgorithm": "curve25519xsalsa20poly1305",
+      "ExpirationTime": 1601538791,
+      "Issuer": "20-ffaa:0:1401",
+      "IssuingTime": 1570002792,
+      "SignAlgorithm": "ed25519",
+      "Signature": "hh0Zz2S/5tkyEfkFuWISoIWrKYU/HpX7ENIb9XnbbAxWI6CySZnd7knAvvS8Mu6poScbpgzBoZ4Bcdl1I5yYAg==",
+      "Subject": "20-ffaa:0:1401",
+      "SubjectEncKey": "",
+      "SubjectSignKey": "n536OdkjoLgqV/IaCb+O0KI6dAvjWXYrSL0rYgqW5c0=",
+      "TRCVersion": 1,
+      "Version": 1
+    }
+  }
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
+  {
+    "CertLogs": {},
+    "CoreASes": {
+      "20-ffaa:0:1401": {
+        "OfflineKey": "r6iwQEz6Z920bWQ12bMSXlhHghF50Zp/znb/w9xuTxM=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "puYLyXVGmt4ECh/955LzVfkp8+s3WbsVkGW+xqON4nE=",
+        "OnlineKeyAlg": "ed25519"
+      },
+      "20-ffaa:0:1402": {
+        "OfflineKey": "C5LY3VzmQidX3g2AQebR3j8UMbOFMUU3PGtFGxMalSs=",
+        "OfflineKeyAlg": "ed25519",
+        "OnlineKey": "V3Qzeommpj1WvGL70Gzw3ZQ8KVyo5XwraanVzweQBAg=",
+        "OnlineKeyAlg": "ed25519"
+      }
+    },
+    "CreationTime": 1570002792,
+    "Description": "ISD 20 (Korea)",
+    "ExpirationTime": 1601538792,
+    "GracePeriod": 0,
+    "ISD": 20,
+    "Quarantine": false,
+    "QuorumCAs": 0,
+    "QuorumTRC": 2,
+    "RAINS": {},
+    "RootCAs": {},
+    "Signatures": {
+      "20-ffaa:0:1401": "E6ZEnPHMW4xuuEE/sH0169pogpvwG4KW0AwLxEvXF3zwV1SOGTBPW5s3a4HyF1TtX5meR6X1QMPiyHXzxFgeDA==",
+      "20-ffaa:0:1402": "K54bnVOopf3sr9oKZkP/ZpRyhY6vcofsZ35IwA2R18LvUa4iAiAIs/6erpFn9wkQJAogKVnvtv9g031dy7TXBw=="
+    },
+    "ThresholdEEPKI": 0,
+    "Version": 1
+  }
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/as-decrypt.key: |-
+  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/as-sig.seed: |-
+  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/master0.key: |-
+  YckGa2+R6a9Vtj/sI12CNw==
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/master1.key: |-
+  YckGa2+R6a9Vtj/sI12CNw==
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/ps.toml: |
+  [general]
+  ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1"
+  ID = "ps20-ffaa_1_3-1"
+  ReconnectToDispatcher = true
+
+  [metrics]
+  Prometheus = "[127.0.0.1]:32043"
+
+  [ps]
+  SegSync = true
+
+  [quic]
+  Address = "[127.0.0.1]:30353"
+  CertFile = "/etc/scion/gen-certs/tls.pem"
+  KeyFile = "/etc/scion/gen-certs/tls.key"
+  ResolutionFraction = 0.4
+
+  [trustDB]
+  Backend = "sqlite"
+  Connection = "/var/lib/scion/ps20-ffaa_1_3-1.trust.db"
+
+  [discovery.dynamic]
+  Enable = false
+
+  [discovery.static]
+  Enable = false
+
+  [logging.file]
+  Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
+  Path = "/var/log/scion/ps20-ffaa_1_3-1.log"
+
+  [ps.PathDB]
+  Backend = "sqlite"
+  Connection = "/var/lib/scion/ps20-ffaa_1_3-1.path.db"
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/topology.json: |-
+  {
+    "BeaconService": {
+      "bs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31041
+            }
+          }
+        }
+      }
+    },
+    "BorderRouters": {
+      "br20-ffaa_1_3-1": {
+        "CtrlAddr": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 30045
+            }
+          }
+        },
+        "Interfaces": {
+          "1": {
+            "Bandwidth": 1000,
+            "ISD_AS": "20-ffaa:0:1404",
+            "LinkTo": "PARENT",
+            "MTU": 1472,
+            "Overlay": "UDP/IPv4",
+            "PublicOverlay": {
+              "Addr": "10.0.8.2",
+              "OverlayPort": 54321
+            },
+            "RemoteOverlay": {
+              "Addr": "10.0.8.1",
+              "OverlayPort": 50000
+            }
+          }
+        },
+        "InternalAddrs": {
+          "IPv4": {
+            "PublicOverlay": {
+              "Addr": "127.0.0.1",
+              "OverlayPort": 31045
+            }
+          }
+        }
+      }
+    },
+    "CertificateService": {
+      "cs20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31042
+            }
+          }
+        }
+      }
+    },
+    "Core": false,
+    "Discovery": {},
+    "ISD_AS": "20-ffaa:1:3",
+    "MTU": 1472,
+    "Overlay": "UDP/IPv4",
+    "PathService": {
+      "ps20-ffaa_1_3-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31043
+            }
+          }
+        }
+      }
+    }
+  }
+gen/dispatcher/disp.toml: |
+  [dispatcher]
+  ID = "dispatcher"
+  SocketFileMode = "0777"
+
+  [metrics]
+  Prometheus = "[127.0.0.1]:30441"
+
+  [logging.file]
+  Level = "debug"
+  MaxAge = 3
+  MaxBackups = 1
+  Path = "/var/log/scion/dispatcher.log"
+gen/ia: |-
+  20-ffaa_1_3
+gen/scionlab-config.json: |-
+  {
+    "host_id": "8866122168904859b7186ee56f3e7861",
+    "host_secret": "39ea653da57b45eb9411d540ff46e286",
+    "url": "http://localhost:8000",
+    "version": 7
+  }
+scionlab-services.txt: |-
+  scion-border-router@20-ffaa_1_3-1.service
+  scion-beacon-server@20-ffaa_1_3-1.service
+  scion-path-server@20-ffaa_1_3-1.service
+  scion-certificate-server@20-ffaa_1_3-1.service
+  scion-daemon@20-ffaa_1_3.service
+  scion-dispatcher.service
