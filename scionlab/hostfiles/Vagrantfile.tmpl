@@ -44,13 +44,15 @@ Unattended-Upgrade::Automatic-Reboot-Time "02:00";' > /etc/apt/apt.conf.d/51unat
   SCRIPT
 
   config.vm.box = "ubuntu/xenial64"
-  # BR port forwarding not necessary for OpenVPN setup and depends on connection
+  # forward border router port (unless using OpenVPN):
   ${PortForwarding}
-  config.vm.network "forwarded_port", guest: 31042, host: 31042, protocol: "udp"
+  # forward scion dispatcher port, for running SCION endhosts connected to the AS in this VM:
   config.vm.network "forwarded_port", guest: 30041, host: 30041, protocol: "udp"
+  # forward "webapp" port:
   config.vm.network "forwarded_port", guest: 8000, host: 8000, protocol: "tcp"
   config.vm.provider "virtualbox" do |vb|
     vb.customize [ "setextradata", :id, "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", 1 ]
+    vb.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]
     vb.memory = "2048"
     vb.name = "${vmname}"
   end
