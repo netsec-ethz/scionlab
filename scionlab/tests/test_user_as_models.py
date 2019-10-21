@@ -172,8 +172,8 @@ def check_useras(testcase,
                  label):
     """
     Check the state of `user_as` and `aps_conf`.
-    Verify that a link to the attachment point exists and that it is configured according to the
-    given parameters.
+    Verify that the links to the attachment points exists and that it is configured according to 
+    the given parameters.
     """
     testcase.assertEqual(user_as.owner, owner)
     testcase.assertEqual(user_as.label, label)
@@ -184,32 +184,30 @@ def check_useras(testcase,
     testcase.assertEqual(user_as.host.bind_ip, bind_ip)
     utils.check_as(testcase, user_as)
 
-    # TODO:(andrea_tulimiero) Clean this section
-    aps_as_pk = list(map(lambda c: c.attachment_point.AS.pk, aps_conf))
+    # Check that the AttachmentPoints in `aps_conf` are now AttachmentPoints of the userAS
+    aps_ases = [c.attachment_point.AS for c in aps_conf]
     aps_conf_dict = {c.attachment_point: c for c in aps_conf}
-    # Check all AttachmentPoints are actually AttachmentPoints of the userAS
-    user_as_aps_as_pk = list(
-        Link.objects.filter(interfaceB__AS=user_as).values_list('interfaceA__AS', flat=True))
-    testcase.assertEqual(user_as_aps_as_pk, aps_as_pk)
-    for pk in user_as_aps_as_pk:
-        attachment_point = AS.objects.get(pk=pk).attachment_point_info
-        ap_conf = aps_conf_dict[attachment_point]
-        _check_attachment_point(testcase, attachment_point)
-        utils.check_as(testcase, attachment_point.AS)
-        link = Link.objects.get(interfaceA__AS=attachment_point.AS, interfaceB__AS=user_as)
+    user_as_aps_ases = [l.interfaceA.AS
+                         for l in Link.objects.filter(interfaceB__AS=user_as).all()]
+    testcase.assertEqual(user_as_aps_ases, aps_ases)
+    for ap in map(lambda AS: AS.attachment_point_info, user_as_aps_ases):
+        ap_conf = aps_conf_dict[ap]
+        utils.check_as(testcase, ap.AS)
+        _check_attachment_point(testcase, ap)
+        link = Link.objects.get(interfaceA__AS=ap.AS, interfaceB__AS=user_as)
         testcase.assertEqual(ap_conf.public_port, link.interfaceB.public_port)
 
         if ap_conf.use_vpn:
             testcase.assertTrue(VPNClient.objects.filter(host=user_as.host,
-                                                         vpn=ap_conf.attachment_point.vpn
+                                                         vpn=ap.vpn
                                                          ).exists())
             utils.check_link(testcase, link, utils.LinkDescription(
                 type=Link.PROVIDER,
-                from_as_id=attachment_point.AS.as_id,
-                from_public_ip=attachment_point.vpn.server_vpn_ip,
+                from_as_id=ap.AS.as_id,
+                from_public_ip=ap.vpn.server_vpn_ip,
                 from_bind_ip=None,
                 from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
-                to_public_ip=user_as.hosts.get().vpn_clients.get(active=True).ip,
+                to_public_ip=user_as.hosts.get().vpn_clients.get(active=True, vpn=ap.vpn).ip,
                 to_public_port=ap_conf.public_port,
                 to_bind_ip=None,
                 to_bind_port=None,
@@ -228,8 +226,8 @@ def check_useras(testcase,
 
             utils.check_link(testcase, link, utils.LinkDescription(
                 type=Link.PROVIDER,
-                from_as_id=attachment_point.AS.as_id,
-                from_public_ip=_get_public_ip_testtopo(attachment_point.AS.as_id),
+                from_as_id=ap.AS.as_id,
+                from_public_ip=_get_public_ip_testtopo(ap.AS.as_id),
                 from_bind_ip=None,
                 from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
                 to_public_ip=ap_conf.public_ip,
