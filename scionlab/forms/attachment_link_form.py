@@ -138,9 +138,21 @@ class AttachmentLinksFormSet(BaseModelFormSet):
             raise ValidationError("All attachment points must belong to the "
                                   "same ISD")
 
-    def save(self, userAS):
-        for attachment_link in super().save(commit=False):
-            attachment_link.save(userAS)
+    def save_new(self, form, commit=True):
+        """Save and return a new model instance for the given form."""
+        assert self.user_as is not None
+        return form.save(self.user_as, commit=commit)
+
+    def save_existing(self, form, instance, commit=True):
+        """Save and return an existing model instance for the given form."""
+        assert self.user_as is not None
+        return form.save(self.user_as, commit=commit)
+
+    def save(self, user_as, commit=True):
+        # TODO(andrea_tulimiero): Find a cleaner way to handle this situation to avoi d:
+        # - injecting `user_as` to pass it to `AttachmentLinkForm:save(...)`
+        self.user_as = user_as
+        super().save(commit=False)
         # We save the deleted AP in a set so we only call the cleaning/updating methods once per AP
         deleted_aps_set = set()
         for attachment_link in self.deleted_objects:
@@ -290,7 +302,9 @@ class AttachmentLinkForm(forms.ModelForm):
                                                code='invalid_public_ip'))
         return cleaned_data
 
-    def save(self, userAS, commit=True):
+    def save(self, user_as, commit=True):
+        # NOTE: NYI `commit=False`
+        assert commit
         active = self.cleaned_data['active']
         use_vpn = self.cleaned_data['use_vpn']
         attachment_point = self.cleaned_data['attachment_point']
@@ -299,7 +313,7 @@ class AttachmentLinkForm(forms.ModelForm):
         bind_ip = self.cleaned_data['bind_ip']
         bind_port = self.cleaned_data['bind_port']
         if self.instance.pk is None:
-            return userAS.create_attachment(attachment_point,
+            return user_as.create_attachment(attachment_point,
                                             public_port,
                                             public_ip=public_ip,
                                             use_vpn=use_vpn,
@@ -307,7 +321,7 @@ class AttachmentLinkForm(forms.ModelForm):
                                             bind_port=bind_port)
 
         else:
-            return userAS.update_attachment(self.instance,
+            return user_as.update_attachment(self.instance,
                                             active,
                                             public_port,
                                             public_ip,

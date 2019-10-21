@@ -17,7 +17,7 @@ from collections import namedtuple
 
 from crispy_forms.bootstrap import AppendedText
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column, Div
+from crispy_forms.layout import Layout, Row, Column, Div, Field
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -31,10 +31,11 @@ MAX_AP_PER_USERAS = 5
 AttachmentPointVPN = namedtuple('AttachmentPointVPN', ['attachment_point', 'vpn'])
 
 
-def _crispy_helper():
+def _crispy_helper(instance):
     """
     Create the crispy-forms FormHelper. The form will then be rendered
     using {% crispy form %} in the template.
+    :param UserAS instance: 
     """
     helper = FormHelper()
     helper.attrs['id'] = 'id_user_as_form'
@@ -45,7 +46,10 @@ def _crispy_helper():
                 css_class="card-header"
             ),
             Div(
-                'installation_type',
+                Field(
+                    'installation_type',
+                    template='scionlab/partials/installation_type_accordion.html',
+                ),
                 Row(
                     Column(
                         AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
@@ -61,9 +65,20 @@ def _crispy_helper():
             css_class="card"
         )
     )
+
     # We need this to render the UserASForm along with the AttachmentLinkForm
     helper.form_tag = False
     helper.disable_csrf = True
+
+    # Inject some helpers into the context (crispy does the magic):
+    helper.accordion_templates = ["scionlab/partials/installation_type_vm.html",
+                                  "scionlab/partials/installation_type_pkg.html",
+                                  "scionlab/partials/installation_type_src.html"]
+
+    if instance and instance.pk:
+        host = instance.hosts.get()
+        helper.host_id = host.uid
+        helper.host_secret = host.secret
 
     return helper
 
@@ -123,7 +138,7 @@ class UserASForm(forms.ModelForm):
         if instance:
             initial['public_ip'] = instance.host.public_ip
             initial['bind_ip'] = instance.host.bind_ip
-        self.helper = _crispy_helper()
+        self.helper = _crispy_helper(instance)
         super().__init__(data, *args, initial=initial, **kwargs)
 
     def clean(self):
