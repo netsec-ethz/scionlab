@@ -28,7 +28,7 @@
 
     {# Home link / logo #}
     <a class="navbar-brand" href="/">
-      <img height=32 width=32 src="{% static "scionlab/images/favicon.ico" %}"</img> SCIONLab
+      <img height=32 width=32 src="{% static "scionlab/images/favicon.ico" %}" alt="SCION Logo"> SCIONLab
     </a>
 
     {# Left aligned part of navbar #}
@@ -44,17 +44,17 @@
     <ul class="navbar-nav flex-row ml-md-auto d-flex">
       {# External links: #}
       <li class="navbar-item">
-        <a class="nav-link" href="https://netsec-ethz.github.io/scion-tutorials/" target="_blank"><span class="fa fa-external-link"> Tutorials</a>
+        <a class="nav-link" href="https://netsec-ethz.github.io/scion-tutorials/" target="_blank"><span class="fa fa-external-link"></span> Tutorials</a>
       </li>
       <li class="navbar-item mr-4">
-        <a class="nav-link" href="https://www.scion-architecture.net/" target="_blank"><span class="fa fa-external-link"> SCION Architecture</a>
+        <a class="nav-link" href="https://www.scion-architecture.net/" target="_blank"><span class="fa fa-external-link"></span> SCION Architecture</a>
       </li>
     {% if user.is_authenticated %}
       {# User drop down menu #}
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown"><span class="fa fa-user"></span></a>
         <div class="dropdown-menu dropdown-menu-right">
-          <span class="dropdown-item disabled"/>Signed in as <i>{{user.email}}</i></span>
+          <span class="dropdown-item disabled">Signed in as <i>{{user.email}}</i></span>
           <div class="dropdown-divider"></div>
           <a class="dropdown-item" href="{% url 'user' %}">My ASes</a>
           <div class="dropdown-divider"></div>
@@ -71,14 +71,14 @@
     </ul>
   </header>
 
-  <main class="container" role="main">
+  <main class="container">
     <h3>{% block content_title %}{% endblock content_title %}</h3>
     {% block content %}base.html{% endblock content %}
   </main>
 
   <footer class="footer">
     <div class="container">
-      <span class="text-muted">&copy; SCIONLab 2018</span>
+      <span class="text-muted">&copy; SCIONLab 2019</span>
     </div>
   </footer>
 </body>

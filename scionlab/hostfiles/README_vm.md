@@ -1,99 +1,55 @@
-# SCIONLabVM
-SCIONLab Virtual Machine
+# SCIONLab VM
+
+## Install Vagrant and VirtualBox
+
+Running your AS in a VM as suggested below requires Vagrant and VirtualBox.
+
+Please install Vagrant and VirtualBox:
+  - https://www.virtualbox.org/wiki/Downloads
+  - https://www.vagrantup.com/docs/installation/
+
+On recent Ubuntu or Debian systems, it may be enough to run
+
+  $ sudo apt-get install vagrant virtualbox
 
 
-## Setup of the virtual machine
+## Using Vagrant to run the VM
 
-### For Ubuntu and Mac OS users:
+Navigate your shell to the directory containing the Vagrantfile (and this README).
+Note that all vagrant commands always need to be run in this directory!
+To start your VM, run
 
-The shell script `run.sh` will automatically check your system and install
-the necessary packages to run SCIONLabVM, such as `vagrant` and `virtualbox`.
-It will also create and configure the SCIONLabVM automatically.
+  $ vagrant up
 
-Please Note: SCIONLabVM requires `vagrant 1.9.7`, `virtualbox 5.0.4` or above.
+When running you're VM for the first time, this will download the Ubuntu base box
+and then install all the SCION packages and their dependencies.
 
-In order to install the latest version of packages, the shell script will run
-apt-get update on your system. Please make sure that all the running VMs are
-suspended or closed before running the script.
+This will already start the services for your SCIONLab AS.
 
-If you agree with these requirements, you can then simply setup your SCIONLabVM via:
-`./run.sh` from inside the downloaded folder.
+Once the `vagrant up` command returns the prompt, you can connect to your VM to
+start exploring:
 
-Once the setup is finished, you will automatically be inside the SCIONLabVM
-through SSH. After this step, you will be ready to run SCION as described below.
+  $ vagrant ssh
 
+The directory containing the Vagrant file is synced with the VM where the files
+will appear in the `/vagrant/` directory.
+This is convenient way to share files between your your host machine and your
+VM, and allows to move data both ways.
 
-### For users of other Linux distributions:
+To shutdown the VM, run
 
-You need to install `vagrant` and `virtualbox` manually using your distribution`s package manager.
+  $ vagrant halt
 
-After the install is done, run the following commands from inside the downloaded folder:
-```
-vagrant box add scion/ubuntu-16.04-64-scion
-vagrant box update
-vagrant up
-vagrant ssh
-```
+To start it back up, just type `vagrant up` again. Finally, if you want to wipe
+your VM, e.g. to start fresh, run `vagrant destroy`.
 
-After this, you are connected to your VM via ssh, where you can run SCION as described below.
-
-
-### For Windows users:
-
-SCIONLabVM requires `virtualbox` and `vagrant`.
-First, you need to download and install the `virtualbox` from:
-https://www.virtualbox.org/wiki/Downloads
-
-After this step, you also need to download and install `vagrant` from:
-https://www.vagrantup.com/downloads.html
-
-Afterwards, open a terminal window and go to the SCIONLabVM folder where the
-`Vagrantfile` is located. Now, you can run `vagrant up`. The command will
-automatically download the base VM image storing `ubuntu/ubuntu-16.04-64-scion`, and
-install SCION with all other dependencies.
-
-If the `vagrant up` command returns the prompt, you are ready to have fun with SCIONLabVM.
-
-Finally, you can run `vagrant ssh` to connect to your VM, where you can run SCION as described below.
+More information for `vagrant` commands can be found at:
+https://www.vagrantup.com/docs/cli
 
 
 ## Running SCION
 
 The SCION infrastructure is automatically started when the VM boots up.
 
-After your setup is activated at the designated SCIONLab AS, you should be able to see the beacons
-being received.
-You can test this by checking the logs in `~/go/src/github.com/scionproto/scion/logs/` or by simply
-calling `checkbeacons`.
-
-
-## Stopping and Restarting the VM
-
-You can stop and restart `SCIONLabVM` using `vagrant` commands.
-In order to stop the VM, run `vagrant halt` from the downloaded configuration folder.
-If you want start the VM again, just run `vagrant up`.
-More information for `vagrant` commands can be found at:
-https://www.vagrantup.com/docs/cli
-
-## Troubleshooting
-
-If an error occurs during the setup process (e.g., a network disruption) the virtual machine may not
-be fully functional. In this case you can either manually run the commands specified in the
-`Vagrantfile` or alternatively call
-```
-vagrant destroy
-vagrant up
-```
-from inside the directory where you unpacked your vm configuration (i.e., where the `Vagrantfile` is
-located).
-
-If you experience problems with the SCION services, you may want to manually restart the
-SCION infrastructure by either calling `sudo systemctl restart scion.service` or by moving to the
-scion directory and calling `./scion.sh stop` followed by `./scion.sh start nobuild`.
-
-
-## Current Vagrant Configuration
-
-The configurations for `vagrant` are defined in the `Vagrantfile` file.
-Additional documentation can be found at:
-https://www.vagrantup.com/docs/vagrantfile
+Please refer to the online tutorials for more information:
+https://netsec-ethz.github.io/scion-tutorials/

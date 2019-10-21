@@ -15,9 +15,9 @@
 import ipaddress
 
 from django import urls
-from django.db import models, transaction
 from django.core.exceptions import ValidationError
-from scionlab.models.user import User
+from django.db import models, transaction
+from django.utils.html import format_html
 
 import scionlab.tasks
 from scionlab.models.core import (
@@ -39,7 +39,7 @@ _VAGRANT_VM_LOCAL_IP = '10.0.2.15'
 
 class UserASManager(models.Manager):
     def create(self,
-               owner: User,
+               owner,
                installation_type,
                isd,
                public_ip=None,
@@ -108,10 +108,14 @@ class UserASManager(models.Manager):
 
 class UserAS(AS):
     VM = 'VM'
-    DEDICATED = 'DEDICATED'
+    PKG = 'PKG'
+    SRC = 'SRC'
     INSTALLATION_TYPES = (
-        (VM, 'Install inside a virtual machine'),
-        (DEDICATED, 'Install on a dedicated system (for experts)')
+        (VM,  format_html('Run SCION in a <em>Vagrant</em> virtual machine '
+                          '<i class="text-muted">(simplest approach)</i>')),
+        (PKG, 'SCION installation from packages'),
+        (SRC, format_html('SCION installation from sources '
+                          '<i class="text-muted">(for developers)</i>')),
     )
 
     installation_type = models.CharField(

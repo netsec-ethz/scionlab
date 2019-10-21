@@ -25,6 +25,7 @@ from scionlab.defines import (
     MAX_PORT,
     DEFAULT_HOST_INTERNAL_IP,
 )
+from scionlab.forms.fields import GenericIPNetworkField
 from scionlab.models.core import (
     ISD,
     AS,
@@ -37,10 +38,8 @@ from scionlab.models.core import (
 from scionlab.models.user import User
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.models.vpn import VPN, VPNClient
-from scionlab.util.http import HttpResponseAttachment
-from scionlab import config_tar
 from scionlab.tasks import deploy_host_config
-from scionlab.forms.fields import GenericIPNetworkField
+from scionlab.views.api import get_host_config_tar_response
 # Needs to be after import of scionlab.models.user.User
 from django.contrib.auth.admin import UserAdmin as auth_UserAdmin
 
@@ -174,8 +173,9 @@ class ISDAdmin(admin.ModelAdmin):
 
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
-        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'ssh_host',
-                  'secret')
+        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'ssh_host')
+
+    secret = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '32'}))
 
     def create(self):
         return Host.objects.create(
@@ -217,6 +217,16 @@ class HostAdminMixin:
         return format_html('<a class="viewlink" href="%s"></a>' % url)
 
     get_config_link.short_description = 'Config'
+
+    def get_scionlab_config_cmd(self, obj):
+        return ('scionlab-config'
+                ' --host-id {host_id}'
+                ' --host-secret {host_secret}'.format(
+                    host_id=obj.uid,
+                    host_secret=obj.secret)
+                )
+
+    get_scionlab_config_cmd.short_description = 'Commandline'
 
 
 class HostInline(HostAdminMixin, admin.TabularInline):
@@ -731,11 +741,11 @@ class LinkAdmin(admin.ModelAdmin):
 @admin.register(Host)
 class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
-    readonly_fields = ['uid']
+    readonly_fields = ['uid', 'get_scionlab_config_cmd']
     actions = ['trigger_config_deployment']
     list_display = ('__str__', 'AS',
                     'internal_ip', 'public_ip', 'bind_ip', 'managed', 'ssh_host',
-                    'latest_config_deployed', 'get_config_link')
+                    'latest_config_deployed', 'get_scionlab_config_cmd', 'get_config_link')
     list_filter = ('AS__isd', 'AS', )
     ordering = ['AS']
 
@@ -755,12 +765,7 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
         host/secret.
         """
         host = get_object_or_404(Host, pk=object_id)
-        filename = '{host}_v{version}.tar.gz'.format(
-                        host=host.path_str(),
-                        version=host.config_version)
-        resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
-        config_tar.generate_host_config_tar(host, resp)
-        return resp
+        return get_host_config_tar_response(host)
 
     def trigger_config_deployment(self, request, queryset):
         """

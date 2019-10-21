@@ -13,6 +13,9 @@
 # limitations under the License.
 
 import hmac
+import tarfile
+from contextlib import closing
+
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
@@ -26,6 +29,7 @@ from django.http import (
 from scionlab import config_tar
 from scionlab.models.core import Host
 from scionlab.util.http import HttpResponseAttachment, basicauth
+from scionlab.util.archive import TarWriter
 
 
 def _authenticate_host(uid, secret):
@@ -69,13 +73,26 @@ class GetHostConfig(SingleObjectMixin, View):
             return HttpResponse(status=204)
 
         # All good, return generate and return the config
-        # Use the response as file-like object to write the tar
-        filename = '{host}_v{version}.tar.gz'.format(
-                        host=host.path_str(),
-                        version=host.config_version)
-        resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
-        config_tar.generate_host_config_tar(host, resp)
-        return resp
+        return get_host_config_tar_response(host)
+
+
+def get_host_config_tar_response(host):
+    """
+    Build the tar.gz attachment response for the GetHostConfig view.
+
+    Note: This is re-used to download host config from the admin interface.
+
+    :returns: HttpResponseAttachment
+    """
+    filename = '{host}_v{version}.tar.gz'.format(
+                    host=host.path_str(),
+                    version=host.config_version)
+
+    # Use the response as file-like object to write the tar
+    resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
+    with closing(tarfile.open(mode='w:gz', fileobj=resp)) as tar:
+        config_tar.generate_host_config_tar(host, TarWriter(tar))
+    return resp
 
 
 @method_decorator(csrf_exempt, name='dispatch')

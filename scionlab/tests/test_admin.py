@@ -23,7 +23,7 @@ from scionlab.models.core import ISD
 
 
 class ASAdminTests(TestCase):
-    fixtures = ['testtopo-isds']
+    fixtures = ['testdata']
 
     def test_create_as_form(self):
         as_id = 'ff00:bad:f00d'
@@ -50,7 +50,10 @@ class ASAdminTests(TestCase):
 
 
 class LinkAdminFormTests(TestCase):
-    fixtures = ['testtopo-ases']
+    fixtures = ['testdata']
+
+    def setUp(self):
+        Link.objects.all().delete()
 
     def test_render_create(self):
         form = LinkAdminForm()
@@ -123,7 +126,10 @@ class LinkAdminFormTests(TestCase):
 
 
 class LinkAdminViewTests(WebTest):
-    fixtures = ['testuser-admin', 'testtopo-ases']
+    fixtures = ['testdata']
+
+    def setUp(self):
+        Link.objects.all().delete()
 
     def test_create_link(self):
         """

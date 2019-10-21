@@ -11,16 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import ipaddress
+import tarfile
+from contextlib import closing
+
+from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
+from django import forms
+from django.conf import settings
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field, Row, Column
+from crispy_forms.bootstrap import AppendedText
 
 from scionlab import config_tar
 from scionlab.util.http import HttpResponseAttachment
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.forms.user_as_form import UserASForm
+from scionlab.util.archive import TarWriter
 
 
 class UserASCreateView(CreateView):
@@ -120,13 +131,18 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
             user=user_as.owner.email,
             ia=user_as.isd_as_path_str())
         resp = HttpResponseAttachment(filename=filename, content_type='application/gzip')
-        config_tar.generate_user_as_config_tar(user_as, resp)
+        with closing(tarfile.open(mode='w:gz', fileobj=resp)) as tar:
+            config_tar.generate_user_as_config_tar(user_as, TarWriter(tar))
         return resp
 
 
-class UserASesView(OwnedUserASQuerysetMixin, ListView):
+class UserASesView(ListView):
     template_name = "scionlab/user.html"
     model = UserAS
+    ordering = ['as_id']
+
+    def get_queryset(self):
+        return super().get_queryset().filter(owner=self.request.user)
 
 
 def _add_attachment_point_data(context):

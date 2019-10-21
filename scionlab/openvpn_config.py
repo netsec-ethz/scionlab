@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import os
 import string
-
 import pathlib
+from datetime import datetime, timedelta
+
 from django.conf import settings
 
 from cryptography import x509
@@ -103,10 +103,10 @@ def _generate_root_ca_cert(key):
     ).serial_number(
         x509.random_serial_number()
     ).not_valid_before(
-        datetime.datetime.utcnow()
+        datetime.utcnow()
     ).not_valid_after(
-        datetime.datetime.utcnow() +
-        datetime.timedelta(days=settings.VPN_KEYGEN_CONFIG.CA_EXPIRE)
+        datetime.utcnow() +
+        timedelta(days=settings.VPN_KEYGEN_CONFIG.CA_EXPIRE)
     ).add_extension(
         x509.AuthorityKeyIdentifier.from_issuer_public_key(key.public_key()),
         critical=False,
@@ -261,10 +261,10 @@ def _make_cert(subject_name, subject_key, issuer_name, issuer_key,
     ).serial_number(
         x509.random_serial_number()
     ).not_valid_before(
-        datetime.datetime.utcnow()
+        datetime.utcnow()
     ).not_valid_after(
-        datetime.datetime.utcnow() +
-        datetime.timedelta(days=settings.VPN_KEYGEN_CONFIG.KEY_EXPIRE)
+        datetime.utcnow() +
+        timedelta(days=settings.VPN_KEYGEN_CONFIG.KEY_EXPIRE)
     ).add_extension(
         x509.SubjectAlternativeName(
             [x509.DNSName(subject_name)]),

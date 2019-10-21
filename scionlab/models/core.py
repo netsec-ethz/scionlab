@@ -1141,6 +1141,13 @@ class BorderRouter(models.Model):
 
     objects = BorderRouterManager()
 
+    def __str__(self):
+        return "br-%s-%i" % (self.AS.isd_as_path_str(), self._br_idx())
+
+    def _br_idx(self):
+        # slow!
+        return self.AS.border_routers.filter(pk__lt=self.pk).count() + 1
+
     def update(self, host=_placeholder, internal_port=_placeholder, control_port=_placeholder):
         """
         Update the given fields
@@ -1244,10 +1251,12 @@ class Service(models.Model):
 
     objects = ServiceManager()
 
-    def port(self):
-        if self.type not in self.SERVICE_PORTS:
-            raise KeyError('Unknown type %s' % self.type)
-        return self.SERVICE_PORTS[self.type]
+    def __str__(self):
+        return "%s-%s-%i" % (self.type.lower(), self.AS.isd_as_path_str(), self._service_idx())
+
+    def _service_idx(self):
+        # slow!
+        return self.AS.services.filter(type=self.type, pk__lt=self.pk).count() + 1
 
     def _pre_delete(self):
         """
@@ -1256,6 +1265,11 @@ class Service(models.Model):
         also for bulk deletion, while this `delete()` method is not.
         """
         Service._bump_affected(self.host, self.type)
+
+    def port(self):
+        if self.type not in self.SERVICE_PORTS:
+            raise KeyError('Unknown type %s' % self.type)
+        return self.SERVICE_PORTS[self.type]
 
     def update(self, host=_placeholder):
         """

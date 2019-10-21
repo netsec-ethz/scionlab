@@ -36,7 +36,6 @@ from scionlab.fixtures import testtopo
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
 from scionlab.util import as_ids
-from scionlab.openvpn_config import write_vpn_ca_config
 
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 
@@ -105,7 +104,7 @@ def create_and_check_useras(testcase,
                             vpn_choice: VPNChoice,
                             owner, public_ip=None,
                             bind_ip=None,
-                            installation_type=UserAS.DEDICATED,
+                            installation_type=UserAS.PKG,
                             label='label foo'):
     """
     Helper function for testing. Create a UserAS, attach it to the attachment_points as
@@ -368,12 +367,14 @@ def _get_random_useras_params(seed, vpn_choice, force_public_ip=False, force_bin
     """
     r = random.Random(seed)
 
-    #  use_vpn = kwargs.setdefault('use_vpn', _randbool(r))
+    #  use_vpn = kwargs.setdefault('use_vpn', _randbool())
+    #  # Make AP choice both with/without VPN to always consume same amount of random state
+    #  candidate_AP_vpn = r.choice(AttachmentPoint.objects.filter(vpn__isnull=False))
+    #  candidate_AP_novpn = r.choice(AttachmentPoint.objects.all())
     #  if use_vpn:
-    #  candidate_APs = AttachmentPoint.objects.filter(vpn__isnull=False)
+        #  kwargs.setdefault('attachment_point', candidate_AP_vpn)
     #  else:
-    #  candidate_APs = AttachmentPoint.objects.all()
-    #  kwargs.setdefault('attachment_point', r.choice(candidate_APs))
+        #  kwargs.setdefault('attachment_point', candidate_AP_novpn)
     kwargs.setdefault('owner', get_testuser())
 
     public_ip = '172.31.0.%i' % r.randint(10, 254)
@@ -393,8 +394,8 @@ def _get_random_useras_params(seed, vpn_choice, force_public_ip=False, force_bin
         kwargs.setdefault('bind_ip', None)
         #  kwargs.setdefault('bind_port', None)
 
-    kwargs.setdefault('installation_type', r.choice((UserAS.DEDICATED, UserAS.VM)))
-    randstr = r.getrandbits(1024).to_bytes(1024 // 8, 'little').decode('utf8', 'ignore')
+    kwargs.setdefault('installation_type', r.choice((UserAS.VM, UserAS.PKG, UserAS.SRC)))
+    randstr = r.getrandbits(1024).to_bytes(1024//8, 'little').decode('utf8', 'ignore')
     kwargs.setdefault('label', randstr)
 
     return kwargs
@@ -457,18 +458,18 @@ class GenerateUserASIDTests(TestCase):
 
 
 class VPNServerTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def test_create_new(self):
         ap = AttachmentPoint.objects.first()
         prev_version = ap.AS.hosts.first().config_version
-        setup_vpn_attachment_point(ap)
+        self._setup_vpn_attachment_point(ap)
         self.assertGreater(ap.AS.hosts.first().config_version, prev_version)
         self.assertEqual(ap.vpn.server, ap.AS.hosts.first())
 
     def test_update_vpn(self):
         ap = AttachmentPoint.objects.first()
-        setup_vpn_attachment_point(ap)
+        self._setup_vpn_attachment_point(ap)
         server = ap.vpn.server
         prev_version = server.config_version
         ap.vpn.update(subnet='10.0.8.0/22')
@@ -476,7 +477,7 @@ class VPNServerTests(TestCase):
 
     def test_change_vpn_server(self):
         ap = AttachmentPoint.objects.first()
-        setup_vpn_attachment_point(ap)
+        self._setup_vpn_attachment_point(ap)
         old_server = ap.vpn.server
         old_server_prev_version = old_server.config_version
         new_server = Host.objects.create()
@@ -485,6 +486,14 @@ class VPNServerTests(TestCase):
         ap.vpn.update(server=new_server)
         self.assertGreater(old_server.config_version, old_server_prev_version)
         self.assertGreater(new_server.config_version, new_server_prev_version)
+
+    def _setup_vpn_attachment_point(self, ap):
+        """ Setup a VPN server config for the given attachment point """
+        ap.vpn = VPN.objects.create(server=ap.AS.hosts.first(),
+                                    subnet='10.0.8.0/24',
+                                    server_vpn_ip='10.0.8.1',
+                                    server_port=4321)
+        ap.save()
 
 
 def get_all_random_as_defs(has_vpn=False, seed=1) -> List[List[AttachmentPoint]]:
@@ -530,10 +539,9 @@ def as_defs2aps(ASes_def):
 
 
 class CreateUserASTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
-        setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
     @parameterized.expand(zip(get_all_random_as_defs()))
@@ -589,7 +597,7 @@ class CreateUserASTests(TestCase):
     def test_server_vpn_ip(self):
         """ Its IP is not at the beginning of the subnet """
         seed = 1
-        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
+        attachment_point = AttachmentPoint.objects.filter(AS__as_id='ffaa:0:1404').get()
         vpn_choice = VPNChoice.ALL
         aps_conf = _get_random_aps_params(seed, [attachment_point], vpn_choice)
         vpn = attachment_point.vpn
@@ -649,10 +657,9 @@ class CreateUserASTests(TestCase):
 
 
 class UpdateUserASTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
-        setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
     def test_enable_vpn(self):
@@ -733,16 +740,18 @@ class UpdateUserASTests(TestCase):
         self.assertEqual(vpn_client.ip, vpn_client_ip)
 
     def test_vpn_client_next_ip(self):
-        attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
-        vpn_server = VPN.objects.first()
+        attachment_point = AttachmentPoint.objects.filter(AS__as_id='ffaa:0:1404').get()
+        vpn = attachment_point.vpn
+        vpn.clients.all().delete()  # check creation of first client
+
         user_as = create_and_check_useras(self,
                                           attachment_point=attachment_point,
                                           owner=get_testuser(),
                                           use_vpn=True,
                                           public_port=50000)
         vpn_client = user_as.hosts.get().vpn_clients.get()
-        # consecutive:
-        self.assertEqual(ip_address(vpn_server.server_vpn_ip) + 1,
+        # consecutive: (assumes server at begin of IP range, not the case for all APs in testdata)
+        self.assertEqual(ip_address(vpn.server_vpn_ip) + 1,
                          ip_address(vpn_client.ip))
         # leave a gap at the beginning
         former_vpn_ip = ip_address(vpn_client.ip)
@@ -799,10 +808,10 @@ class UpdateUserASTests(TestCase):
 
     def test_cycle_ap_vpn(self):
         seed = 6
-        for ap in AttachmentPoint.objects.filter(vpn__isnull=True).iterator():
-            setup_vpn_attachment_point(ap)
+        aps = list(AttachmentPoint.objects.filter(vpn__isnull=False))
+        self.assertTrue(len(aps) >= 2, "Should have at least two APs with VPN for this test")
 
-        attachment_point_iter = iter(list(AttachmentPoint.objects.all()) * 2)
+        attachment_point_iter = iter(aps * 2)
         attachment_point = next(attachment_point_iter)
         user_as = create_random_useras(self,
                                        seed=seed,
@@ -864,10 +873,9 @@ class UpdateUserASTests(TestCase):
 
 
 class ActivateUserASTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
-        setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
     def test_cycle_active(self):
@@ -908,10 +916,9 @@ class ActivateUserASTests(TestCase):
 
 
 class DeleteUserASTests(TestCase):
-    fixtures = ['testuser', 'testtopo-ases-links']
+    fixtures = ['testdata']
 
     def setUp(self):
-        setup_vpn_attachment_point(AttachmentPoint.objects.first())
         Host.objects.reset_needs_config_deployment()
 
     def test_delete_single(self):
