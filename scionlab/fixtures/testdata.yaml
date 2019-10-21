@@ -2800,42 +2800,22 @@
 - model: scionlab.useras
   pk: 16
   fields:
-    attachment_point: 1
-    public_ip: 172.31.0.200
-    bind_ip: null
-    bind_port: null
     installation_type: VM
 - model: scionlab.useras
   pk: 17
   fields:
-    attachment_point: 2
-    public_ip: 172.31.0.200
-    bind_ip: null
-    bind_port: null
     installation_type: VM
 - model: scionlab.useras
   pk: 18
   fields:
-    attachment_point: 3
-    public_ip: 172.31.0.200
-    bind_ip: null
-    bind_port: null
     installation_type: PKG
 - model: scionlab.useras
   pk: 19
   fields:
-    attachment_point: 4
-    public_ip: 172.31.0.200
-    bind_ip: null
-    bind_port: null
     installation_type: PKG
 - model: scionlab.useras
   pk: 20
   fields:
-    attachment_point: 1
-    public_ip: 172.31.0.200
-    bind_ip: null
-    bind_port: null
     installation_type: SRC
 - model: scionlab.attachmentpoint
   pk: 1

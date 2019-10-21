@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scionlab', '0002_SCIONLab_upgrade-2019-08'),
+        ('scionlab', '0003_installation_types'),
     ]
 
     operations = [
