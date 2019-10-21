@@ -63,6 +63,13 @@ class ConfigTarRegressionTests(TestCase):
             self._check_archive('user_as_%i' % user_as.id, archive)
 
     def _check_archive(self, test_id, archive):
+
+        unchecked_files = ["README.md"]
+        # Ignore content for `unchecked_files`
+        for fname in unchecked_files:
+            if fname in archive.dict:
+                archive.dict[fname] = "content_not_checked"
+
         test_data_file = os.path.join(_DATA_DIR, test_id + ".yml")
         if not _RECREATE_TEST_RESULTS:
 
