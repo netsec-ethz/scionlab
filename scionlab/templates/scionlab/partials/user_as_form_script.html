@@ -26,6 +26,8 @@ $(document).ready(function() {
     function _update_ip_fields_show () { update_ip_fields_show($(this)) }
     toggle.change(_update_ip_fields_show)
   });
+  // Trigger `update_user_as_ip_fields_show` whenever the *new* attachment-point is changed
+  $(".attachment select[id*='attachment_point']").last().change(update_user_as_ip_fields_show);
 });
 
 
@@ -61,18 +63,37 @@ function update_use_vpn_enable(sel) {
   }
 }
 
-// hide/show the IP fields depending on whether the VPN option is enabled
+// hide/show the IP fields of the attachments depending on whether the VPN option is enabled
 function update_ip_fields_show(toggle) {
   // Traverse the DOM to get the container of this attachment point
   let attachment = toggle.closest('.attachment');
   let public_ip_container = attachment.find("input[id*='public_ip']").closest('.formColumn')
   let bind_ip_container = attachment.find("input[id*='bind_ip']").closest('.formColumn')
+  let bind_port_container = attachment.find("input[id*='bind_port']").closest('.formColumn')
   if(toggle.prop("checked")) {
     public_ip_container.hide();
     bind_ip_container.hide();
+    bind_port_container.hide();
   } else {
     public_ip_container.show();
     bind_ip_container.show();
+    bind_port_container.show();
+  }
+  update_user_as_ip_fields_show();
+}
+function update_user_as_ip_fields_show() {
+  // Consider only the toggles related to select inputs that are not `default` (this is needed
+  // to handle the `use_vpn` of the last attachment, i.e. the new one)
+  let is_attachment_selected = (attachment) => attachment.find("select[id*='attachment_point']").get(0).value !== '';
+  let attachments = $('.attachment').filter((_, attachment) => is_attachment_selected($(attachment)));
+  let toggles = $.map(attachments, (attachment, _) => $(attachment).find("input[id*='use_vpn']").get(0));
+  // Are all considered attachments with VPN?
+  let should_hide = $.map(toggles, (toggle, _) => toggle.checked).every(checked => checked);
+  let fields_container = $("div[id*=user-as-public_ip").closest('.row')
+  if (should_hide) {
+    fields_container.hide();
+  } else {
+    fields_container.show();
   }
 }
 </script>

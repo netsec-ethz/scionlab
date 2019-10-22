@@ -88,7 +88,7 @@ class UserASForm(forms.ModelForm):
     Form for UserAS creation and update.
     """
 
-    prefix = 'userAS'
+    prefix = 'user-as'
 
     class Meta:
         model = UserAS

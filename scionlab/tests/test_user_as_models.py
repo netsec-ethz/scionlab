@@ -166,7 +166,7 @@ def check_useras(testcase,
     testcase.assertEqual(user_as.host.bind_ip, bind_ip)
     utils.check_as(testcase, user_as)
 
-    # Check that the AttachmentPoints in `aps_confs` are now AttachmentPoints of the userAS
+    # Check that the AttachmentPoints in `aps_confs` are now AttachmentPoints of the user_as
     aps_ases = [c.attachment_point.AS for c in aps_confs]
     aps_confs_dict = {c.attachment_point: c for c in aps_confs}
     user_as_aps_ases = [l.interfaceA.AS

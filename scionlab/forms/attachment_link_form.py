@@ -74,11 +74,9 @@ class AttachmentLinksFormSetHelper(FormHelper):
                             AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
                             css_class='form-group col-md-6 mb-0',
                         ),
-                    ),
-                    Row(
                         Column(
                             'DELETE',
-                            css_class='text-danger form-group col-md-2 mb-0'
+                            css_class='text-danger form-group col-md-6 mb-0'
                         )
                     ),
                     css_class="card-body"
