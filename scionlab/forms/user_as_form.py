@@ -35,7 +35,7 @@ def _crispy_helper(instance):
     """
     Create the crispy-forms FormHelper. The form will then be rendered
     using {% crispy form %} in the template.
-    :param UserAS instance: 
+    :param UserAS instance:
     """
     helper = FormHelper()
     helper.attrs['id'] = 'id_user_as_form'
@@ -201,11 +201,10 @@ class UserASForm(forms.ModelForm):
             self.attachment_links_form_set.save(user_as)
             return user_as
         else:
-            self.instance.update(
-                self.cleaned_data['label'],
-                self.cleaned_data['public_ip'],
-                self.cleaned_data['bind_ip'],
-                self.cleaned_data['installation_type'],
-            )
+            self.instance.update(self.cleaned_data['label'],
+                                 self.cleaned_data['public_ip'],
+                                 self.cleaned_data['bind_ip'],
+                                 self.cleaned_data['installation_type'],
+                                 )
             self.attachment_links_form_set.save(self.instance)
             return self.instance

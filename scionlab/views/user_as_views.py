@@ -11,21 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import ipaddress
 import tarfile
 from contextlib import closing
 
-from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.views.generic.detail import SingleObjectMixin
-from django import forms
-from django.conf import settings
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field, Row, Column
-from crispy_forms.bootstrap import AppendedText
 
 from scionlab import config_tar
 from scionlab.util.http import HttpResponseAttachment

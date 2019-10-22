@@ -25,7 +25,7 @@ from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import Link
-from scionlab.models.user_as import AttachmentPoint
+from scionlab.models.user_as import AttachmentPoint, AttachmentPointConf
 from scionlab.util.portmap import PortMap
 
 
@@ -138,21 +138,10 @@ class AttachmentLinksFormSet(BaseModelFormSet):
             raise ValidationError("All attachment points must belong to the "
                                   "same ISD")
 
-    def save_new(self, form, commit=True):
-        """Save and return a new model instance for the given form."""
-        assert self.user_as is not None
-        return form.save(self.user_as, commit=commit)
-
-    def save_existing(self, form, instance, commit=True):
-        """Save and return an existing model instance for the given form."""
-        assert self.user_as is not None
-        return form.save(self.user_as, commit=commit)
-
     def save(self, user_as, commit=True):
-        # TODO(andrea_tulimiero): Find a cleaner way to handle this situation to avoi d:
-        # - injecting `user_as` to pass it to `AttachmentLinkForm:save(...)`
         self.user_as = user_as
-        super().save(commit=False)
+        for ap_conf in super().save(commit=False):
+            return AttachmentLinkForm._create_or_update(user_as, ap_conf)
         # We save the deleted AP in a set so we only call the cleaning/updating methods once per AP
         deleted_aps_set = set()
         for attachment_link in self.deleted_objects:
@@ -278,7 +267,7 @@ class AttachmentLinkForm(forms.ModelForm):
             if not public_ip:
                 # public_ip cannot be empty when use_vpn is false
                 raise ValidationError(
-                    'Please provide a value for public IP, or enable "Use OpenVPN".',
+                    'Please provide a value for public IP, or enable "Use VPN".',
                     code='missing_public_ip_no_vpn'
                 )
             ip_addr = ipaddress.ip_address(public_ip)
@@ -302,29 +291,31 @@ class AttachmentLinkForm(forms.ModelForm):
                                                code='invalid_public_ip'))
         return cleaned_data
 
-    def save(self, user_as, commit=True):
-        # NOTE: NYI `commit=False`
-        assert commit
-        active = self.cleaned_data['active']
-        use_vpn = self.cleaned_data['use_vpn']
-        attachment_point = self.cleaned_data['attachment_point']
-        public_ip = self.cleaned_data['public_ip']
-        public_port = self.cleaned_data['public_port']
-        bind_ip = self.cleaned_data['bind_ip']
-        bind_port = self.cleaned_data['bind_port']
-        if self.instance.pk is None:
-            return user_as.create_attachment(attachment_point,
-                                            public_port,
-                                            public_ip=public_ip,
-                                            use_vpn=use_vpn,
-                                            bind_ip=bind_ip,
-                                            bind_port=bind_port)
-
+    @staticmethod
+    def _create_or_update(user_as, ap_conf):
+        if ap_conf.link is None:
+            # Create
+            return user_as.create_attachment(ap_conf)
         else:
-            return user_as.update_attachment(self.instance,
-                                            active,
-                                            public_port,
-                                            public_ip,
-                                            use_vpn,
-                                            bind_ip,
-                                            bind_port)
+            # Update
+            return user_as.update_attachment(ap_conf)
+
+    def save(self, user_as, commit=True):
+        """
+        Create/update the attachment if `commit=True`, otherwise returns an
+        `AttachmentPointConf` to hold the provided settings
+        :return AttachmentPointConf:
+        """
+        ap_conf = AttachmentPointConf(self.cleaned_data['attachment_point'],
+                                      self.cleaned_data['public_ip'],
+                                      self.cleaned_data['public_port'],
+                                      self.cleaned_data['bind_ip'],
+                                      self.cleaned_data['bind_port'],
+                                      self.cleaned_data['use_vpn'],
+                                      self.cleaned_data['active'],
+                                      self.instance if self.instance.pk is not None else None)
+        if commit:
+            self._create_or_update(user_as, ap_conf)
+        else:
+            # Just return an AttachmentPointConf representing the attachment
+            return ap_conf

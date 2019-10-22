@@ -6,8 +6,6 @@
 {% block content_title %}AS {{object.as_id }}{% endblock %}
 
 {% block content %}
-    <h1>AS {{ object.as_id }}</h1>
-
     <form action="{% url 'user_as_detail' pk=object.pk %}" method="post">
         {% csrf_token %}
         <h2>Configuration</h2>

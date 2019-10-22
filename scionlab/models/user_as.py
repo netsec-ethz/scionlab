@@ -26,7 +26,7 @@ from scionlab.models.core import (
     Link,
     BorderRouter,
 )
-from scionlab.models.vpn import VPNClient, VPN
+from scionlab.models.vpn import VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
@@ -133,28 +133,18 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def create_attachment(self,
-                          ap,
-                          public_port,
-                          public_ip=None,
-                          use_vpn=False,
-                          bind_ip=None,
-                          bind_port=None):
+    def create_attachment(self, ap_conf):
         """
         Attach a UserAS to the specified attachment point creating the Link and the Interfaces,
         and if needed a VPNClient
-        :param 'AttachmentPoint' ap:
-        :param int public_port:
-        :param str public_ip:
-        :param bool use_vpn:
-        :param int bind_port:
-        :param str bind_ip:
+        :param 'AttachmentPointConf' ap_conf:
         :return Link link: The entity representing the relationship (UserAS, AttachmentPoint)
         """
         # XXX: Should we check if the isd is consistent?
+        ap = ap_conf.attachment_point
         if self.isd != ap.AS.isd:
             self._change_isd(ap.AS.isd)
-        if use_vpn:
+        if ap_conf.use_vpn:
             assert ap.vpn is not None
             # Reuse VPNClient if there's with this AttachmentPoint
             vpn_client = VPNClient.objects.filter(host=self.host, vpn=ap.vpn).first()
@@ -162,7 +152,7 @@ class UserAS(AS):
                 vpn_client = ap.vpn.create_client(host=self.host, active=True)
             interface_client = Interface.objects.create(
                 border_router=BorderRouter.objects.first_or_create(self.host),
-                public_port=public_port,
+                public_port=ap_conf.public_port,
                 vpn_client=vpn_client
             )
             interface_ap = Interface.objects.create(
@@ -170,12 +160,16 @@ class UserAS(AS):
                 public_ip=ap.vpn.server_vpn_ip
             )
         else:
+            if self.installation_type == UserAS.VM:
+                _bind_ip = _VAGRANT_VM_LOCAL_IP
+            else:
+                _bind_ip = ap_conf.bind_ip
             interface_client = Interface.objects.create(
                 border_router=BorderRouter.objects.first_or_create(self.host),
-                public_ip=public_ip,
-                public_port=public_port,
-                bind_ip=_VAGRANT_VM_LOCAL_IP if self.installation_type == UserAS.VM else bind_ip,
-                bind_port=bind_port
+                public_ip=ap_conf.public_ip,
+                public_port=ap_conf.public_port,
+                bind_ip=_bind_ip,
+                bind_port=ap_conf.bind_port
             )
             interface_ap = Interface.objects.create(
                 border_router=ap.get_border_router_for_useras_interface(),
@@ -191,25 +185,19 @@ class UserAS(AS):
         self.save()
         return link
 
-    def update_attachment(self,
-                          link: Link,
-                          active: bool,
-                          public_port: int,
-                          public_ip,
-                          use_vpn: bool,
-                          bind_ip,
-                          bind_port: int):
+    def update_attachment(self, ap_conf):
         """
         Update a Link and Interfaces(A and B) involved in a UserAS attachment
+        :param 'AttachmentPointConf' ap_conf:
         """
-        ap = link.interfaceA.AS.attachment_point_info
+        ap = ap_conf.attachment_point
         # XXX: Should we check if the isd is consistent?
-        if active and self.isd != ap.AS.isd:
+        if ap_conf.active and self.isd != ap.AS.isd:
             self._change_isd(ap.AS.isd)
 
-        link.update(active=active)
-        link.save()
-        iface = link.interfaceB
+        ap_conf.link.update(active=ap_conf.active)
+        ap_conf.link.save()
+        iface = ap_conf.link.interfaceB
         if ap.vpn is None:
             # We simply cannot have a VPN connection if the ap does not support VPN
             vpn_client = None
@@ -217,7 +205,7 @@ class UserAS(AS):
             vpn_client = VPNClient.objects.filter(host=self.host, vpn=ap.vpn).first()
 
         # Create or Update the vpn_client accordingly
-        if use_vpn:
+        if ap_conf.use_vpn:
             if vpn_client is None:
                 assert ap.vpn is not None
                 # Create a brand new vpn_client
@@ -231,11 +219,11 @@ class UserAS(AS):
                 # Deactivate the existing vpn_client
                 vpn_client.active = False
                 vpn_client.save()
-        iface.update(public_ip=public_ip,
-                     public_port=public_port,
-                     bind_ip=bind_ip,
-                     bind_port=bind_port,
-                     is_over_vpn=use_vpn)
+        iface.update(public_ip=ap_conf.public_ip,
+                     public_port=ap_conf.public_port,
+                     bind_ip=ap_conf.bind_ip,
+                     bind_port=ap_conf.bind_port,
+                     is_over_vpn=ap_conf.use_vpn)
 
         ap.split_border_routers()
         ap.trigger_deployment()
