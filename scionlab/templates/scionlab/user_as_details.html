@@ -6,7 +6,7 @@
 {% block content_title %}AS {{object.as_id }}{% endblock %}
 
 {% block content %}
-    <form action="{% url 'user_as_detail' pk=object.pk %}" method="post">
+    <form action="{% url 'user_as_detail' pk=object.pk %}" id="id_user_as_form" method="post">
         {% csrf_token %}
         <h2>Configuration</h2>
         {% crispy form %}
@@ -14,7 +14,7 @@
         <h2>Attachment points</h2>
         {% crispy form.attachment_links_form_set %}
 
-        <button type="submit" class="btn btn-primary savebtn">Save Changes</button>
+        <button type="submit" class="btn btn-primary savebtn" form="id_user_as_form">Save Changes</button>
     </form>
 
 

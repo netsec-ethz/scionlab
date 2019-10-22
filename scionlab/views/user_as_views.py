@@ -27,7 +27,24 @@ from scionlab.forms.user_as_form import UserASForm
 from scionlab.util.archive import TarWriter
 
 
-class UserASCreateView(CreateView):
+class _AttachmentPointsContextData:
+    """
+    Helper mixin for UserASCreateView and UserASDetailView.
+    Add attachment point data to context dict.
+    """
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        ap_data = {
+            str(ap.pk): {
+                'has_vpn': bool(ap.vpn)
+            }
+            for ap in AttachmentPoint.objects.all()
+        }
+        context['attachment_points'] = ap_data
+        return context
+
+
+class UserASCreateView(CreateView, _AttachmentPointsContextData):
     template_name = "scionlab/user_as_add.html"
     model = UserAS
     form_class = UserASForm
@@ -53,11 +70,6 @@ class UserASCreateView(CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        _add_attachment_point_data(context)
-        return context
-
 
 class OwnedUserASQuerysetMixin:
     """
@@ -70,7 +82,7 @@ class OwnedUserASQuerysetMixin:
         return UserAS.objects.filter(owner=self.request.user)
 
 
-class UserASDetailView(OwnedUserASQuerysetMixin, UpdateView):
+class UserASDetailView(_AttachmentPointsContextData, OwnedUserASQuerysetMixin, UpdateView):
     template_name = "scionlab/user_as_details.html"
     model = UserAS
     form_class = UserASForm
@@ -79,11 +91,6 @@ class UserASDetailView(OwnedUserASQuerysetMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        _add_attachment_point_data(context)
-        return context
 
 
 class UserASDeleteView(OwnedUserASQuerysetMixin, DeleteView):
@@ -136,17 +143,3 @@ class UserASesView(ListView):
 
     def get_queryset(self):
         return super().get_queryset().filter(owner=self.request.user)
-
-
-def _add_attachment_point_data(context):
-    """
-    Helper for UserASCreateView and UserASDetailView.
-    Add attachment point data to context dict.
-    """
-    ap_data = {
-        str(ap.pk): {
-            'has_vpn': bool(ap.vpn)
-        }
-        for ap in AttachmentPoint.objects.all()
-    }
-    context['attachment_points'] = ap_data
