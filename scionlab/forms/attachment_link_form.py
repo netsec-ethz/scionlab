@@ -83,7 +83,7 @@ class AttachmentLinksFormSetHelper(FormHelper):
                     ),
                     css_class="card-body"
                 ),
-                css_class="card",
+                css_class="card attachment",
                 style="margin-top: 16px;"
             )
         )
@@ -141,7 +141,7 @@ class AttachmentLinksFormSet(BaseModelFormSet):
     def save(self, user_as, commit=True):
         self.user_as = user_as
         for ap_conf in super().save(commit=False):
-            return AttachmentLinkForm._create_or_update(user_as, ap_conf)
+            AttachmentLinkForm._create_or_update(user_as, ap_conf)
         # We save the deleted AP in a set so we only call the cleaning/updating methods once per AP
         deleted_aps_set = set()
         for attachment_link in self.deleted_objects:
@@ -300,7 +300,7 @@ class AttachmentLinkForm(forms.ModelForm):
             # Update
             return user_as.update_attachment(ap_conf)
 
-    def save(self, user_as, commit=True):
+    def save(self, commit=True, user_as=None):
         """
         Create/update the attachment if `commit=True`, otherwise returns an
         `AttachmentPointConf` to hold the provided settings
@@ -315,6 +315,7 @@ class AttachmentLinkForm(forms.ModelForm):
                                       self.cleaned_data['active'],
                                       self.instance if self.instance.pk is not None else None)
         if commit:
+            assert user_as is not None
             self._create_or_update(user_as, ap_conf)
         else:
             # Just return an AttachmentPointConf representing the attachment
