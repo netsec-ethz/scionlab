@@ -82,13 +82,19 @@ function update_ip_fields_show(toggle) {
   update_user_as_ip_fields_show();
 }
 function update_user_as_ip_fields_show() {
-  // Consider only the toggles related to select inputs that are not `default` (this is needed
-  // to handle the `use_vpn` of the last attachment, i.e. the new one)
+  /* 
+    Hide or show the ip fields of the UserAS configuration based on connection types selected.
+    Consider only the toggles related select inputs that are not in a `default` state 
+    (this is needed to handle the `use_vpn` of the last attachment, i.e. the new one)
+  */
+  // Whether or not an attachment has been selected (otherwise select is in `default` state)
   let is_attachment_selected = (attachment) => attachment.find("select[id*='attachment_point']").get(0).value !== '';
+  // `attachments` not in `default` state
   let attachments = $('.attachment').filter((_, attachment) => is_attachment_selected($(attachment)));
+  // VPN `toggles` of the `attachments`
   let toggles = $.map(attachments, (attachment, _) => $(attachment).find("input[id*='use_vpn']").get(0));
-  // Are all considered attachments with VPN?
-  let should_hide = $.map(toggles, (toggle, _) => toggle.checked).every(checked => checked);
+  // Are all considered attachments reached with a VPN connection?
+  let should_hide = $.map(toggles, (t, _) => t.checked).every((is_checked) => is_checked);
   let fields_container = $("div[id*=user-as-public_ip").closest('.row')
   if (should_hide) {
     fields_container.hide();
