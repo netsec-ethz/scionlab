@@ -262,15 +262,20 @@ class UserAS(AS):
         """
         Is this UserAS currently active?
         """
+        # TODO(andrea_tulimiero): Consider faster and more efficent version
+        #  return any(self.interfaces.all().prefetch_related('link_as_interfaceB').values_list('link_as_interfaceB__active', flat=True))
+        print(any(iface.link().active for iface in self.interfaces.all().prefetch_related('link_as_interfaceB')))
         return any(iface.link().active for iface in self.interfaces.all())
 
     def update_active(self, active):
         """
-        Set the UserAS to be active/inactive.
-        This will trigger a deployment of the attachment point configuration.
+        Set the UserAS to be active/inactive by activating/deactivating all the links with 
+        attachment points. This will trigger a deployment of all the attachment points configuration
         """
-        self.interfaces.get().link().update_active(active)
-        self.attachment_point.trigger_deployment()
+        for iface in self.interfaces.all():
+            link = iface.link()
+            link.update_active(active)
+            link.interfaceA.host.AS.attachment_point_info.trigger_deployment()
 
     def _get_ap_link(self):
         # FIXME(matzf): find the correct link to the AP if multiple links present!
