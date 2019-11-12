@@ -57,21 +57,15 @@ from lib.defines import (
     SCIOND_API_SOCKDIR,
 )
 
-SERVICE_TYPES_CONTROL_PLANE = [Service.BS, Service.CS, Service.PS]
-SERVICE_TYPES_SERVER_APPS = [Service.BW, Service.PP]
-
 TYPE_BR = 'BR'
 TYPE_SD = 'SD'
 SERVICES_TO_SYSTEMD_NAMES = {
     Service.BS: 'scion-beacon-server',
     Service.CS: 'scion-certificate-server',
     Service.PS: 'scion-path-server',
+    Service.BW: 'scion-bwtestserver',
     TYPE_BR: 'scion-border-router',
-    TYPE_SD: 'scion-daemon',
 }
-SYSTEMD_NAMES_ALWAYS_PRESENT = [
-    'scion-dispatcher.service'
-]
 
 DEFAULT_ENV = ['TZ=UTC']
 BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
@@ -208,9 +202,13 @@ class _ConfigGenerator:
 
     def _write_systemd_services_file(self):
         instance_names = [r.instance_name for r in self._routers()] + \
-                         [s.instance_name for s in self._services()] + \
-                         ["sd%s" % self.AS.isd_as_path_str()]
-        unit_names = _get_systemd_services(instance_names)
+                         [s.instance_name for s in self._services()]
+
+        unit_names = _convert_instances_to_systemd_services(instance_names)
+        unit_names += _convert_static_to_systemd_services(self._static_services())
+        unit_names.append('scion-daemon@%s.service' % self.AS.isd_as_path_str())
+        unit_names.append('scion-dispatcher.service')
+
         self.archive.write_text('scionlab-services.txt', '\n'.join(unit_names))
 
     def _write_supervisord_files(self):
@@ -250,6 +248,9 @@ class _ConfigGenerator:
 
     def _services(self):
         return (s for s in self.topo_info.services if s.host == self.host)
+
+    def _static_services(self):
+        return list(self.host.services.filter(type__in=Service.STATIC_SERVICE_TYPES))
 
     def _elem_dir(self, elem_id):
         return os.path.join(_isd_as_dir(self.AS), elem_id)
@@ -436,7 +437,7 @@ def _isd_as_dir(as_):
     return os.path.join(GEN_PATH, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
 
 
-def _get_systemd_services(instance_names):
+def _convert_instances_to_systemd_services(instance_names):
     """
     converts instance names ('cs17-ffaa_1_a-1')
     to systemd names ('scion-certificate-server@17-ffaa_1_a-1.service')
@@ -451,4 +452,15 @@ def _get_systemd_services(instance_names):
             continue
         unit = '{sysd}@{name}.service'.format(sysd=systemd_unit, name=name)
         units.append(unit)
-    return units + SYSTEMD_NAMES_ALWAYS_PRESENT
+    return units
+
+
+def _convert_static_to_systemd_services(services):
+    """
+    Converts services to systemd names
+    :param services: list of services
+    """
+    units = []
+    for p in services:
+        units.append(SERVICES_TO_SYSTEMD_NAMES.get(p.type)+".service")
+    return units
