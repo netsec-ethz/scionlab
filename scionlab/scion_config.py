@@ -204,8 +204,8 @@ class _ConfigGenerator:
         ia = self.AS.isd_as_path_str()
         unit_names = ["scion-border-router@%s-%i.service" % (ia, router.instance_id)
                       for router in self._routers()]
-        unit_names += ["%s@%s-%i.service" % (SERVICES_TO_SYSTEMD_NAMES[service.type], ia, service.instance_id)
-                       for service in self._services()]
+        unit_names += ["%s@%s-%i.service" % (SERVICES_TO_SYSTEMD_NAMES[service.type], ia,
+                                             service.instance_id) for service in self._services()]
         unit_names += ["%s.service" % SERVICES_TO_SYSTEMD_NAMES[service.type]
                        for service in self._extra_services()]
         unit_names.append('scion-daemon@%s.service' % self.AS.isd_as_path_str())
