@@ -249,8 +249,8 @@ class _ConfigGenerator:
     def _services(self):
         return (s for s in self.topo_info.services if s.host == self.host)
 
-    def _static_services(self):
-        return list(self.host.services.filter(type__in=Service.STATIC_SERVICE_TYPES))
+    def _extra_services(self):
+        return list(self.host.services.filter(type__in=Service.EXTRA_SERVICE_TYPES))
 
     def _elem_dir(self, elem_id):
         return os.path.join(_isd_as_dir(self.AS), elem_id)

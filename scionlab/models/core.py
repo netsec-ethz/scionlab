@@ -1210,7 +1210,7 @@ class Service(models.Model):
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
     )
-    STATIC_SERVICE_TYPES = (
+    EXTRA_SERVICE_TYPES = (
         BW,
         PP,
     )
