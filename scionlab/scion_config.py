@@ -201,11 +201,11 @@ class _ConfigGenerator:
         self.archive.write_yaml((elem_dir, AS_CONF_FILE), conf)
 
     def _write_systemd_services_file(self):
-        instance_names = [r.instance_name for r in self._routers()] + \
-                         [s.instance_name for s in self._services()]
-
-        unit_names = _convert_instances_to_systemd_services(instance_names)
-        unit_names += _convert_static_to_systemd_services(self._static_services())
+        ia = self.AS.isd_as_path_str()
+        unit_names = ["scion-border-router@%s-%i.service" % (ia, router.instance_id) for router in self._routers()]
+        unit_names += ["%s@%s-%i.service" % (SERVICES_TO_SYSTEMD_NAMES[service.type], ia, service.instance_id)
+                       for service in self._services()]
+        unit_names += ["%s.service" % SERVICES_TO_SYSTEMD_NAMES[service.type] for service in self._extra_services()]
         unit_names.append('scion-daemon@%s.service' % self.AS.isd_as_path_str())
         unit_names.append('scion-dispatcher.service')
 
@@ -435,32 +435,3 @@ def _trc_filename(isd, version):
 
 def _isd_as_dir(as_):
     return os.path.join(GEN_PATH, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
-
-
-def _convert_instances_to_systemd_services(instance_names):
-    """
-    converts instance names ('cs17-ffaa_1_a-1')
-    to systemd names ('scion-certificate-server@17-ffaa_1_a-1.service')
-    :param list processes: list of process names e.g. ['cs17-ffaa_1_a-1']
-    """
-    units = []
-    for p in instance_names:
-        type_ = p[:2].upper()
-        name = p[2:]
-        systemd_unit = SERVICES_TO_SYSTEMD_NAMES.get(type_)
-        if systemd_unit is None:
-            continue
-        unit = '{sysd}@{name}.service'.format(sysd=systemd_unit, name=name)
-        units.append(unit)
-    return units
-
-
-def _convert_static_to_systemd_services(services):
-    """
-    Converts services to systemd names
-    :param services: list of services
-    """
-    units = []
-    for p in services:
-        units.append(SERVICES_TO_SYSTEMD_NAMES.get(p.type)+".service")
-    return units
