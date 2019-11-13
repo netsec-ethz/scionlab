@@ -1,6 +1,7 @@
 {{ attachment_points|json_script:"attachment_points" }}
 
 <script>
+let attachment_points = JSON.parse(document.getElementById('attachment_points').textContent);
 $(document).ready(function() {
   // Reset form to avoid stale dirty entries after page reload (firefox)
   document.getElementById("id_user_as_form").reset();
@@ -15,28 +16,29 @@ $(document).ready(function() {
     window.onbeforeunload = null;
   });
 
+  function enable_savebtn() {
+    $(".savebtn").removeAttr('disabled');
+    window.onbeforeunload = function() { return ""; }
+  }
+
 
   // Handle attachment point VPN availability:
   $(".attachment").each(function() {
     let sel = $(this).find("select[id*='attachment_point']");
+    // A wrapper to call `update_use_vpn_enable` with `$(this)` as its argument
+    function _update_use_vpn_enable () { update_use_vpn_enable($(this)) }
+    sel.change(_update_use_vpn_enable)
+    // Manually call this to affect existing attachment points as well
     update_use_vpn_enable(sel);
+
     let attachment = sel.closest('.attachment')
     let toggle = attachment.find("input[id*='use_vpn']")
-    // A wrapper to call `update_ip_fields_show` with `$(this)` as the argument of the function
+    // A wrapper to call `update_ip_fields_show` with `$(this)` as its argument
     function _update_ip_fields_show () { update_ip_fields_show($(this)) }
     toggle.change(_update_ip_fields_show)
   });
-  // Trigger `update_user_as_ip_fields_show` whenever the *new* attachment-point is changed
-  $(".attachment select[id*='attachment_point']").last().change(update_user_as_ip_fields_show);
+
 });
-
-
-function enable_savebtn() {
-  $(".savebtn").removeAttr('disabled');
-  window.onbeforeunload = function() { return ""; }
-}
-
-let attachment_points = JSON.parse(document.getElementById('attachment_points').textContent);
 
 // Enable/disable the use_vpn option depending on whether the selected attachment point
 // supports VPN.
@@ -78,28 +80,6 @@ function update_ip_fields_show(toggle) {
     public_ip_container.show();
     bind_ip_container.show();
     bind_port_container.show();
-  }
-  update_user_as_ip_fields_show();
-}
-function update_user_as_ip_fields_show() {
-  /* 
-    Hide or show the ip fields of the UserAS configuration based on connection types selected.
-    Consider only the toggles related select inputs that are not in a `default` state 
-    (this is needed to handle the `use_vpn` of the last attachment, i.e. the new one)
-  */
-  // Whether or not an attachment has been selected (otherwise select is in `default` state)
-  let is_attachment_selected = (attachment) => attachment.find("select[id*='attachment_point']").get(0).value !== '';
-  // `attachments` not in `default` state
-  let attachments = $('.attachment').filter((_, attachment) => is_attachment_selected($(attachment)));
-  // VPN `toggles` of the `attachments`
-  let toggles = $.map(attachments, (attachment, _) => $(attachment).find("input[id*='use_vpn']").get(0));
-  // Are all considered attachments reached with a VPN connection?
-  let should_hide = $.map(toggles, (t, _) => t.checked).every((is_checked) => is_checked);
-  let fields_container = $("div[id*=user-as-public_ip").closest('.row')
-  if (should_hide) {
-    fields_container.hide();
-  } else {
-    fields_container.show();
   }
 }
 </script>
