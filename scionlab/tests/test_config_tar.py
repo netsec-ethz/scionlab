@@ -50,7 +50,7 @@ class ConfigTarRegressionTests(TestCase):
         self.maxDiff = None
 
     def test_host(self):
-        extra_srv = Service.objects.filter(type__in=[Service.PP, Service.BW]).first()
+        extra_srv = Service.objects.filter(type__in=[Service.BW]).first()
         host = extra_srv.host
         archive = DictWriter()
         generate_host_config_tar(host, archive)
