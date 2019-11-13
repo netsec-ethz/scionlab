@@ -321,8 +321,10 @@ def restart_scion():
 
 def install_vpn_client_config(tmpdir):
     exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
+    _, _ = _install_file(tmpdir, 'override.conf', '/etc/systemd/system/openvpn@client.service.d/')
     if changed:
         if exists:
+            subprocess.run(['systemctl', 'daemon-reload'], check=True)
             subprocess.run(['systemctl', 'restart', 'openvpn@client'], check=True)
             # ensure the interface is up; give up after 5 tries
             vpn_ready = False
@@ -340,6 +342,7 @@ def install_vpn_client_config(tmpdir):
             else:
                 logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
         else:
+            subprocess.run(['systemctl', 'daemon-reload'], check=True)
             subprocess.run(['systemctl', 'stop', 'openvpn@client'], check=True)
 
 

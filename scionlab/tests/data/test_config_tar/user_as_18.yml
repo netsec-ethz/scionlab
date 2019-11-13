@@ -1,5 +1,8 @@
 README.md: |-
   content_not_checked
+override.conf: |
+  [Install]
+  WantedBy=scionlab.target
 client.conf: |
   # Specify that we are a client
   client

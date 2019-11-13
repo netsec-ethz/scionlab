@@ -112,6 +112,7 @@ def _add_vpn_config(host, archive):
     for vpn_client in vpn_clients:
         client_config = generate_vpn_client_config(vpn_client)
         archive.write_text("client.conf", client_config)
+        archive.write_text("override.conf", '[Install]\nWantedBy=scionlab.target\n')
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
