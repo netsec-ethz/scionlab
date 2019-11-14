@@ -320,8 +320,8 @@ def restart_scion():
 
 
 def install_vpn_client_config(tmpdir):
-    exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
-    _, _ = _install_file(tmpdir, 'override.conf', '/etc/systemd/system/openvpn@client.service.d/')
+    exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/', 'client.conf')
+    _, _ = _install_file(tmpdir, 'override_openvpn_client.conf', '/etc/systemd/system/openvpn@client.service.d/', 'override.conf')
 
     if exists:
         scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
@@ -354,7 +354,7 @@ def install_vpn_client_config(tmpdir):
 
 
 def install_vpn_server_config(tmpdir):
-    exists, changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
+    exists, changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/', 'server.conf')
 
     if exists:
         scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
@@ -380,7 +380,7 @@ def _mv_dir(srcdir, dirname, dstdir):
     shutil.move(os.path.join(srcdir, dirname), dstdir)
 
 
-def _install_file(srcdir, filename, dstdir):
+def _install_file(srcdir, srcfilename, dstdir, dstfilename):
     """
     Installs the file from srcdir into the directory dstdir.
     If the file doesn't exist in srcdir, the file at dstdir will be removed.
@@ -388,8 +388,8 @@ def _install_file(srcdir, filename, dstdir):
                     exists indicates whether the file exists now.
                     changed indicates whether the file was changed.
     """
-    srcfilename = os.path.join(srcdir, filename)
-    dstfilename = os.path.join(dstdir, filename)
+    srcfilename = os.path.join(srcdir, srcfilename)
+    dstfilename = os.path.join(dstdir, dstfilename)
     if not os.path.exists(srcfilename):
         if os.path.exists(dstfilename):
             subprocess.run(['rm', dstfilename], check=True)

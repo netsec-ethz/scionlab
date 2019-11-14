@@ -1,6 +1,6 @@
 README.md: |-
   content_not_checked
-override.conf: |
+override_openvpn_client.conf: |
   [Install]
   WantedBy=scionlab.target
 client.conf: |
