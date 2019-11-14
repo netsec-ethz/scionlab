@@ -5,7 +5,7 @@
 {% block title %}Create User AS{% endblock %}
 
 {% block content %}
-    <form action="{% url 'user_as_add' %}" method="post">
+    <form action="{% url 'user_as_add' %}" id="id_user_as_form" method="post">
         {% csrf_token %}
         <h2>Configuration</h2>
         {% crispy form %}
