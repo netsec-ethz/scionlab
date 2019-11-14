@@ -273,9 +273,9 @@ def install_config(tar):
         tmpdir = tempfile.mkdtemp()
         tar.extractall(path=tmpdir)
         install_vpn_client_config(tmpdir)
+        install_vpn_server_config(tmpdir)
         install_scionlab_service(tmpdir)
         install_scion_config(tmpdir)
-        install_vpn_server_config(tmpdir)
     finally:
         shutil.rmtree(tmpdir)
 
@@ -322,44 +322,57 @@ def restart_scion():
 def install_vpn_client_config(tmpdir):
     exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/')
     _, _ = _install_file(tmpdir, 'override.conf', '/etc/systemd/system/openvpn@client.service.d/')
-    if changed:
-        if exists:
-            subprocess.run(['systemctl', 'daemon-reload'], check=True)
-            subprocess.run(['systemctl', 'restart', 'openvpn@client'], check=True)
-            # ensure the interface is up; give up after 5 tries
-            vpn_ready = False
-            for i in range(5):
-                logging.debug('Waiting for VPN ...')
-                time.sleep(1)
-                st = subprocess.run(['ip', 'address', 'show', 'dev', 'tun0'],
-                                    stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL)
-                if st.returncode == 0:
-                    vpn_ready = True
-                    break
-            if vpn_ready:
-                logging.debug("Got VPN")
-            else:
-                logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
-        else:
-            subprocess.run(['systemctl', 'daemon-reload'], check=True)
-            subprocess.run(['systemctl', 'stop', 'openvpn@client'], check=True)
+
+    if exists:
+        scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
+        if not os.path.exists(scionlab_services):
+            _error_exit("Could not find the scionlab-services.txt file in %s", tmpdir)
+
+        with open(scionlab_services, 'a') as f:
+            f.write('\nopenvpn@client.service')
+
+        # (TODO) We do not start OpenVPN client here, thus this logic has to be moved somewhere else
+
+        # if changed:
+        #     # ensure the interface is up; give up after 5 tries
+        #     vpn_ready = False
+        #     for i in range(5):
+        #         logging.debug('Waiting for VPN ...')
+        #         time.sleep(1)
+        #         st = subprocess.run(['ip', 'address', 'show', 'dev', 'tun0'],
+        #                             stdout=subprocess.DEVNULL,
+        #                             stderr=subprocess.DEVNULL)
+        #         if st.returncode == 0:
+        #             vpn_ready = True
+        #             break
+        #     if vpn_ready:
+        #         logging.debug("Got VPN")
+        #     else:
+        #         logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
+    else:
+        subprocess.run(['systemctl', 'stop', 'openvpn@client'], check=False)
 
 
 def install_vpn_server_config(tmpdir):
     exists, changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
-    if changed:
-        if exists:
-            if not os.path.exists('/etc/openvpn/dh.pem'):
-                subprocess.run(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'],
-                               check=True)
-            subprocess.run(['systemctl', 'restart', 'openvpn@server'], check=True)
-        else:
-            subprocess.run(['systemctl', 'stop', 'openvpn@server'], check=False)
 
     if exists:
+        scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
+        if not os.path.exists(scionlab_services):
+            _error_exit("Could not find the scionlab-services.txt file in %s", tmpdir)
+
+        with open(scionlab_services, 'a') as f:
+            f.write('\nopenvpn@server.service')
+
         subprocess.run(['rm', '-rf', '/etc/openvpn/ccd/'], check=True)
         subprocess.run(['mv', os.path.join(tmpdir, 'ccd'), '/etc/openvpn/'], check=True)
+
+        if changed and not os.path.exists('/etc/openvpn/dh.pem'):
+            subprocess.run(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'],
+                           check=True)
+
+    else:
+        subprocess.run(['systemctl', 'stop', 'openvpn@server'], check=False)
 
 
 def _mv_dir(srcdir, dirname, dstdir):
