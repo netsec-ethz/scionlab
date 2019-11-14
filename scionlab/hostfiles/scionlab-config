@@ -325,6 +325,11 @@ def install_vpn_client_config(tmpdir):
                          '/etc/systemd/system/openvpn@client.service.d/', 'override.conf')
     _, _ = _install_file(tmpdir, 'override_border_router.conf',
                          '/etc/systemd/system/scion-border-router@.service.d/', 'override.conf')
+    _, udev_rules_changed = _install_file(tmpdir, 'vpn_udev.rules', '/etc/udev/rules.d/',
+                                          '90-scionlab-vpn.rules')
+
+    if udev_rules_changed:
+        subprocess.run(['udevadm', 'control', '--reload-rules'])
 
     if exists:
         scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')

@@ -117,6 +117,9 @@ def _add_vpn_config(host, archive):
                                                           '-scionlab\\x2dvpn.device\nBindsTo=sys'
                                                           '-devices-virtual-net-scionlab\\x2dvpn'
                                                           '.device\n')
+        archive.write_text("vpn_udev.rules", 'ACTION=="add", SUBSYSTEM=="net", '
+                                             'KERNEL=="scionlab-vpn", RUN+="/bin/systemctl '
+                                             '--no-block start scionlab.target"\n')
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:

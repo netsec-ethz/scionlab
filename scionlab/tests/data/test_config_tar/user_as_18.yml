@@ -7,6 +7,8 @@ override_border_router.conf: |
   [Unit]
   After=sys-devices-virtual-net-scionlab\x2dvpn.device
   BindsTo=sys-devices-virtual-net-scionlab\x2dvpn.device
+vpn_udev.rules: |
+  ACTION=="add", SUBSYSTEM=="net", KERNEL=="scionlab-vpn", RUN+="/bin/systemctl --no-block start scionlab.target"
 client.conf: |
   # Specify that we are a client
   client
