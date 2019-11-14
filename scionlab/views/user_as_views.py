@@ -29,8 +29,7 @@ from scionlab.util.archive import TarWriter
 
 class _AttachmentPointsContextData:
     """
-    Helper mixin for UserASCreateView and UserASDetailView.
-    Add attachment point data to context dict.
+    Helper mixin to add attachment points info to context dict
     """
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -44,7 +43,7 @@ class _AttachmentPointsContextData:
         return context
 
 
-class UserASCreateView(CreateView, _AttachmentPointsContextData):
+class UserASCreateView(_AttachmentPointsContextData, CreateView):
     template_name = "scionlab/user_as_add.html"
     model = UserAS
     form_class = UserASForm
@@ -136,6 +135,7 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
         return resp
 
 
+# TODO(andrea_tulimiero): We can use the OwnedUserASQuerysetMixin here
 class UserASesView(ListView):
     template_name = "scionlab/user.html"
     model = UserAS
