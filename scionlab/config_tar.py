@@ -134,11 +134,14 @@ def _add_vagrantfiles(host, archive):
 
 
 def _expand_vagrantfile_template(host):
-    if host.vpn_clients.filter(active=True).exists():
-        interface = host.interfaces.get()
-        port = interface.bind_port or interface.public_port
-        forwarding_string = 'config.vm.network "forwarded_port",' \
-                            ' guest: {port}, host: {port}, protocol: "udp"'.format(port=port)
+    public_ifaces = host.interfaces.filter(is_over_vpn=False)
+    if public_ifaces.exists():
+        forwarding_strings = []
+        for iface in public_ifaces:
+            port = iface.bind_port or iface.public_port
+            forwarding_strings.append('\tconfig.vm.network "forwarded_port", guest: {port},'
+                                      ' host: {port}, protocol: "udp"'.format(port=port))
+        forwarding_string = '\n'.join(forwarding_strings)
     else:
         forwarding_string = ''
 
