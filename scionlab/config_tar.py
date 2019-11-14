@@ -113,6 +113,10 @@ def _add_vpn_config(host, archive):
         client_config = generate_vpn_client_config(vpn_client)
         archive.write_text("client.conf", client_config)
         archive.write_text("override_openvpn_client.conf", '[Install]\nWantedBy=scionlab.target\n')
+        archive.write_text("override_border_router.conf", '[Unit]\nAfter=sys-devices-virtual-net'
+                                                          '-scionlab\\x2dvpn.device\nBindsTo=sys'
+                                                          '-devices-virtual-net-scionlab\\x2dvpn'
+                                                          '.device\n')
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:

@@ -321,7 +321,10 @@ def restart_scion():
 
 def install_vpn_client_config(tmpdir):
     exists, changed = _install_file(tmpdir, 'client.conf', '/etc/openvpn/', 'client.conf')
-    _, _ = _install_file(tmpdir, 'override_openvpn_client.conf', '/etc/systemd/system/openvpn@client.service.d/', 'override.conf')
+    _, _ = _install_file(tmpdir, 'override_openvpn_client.conf',
+                         '/etc/systemd/system/openvpn@client.service.d/', 'override.conf')
+    _, _ = _install_file(tmpdir, 'override_border_router.conf',
+                         '/etc/systemd/system/scion-border-router@.service.d/', 'override.conf')
 
     if exists:
         scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
@@ -331,24 +334,6 @@ def install_vpn_client_config(tmpdir):
         with open(scionlab_services, 'a') as f:
             f.write('\nopenvpn@client.service')
 
-        # (TODO) We do not start OpenVPN client here, thus this logic has to be moved somewhere else
-
-        # if changed:
-        #     # ensure the interface is up; give up after 5 tries
-        #     vpn_ready = False
-        #     for i in range(5):
-        #         logging.debug('Waiting for VPN ...')
-        #         time.sleep(1)
-        #         st = subprocess.run(['ip', 'address', 'show', 'dev', 'tun0'],
-        #                             stdout=subprocess.DEVNULL,
-        #                             stderr=subprocess.DEVNULL)
-        #         if st.returncode == 0:
-        #             vpn_ready = True
-        #             break
-        #     if vpn_ready:
-        #         logging.debug("Got VPN")
-        #     else:
-        #         logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
     else:
         subprocess.run(['systemctl', 'stop', 'openvpn@client'], check=False)
 

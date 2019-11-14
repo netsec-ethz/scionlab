@@ -3,12 +3,17 @@ README.md: |-
 override_openvpn_client.conf: |
   [Install]
   WantedBy=scionlab.target
+override_border_router.conf: |
+  [Unit]
+  After=sys-devices-virtual-net-scionlab\x2dvpn.device
+  BindsTo=sys-devices-virtual-net-scionlab\x2dvpn.device
 client.conf: |
   # Specify that we are a client
   client
 
   # We use a TUN device, a virtual point-to-point IP link
-  dev tun
+  dev-type tun
+  dev scionlab-vpn
 
   # Connecting to a UDP server
   proto udp

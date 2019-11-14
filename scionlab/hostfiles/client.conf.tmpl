@@ -2,7 +2,8 @@
 client
 
 # We use a TUN device, a virtual point-to-point IP link
-dev tun
+dev-type tun
+dev scionlab-vpn
 
 # Connecting to a UDP server
 proto udp
