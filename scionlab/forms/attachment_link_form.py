@@ -20,12 +20,12 @@ from django.forms import BaseModelFormSet
 from django.core.exceptions import ValidationError
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column, Div
+from crispy_forms.layout import Layout, Row, Column, Div, HTML
 from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import Link
-from scionlab.models.user_as import AttachmentPoint, AttachmentPointConf
+from scionlab.models.user_as import AttachmentPoint, AttachmentPointConf, UserAS
 from scionlab.util.portmap import PortMap
 
 
@@ -39,51 +39,82 @@ class AttachmentLinksFormSetHelper(FormHelper):
         super(AttachmentLinksFormSetHelper, self).__init__(*args, **kwargs)
         self.layout = Layout(
             Div(
+                HTML("""
+                     {% if forloop.last %}
+                     <button type="button" id="new-ap-collapser" class="mt-3 btn btn-link collapsed" 
+                             aria-expanded="false" aria-controls="new-ap-form">
+                        New attachment point
+                        <i class="mt-3 fa fa-plus-circle"></i>
+                        <i class="mt-3 fa fa-minus-circle"></i>
+                     </button>
+                     {% endif %}
+                     """
+                     ),
                 Div(
-                    Row(
-                        Column(
-                            'active',
-                            css_class='form-group col-md-2 mb-0',
+                    Div(
+                        Row(
+                            Column(
+                                'active',
+                                css_class='form-group col-md-2 mb-0',
+                                ),
+                            Column(
+                                'use_vpn',
+                                css_class='form-group col-md-5 mb-0',
+                                ),
+                            Column(
+                                'attachment_point',
+                                css_class='form-group col-md-5 mb-0',
+                                ),
+                            ),
+                        css_class="card-header"
                         ),
-                        Column(
-                            'use_vpn',
-                            css_class='form-group col-md-5 mb-0',
+                    Div(
+                        Row(
+                            Column(
+                                AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
+                                css_class='form-group col-md-6 mb-0',
+                                ),
+                            Column(
+                                AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
+                                css_class='form-group col-md-6 mb-0',
+                                ),
+                            ),
+                        Row(
+                            HTML("""
+                                 <button type="button" class="mt-3 btn btn-link bind-row-collapser collapsed" 
+                                         aria-expanded="false" aria-controls="bind-row">
+                                    Show binding options for NAT
+                                    <i class="mt-3 fa fa-plus-circle"></i>
+                                    <i class="mt-3 fa fa-minus-circle"></i>
+                                 </button>
+                                 """
+                                 ),
+                            ),
+                        Row(
+                            Column(
+                                AppendedText('bind_ip',
+                                             '<span class="fa fa-external-link-square"/>'),
+                                css_class='form-group col-md-6 mb-0',
+                                ),
+                            Column(
+                                AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
+                                css_class='form-group col-md-6 mb-0',
+                                ),
+                            css_class="bind-row"
+                            ),
+                        Row(
+                            Column(
+                                'DELETE',
+                                css_class='text-danger form-group col-md-6 mb-0'
+                                )
+                            ),
+                        css_class="card-body"
                         ),
-                        Column(
-                            'attachment_point',
-                            css_class='form-group col-md-5 mb-0',
-                        ),
+                    css_class="card attachment-form",
+                    style="margin-top: 16px;",
                     ),
-                    css_class="card-header"
-                ),
-                Div(
-                    Row(
-                        Column(
-                            AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-                            css_class='form-group col-md-6 mb-0',
-                        ),
-                        Column(
-                            AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
-                            css_class='form-group col-md-6 mb-0',
-                        ),
-                        Column(
-                            AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
-                            css_class='form-group col-md-6 mb-0',
-                        ),
-                        Column(
-                            AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
-                            css_class='form-group col-md-6 mb-0',
-                        ),
-                        Column(
-                            'DELETE',
-                            css_class='text-danger form-group col-md-6 mb-0'
-                        )
-                    ),
-                    css_class="card-body"
-                ),
-                css_class="card attachment",
-                style="margin-top: 16px;"
-            )
+                css_class="attachment"
+                )
         )
         # We need this to render the AttachmentLinksFormSet along with the UserASForm
         self.form_tag = False
@@ -91,8 +122,12 @@ class AttachmentLinksFormSetHelper(FormHelper):
 
 
 class AttachmentLinksFormSet(BaseModelFormSet):
+    """
+    A FormSet companion for the UserASForm, representing its `AttachmentPoint`s
+    """
 
     def __init__(self, *args, **kwargs):
+        self.userASForm = kwargs.pop('userASForm')
         super(AttachmentLinksFormSet, self).__init__(*args, **kwargs)
         self.helper = AttachmentLinksFormSetHelper()
 
@@ -100,12 +135,12 @@ class AttachmentLinksFormSet(BaseModelFormSet):
         if any(self.errors):
             # Don't bother validating the formset unless each form is valid on its own
             return
-        # Check isd and ports clash
+        installation_type = self.userASForm.cleaned_data['installation_type']
+        # Check isd integrity and various ports clash
         isd_set = set()
-        public_ports_map = PortMap()
-        public_port_clashing_forms = []
-        bind_ports_map = PortMap()
-        bind_port_clashing_forms = []
+        public_ports_map, public_port_clashing_forms = PortMap(), []
+        bind_ports_map, bind_port_clashing_forms = PortMap(), []
+        forwarded_ports, forwarded_port_clashing_forms = set(), []
         for form in self.forms:
             if self.can_delete and self._should_delete_form(form):
                 continue
@@ -113,28 +148,49 @@ class AttachmentLinksFormSet(BaseModelFormSet):
             if not form.cleaned_data or not form.cleaned_data['active']:
                 continue
             isd_set.add(form.cleaned_data['attachment_point'].AS.isd)
-            if not form.cleaned_data['use_vpn']:
-                if public_ports_map.add(form.cleaned_data['public_ip'],
-                                        form.cleaned_data['public_port']):
-                    public_port_clashing_forms.append(form)
+            if form.cleaned_data['use_vpn']:
+                continue
+            forwarded_port = (form.cleaned_data['public_port'], False)  # (port, is_bind_port)
+            # Check (public_ip, public_port) clashes
+            if public_ports_map.add(form.cleaned_data['public_ip'],
+                                    form.cleaned_data['public_port']):
+                public_port_clashing_forms.append(form)
+            # Check (bind_ip, bind_port) clashes
             if form.cleaned_data['bind_port']:
+                forwarded_port = (form.cleaned_data['bind_port'], True)
                 if bind_ports_map.add(form.cleaned_data['bind_ip'],
                                       form.cleaned_data['bind_port']):
                     bind_port_clashing_forms.append(form)
-        # Public ports clash errors adding
+            # Check forwarded_ports clashes
+            if installation_type == UserAS.VM:
+                if forwarded_port[0] in forwarded_ports:
+                    forwarded_port_clashing_forms.append((form, forwarded_port[1]))
+                else:
+                    forwarded_ports.add(forwarded_port[0])
+        if len(isd_set) > 1:
+            raise ValidationError("All attachment points must belong to the "
+                                  "same ISD")
+        elif len(isd_set) < 1:
+            # This means no attachment point has been selected
+            raise ValidationError("Select at least an attachment point")
+        else:
+            self.isd = list(isd_set)[0]
+        # Add public ports clash errors to forms
         for form in public_port_clashing_forms:
             form.add_error('public_port',
                            ValidationError('The port is already in use',
                                            code='public_port_clash'))
-        # Bind ports clash errors adding
+        # Add bind ports clash errors to forms
         for form in bind_port_clashing_forms:
             form.add_error('bind_port',
                            ValidationError('The port is already in use',
                                            code='bind_port_clash'))
-        # Same ISD check
-        if len(isd_set) > 1:
-            raise ValidationError("All attachment points must belong to the "
-                                  "same ISD")
+        # Add VM forwarded ports clash errors
+        for (form, port_type) in forwarded_port_clashing_forms:
+            port_type_name = 'bind' if port_type else 'public'
+            form.add_error('{}_port'.format(port_type_name),
+                           ValidationError('This port clashes in the VM setup',
+                                           code='forwarded_port_clash'))
 
     def save(self, user_as, commit=True):
         self.user_as = user_as
@@ -150,61 +206,10 @@ class AttachmentLinksFormSet(BaseModelFormSet):
             ap.trigger_deployment()
 
 
-class AttachmentLinkFormHelper(FormHelper):
-    def __init__(self, *args, **kwargs):
-        """
-        Create the crispy-forms FormHelper. The form will then be rendered
-        using {% crispy form %} in the template.
-        """
-        super(AttachmentLinkFormHelper, self).__init__(*args, **kwargs)
-        self.attrs['id'] = 'id_attachment_link_form'
-        self.layout = Layout(
-            Row(
-                Column(
-                    'use_vpn',
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                Column(
-                    'attachment_point',
-                    css_class='form-group col-md-6 mb-0',
-                ),
-            ),
-            Row(
-                Column(
-                    AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                Column(
-                    AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-            ),
-            Row(
-                Column(
-                    AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                Column(
-                    AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
-                    css_class='form-group col-md-6 mb-0',
-                ),
-                css_id='row_id_bind_addr'
-            ),
-        )
-        # We need this to render the AttachmentLinkForm along with the UserASForm
-        self.form_tag = False
-        self.disable_csrf = True
-
-
 class AttachmentLinkForm(forms.ModelForm):
     """
     Form for creating and updating a Link involving a UserAS
     """
-
-    class Meta:
-        model = Link
-        fields = ('active',)
-
     public_ip = forms.GenericIPAddressField(
         help_text="Public IP address",
         required=False
@@ -237,6 +242,10 @@ class AttachmentLinkForm(forms.ModelForm):
     )
     attachment_point = forms.ModelChoiceField(queryset=AttachmentPoint.objects)
 
+    class Meta:
+        model = Link
+        fields = ('active',)
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         instance = kwargs.get('instance')
@@ -249,12 +258,19 @@ class AttachmentLinkForm(forms.ModelForm):
             initial['public_port'] = instance.interfaceB.public_port
             initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['bind_port'] = instance.interfaceB.bind_port
-        self.helper = AttachmentLinkFormHelper()
         super().__init__(*args, initial=initial, **kwargs)
+        if instance:
+            # Done here since `self.fields` is populated only after calling `super()`
+            self.fields['attachment_point'].widget.attrs['readonly'] = True
+            self.fields['attachment_point'].required = False
 
     def clean(self):
         cleaned_data = super().clean()
-        assert 'attachment_point' in cleaned_data, "At least an attachment point must be specified"
+        print(cleaned_data)
+        if 'attachment_point' not in cleaned_data:
+            raise ValidationError(
+                        'Please select at least an attachment point',
+                        code='missing_attachment_point')
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
         elif 'public_ip' in self.errors:
@@ -270,8 +286,7 @@ class AttachmentLinkForm(forms.ModelForm):
                 )
             ip_addr = ipaddress.ip_address(public_ip)
 
-            ap = cleaned_data['attachment_point']
-            if ip_addr.version not in ap.supported_ip_versions():
+            if ip_addr.version not in cleaned_data['attachment_point'].supported_ip_versions():
                 raise ValidationError('IP version {ipv} not supported by the selected '
                                       'attachment point'.format(ipv=ip_addr.version),
                                       code='unsupported_ip_version')

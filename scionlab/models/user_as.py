@@ -42,8 +42,6 @@ class UserASManager(models.Manager):
                owner,
                installation_type,
                isd,
-               public_ip=None,
-               bind_ip=None,
                as_id=None,
                label=None):
         """
@@ -54,13 +52,11 @@ class UserASManager(models.Manager):
         :param int isd:
         :param str as_id: optional as_id, if None is given, the next free ID is chosen
         :param str label: optional label
-        :param str public_ip: the public IP for the connection to the AP.
-                              Must be specified if use_vpn is not enabled.
-        :param str bind_ip: the bind IP for the connection to the AP (for NAT)
 
         :returns: UserAS
         """
         owner.check_as_quota()
+        assert isd, "No ISD provided"
 
         if as_id:
             as_id_int = as_ids.parse(as_id)
@@ -80,10 +76,7 @@ class UserASManager(models.Manager):
         user_as.init_keys()
         user_as.generate_certificate_chain()
         user_as.save()
-        user_as.init_default_services(
-            public_ip=public_ip,
-            bind_ip=_VAGRANT_VM_LOCAL_IP if installation_type == UserAS.VM else bind_ip,
-        )
+        user_as.init_default_services()
 
         return user_as
 
@@ -231,20 +224,15 @@ class UserAS(AS):
 
     def update(self,
                label,
-               public_ip,
-               bind_ip,
                installation_type):
         """
         Update this UserAS instance and immediately `save`.
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
-        # XXX: This is useless since the model instance has already got the updated fields
+        # XXX(andrea_tulimiero): Useless since the model instance has already got the updated fields
         self.label = label
-        self.host.update(
-            public_ip=public_ip,
-            bind_ip=_VAGRANT_VM_LOCAL_IP if installation_type == UserAS.VM else bind_ip,
-        )
+        self.host.update()
 
         self.save()
 
@@ -263,13 +251,15 @@ class UserAS(AS):
         Is this UserAS currently active?
         """
         # TODO(andrea_tulimiero): Consider faster and more efficent version
-        #  return any(self.interfaces.all().prefetch_related('link_as_interfaceB').values_list('link_as_interfaceB__active', flat=True))
-        print(any(iface.link().active for iface in self.interfaces.all().prefetch_related('link_as_interfaceB')))
+        return any(self.interfaces.prefetch_related('link_as_interfaceB')
+                                  .values_list('link_as_interfaceB__active', flat=True)
+                                  .all()
+                   )
         return any(iface.link().active for iface in self.interfaces.all())
 
     def update_active(self, active):
         """
-        Set the UserAS to be active/inactive by activating/deactivating all the links with 
+        Set the UserAS to be active/inactive by activating/deactivating all the links with
         attachment points. This will trigger a deployment of all the attachment points configuration
         """
         for iface in self.interfaces.all():

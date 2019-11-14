@@ -377,7 +377,7 @@ class AS(TimestampedModel):
         """
         self.core_certificate = generate_core_certificate(self)
 
-    def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):
+    def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """
         Initialise a default Host object and the default AS services
         """
