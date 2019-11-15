@@ -133,7 +133,6 @@ class UserAS(AS):
         :param 'AttachmentPointConf' ap_conf:
         :return Link link: The entity representing the relationship (UserAS, AttachmentPoint)
         """
-        # XXX: Should we check if the isd is consistent?
         ap = ap_conf.attachment_point
         if self.isd != ap.AS.isd:
             self._change_isd(ap.AS.isd)
@@ -212,11 +211,19 @@ class UserAS(AS):
                 # Deactivate the existing vpn_client
                 vpn_client.active = False
                 vpn_client.save()
-        iface.update(public_ip=ap_conf.public_ip,
-                     public_port=ap_conf.public_port,
-                     bind_ip=ap_conf.bind_ip,
-                     bind_port=ap_conf.bind_port,
-                     is_over_vpn=ap_conf.use_vpn)
+        if ap_conf.use_vpn:
+            # The VPN public_ip is assigned by the creation of the VPNClient
+            iface.update(public_ip=iface.public_ip,
+                         public_port=ap_conf.public_port,
+                         bind_ip=None,
+                         bind_port=None,
+                         is_over_vpn=True)
+        else:
+            iface.update(public_ip=ap_conf.public_ip,
+                         public_port=ap_conf.public_port,
+                         bind_ip=ap_conf.bind_ip,
+                         bind_port=ap_conf.bind_port,
+                         is_over_vpn=ap_conf.use_vpn)
 
         ap.split_border_routers()
         ap.trigger_deployment()
