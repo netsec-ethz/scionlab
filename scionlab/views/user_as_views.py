@@ -78,7 +78,7 @@ class OwnedUserASQuerysetMixin:
     """
 
     def get_queryset(self):
-        return UserAS.objects.filter(owner=self.request.user)
+        return super().get_queryset().filter(owner=self.request.user)
 
 
 class UserASDetailView(_AttachmentPointsContextData, OwnedUserASQuerysetMixin, UpdateView):
@@ -135,11 +135,8 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
         return resp
 
 
-# TODO(andrea_tulimiero): We can use the OwnedUserASQuerysetMixin here
-class UserASesView(ListView):
+class UserASesView(OwnedUserASQuerysetMixin, ListView):
     template_name = "scionlab/user.html"
     model = UserAS
     ordering = ['as_id']
 
-    def get_queryset(self):
-        return super().get_queryset().filter(owner=self.request.user)
