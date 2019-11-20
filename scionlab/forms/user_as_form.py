@@ -21,6 +21,7 @@ from scionlab.forms.attachment_link_form import AttachmentLinkForm, AttachmentLi
 from scionlab.models.core import Link
 from scionlab.models.user_as import UserAS
 
+
 def _crispy_helper(instance):
     """
     Create the crispy-forms FormHelper. The form will then be rendered

@@ -684,8 +684,7 @@ class InterfaceManager(models.Manager):
             public_ip=public_ip,
             public_port=public_port,
             bind_ip=bind_ip,
-            bind_port=bind_port,
-            is_over_vpn=vpn_client is not None
+            bind_port=bind_port
         )
 
     def active(self):
@@ -743,7 +742,6 @@ class Interface(models.Model):
             overrides the Host's default bind IP.""")
     bind_port = models.PositiveIntegerField(null=True, blank=True)
 
-    is_over_vpn = models.BooleanField(default=False)
 
     objects = InterfaceManager()
 
@@ -774,8 +772,7 @@ class Interface(models.Model):
                public_ip=_placeholder,
                public_port=_placeholder,
                bind_ip=_placeholder,
-               bind_port=_placeholder,
-               is_over_vpn=_placeholder):
+               bind_port=_placeholder):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
@@ -786,8 +783,6 @@ class Interface(models.Model):
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, if bind IP is set, a free port is selected if `None` is
                               passed and either `host` or `bind_ip` are changed
-        :param bool is_over_vpn: optional, whether or not the traffic going over this Link interface
-                              through this interface is carried out over VPN
         """
         prev_host = self.host
         prev_public_ip = self.get_public_ip()
@@ -808,7 +803,6 @@ class Interface(models.Model):
                            public_ip_changed=self.get_public_ip() != prev_public_ip,
                            bind_ip_changed=self.get_bind_ip() != prev_bind_ip)
 
-        self.is_over_vpn = is_over_vpn
         self.save()
 
         diff_public = self._get_public_info() != prev_public_info

@@ -139,4 +139,3 @@ class UserASesView(OwnedUserASQuerysetMixin, ListView):
     template_name = "scionlab/user.html"
     model = UserAS
     ordering = ['as_id']
-

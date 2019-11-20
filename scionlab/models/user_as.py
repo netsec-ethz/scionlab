@@ -127,7 +127,36 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def create_attachment(self, ap_conf):
+    def update_attachments(self, ap_confs=[], deleted_links=[]):
+        """
+        Update the attachment of the UserAS handling creation, update and
+        deletion of the attachments.
+        """
+        aps_set = set(c.attachment_point for c in ap_confs) | \
+                  set(l.interfaceA.AS.attachment_point_info for l in deleted_links)
+        # Update attachments
+        for ap_conf in ap_confs:
+            self._create_or_update_attachment(ap_conf)
+        # Delete links, and drop attachments
+        for deleted_link in deleted_links:
+            self._delete_attachment(deleted_link)
+        # Update AttachmentPoints
+        for ap in aps_set:
+            ap.split_border_routers()
+            ap.trigger_deployment()
+
+
+    def _create_or_update_attachment(self, ap_conf):
+        """
+        Proxy function that either calls create or update over a UserAS
+        attachment point configuration, based on the presence of a link object
+        """
+        if ap_conf.link is None:
+            return self._create_attachment(ap_conf)
+        else:
+            return self._update_attachment(ap_conf)
+
+    def _create_attachment(self, ap_conf):
         """
         Attach a UserAS to the specified attachment point creating the Link and the Interfaces,
         and if needed a VPNClient
@@ -173,12 +202,10 @@ class UserAS(AS):
             interfaceA=interface_ap,
             interfaceB=interface_client
         )
-        ap.split_border_routers()
-        ap.trigger_deployment()
         self.save()
-        return link
+        ap_conf.link = link
 
-    def update_attachment(self, ap_conf):
+    def _update_attachment(self, ap_conf):
         """
         Update a Link and Interfaces(A and B) involved in a UserAS attachment
         :param 'AttachmentPointConf' ap_conf:
@@ -217,18 +244,26 @@ class UserAS(AS):
             iface.update(public_ip=iface.public_ip,
                          public_port=ap_conf.public_port,
                          bind_ip=None,
-                         bind_port=None,
-                         is_over_vpn=True)
+                         bind_port=None)
         else:
             iface.update(public_ip=ap_conf.public_ip,
                          public_port=ap_conf.public_port,
                          bind_ip=ap_conf.bind_ip,
-                         bind_port=ap_conf.bind_port,
-                         is_over_vpn=ap_conf.use_vpn)
+                         bind_port=ap_conf.bind_port)
 
-        ap.split_border_routers()
-        ap.trigger_deployment()
         self.save()
+
+    def _delete_attachments(self, deleted_links):
+        """
+        Delete the designated links and update the attachment points involved.
+        Deletions are carried out in bulk to avoid unnecessary updates of the attachment points
+        :return: A set of aps involved in links deletion
+        """
+        deleted_aps_set = set()
+        for attachment_link in deleted_links:
+            deleted_aps_set.add(attachment_link.interfaceA.AS.attachment_point_info)
+            attachment_link.delete()
+        return deleted_aps_set
 
     def update(self,
                label,
@@ -248,6 +283,20 @@ class UserAS(AS):
     def host(self):
         return self.hosts.get()  # UserAS always has only one host
 
+    def is_link_over_vpn(self, link):
+        """
+        Returns whether the link is over vpn
+        """
+        ap = link.interfaceA.AS.attachment_point_info
+        if ap.vpn is None:
+            return False
+        vpn_client = VPNClient.objects.filter(host=self.host, vpn=ap.vpn).first()
+        if vpn_client is None:
+            return False
+        return link.interfaceB.public_ip == vpn_client.ip
+
+
+    # TODO(andrea_tulimiero): Doesn't make too much sense anymore ...
     def is_use_vpn(self):
         """
         Is this UserAS currently configured with VPN?
@@ -258,12 +307,10 @@ class UserAS(AS):
         """
         Is this UserAS currently active?
         """
-        # TODO(andrea_tulimiero): Consider faster and more efficent version
         return any(self.interfaces.prefetch_related('link_as_interfaceB')
                                   .values_list('link_as_interfaceB__active', flat=True)
                                   .all()
                    )
-        return any(iface.link().active for iface in self.interfaces.all())
 
     def update_active(self, active):
         """
@@ -419,7 +466,7 @@ class AttachmentPoint(models.Model):
             BorderRouter.objects.filter(pk__in=brs_to_delete).delete()
 
 
-class AttachmentPointConf:
+class AttachmentConf:
     """
     Helper class to keep the state of a UserAS attachment configuration
     """

@@ -25,7 +25,7 @@ from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import Link
-from scionlab.models.user_as import AttachmentPoint, AttachmentPointConf, UserAS
+from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS
 from scionlab.util.portmap import PortMap
 
 
@@ -40,8 +40,8 @@ class AttachmentLinksFormSetHelper(FormHelper):
         self.layout = Layout(
             Div(
                 HTML("""
-                     {{% if forloop.last and forloop.counter != {MAX_AP_PER_USERAS} %}}
-                     <button type="button" id="new-ap-collapser" class="mt-3 btn btn-link collapsed" 
+                     {{% if forloop.first != forloop.last and forloop.last and forloop.counter != {MAX_AP_PER_USERAS} %}}
+                     <button type="button" id="new-ap-collapser" class="mt-3 btn btn-link collapsed"
                              aria-expanded="false" aria-controls="new-ap-form">
                         New attachment point
                         <i class="mt-3 fa fa-plus-circle"></i>
@@ -81,7 +81,8 @@ class AttachmentLinksFormSetHelper(FormHelper):
                             ),
                         Row(
                             HTML("""
-                                 <button type="button" class="mt-3 btn btn-link bind-row-collapser collapsed" 
+                                 <button type="button" 
+                                         class="mt-3 btn btn-link bind-row-collapser collapsed"
                                          aria-expanded="false" aria-controls="bind-row">
                                     Show binding options for NAT
                                     <i class="mt-3 fa fa-plus-circle"></i>
@@ -193,17 +194,8 @@ class AttachmentLinksFormSet(BaseModelFormSet):
                                            code='forwarded_port_clash'))
 
     def save(self, user_as, commit=True):
-        self.user_as = user_as
-        for ap_conf in super().save(commit=False):
-            AttachmentLinkForm._create_or_update(user_as, ap_conf)
-        # We save the deleted AP in a set so we only call the cleaning/updating methods once per AP
-        deleted_aps_set = set()
-        for attachment_link in self.deleted_objects:
-            deleted_aps_set.add(attachment_link.interfaceA.AS.attachment_point_info)
-            attachment_link.delete()
-        for ap in deleted_aps_set:
-            ap.split_border_routers()
-            ap.trigger_deployment()
+        ap_confs = super().save(commit=False)
+        user_as.update_attachments(ap_confs, self.deleted_objects)
 
 
 class AttachmentLinkForm(forms.ModelForm):
@@ -253,7 +245,7 @@ class AttachmentLinkForm(forms.ModelForm):
         if instance:
             initial['active'] = instance.active
             initial['attachment_point'] = AttachmentPoint.objects.get(AS=instance.interfaceA.AS)
-            initial['use_vpn'] = instance.interfaceB.is_over_vpn
+            initial['use_vpn'] = instance.interfaceB.AS.useras.is_link_over_vpn(instance)
             initial['public_ip'] = instance.interfaceB.public_ip
             initial['public_port'] = instance.interfaceB.public_port
             initial['bind_ip'] = instance.interfaceB.bind_ip
@@ -303,32 +295,21 @@ class AttachmentLinkForm(forms.ModelForm):
                                                code='invalid_public_ip'))
         return cleaned_data
 
-    @staticmethod
-    def _create_or_update(user_as, ap_conf):
-        if ap_conf.link is None:
-            # Create
-            return user_as.create_attachment(ap_conf)
-        else:
-            # Update
-            return user_as.update_attachment(ap_conf)
-
     def save(self, commit=True, user_as=None):
         """
         Create/update the attachment if `commit=True`, otherwise returns an
         `AttachmentPointConf` to hold the provided settings
         :return AttachmentPointConf:
         """
-        ap_conf = AttachmentPointConf(self.cleaned_data['attachment_point'],
-                                      self.cleaned_data['public_ip'],
-                                      self.cleaned_data['public_port'],
-                                      self.cleaned_data['bind_ip'],
-                                      self.cleaned_data['bind_port'],
-                                      self.cleaned_data['use_vpn'],
-                                      self.cleaned_data['active'],
-                                      self.instance if self.instance.pk is not None else None)
+        ap_conf = AttachmentConf(self.cleaned_data['attachment_point'],
+                                 self.cleaned_data['public_ip'],
+                                 self.cleaned_data['public_port'],
+                                 self.cleaned_data['bind_ip'],
+                                 self.cleaned_data['bind_port'],
+                                 self.cleaned_data['use_vpn'],
+                                 self.cleaned_data['active'],
+                                 self.instance if self.instance.pk is not None else None)
         if commit:
             assert user_as is not None
-            self._create_or_update(user_as, ap_conf)
-        else:
-            # Just return an AttachmentPointConf representing the attachment
-            return ap_conf
+            user_as.create_or_update_attachment(ap_conf)
+        return ap_conf

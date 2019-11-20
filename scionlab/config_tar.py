@@ -108,13 +108,11 @@ def _add_vpn_config(host, archive):
     """
     Generate the VPN config files and add them to the tar.
     """
-    # XXX: Not handling the case where a UserAS has multiple VPN connections with the same AP
-    # (if this is even allowed)
+    # Each host can run at most one VPN-Client per VPN
     vpn_clients = host.vpn_clients.filter(active=True).select_related('vpn__server__AS').all()
     for vpn_client, vpn_server_as in map(lambda c: (c, c.vpn.server.AS), vpn_clients):
         client_config = generate_vpn_client_config(vpn_client)
-        vpn_server_as_id = vpn_server_as.as_id.replace(':', '-')
-        archive.write_text("client_{}.conf".format(vpn_server_as_id), client_config)
+        archive.write_text("client_{}.conf".format(vpn_server_as.isd_as_path_str()), client_config)
 
     vpn_servers = list(host.vpn_servers.all())
     for vpn_server in vpn_servers:
@@ -135,15 +133,12 @@ def _add_vagrantfiles(host, archive):
 
 def _expand_vagrantfile_template(host):
     public_ifaces = host.interfaces.filter(is_over_vpn=False)
-    if public_ifaces.exists():
-        forwarding_strings = []
-        for iface in public_ifaces:
-            port = iface.bind_port or iface.public_port
-            forwarding_strings.append('\tconfig.vm.network "forwarded_port", guest: {port},'
-                                      ' host: {port}, protocol: "udp"'.format(port=port))
-        forwarding_string = '\n'.join(forwarding_strings)
-    else:
-        forwarding_string = ''
+    forwarding_strings = []
+    for iface in public_ifaces:
+        port = iface.bind_port or iface.public_port
+        forwarding_strings.append('\tconfig.vm.network "forwarded_port", guest: {port},'
+                                  ' host: {port}, protocol: "udp"'.format(port=port))
+    forwarding_string = '\n'.join(forwarding_strings)
 
     vagrant_tmpl = pathlib.Path(_hostfiles_path("Vagrantfile.tmpl")).read_text()
 
