@@ -40,15 +40,15 @@ class AttachmentLinksFormSetHelper(FormHelper):
         self.layout = Layout(
             Div(
                 HTML("""
-                     {% if forloop.last %}
+                     {{% if forloop.last and forloop.counter != {MAX_AP_PER_USERAS} %}}
                      <button type="button" id="new-ap-collapser" class="mt-3 btn btn-link collapsed" 
                              aria-expanded="false" aria-controls="new-ap-form">
                         New attachment point
                         <i class="mt-3 fa fa-plus-circle"></i>
                         <i class="mt-3 fa fa-minus-circle"></i>
                      </button>
-                     {% endif %}
-                     """
+                     {{% endif %}}
+                     """.format(MAX_AP_PER_USERAS=UserAS.MAX_AP_PER_USERAS)
                      ),
                 Div(
                     Div(
@@ -266,7 +266,6 @@ class AttachmentLinkForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print(cleaned_data)
         if 'attachment_point' not in cleaned_data:
             raise ValidationError(
                         'Please select at least an attachment point',

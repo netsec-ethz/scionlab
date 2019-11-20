@@ -21,9 +21,6 @@ from scionlab.forms.attachment_link_form import AttachmentLinkForm, AttachmentLi
 from scionlab.models.core import Link
 from scionlab.models.user_as import UserAS
 
-MAX_AP_PER_USERAS = 5
-
-
 def _crispy_helper(instance):
     """
     Create the crispy-forms FormHelper. The form will then be rendered
@@ -95,7 +92,7 @@ class UserASForm(forms.ModelForm):
                                                          form=AttachmentLinkForm,
                                                          fields=('active',),
                                                          formset=AttachmentLinksFormSet,
-                                                         max_num=MAX_AP_PER_USERAS,
+                                                         max_num=UserAS.MAX_AP_PER_USERAS,
                                                          validate_max=True,
                                                          can_delete=True)
         attach_links = Link.objects.filter(interfaceB__AS=instance)

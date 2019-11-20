@@ -100,6 +100,7 @@ class UserASManager(models.Manager):
 
 
 class UserAS(AS):
+    MAX_AP_PER_USERAS = 5
     VM = 'VM'
     PKG = 'PKG'
     SRC = 'SRC'
