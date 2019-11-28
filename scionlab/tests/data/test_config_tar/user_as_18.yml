@@ -21,7 +21,7 @@ README.md: |
   You can find more information about the SCION architecture in:
   https://www.scion-architecture.net/
   As well as tutorials, videos, publications, source code and much more!
-client.conf: |
+client_ffaa-0-1404.conf: |
   # Specify that we are a client
   client
 

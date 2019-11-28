@@ -77,7 +77,8 @@ Vagrantfile: "# -*- mode: ruby -*-\n# vi: set ft=ruby :\n\nENV['VAGRANT_DEFAULT_
   \ --host-secret=d0c6141a6d9b4a91b355d560835cfcd7 --url=http://localhost:8000\n\n\
   \    # TODO(juagargi): install scion-apps\n    echo \"SCIONLab VM ready\"\n  SCRIPT\n\
   \n  config.vm.box = \"ubuntu/xenial64\"\n  # forward border router port (unless\
-  \ using OpenVPN):\n  \n  # forward scion dispatcher port, for running SCION endhosts\
+  \ using OpenVPN):\n\tconfig.vm.network \"forwarded_port\", guest: 54321, host: 54321,\
+  \ protocol: \"udp\"\n  # forward scion dispatcher port, for running SCION endhosts\
   \ connected to the AS in this VM:\n  config.vm.network \"forwarded_port\", guest:\
   \ 30041, host: 30041, protocol: \"udp\"\n  # forward \"webapp\" port:\n  config.vm.network\
   \ \"forwarded_port\", guest: 8000, host: 8000, protocol: \"tcp\"\n  config.vm.provider\
