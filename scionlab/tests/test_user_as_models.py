@@ -15,13 +15,13 @@
 import random
 from enum import Enum
 from typing import List
-from itertools import combinations
+from itertools import combinations, cycle
 from ipaddress import ip_address, ip_network
 from unittest.mock import patch
 from parameterized import parameterized
 from django.test import TestCase
 from scionlab.models.core import Host, Link
-from scionlab.models.user_as import AttachmentPoint, AttachmentPointConf, UserAS, \
+from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS, \
     _VAGRANT_VM_LOCAL_IP
 from scionlab.models.vpn import VPN, VPNClient
 from scionlab.defines import (
@@ -31,6 +31,7 @@ from scionlab.defines import (
     DEFAULT_PUBLIC_PORT,
 )
 
+from scionlab.util import flatten
 from scionlab.fixtures import testtopo
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
@@ -59,7 +60,6 @@ test_bind_port = 6666
 def _randbool(r: random.Random):
     return r.choice([True, False])
 
-
 def get_provider_link(parent_as, child_as):
     """
     Get the PROVIDER link from `parent_as` to `child_as`.
@@ -87,10 +87,9 @@ def _get_public_ip_testtopo(as_id):
 
 def create_and_check_useras(testcase,
                             seed,
-                            aps_confs: List[AttachmentPointConf],
+                            aps_confs: List[AttachmentConf],
                             vpn_choice: VPNChoice,
-                            owner, public_ip=None,
-                            bind_ip=None,
+                            owner,
                             installation_type=UserAS.PKG,
                             label='label foo'):
     """
@@ -105,12 +104,8 @@ def create_and_check_useras(testcase,
             installation_type,
             isd,
             label=label,
-            public_ip=public_ip,
-            bind_ip=bind_ip
         )
-        for ap_conf in aps_confs:
-            link = user_as.create_attachment(ap_conf)
-            ap_conf.link = link
+        user_as.update_attachments(aps_confs)
 
     # Check AS needs_config_deployment:
     aps_hosts = []
@@ -124,8 +119,8 @@ def create_and_check_useras(testcase,
 
     # Check that deployment was triggered for the attachment point.
     testcase.assertEqual(
-        [args[0] for args, kwargs in mock_deploy.call_args_list],
-        attachment_points
+        sorted([args[0] for args, kwargs in mock_deploy.call_args_list], key=lambda ap: ap.id),
+        sorted(attachment_points, key=lambda ap: ap.id)
     )
 
     check_useras(testcase,
@@ -133,10 +128,6 @@ def create_and_check_useras(testcase,
                  aps_confs,
                  owner,
                  vpn_choice,
-                 public_ip,
-                 #  public_port,
-                 bind_ip,
-                 #  bind_port,
                  installation_type,
                  label)
 
@@ -148,38 +139,34 @@ def check_useras(testcase,
                  aps_confs,
                  owner,
                  vpn_choice,
-                 public_ip,
-                 bind_ip,
                  installation_type,
                  label):
     """
     Check the state of `user_as` and `aps_confs`.
-    Verify that the links to the attachment points exists and that it is configured according to
+
+    Verify that the links to the attachment points exists and that they are configured according to
     the given parameters.
     """
     testcase.assertEqual(user_as.owner, owner)
     testcase.assertEqual(user_as.label, label)
     testcase.assertEqual(user_as.installation_type, installation_type)
-    testcase.assertEqual(user_as.host.public_ip, public_ip)
-    # NOTE: @same_in_master `bind_ip' depends on the `installation_type'
-    bind_ip = _VAGRANT_VM_LOCAL_IP if user_as.installation_type == UserAS.VM else bind_ip
-    testcase.assertEqual(user_as.host.bind_ip, bind_ip)
     utils.check_as(testcase, user_as)
 
     # Check that the AttachmentPoints in `aps_confs` are now AttachmentPoints of the user_as
     aps_ases = [c.attachment_point.AS for c in aps_confs]
-    aps_confs_dict = {c.attachment_point: c for c in aps_confs}
     user_as_aps_ases = [l.interfaceA.AS
                         for l in Link.objects.filter(interfaceB__AS=user_as).all()]
-    testcase.assertEqual(user_as_aps_ases, aps_ases)
-    for ap in map(lambda AS: AS.attachment_point_info, user_as_aps_ases):
-        ap_conf = aps_confs_dict[ap]
+    testcase.assertEqual(set(user_as_aps_ases), set(aps_ases))
+    # Check attachment points configuration
+    for ap_conf in filter(lambda ap_conf: ap_conf.active, aps_confs):
+        ap = ap_conf.attachment_point
         utils.check_as(testcase, ap.AS)
         _check_attachment_point(testcase, ap)
-        link = Link.objects.get(interfaceA__AS=ap.AS, interfaceB__AS=user_as)
+        link = ap_conf.link
         testcase.assertEqual(ap_conf.public_port, link.interfaceB.public_port)
 
         if ap_conf.use_vpn:
+            testcase.assertNotEqual(vpn_choice, VPNChoice.NONE)
             testcase.assertTrue(VPNClient.objects.filter(host=user_as.host,
                                                          vpn=ap.vpn
                                                          ).exists())
@@ -196,15 +183,20 @@ def check_useras(testcase,
                 to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
             ))
         else:
-            testcase.assertFalse(VPNClient.objects.filter(host=user_as.host,
+            testcase.assertNotEqual(vpn_choice, VPNChoice.ALL)
+            vpn_client = VPNClient.objects.filter(host=user_as.host,
                                                           vpn=ap_conf.attachment_point.vpn
-                                                          ).exists())
-            overridden_bind_ip = ap_conf.bind_ip
+                                                          ).first()
+            testcase.assertTrue(not vpn_client or not vpn_client.active)
+            bind_ip, bind_port = ap_conf.bind_ip, ap_conf.bind_port
             if installation_type == UserAS.VM:
-                overridden_bind_ip = '10.0.2.15'
-            overridden_bind_port = ap_conf.bind_port
-            if overridden_bind_ip:
-                overridden_bind_port = ap_conf.bind_port or ap_conf.public_port
+                bind_ip = '10.0.2.15'
+                if bind_port is None:
+                    # Port is assigned automatically in this case, so we cannot know it in advance
+                    # TODO: Actually in this case the test check is skipped, but it shouldn't be 
+                    # a problem since we would just be testing whether or not PortMap is working,
+                    # which has its own tests
+                    bind_port = ap_conf.link.interfaceB.bind_port
 
             utils.check_link(testcase, link, utils.LinkDescription(
                 type=Link.PROVIDER,
@@ -214,8 +206,8 @@ def check_useras(testcase,
                 from_internal_ip=DEFAULT_HOST_INTERNAL_IP,
                 to_public_ip=ap_conf.public_ip,
                 to_public_port=ap_conf.public_port,
-                to_bind_ip=overridden_bind_ip,
-                to_bind_port=overridden_bind_port,
+                to_bind_ip=bind_ip,
+                to_bind_port=bind_port,
                 to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
             ))
 
@@ -255,25 +247,20 @@ def update_useras(testcase, user_as, aps_confs, **kwargs):
     """
     with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
         user_as.update(
-            #  attachment_point=kwargs.get('attachment_point', user_as.attachment_point),
             label=kwargs.get('label', user_as.label),
             installation_type=kwargs.get('installation_type', user_as.installation_type),
-            #  use_vpn=kwargs.get('use_vpn', user_as.is_use_vpn()),
-            public_ip=kwargs.get('public_ip', user_as.host.public_ip),
-            #  public_port=kwargs.get('public_port', user_as.get_public_port()),
-            bind_ip=kwargs.get('bind_ip', user_as.host.bind_ip),
-            #  bind_port=kwargs.get('bind_port', user_as.bind_port),
         )
-        for ap_conf in aps_confs:
-            if ap_conf.link:
-                user_as.update_attachment(ap_conf)
-            else:
-                user_as.create_attachment(ap_conf)
+        user_as.update_attachments(aps_confs)
 
-    # Check that deployment was triggered once for each of the attachment points.
+    # Check that deployment was triggered strictly once for each attachment point
     testcase.assertEqual(
-        sorted((args[0] for args, kwargs in mock_deploy.call_args_list), key=id),
-        sorted(set(AttachmentPointConf.attachment_points(aps_confs)), key=id)
+        len([args[0] for args, kwargs in mock_deploy.call_args_list]),
+        len(set(args[0] for args, kwargs in mock_deploy.call_args_list))
+            )
+    # Check that deployment was triggered for all the attachment points
+    testcase.assertEqual(
+        set(args[0] for args, kwargs in mock_deploy.call_args_list),
+        set(AttachmentConf.attachment_points(aps_confs)),
     )
 
 
@@ -281,7 +268,7 @@ def _get_random_aps_params(seed,
                            attachment_points: List[AttachmentPoint],
                            vpn_choice: VPNChoice,
                            force_public_ip=False,
-                           force_bind_ip=False) -> List[AttachmentPointConf]:
+                           force_bind_ip=False) -> List[AttachmentConf]:
     """
     Generate random compatible parameters for the given AttachmentPoints based on `seed`.
     """
@@ -321,13 +308,12 @@ def _get_random_aps_params(seed,
         else:
             ap_conf_dict['bind_ip'] = None
             ap_conf_dict['bind_port'] = None
-        aps_confs.append(AttachmentPointConf(**ap_conf_dict))
+        aps_confs.append(AttachmentConf(**ap_conf_dict))
 
     return aps_confs
 
 
-def _get_random_useras_params(seed, vpn_choice, force_public_ip=False, force_bind_ip=False,
-                              **kwargs):
+def _get_random_useras_params(seed, vpn_choice, **kwargs):
     """
     Generate some "random" parameters for a UserAS based on `seed`.
     Any parameters to UserAS.objects.create can be specified to override the generated values.
@@ -336,33 +322,7 @@ def _get_random_useras_params(seed, vpn_choice, force_public_ip=False, force_bin
     """
     r = random.Random(seed)
 
-    #  use_vpn = kwargs.setdefault('use_vpn', _randbool())
-    #  # Make AP choice both with/without VPN to always consume same amount of random state
-    #  candidate_AP_vpn = r.choice(AttachmentPoint.objects.filter(vpn__isnull=False))
-    #  candidate_AP_novpn = r.choice(AttachmentPoint.objects.all())
-    #  if use_vpn:
-    #      kwargs.setdefault('attachment_point', candidate_AP_vpn)
-    #  else:
-    #      kwargs.setdefault('attachment_point', candidate_AP_novpn)
     kwargs.setdefault('owner', get_testuser())
-
-    public_ip = '172.31.0.%i' % r.randint(10, 254)
-    #  public_port = r.choice(range(DEFAULT_PUBLIC_PORT, DEFAULT_PUBLIC_PORT + 20))
-    if _randbool(r) or vpn_choice is not VPNChoice.ALL or force_public_ip:
-        kwargs.setdefault('public_ip', public_ip)
-    else:
-        kwargs.setdefault('public_ip', None)
-    #  kwargs.setdefault('public_port', public_port)
-
-    bind_ip = '192.168.1.%i' % r.randint(10, 254)
-    #  bind_port = r.choice(range(DEFAULT_PUBLIC_PORT + 1000, DEFAULT_PUBLIC_PORT + 1020))
-    if _randbool(r) or force_bind_ip:
-        kwargs.setdefault('bind_ip', bind_ip)
-        #  kwargs.setdefault('bind_port', bind_port)
-    else:
-        kwargs.setdefault('bind_ip', None)
-        #  kwargs.setdefault('bind_port', None)
-
     kwargs.setdefault('installation_type', r.choice((UserAS.VM, UserAS.PKG, UserAS.SRC)))
     randstr = r.getrandbits(1024).to_bytes(1024//8, 'little').decode('utf8', 'ignore')
     kwargs.setdefault('label', randstr)
@@ -370,12 +330,11 @@ def _get_random_useras_params(seed, vpn_choice, force_public_ip=False, force_bin
     return kwargs
 
 
-def create_random_useras(testcase, seed, attachment_points, vpn_choice, **kwargs):
+def create_and_check_random_useras(testcase, seed, aps_confs, vpn_choice, **kwargs):
     """
     Create and check UserAS with "random" parameters based on `seed`.
     Any parameters to UserAS.objects.create can be specified to override the generated values.
     """
-    aps_confs = _get_random_aps_params(seed, attachment_points, vpn_choice)
     return create_and_check_useras(testcase,
                                    seed,
                                    aps_confs,
@@ -390,7 +349,7 @@ def check_random_useras(testcase, seed, user_as, aps_confs, vpn_choice, **kwargs
     :param TestCase testcase:
     :param int seed:
     :param UserAS user_as:
-    :param List[AttachmentPointConf] aps_confs:
+    :param List[AttachmentConf] aps_confs:
     :param User owner:
     :param VPNChoice vpn_choice:
     """
@@ -519,12 +478,11 @@ class CreateUserASTests(TestCase):
         attachment_points = as_defs2aps(ASes_def)
         vpn_choice = VPNChoice.NONE
         aps_confs = _get_random_aps_params(seed, attachment_points, vpn_choice)
-        create_and_check_useras(self,
+        create_and_check_random_useras(self,
                                 seed,
                                 aps_confs=aps_confs,
                                 vpn_choice=vpn_choice,
-                                owner=get_testuser(),
-                                public_ip=test_public_ip)
+                                owner=get_testuser())
 
     @parameterized.expand(zip(get_all_random_as_defs()))
     def test_create_public_bind_ip(self, ASes_def):
@@ -532,20 +490,18 @@ class CreateUserASTests(TestCase):
         attachment_points = as_defs2aps(ASes_def)
         vpn_choice = VPNChoice.NONE
         aps_confs = _get_random_aps_params(seed, attachment_points, vpn_choice)
-        create_and_check_useras(self,
+        create_and_check_random_useras(self,
                                 seed,
                                 aps_confs=aps_confs,
                                 vpn_choice=vpn_choice,
-                                owner=get_testuser(),
-                                public_ip=test_public_ip,
-                                bind_ip=test_bind_ip)
+                                owner=get_testuser())
 
     def test_create_vpn(self):
         attachment_points = [AttachmentPoint.objects.filter(vpn__isnull=False).first()]
         seed = 1
         vpn_choice = VPNChoice.NONE
         aps_confs = _get_random_aps_params(seed, attachment_points, vpn_choice)
-        create_and_check_useras(self,
+        create_and_check_random_useras(self,
                                 seed,
                                 aps_confs=aps_confs,
                                 vpn_choice=vpn_choice,
@@ -561,27 +517,27 @@ class CreateUserASTests(TestCase):
             if r.choice([True, False]):  # pretend to deploy sometimes
                 Host.objects.reset_needs_config_deployment()
             attachment_points = r.choice(all_attachment_points)
-            create_random_useras(self, i, attachment_points, VPNChoice.SOME)
+            aps_confs = _get_random_aps_params(0, attachment_points, VPNChoice.SOME)
+            create_and_check_random_useras(self, i, aps_confs, VPNChoice.SOME)
 
     def test_server_vpn_ip(self):
         """ Its IP is not at the beginning of the subnet """
         seed = 1
-        attachment_point = AttachmentPoint.objects.filter(AS__as_id='ffaa:0:1404').get()
+        ap = AttachmentPoint.objects.filter(AS__as_id='ffaa:0:1404').get()
         vpn_choice = VPNChoice.ALL
-        aps_confs = _get_random_aps_params(seed, [attachment_point], vpn_choice)
-        vpn = attachment_point.vpn
+        vpn = ap.vpn
         server_orig_ip = ip_address(vpn.server_vpn_ip)
         vpn.server_vpn_ip = str(server_orig_ip + 1)
         vpn.save()
         # create two clients and check their IP addresses
-        c1 = create_and_check_useras(self,
+        c1 = create_and_check_random_useras(self,
                                      seed,
-                                     aps_confs=aps_confs,
+                                     aps_confs=_get_random_aps_params(seed, [ap], vpn_choice),
                                      vpn_choice=vpn_choice,
                                      owner=get_testuser()).hosts.get().vpn_clients.get()
-        c2 = create_and_check_useras(self,
+        c2 = create_and_check_random_useras(self,
                                      seed,
-                                     aps_confs=aps_confs,
+                                     aps_confs=_get_random_aps_params(seed, [ap], vpn_choice),
                                      vpn_choice=vpn_choice,
                                      owner=get_testuser()).hosts.get().vpn_clients.get()
         ip1 = ip_address(c1.ip)
@@ -602,14 +558,14 @@ class CreateUserASTests(TestCase):
         used_ips = list()
         it = subnet.hosts()
         next(it)  # skip one for the server
-        aps_confs = _get_random_aps_params(seed, [attachment_point], vpn_choice)
         for i in it:
-            a = create_and_check_useras(self,
-                                        seed,
-                                        aps_confs=aps_confs,
-                                        vpn_choice=vpn_choice,
-                                        owner=get_testuser())
-            used_ips.append(ip_address(a.hosts.get().vpn_clients.get().ip))
+            aps_confs = _get_random_aps_params(seed, [attachment_point], vpn_choice)
+            user_as = create_and_check_random_useras(self,
+                                                     seed,
+                                                     aps_confs=aps_confs,
+                                                     vpn_choice=vpn_choice,
+                                                     owner=get_testuser())
+            used_ips.append(ip_address(user_as.hosts.get().vpn_clients.get().ip))
         self.assertEqual(len(used_ips), 13)  # 16 - network, broadcast and server addrs
         used_ips_set = set(used_ips)
         self.assertEqual(len(used_ips), len(used_ips_set))
@@ -618,11 +574,11 @@ class CreateUserASTests(TestCase):
             self.assertIn(ip, subnet)
         # one too many:
         with self.assertRaises(RuntimeError):
-            a = create_and_check_useras(self,
-                                        seed,
-                                        aps_confs=aps_confs,
-                                        vpn_choice=vpn_choice,
-                                        owner=get_testuser())
+            user_as = create_and_check_random_useras(self,
+                                                     seed,
+                                                     aps_confs=aps_confs,
+                                                     vpn_choice=vpn_choice,
+                                                     owner=get_testuser())
 
 
 class UpdateUserASTests(TestCase):
@@ -634,56 +590,59 @@ class UpdateUserASTests(TestCase):
     def test_enable_vpn(self):
         seed = 1
         attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
-        user_as = create_random_useras(self,
-                                       seed=seed,
-                                       attachment_point=attachment_point,
-                                       use_vpn=False)
-        update_useras(self, user_as, use_vpn=True)
+        aps_confs = _get_random_aps_params(seed, [attachment_point], VPNChoice.NONE)
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs=aps_confs,
+                                                 vpn_choice=VPNChoice.NONE,
+                                                 owner=get_testuser())
+        aps_confs[0].use_vpn = True
+        update_useras(self, user_as, aps_confs)
         check_random_useras(self,
+                            seed,
                             user_as,
-                            seed=seed,
-                            attachment_point=attachment_point,
-                            use_vpn=True,
-                            force_public_ip=True)
+                            aps_confs,
+                            vpn_choice=VPNChoice.ALL)
 
     def test_disable_vpn(self):
         seed = 2
         attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
-        user_as = create_random_useras(self,
-                                       seed=seed,
-                                       attachment_point=attachment_point,
-                                       use_vpn=True,
-                                       force_public_ip=True)
-        update_useras(self, user_as, use_vpn=False)
+        aps_confs = _get_random_aps_params(seed, [attachment_point], VPNChoice.ALL)
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs=aps_confs,
+                                                 vpn_choice=VPNChoice.ALL,
+                                                 owner=get_testuser())
+        aps_confs[0].use_vpn = False
+        update_useras(self, user_as, aps_confs)
         check_random_useras(self,
+                            seed,
                             user_as,
-                            seed=seed,
-                            attachment_point=attachment_point,
-                            use_vpn=False)
+                            aps_confs,
+                            vpn_choice=VPNChoice.NONE)
 
     def test_cycle_vpn(self):
         seed = 3
         attachment_point = AttachmentPoint.objects.filter(vpn__isnull=False).first()
-        user_as = create_random_useras(self,
-                                       seed=seed,
-                                       attachment_point=attachment_point,
-                                       use_vpn=True)
+        aps_confs = _get_random_aps_params(seed, [attachment_point], VPNChoice.ALL)
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs=aps_confs,
+                                                 vpn_choice=VPNChoice.ALL,
+                                                 owner=get_testuser())
 
         vpn_client = user_as.hosts.get().vpn_clients.get()
         vpn_client_pk = vpn_client.pk
         vpn_client_ip = vpn_client.ip
         del vpn_client
 
-        update_useras(self,
-                      user_as,
-                      use_vpn=False,
-                      public_ip=test_public_ip)
+        aps_confs[0].use_vpn = False
+        update_useras(self, user_as, aps_confs)
         check_random_useras(self,
+                            seed,
                             user_as,
-                            seed=seed,
-                            attachment_point=attachment_point,
-                            use_vpn=False,
-                            public_ip=test_public_ip)
+                            aps_confs,
+                            vpn_choice=VPNChoice.NONE)
 
         # Sanity check: VPN client config still there, but inactive
         vpn_client = user_as.hosts.get().vpn_clients.get()
@@ -691,16 +650,13 @@ class UpdateUserASTests(TestCase):
         self.assertFalse(vpn_client.active)
         del vpn_client
 
-        update_useras(self,
-                      user_as,
-                      use_vpn=True,
-                      public_ip=None)
+        aps_confs[0].use_vpn = True
+        update_useras(self, user_as, aps_confs)
         check_random_useras(self,
+                            seed,
                             user_as,
-                            seed=seed,
-                            attachment_point=attachment_point,
-                            public_ip=None,
-                            use_vpn=True)
+                            aps_confs,
+                            vpn_choice=VPNChoice.ALL)
 
         # Check VPN client IP has not changed:
         vpn_client = user_as.hosts.get().vpn_clients.get()
@@ -709,15 +665,17 @@ class UpdateUserASTests(TestCase):
         self.assertEqual(vpn_client.ip, vpn_client_ip)
 
     def test_vpn_client_next_ip(self):
+        seed = 5
         attachment_point = AttachmentPoint.objects.filter(AS__as_id='ffaa:0:1404').get()
+        aps_confs = _get_random_aps_params(seed, [attachment_point], VPNChoice.ALL)
         vpn = attachment_point.vpn
         vpn.clients.all().delete()  # check creation of first client
 
-        user_as = create_and_check_useras(self,
-                                          attachment_point=attachment_point,
-                                          owner=get_testuser(),
-                                          use_vpn=True,
-                                          public_port=50000)
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs=aps_confs,
+                                                 vpn_choice=VPNChoice.ALL,
+                                                 owner=get_testuser())
         vpn_client = user_as.hosts.get().vpn_clients.get()
         # consecutive: (assumes server at begin of IP range, not the case for all APs in testdata)
         self.assertEqual(ip_address(vpn.server_vpn_ip) + 1,
@@ -726,11 +684,12 @@ class UpdateUserASTests(TestCase):
         former_vpn_ip = ip_address(vpn_client.ip)
         vpn_client.ip = str(former_vpn_ip + 1)
         vpn_client.save()
-        user_as = create_and_check_useras(self,
-                                          attachment_point=attachment_point,
-                                          owner=get_testuser(),
-                                          use_vpn=True,
-                                          public_port=50000)
+        aps_confs_new = _get_random_aps_params(seed, [attachment_point], VPNChoice.ALL)
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs=aps_confs_new,
+                                                 vpn_choice=VPNChoice.ALL,
+                                                 owner=get_testuser())
         vpn_client_new = user_as.hosts.get().vpn_clients.get()
         self.assertEqual(ip_address(vpn_client_new.ip), former_vpn_ip)
 
@@ -740,11 +699,11 @@ class UpdateUserASTests(TestCase):
         vpn_choice = VPNChoice.NONE
         aps_pair = [as_defs2aps(AS_defs_pair[0]), as_defs2aps(AS_defs_pair[1])]
         aps_confs = _get_random_aps_params(seed, aps_pair[0], vpn_choice)
-        user_as = create_and_check_useras(self,
-                                          seed,
-                                          aps_confs=aps_confs,
-                                          vpn_choice=vpn_choice,
-                                          owner=get_testuser())
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs,
+                                                 vpn_choice,
+                                                 owner=get_testuser())
 
         # Disable the previously set attachment points
         for ap_conf in aps_confs:
@@ -759,52 +718,90 @@ class UpdateUserASTests(TestCase):
                             vpn_choice)
 
     def test_cycle_ap(self):
+        """
+        Add new attachment points *disabling* the old ones
+        """
         seed = 5
-        attachment_point_iter = iter(list(AttachmentPoint.objects.all()) * 2)
-
-        user_as = create_random_useras(self,
-                                       seed=seed,
-                                       attachment_point=next(attachment_point_iter),
-                                       use_vpn=False)
-
-        for attachment_point in attachment_point_iter:
-            self._change_ap(user_as, attachment_point)
+        vpn_choice = VPNChoice.SOME
+        attachment_points = AttachmentPoint.objects.all()
+        aps_confs_list = [_get_random_aps_params(1, 
+                                                 attachment_points=[ap], 
+                                                 vpn_choice=vpn_choice)
+                          for ap in attachment_points]
+        # Start with all disabled
+        for aps_confs in aps_confs_list:
+            for ap_conf in aps_confs:
+                ap_conf.active = False
+        cycle_iter = cycle(aps_confs_list)
+        initial_confs = next(cycle_iter)
+        # Enable first conf
+        for ap_conf in initial_confs:
+            ap_conf.active = True
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs=initial_confs,
+                                                 vpn_choice=vpn_choice,
+                                                 owner=get_testuser())
+        confs = [initial_confs]
+        for _, aps_confs in zip(range(2*len(aps_confs_list) - 1), cycle_iter):
+            for _aps_confs in confs:
+                # Disable old ones
+                for ap_conf in _aps_confs:
+                    ap_conf.active = False
+            for ap_conf in aps_confs:
+                # Enable new conf
+                ap_conf.active = True
+            if len(confs) < len(aps_confs_list):
+                # Save aps_confs to list of created attachments
+                confs.append(aps_confs)
+            self._change_aps(user_as, flatten(confs))
             check_random_useras(self,
+                                seed,
                                 user_as,
-                                seed=seed,
-                                attachment_point=attachment_point,
-                                use_vpn=False)
+                                flatten(confs),
+                                vpn_choice=vpn_choice)
 
     def test_cycle_ap_vpn(self):
+        """
+        Add new vpn attachment points *disabling* the old ones
+        """
         seed = 6
-        aps = list(AttachmentPoint.objects.filter(vpn__isnull=False))
-        self.assertTrue(len(aps) >= 2, "Should have at least two APs with VPN for this test")
 
-        attachment_point_iter = iter(aps * 2)
-        attachment_point = next(attachment_point_iter)
-        user_as = create_random_useras(self,
-                                       seed=seed,
-                                       attachment_point=attachment_point,
-                                       use_vpn=True)
+        vpn_choice = VPNChoice.ALL
+        aps_confs_list = [_get_random_aps_params(seed, [ap], vpn_choice) for ap in AttachmentPoint.objects.filter(vpn__isnull=False)] * 2
+        old_aps_confs = []
+        user_as = None
         # record per attachment point VPN info to verify IP/keys don't change
-        vpn_client = user_as.hosts.get().vpn_clients.get(active=True)
-        vpn_client_infos = {attachment_point.pk: (vpn_client.pk, vpn_client.ip)}
-        del vpn_client, attachment_point
+        vpn_clients_infos = {}
+        for aps_confs in aps_confs_list:
+            if user_as is None:
+                user_as = create_and_check_random_useras(self,
+                                                         seed,
+                                                         aps_confs=aps_confs,
+                                                         vpn_choice=vpn_choice,
+                                                         owner=get_testuser())
 
-        for attachment_point in attachment_point_iter:
-            self._change_ap(user_as, attachment_point)
+            aps_confs += old_aps_confs
+            self._change_aps(user_as, aps_confs)
             check_random_useras(self,
+                                seed,
                                 user_as,
-                                seed=seed,
-                                attachment_point=attachment_point,
-                                use_vpn=True)
-            vpn_client = user_as.hosts.get().vpn_clients.get(active=True)
-            vpn_client_info = (vpn_client.pk, vpn_client.ip)
-            expected = vpn_client_infos.get(attachment_point.pk)
-            if expected:
-                self.assertEqual(expected, vpn_client_info)
-            else:
-                vpn_client_infos[attachment_point.pk] = vpn_client_info
+                                aps_confs,
+                                vpn_choice=vpn_choice)
+
+            for ap, c in zip(map(lambda c: c.attachment_point, aps_confs), aps_confs):
+                vpn_clients = user_as.hosts.get().vpn_clients.filter(active=True, vpn=ap.vpn)
+                vpn_clients_info = [(client.pk, client.ip) for client in vpn_clients]
+                expected = vpn_clients_infos.get(ap.pk)
+                if expected:
+                    self.assertEqual(expected, vpn_clients_info)
+                else:
+                    vpn_clients_infos[ap.pk] = vpn_clients_info
+
+            # Disable the previously set attachment points
+            for ap_conf in aps_confs:
+                ap_conf.active = False
+                old_aps_confs.append(ap_conf)
 
     def _change_aps(self, user_as, aps_confs):
         """ Helper: update UserAS, changing only the attachment points. """
@@ -816,7 +813,7 @@ class UpdateUserASTests(TestCase):
 
         # Check needs_config_deployment: hosts of UserAS and both APs
         aps_hosts = flatten(
-            ap.AS.hosts.all() for ap in AttachmentPointConf.attachment_points(aps_confs))
+            ap.AS.hosts.all() for ap in AttachmentConf.attachment_points(aps_confs))
         self.assertSetEqual(
             hosts_pending_before | set(user_as.hosts.all()) | set(aps_hosts),
             set(Host.objects.needs_config_deployment())
@@ -847,39 +844,52 @@ class ActivateUserASTests(TestCase):
 
     def test_cycle_active(self):
         seed = 123
-        user_as = create_random_useras(self, seed=seed)
+        r = random.Random(seed)
+        vpn_choice = VPNChoice.SOME
+        all_defs = get_all_random_as_defs() 
+        attachment_points = as_defs2aps(all_defs[r.randint(0, len(all_defs)-1)])
+        aps_confs = _get_random_aps_params(seed, attachment_points, vpn_choice)
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs=aps_confs,
+                                                 vpn_choice=vpn_choice,
+                                                 owner=get_testuser())
+        def _check_deployment_needs():
+            self.assertEqual(
+                set(Host.objects.needs_config_deployment()),
+                set(user_as.hosts.all()) | set([h for c in aps_confs for h in c.attachment_point.AS.hosts.all()])
+            )
+        def _check_deploy_args():
+            self.assertEqual(
+                set(args[0] for args, kwargs in mock_deploy.call_args_list),
+                set(c.attachment_point for c in aps_confs)
+            )
+            self.assertEqual(
+                len([args[0] for args, kwargs in mock_deploy.call_args_list]),
+                len([c.attachment_point for c in aps_confs])
+            )
 
         with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
             user_as.update_active(False)
 
         uplink = Link.objects.get(interfaceB__AS=user_as)
         self.assertFalse(uplink.active)
-        self.assertEqual(
-            list(Host.objects.needs_config_deployment()),
-            list(user_as.hosts.all() |
-                 user_as.attachment_point.AS.hosts.all())
-        )
-        self.assertEqual(
-            [args[0] for args, kwargs in mock_deploy.call_args_list],
-            [user_as.attachment_point]
-        )
+        _check_deployment_needs()
+        _check_deploy_args()
 
         with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
             user_as.update_active(True)
 
         uplink = Link.objects.get(interfaceB__AS=user_as)
         self.assertTrue(uplink.active)
-        self.assertEqual(
-            list(Host.objects.needs_config_deployment()),
-            list(user_as.hosts.all() |
-                 user_as.attachment_point.AS.hosts.all())
-        )
-        self.assertEqual(
-            [args[0] for args, kwargs in mock_deploy.call_args_list],
-            [user_as.attachment_point]
-        )
+        _check_deployment_needs()
+        _check_deploy_args()
 
-        check_random_useras(self, user_as, seed=seed)
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            aps_confs,
+                            vpn_choice=vpn_choice)
 
 
 class DeleteUserASTests(TestCase):
@@ -890,15 +900,22 @@ class DeleteUserASTests(TestCase):
 
     def test_delete_single(self):
         seed = 456
-        user_as = create_random_useras(self, seed=seed)
+        r = random.Random(seed)
+        vpn_choice = VPNChoice.SOME
+        all_defs = get_all_random_as_defs() 
+        attachment_points = as_defs2aps(all_defs[r.randint(0, len(all_defs)-1)])
+        aps_confs = _get_random_aps_params(seed, attachment_points, vpn_choice)
+        user_as = create_and_check_random_useras(self,
+                                                 seed,
+                                                 aps_confs=aps_confs,
+                                                 vpn_choice=vpn_choice,
+                                                 owner=get_testuser())
         user_as_hosts = list(user_as.hosts.all())
-        attachment_point = user_as.attachment_point
-
         user_as.delete()
 
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
-            sorted(user_as_hosts + list(attachment_point.AS.hosts.all()),
+            sorted(user_as_hosts + list(set(h for c in aps_confs for h in c.attachment_point.AS.hosts.all())),
                    key=lambda host: host.pk)
         )
 
@@ -911,10 +928,19 @@ class DeleteUserASTests(TestCase):
         attachment_point_hosts = set()
         for i in range(testuser.max_num_ases()):
             seed = 789 + i
-            user_as = create_random_useras(self, seed=seed)
+            r = random.Random(seed)
+            vpn_choice = VPNChoice.SOME
+            all_defs = get_all_random_as_defs() 
+            attachment_points = as_defs2aps(all_defs[r.randint(0, len(all_defs)-1)])
+            aps_confs = _get_random_aps_params(seed, attachment_points, vpn_choice)
+            user_as = create_and_check_random_useras(self,
+                                                     seed,
+                                                     aps_confs=aps_confs,
+                                                     vpn_choice=vpn_choice,
+                                                     owner=get_testuser())
             user_as_pks.append(user_as.pk)
             user_as_hosts += list(user_as.hosts.all())
-            attachment_point_hosts |= set(user_as.attachment_point.AS.hosts.all())
+            attachment_point_hosts |= set([h for c in aps_confs for h in c.attachment_point.AS.hosts.all()])
 
         testuser.delete()
 
