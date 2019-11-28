@@ -31,8 +31,7 @@
     <th scope="col">#</th>
     <th scope="col">AS ID</th>
     <th scope="col">Label</th>
-    <th scope="col">Parent AS</th>
-    <th scope="col">IP/Port</th>
+    <th scope="col">ISD</th>
     <th scope="col">Active</th>
     <th scope="col">Configuration</th>
   </tr>
@@ -43,14 +42,7 @@
     <th scope="row">{{ forloop.counter }}</th>
     <td><span class="nowrap"><a href="{% url 'user_as_detail' pk=user_as.pk %}"><span class="fa fa-edit"></span> {{ user_as.isd_as_str }}</a></span></td>
     <td>{{ user_as.label|default:"-" }}</td>
-    <td>{{ user_as.attachment_point }}</td>
-    <td>
-      {% if user_as.is_use_vpn %}
-      <i>VPN</i>:{{ user_as.get_public_port }}
-      {% else %}
-      {{ user_as.public_ip }}:{{ user_as.get_public_port }}
-      {% endif %}
-    </td>
+    <td>{{ user_as.useras.isd }}</td>
     <td>
       {% if user_as.is_active %}
       <img src="{% static "admin/img/icon-yes.svg" %}" alt="Active">
