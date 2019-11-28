@@ -93,7 +93,7 @@ def check_host_ports(testcase, host):
     for router in host.border_routers.iterator():
         _add_port(router.host.internal_ip, router.internal_port)
         _add_port(router.host.internal_ip, router.control_port)
-        for interface in router.interfaces.iterator():
+        for interface in filter(lambda iface: iface.link().active, router.interfaces.iterator()):
             _add_port(interface.get_public_ip(), interface.public_port)
             if interface.get_bind_ip():
                 _add_port(interface.get_bind_ip(), interface.bind_port)
