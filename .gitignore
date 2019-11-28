@@ -113,3 +113,5 @@ venv.bak/
 **tags
 # Idea
 .idea/
+# UML
+uml.pdf
