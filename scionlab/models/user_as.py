@@ -134,6 +134,7 @@ class UserAS(AS):
         """
         aps_set = set(c.attachment_point for c in ap_confs) | \
                   set(l.interfaceA.AS.attachment_point_info for l in deleted_links)
+        assert len(set(c.attachment_point.AS.isd for c in ap_confs if c.active is True)) <= 1, "ISD consistency infringed"
         # Update attachments
         for ap_conf in ap_confs:
             self._create_or_update_attachment(ap_conf)
@@ -152,6 +153,7 @@ class UserAS(AS):
         attachment point configuration, based on the presence of a link object
         """
         if ap_conf.link is None:
+            assert ap_conf.active, "Cannot deactivate a non existing Link"
             return self._create_attachment(ap_conf)
         else:
             return self._update_attachment(ap_conf)
@@ -159,7 +161,7 @@ class UserAS(AS):
     def _create_attachment(self, ap_conf):
         """
         Attach a UserAS to the specified attachment point creating the Link and the Interfaces,
-        and if needed a VPNClient
+        and if needed a VPNClient. The new `Link` is stored in `ap_conf.link` as side effect
         :param 'AttachmentPointConf' ap_conf:
         :return Link link: The entity representing the relationship (UserAS, AttachmentPoint)
         """
@@ -167,40 +169,26 @@ class UserAS(AS):
         if self.isd != ap.AS.isd:
             self._change_isd(ap.AS.isd)
         if ap_conf.use_vpn:
-            assert ap.vpn is not None
-            # Reuse VPNClient if there's with this AttachmentPoint
-            vpn_client = VPNClient.objects.filter(host=self.host, vpn=ap.vpn).first()
-            if vpn_client is None:
-                vpn_client = ap.vpn.create_client(host=self.host, active=True)
-            interface_client = Interface.objects.create(
-                border_router=BorderRouter.objects.first_or_create(self.host),
-                public_port=ap_conf.public_port,
-                vpn_client=vpn_client
-            )
-            interface_ap = Interface.objects.create(
-                border_router=ap.get_border_router_for_useras_interface(),
-                public_ip=ap.vpn.server_vpn_ip
-            )
+            iface_ap, iface_client = self._create_or_update_vpn_connection(ap_conf)
         else:
+            _bind_ip = ap_conf.bind_ip
             if self.installation_type == UserAS.VM:
                 _bind_ip = _VAGRANT_VM_LOCAL_IP
-            else:
-                _bind_ip = ap_conf.bind_ip
-            interface_client = Interface.objects.create(
+            iface_client = Interface.objects.create(
                 border_router=BorderRouter.objects.first_or_create(self.host),
                 public_ip=ap_conf.public_ip,
                 public_port=ap_conf.public_port,
                 bind_ip=_bind_ip,
                 bind_port=ap_conf.bind_port
             )
-            interface_ap = Interface.objects.create(
+            iface_ap = Interface.objects.create(
                 border_router=ap.get_border_router_for_useras_interface(),
             )
 
         link = Link.objects.create(
             type=Link.PROVIDER,
-            interfaceA=interface_ap,
-            interfaceB=interface_client
+            interfaceA=iface_ap,
+            interfaceB=iface_client
         )
         self.save()
         ap_conf.link = link
@@ -211,44 +199,36 @@ class UserAS(AS):
         :param 'AttachmentPointConf' ap_conf:
         """
         ap = ap_conf.attachment_point
-        # XXX: Should we check if the isd is consistent?
         if ap_conf.active and self.isd != ap.AS.isd:
             self._change_isd(ap.AS.isd)
 
         ap_conf.link.update(active=ap_conf.active)
         ap_conf.link.save()
-        iface = ap_conf.link.interfaceB
         if ap.vpn is None:
+            assert not ap_conf.use_vpn, "AttachmentPoint doesn't support VPN connections"
             # We simply cannot have a VPN connection if the ap does not support VPN
             vpn_client = None
         else:
             vpn_client = VPNClient.objects.filter(host=self.host, vpn=ap.vpn).first()
 
-        # Create or Update the vpn_client accordingly
         if ap_conf.use_vpn:
-            if vpn_client is None:
-                assert ap.vpn is not None
-                # Create a brand new vpn_client
-                vpn_client = ap.vpn.create_client(host=self.host, active=True)
-            elif not vpn_client.active:
-                # Activate the existing vpn_client
-                vpn_client.active = True
-                vpn_client.save()
+            # Create or Update the vpn_client accordingly
+            iface_ap, iface_client = self._create_or_update_vpn_connection(ap_conf)
         else:
             if vpn_client is not None and vpn_client.active:
                 # Deactivate the existing vpn_client
                 vpn_client.active = False
                 vpn_client.save()
-        if ap_conf.use_vpn:
-            # The VPN public_ip is assigned by the creation of the VPNClient
-            iface.update(public_ip=iface.public_ip,
+            iface_ap, iface_client = ap_conf.link.interfaceA, ap_conf.link.interfaceB
+            iface_ap.update(border_router=ap.get_border_router_for_useras_interface(),
+                            public_ip=None,
+                            public_port=None)
+            _bind_ip = ap_conf.bind_ip
+            if self.installation_type == UserAS.VM:
+                _bind_ip = _VAGRANT_VM_LOCAL_IP
+            iface_client.update(public_ip=ap_conf.public_ip,
                          public_port=ap_conf.public_port,
-                         bind_ip=None,
-                         bind_port=None)
-        else:
-            iface.update(public_ip=ap_conf.public_ip,
-                         public_port=ap_conf.public_port,
-                         bind_ip=ap_conf.bind_ip,
+                         bind_ip=_bind_ip,
                          bind_port=ap_conf.bind_port)
 
         self.save()
@@ -264,6 +244,34 @@ class UserAS(AS):
             deleted_aps_set.add(attachment_link.interfaceA.AS.attachment_point_info)
             attachment_link.delete()
         return deleted_aps_set
+
+    def _create_or_update_vpn_connection(self, ap_conf):
+        assert ap_conf.attachment_point.vpn is not None
+        # Reuse VPNClient if there's one with this AttachmentPoint
+        vpn_client = VPNClient.objects.filter(host=self.host,
+                                              vpn=ap_conf.attachment_point.vpn).first()
+        if vpn_client is None:
+            vpn_client = ap_conf.attachment_point.vpn.create_client(host=self.host, active=True)
+        elif vpn_client.active is not True:
+            vpn_client.active = True
+            vpn_client.save()
+
+        if ap_conf.link is not None:
+            iface_ap, iface_client = ap_conf.link.interfaceA, ap_conf.link.interfaceB
+            iface_ap.update(public_ip=ap_conf.attachment_point.vpn.server_vpn_ip)
+            iface_client.update(public_ip=vpn_client.ip,
+                                public_port=ap_conf.public_port,
+                                bind_ip=None,
+                                bind_port=None)
+        else:
+            border_router = BorderRouter.objects.first_or_create(self.host)
+            iface_client = Interface.objects.create(border_router=border_router,
+                                                    public_ip=vpn_client.ip,
+                                                    public_port=ap_conf.public_port)
+            iface_ap = Interface.objects.create(
+                border_router=ap_conf.attachment_point.get_border_router_for_useras_interface(),
+                public_ip=ap_conf.attachment_point.vpn.server_vpn_ip)
+        return iface_ap, iface_client
 
     def update(self,
                label,
@@ -468,7 +476,7 @@ class AttachmentPoint(models.Model):
 
 class AttachmentConf:
     """
-    Helper class to keep the state of a UserAS attachment configuration
+    Helper class that reflects the state of a UserAS attachment configuration
     """
 
     def __init__(self, attachment_point,
@@ -485,6 +493,9 @@ class AttachmentConf:
 
     @staticmethod
     def attachment_points(aps_confs):
+        """
+        :returns List[AttachmentPoint]: the attachment points in a list of `AttachmentConf`s
+        """
         return [ap_conf.attachment_point for ap_conf in aps_confs]
 
     def __repr__(self):

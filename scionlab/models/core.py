@@ -640,8 +640,7 @@ class InterfaceManager(models.Manager):
                public_port=None,
                bind_ip=None,
                bind_port=None,
-               interface_id=None,
-               vpn_client=None):
+               interface_id=None):
         """
         Create an Interface
         :param BorderRouter border_router: The border router process running responsible for this
@@ -651,20 +650,13 @@ class InterfaceManager(models.Manager):
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
         :param int bind_port: optional, a free port is selected if bind IP set and not specified
         :param int interface_id: optional, the interface id for this interface.
-        :param VPNClient vpn_client: the `vpn_client` associated to this Interface (only used to
-                                     avoid hitting the DB to retrieve it)
         """
         host = border_router.host
         as_ = host.AS
         ifid = interface_id or as_.find_interface_id()
 
         effective_public_ip = public_ip or host.public_ip
-        if vpn_client is not None:
-            # If using VPN the `public_ip` is the one of the VPNClient and `bind_ip` is None
-            public_ip = vpn_client.ip
-            effective_bind_ip = None
-        else:
-            effective_bind_ip = bind_ip if public_ip else host.bind_ip
+        effective_bind_ip = bind_ip if public_ip else host.bind_ip
 
         portmap = LazyPortMap(host.get_port_map)
         if public_port is None:
