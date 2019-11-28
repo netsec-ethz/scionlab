@@ -40,7 +40,8 @@ class AttachmentLinksFormSetHelper(FormHelper):
         self.layout = Layout(
             Div(
                 HTML("""
-                     {{% if forloop.first != forloop.last and forloop.last and forloop.counter != {MAX_AP_PER_USERAS} %}}
+                     {{% if forloop.first != forloop.last and forloop.last and\
+                             forloop.counter != {MAX_AP_PER_USERAS} %}}
                      <button type="button" id="new-ap-collapser" class="mt-3 btn btn-link collapsed"
                              aria-expanded="false" aria-controls="new-ap-form">
                         New attachment point
@@ -81,7 +82,7 @@ class AttachmentLinksFormSetHelper(FormHelper):
                             ),
                         Row(
                             HTML("""
-                                 <button type="button" 
+                                 <button type="button"
                                          class="mt-3 btn btn-link bind-row-collapser collapsed"
                                          aria-expanded="false" aria-controls="bind-row">
                                     Show binding options for NAT

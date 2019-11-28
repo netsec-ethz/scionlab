@@ -132,9 +132,10 @@ class UserAS(AS):
         Update the attachment of the UserAS handling creation, update and
         deletion of the attachments.
         """
-        aps_set = set(c.attachment_point for c in ap_confs) | \
-                  set(l.interfaceA.AS.attachment_point_info for l in deleted_links)
-        assert len(set(c.attachment_point.AS.isd for c in ap_confs if c.active is True)) <= 1, "ISD consistency infringed"
+        aps_set = set(c.attachment_point for c in ap_confs)
+        aps_set |= set(l.interfaceA.AS.attachment_point_info for l in deleted_links)
+        isd_num = len(set(c.attachment_point.AS.isd for c in ap_confs if c.active is True))
+        assert isd_num <= 1, "ISD consistency infringed"
         # Update attachments
         for ap_conf in ap_confs:
             self._create_or_update_attachment(ap_conf)
@@ -145,7 +146,6 @@ class UserAS(AS):
         for ap in aps_set:
             ap.split_border_routers()
             ap.trigger_deployment()
-
 
     def _create_or_update_attachment(self, ap_conf):
         """
@@ -227,9 +227,9 @@ class UserAS(AS):
             if self.installation_type == UserAS.VM:
                 _bind_ip = _VAGRANT_VM_LOCAL_IP
             iface_client.update(public_ip=ap_conf.public_ip,
-                         public_port=ap_conf.public_port,
-                         bind_ip=_bind_ip,
-                         bind_port=ap_conf.bind_port)
+                                public_port=ap_conf.public_port,
+                                bind_ip=_bind_ip,
+                                bind_port=ap_conf.bind_port)
 
         self.save()
 
@@ -302,7 +302,6 @@ class UserAS(AS):
         if vpn_client is None:
             return False
         return link.interfaceB.public_ip == vpn_client.ip
-
 
     # TODO(andrea_tulimiero): Doesn't make too much sense anymore ...
     def is_use_vpn(self):

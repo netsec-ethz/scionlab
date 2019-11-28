@@ -734,7 +734,6 @@ class Interface(models.Model):
             overrides the Host's default bind IP.""")
     bind_port = models.PositiveIntegerField(null=True, blank=True)
 
-
     objects = InterfaceManager()
 
     def __str__(self):
