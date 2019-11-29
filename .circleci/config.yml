@@ -40,7 +40,7 @@ jobs:
             . /tmp/venv/bin/activate
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
 
-            [ -d /tmp/scion ] || git clone https://github.com/netsec-ethz/netsec-scion.git /tmp/scion
+            [ -d /tmp/scion ] || git clone https://github.com/netsec-ethz/scion.git /tmp/scion
             cd /tmp/scion
             git fetch && git checkout scionlab && git reset --hard origin/scionlab
 

@@ -2,7 +2,7 @@ FROM python:3.6
 ENV PYTHONUNBUFFERED 1
 
 # Get scion dependency
-RUN git clone https://github.com/netsec-ethz/netsec-scion.git -b scionlab --depth 1 /tmp/scion
+RUN git clone https://github.com/netsec-ethz/scion.git -b scionlab --depth 1 /tmp/scion
 
 RUN pip install --upgrade pip
 COPY requirements.txt dev-requirements.txt /scionlab/

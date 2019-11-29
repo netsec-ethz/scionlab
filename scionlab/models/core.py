@@ -1210,6 +1210,10 @@ class Service(models.Model):
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
     )
+    EXTRA_SERVICE_TYPES = (
+        BW,
+        PP,
+    )
     SERVICE_PORTS = {
         BS: BS_PORT,
         PS: PS_PORT,
