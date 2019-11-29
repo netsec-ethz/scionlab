@@ -2301,12 +2301,6 @@
     host: 15
     type: CS
 - model: scionlab.service
-  pk: 46
-  fields:
-    AS: 4
-    host: 4
-    type: PP
-- model: scionlab.service
   pk: 47
   fields:
     AS: 4
