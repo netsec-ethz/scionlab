@@ -123,6 +123,7 @@ class UserASGetConfigView(OwnedUserASQuerysetMixin, SingleObjectMixin, View):
     """
     Download the configuration tar for the UserAS
     """
+    model = UserAS
 
     def get(self, request, *args, **kwargs):
         user_as = self.get_object()
