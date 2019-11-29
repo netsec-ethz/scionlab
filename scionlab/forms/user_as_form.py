@@ -125,7 +125,7 @@ class UserASForm(forms.ModelForm):
         (currently only `installtion_type`) are needed for the validation of the latter
         :returns: whether `UserASForm` (`self`) and the related `AttachmentLinksFormSet` are valid
         """
-        # We first need to validate the `UserASForm` to validate the `AttachmentLinksFormSet`
+        # We first need to validate the `UserASForm` to then validate the `AttachmentLinksFormSet`
         return super(UserASForm, self).is_valid() and self.attachment_links_form_set.is_valid()
 
     def save(self, commit=True):
