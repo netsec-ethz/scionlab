@@ -18,7 +18,7 @@ from os import path
 
 from django.conf import settings
 from django.test import TestCase
-from parameterized import parameterized, param
+from parameterized import parameterized
 from django.urls import reverse
 from django_webtest import WebTest
 from scionlab.models.user_as import UserAS, AttachmentPoint, AttachmentConf
@@ -52,7 +52,7 @@ def _create_ases_for_testuser(num):
         )
         ap_conf = AttachmentConf(ap,
                                  _test_ip, _test_start_port + i,
-                                 bind_ip=None, bind_port=None, 
+                                 bind_ip=None, bind_port=None,
                                  use_vpn=False)
         user_as.update_attachments([ap_conf])
 
@@ -67,8 +67,8 @@ class UserASFormTests(TestCase):
     attachment_initial = {
         "active": "on", "use_vpn": "",
         "attachment_point": "", "id": "",
-        "public_ip":"", "public_port": "50000",
-        "bind_ip":"", "bind_port": ""
+        "public_ip": "", "public_port": "50000",
+        "bind_ip": "", "bind_port": ""
     }
     # Valid form cases
     valid_cases_file_path = path.join(_FORM_CASES_FOLDER, 'test_user_as_views_valid_forms.yaml')
@@ -90,7 +90,7 @@ class UserASFormTests(TestCase):
         """
         form_data = UserASFormTests._get_form_fields(data)
         form = UserASForm(user=get_testuser(), data=form_data)
-        self.assertTrue(form.is_valid(), 
+        self.assertTrue(form.is_valid(),
                         '{}\n{}'.format(form.errors, form.attachment_links_form_set.errors))
         user_as = form.save()
         self.assertIsNotNone(user_as)
@@ -173,6 +173,7 @@ class UserASFormTests(TestCase):
                 t['form-{}-{}'.format(i, k)] = v
             d.update(t)
         return d
+
 
 class UserASPageTests(WebTest):
     fixtures = ['testdata']
@@ -300,7 +301,8 @@ class UserASCreateTests(WebTest):
 
         _create_ases_for_testuser(get_testuser().max_num_ases())
 
-        self._fill_form(create_page.form, **UserASFormTests._get_form_fields(UserASFormTests.valid_form_cases[-1]))
+        self._fill_form(create_page.form,
+                        **UserASFormTests._get_form_fields(UserASFormTests.valid_form_cases[-1]))
         response = create_page.form.submit(expect_errors=True)
         self.assertEqual(response.status_code, 403)
 

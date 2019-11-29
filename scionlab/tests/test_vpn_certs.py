@@ -60,7 +60,7 @@ def create_user_as(ap, label='Some label'):
     )
     ap_conf = AttachmentConf(ap,
                              None, test_public_port,
-                             bind_ip=None, bind_port=None, 
+                             bind_ip=None, bind_port=None,
                              use_vpn=True)
     user_as.update_attachments([ap_conf])
     return user_as
