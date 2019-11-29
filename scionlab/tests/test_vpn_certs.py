@@ -29,7 +29,7 @@ from django.test import TestCase, override_settings
 from django.conf import settings
 
 from scionlab.fixtures.testuser import get_testuser
-from scionlab.models.user_as import AttachmentPoint, UserAS
+from scionlab.models.user_as import AttachmentPoint, UserAS, AttachmentConf
 from scionlab.models.vpn import VPN
 from scionlab.openvpn_config import write_vpn_ca_config, generate_vpn_client_config, \
     load_ca_cert, _generate_private_key, load_ca_key, _generate_root_ca_cert, \
@@ -52,17 +52,18 @@ def _setup_vpn_attachment_point():
 
 
 def create_user_as(ap, label='Some label'):
-    return UserAS.objects.create(
-            owner=get_testuser(),
-            attachment_point=ap,
-            installation_type=UserAS.VM,
-            label=label,
-            use_vpn=True,
-            public_ip=None,
-            public_port=test_public_port,
-            bind_ip=None,
-            bind_port=None,
-        )
+    user_as = UserAS.objects.create(
+        owner=get_testuser(),
+        installation_type=UserAS.VM,
+        isd=ap.AS.isd,
+        label=label,
+    )
+    ap_conf = AttachmentConf(ap,
+                             None, test_public_port,
+                             bind_ip=None, bind_port=None, 
+                             use_vpn=True)
+    user_as.update_attachments([ap_conf])
+    return user_as
 
 
 @override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)

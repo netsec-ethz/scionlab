@@ -1,0 +1,57 @@
+# Example
+# - desc: "Testcase description"
+#   user-as-label: "UserAS label"
+#   user-as-installation_type: "VM"
+#   attachments:
+#     - attachment_point: "3"
+#       public_ip: "1.1.1.1"
+#       public_port: "50000"
+#     - attachment_point: "4"
+#       use_vpn: "on"
+#       public_port: "50000"
+- desc: "VPN setup with VM"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+- desc: "VPN setup with PKG"
+  user-as-installation_type: "PKG"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+- desc: "VPN setup with SRC"
+  user-as-installation_type: "SRC"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+- desc: "VPN setup with Label"
+  user-as-label: "This is a label"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+- desc: "VPN setup with public port 54321"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+      public_port: "54321"
+- desc: "Public setup with public IP 192.1.2.111"
+  attachments:
+    - attachment_point: "1"
+      public_ip: "192.1.2.111"
+- desc: "Public setup with public port 54321 and public IP 192.1.2.111"
+  attachments:
+    - attachment_point: "1"
+      public_port: "54321"
+      public_ip: "192.1.2.111"
+- desc: "VPN setup with redundant public IP (which is fine)"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+      public_ip: "192.1.2.111"
+- desc: "Public setup attached to 2 with public IP 192.1.2.111"
+  attachments:
+    - attachment_point: "2"
+      public_ip: "192.1.2.111"
+# - desc: "public setup with public IP 2a00:1450:400a:801::2004"
+#   attachments:
+#     - attachment_point: "1"
+#       public_ip: " 2a00:1450:400a:801::2004"
