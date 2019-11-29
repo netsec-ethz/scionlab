@@ -164,7 +164,8 @@ class UserASFormTests(TestCase):
         d['form-MIN_NUM_FORMS'] = 0
         d['form-MAX_NUM_FORMS'] = UserAS.MAX_AP_PER_USERAS
         d['user-as-label'] = data.get('label', d['user-as-label'])
-        d['user-as-installation_type'] = data.get('installation_type', d['user-as-installation_type'])
+        d['user-as-installation_type'] = data.get('installation_type',
+                                                  d['user-as-installation_type'])
         for i, attachment in enumerate(data['attachments']):
             t = {}
             for k, v in UserASFormTests.attachment_initial.items():
@@ -252,7 +253,7 @@ class UserASCreateTests(WebTest):
         self.assertEqual(form['form-0-public_port'].value,
                          str(DEFAULT_PUBLIC_PORT))
 
-    @parameterized.expand(zip(filter(lambda c: len(c['attachments']) == 1, 
+    @parameterized.expand(zip(filter(lambda c: len(c['attachments']) == 1,
                                      UserASFormTests.valid_form_cases)))
     def test_submit_create_form_valid(self, data):
         """ Submitting valid data creates the AS and forwards to the detail page """
