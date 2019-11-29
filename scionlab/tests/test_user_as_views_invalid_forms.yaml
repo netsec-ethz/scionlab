@@ -28,3 +28,46 @@
   attachments:
     - attachment_point: "1"
       public_ip: "127.0.0.1"
+- desc: "No attachment point selected"
+  attachments: []
+
+- desc: "Inconsistent ISD"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+    - attachment_point: "3"
+      use_vpn: "on"
+- desc: "Conflicting public port with PKG installation"
+  installation_type: "PKG"
+  attachments:
+    - attachment_point: "3"
+      public_ip: "192.1.2.111"
+      public_port: "50000"
+    - attachment_point: "4"
+      public_ip: "192.1.2.111"
+      public_port: "50000"
+- desc: "Conflicting public port with VM"
+  attachments:
+    - attachment_point: "3"
+      public_ip: "192.1.2.111"
+      public_port: "50000"
+    - attachment_point: "4"
+      public_ip: "192.1.2.111"
+      public_port: "50000"
+- desc: "Conflicting forwarding port because of public ports"
+  attachments:
+    - attachment_point: "1"
+      public_ip: "192.1.2.111"
+      public_port: "50000"
+    - attachment_point: "1"
+      public_ip: "192.1.2.112"
+      public_port: "50000"
+- desc: "Conflicting forwarding port because of public/bind ports"
+  attachments:
+    - attachment_point: "1"
+      public_ip: "192.1.2.111"
+      public_port: "50000"
+    - attachment_point: "1"
+      public_ip: "192.1.2.112"
+      public_port: "50001"
+      bind_port: "50000"

@@ -98,10 +98,9 @@ class UserASFormTests(TestCase):
     @parameterized.expand(zip(invalid_form_cases))
     def test_create_invalid(self, data):
         form_data = UserASFormTests._get_form_fields(data)
-        print(form_data)
         form = UserASForm(user=get_testuser(), data=form_data)
         self.assertFalse(form.is_valid())
-        # TODO: I think it would be nice to also check against the returned errors
+        # TODO: It would be nice to also check against the returned errors
 
     def test_create_too_many(self):
         """
@@ -160,10 +159,12 @@ class UserASFormTests(TestCase):
         :returns Dict[Str, Any]: dictionary containing UserASForm and AttachmentLinksFormSet data
         """
         d = UserASFormTests.useras_initial.copy()
-        d['form-INITIAL_FORMS'] = "0"
-        d['form-TOTAL_FORMS'] = "{}".format(len(data['attachments']))
-        d['form-MIN_NUM_FORMS'] = "0"
-        d['form-MAX_NUM_FORMS'] = "{}".format(UserAS.MAX_AP_PER_USERAS)
+        d['form-INITIAL_FORMS'] = 0
+        d['form-TOTAL_FORMS'] = len(data['attachments'])
+        d['form-MIN_NUM_FORMS'] = 0
+        d['form-MAX_NUM_FORMS'] = UserAS.MAX_AP_PER_USERAS
+        d['user-as-label'] = data.get('label', d['user-as-label'])
+        d['user-as-installation_type'] = data.get('installation_type', d['user-as-installation_type'])
         for i, attachment in enumerate(data['attachments']):
             t = {}
             for k, v in UserASFormTests.attachment_initial.items():
@@ -251,7 +252,8 @@ class UserASCreateTests(WebTest):
         self.assertEqual(form['form-0-public_port'].value,
                          str(DEFAULT_PUBLIC_PORT))
 
-    @parameterized.expand(zip(UserASFormTests.valid_form_cases))
+    @parameterized.expand(zip(filter(lambda c: len(c['attachments']) == 1, 
+                                     UserASFormTests.valid_form_cases)))
     def test_submit_create_form_valid(self, data):
         """ Submitting valid data creates the AS and forwards to the detail page """
         self.app.set_user(TESTUSER_EMAIL)
@@ -273,7 +275,8 @@ class UserASCreateTests(WebTest):
                          reverse('user_as_detail', kwargs={'pk': user_as_2.pk}))
         self.assertEqual(response_2.follow().status_code, 200)
 
-    @parameterized.expand(zip(UserASFormTests.invalid_form_cases))
+    @parameterized.expand(zip(filter(lambda c: len(c['attachments']) == 1,
+                                     UserASFormTests.invalid_form_cases)))
     def test_submit_create_form_invalid(self, data):
         """ Submitting invalid data bumps back to the form with error messages """
         self.app.set_user(TESTUSER_EMAIL)
@@ -302,12 +305,13 @@ class UserASCreateTests(WebTest):
         _create_ases_for_testuser(get_testuser().max_num_ases())
 
         self._fill_form(create_page.form,
-                        **UserASFormTests._get_form_fields(UserASFormTests.valid_form_cases[-1]))
+                        **UserASFormTests._get_form_fields(UserASFormTests.valid_form_cases[0]))
         response = create_page.form.submit(expect_errors=True)
         self.assertEqual(response.status_code, 403)
 
     @staticmethod
     def _fill_form(form, **kwargs):
+        print(kwargs)
         for key, value in kwargs.items():
             form[key] = value
 
