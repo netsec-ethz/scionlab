@@ -164,3 +164,6 @@ except IOError:
             f.write(SECRET_KEY)
     except IOError:
         raise Exception('Could not open %s for writing!' % SECRET_FILE)
+
+# ##### SCALING AND PERFORMANCE #####################
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
