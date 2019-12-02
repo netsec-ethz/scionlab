@@ -59,6 +59,10 @@ DATABASES = {
 }
 
 # ##### LOG CONFIGURATION ####################
+
+# (kmateusz) This configuration snippet comes from https://stackoverflow.com/questions/21943962
+# and may still contain some not relevant references.
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
