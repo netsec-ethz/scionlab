@@ -11,5 +11,5 @@ appdeps.py --wait-secs 60 --port-wait $POSTGRES_HOST:$POSTGRES_PORT
 # Initialise/migrate DB
 /scionlab/manage.py migrate
 
-gunicorn -b django:8000 scionlab.wsgi
+gunicorn --log-level info --capture-output -b django:8000 scionlab.wsgi
 #/scionlab/manage.py runserver 0.0.0.0:8000
