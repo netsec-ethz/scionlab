@@ -1131,7 +1131,10 @@ class BorderRouter(models.Model):
 
     def _br_idx(self):
         # slow!
-        return self.AS.border_routers.filter(pk__lt=self.pk).count() + 1
+        if self.pk:
+            return self.AS.border_routers.filter(pk__lt=self.pk).count() + 1
+        else:
+            return 0
 
     def update(self, host=_placeholder, internal_port=_placeholder, control_port=_placeholder):
         """
@@ -1245,7 +1248,10 @@ class Service(models.Model):
 
     def _service_idx(self):
         # slow!
-        return self.AS.services.filter(type=self.type, pk__lt=self.pk).count() + 1
+        if self.pk:
+            return self.AS.services.filter(type=self.type, pk__lt=self.pk).count() + 1
+        else:
+            return 0
 
     def _pre_delete(self):
         """
