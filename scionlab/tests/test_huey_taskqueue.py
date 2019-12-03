@@ -127,11 +127,11 @@ def _create_user_as(attachment_point, label="Some label"):
         isd=attachment_point.AS.isd,
         label=label,
     )
-    ap_conf = AttachmentConf(attachment_point,
-                             str(ipaddress.ip_address(test_public_ip)+2), test_public_port,
-                             bind_ip=None, bind_port=None,
-                             use_vpn=False)
-    user_as.update_attachments([ap_conf])
+    att_conf = AttachmentConf(attachment_point,
+                              str(ipaddress.ip_address(test_public_ip)+2), test_public_port,
+                              bind_ip=None, bind_port=None,
+                              use_vpn=False)
+    user_as.update_attachments([att_conf])
     return user_as
 
 

@@ -195,8 +195,8 @@ class AttachmentLinksFormSet(BaseModelFormSet):
                                            code='forwarded_port_clash'))
 
     def save(self, user_as, commit=True):
-        ap_confs = super().save(commit=False)
-        user_as.update_attachments(ap_confs, self.deleted_objects)
+        att_confs = super().save(commit=False)
+        user_as.update_attachments(att_confs, self.deleted_objects)
 
 
 class AttachmentLinkForm(forms.ModelForm):

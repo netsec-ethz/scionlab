@@ -51,11 +51,11 @@ def _create_ases_for_testuser(num):
             isd=ap.AS.isd,
             label="Testuser's AS number %i" % (i + 1),
         )
-        ap_conf = AttachmentConf(ap,
-                                 _test_ip, _test_start_port + i,
-                                 bind_ip=None, bind_port=None,
-                                 use_vpn=False)
-        user_as.update_attachments([ap_conf])
+        att_conf = AttachmentConf(ap,
+                                  _test_ip, _test_start_port + i,
+                                  bind_ip=None, bind_port=None,
+                                  use_vpn=False)
+        user_as.update_attachments([att_conf])
 
 
 def _get_form_fields(data):
