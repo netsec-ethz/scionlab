@@ -174,7 +174,7 @@ class AttachmentLinksFormSet(BaseModelFormSet):
                                   "same ISD")
         elif len(isd_set) < 1:
             # This means no attachment point has been selected
-            raise ValidationError("Select at least an attachment point")
+            raise ValidationError("Select at least one attachment point")
         else:
             self.isd = list(isd_set)[0]
         # Add public ports clash errors to forms
@@ -246,7 +246,7 @@ class AttachmentLinkForm(forms.ModelForm):
         if instance:
             initial['active'] = instance.active
             initial['attachment_point'] = AttachmentPoint.objects.get(AS=instance.interfaceA.AS)
-            initial['use_vpn'] = instance.interfaceB.AS.useras.is_link_over_vpn(instance)
+            initial['use_vpn'] = UserAS.is_link_over_vpn(instance.interfaceB)
             initial['public_ip'] = instance.interfaceB.public_ip
             initial['public_port'] = instance.interfaceB.public_port
             initial['bind_ip'] = instance.interfaceB.bind_ip
@@ -261,7 +261,7 @@ class AttachmentLinkForm(forms.ModelForm):
         cleaned_data = super().clean()
         if 'attachment_point' not in cleaned_data:
             raise ValidationError(
-                        'Please select at least an attachment point',
+                        'Please select at least one attachment point',
                         code='missing_attachment_point')
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
@@ -298,19 +298,15 @@ class AttachmentLinkForm(forms.ModelForm):
 
     def save(self, commit=True, user_as=None):
         """
-        Create/update the attachment if `commit=True`, otherwise returns an
-        `AttachmentPointConf` to hold the provided settings
         :return AttachmentPointConf:
         """
-        ap_conf = AttachmentConf(self.cleaned_data['attachment_point'],
-                                 self.cleaned_data['public_ip'],
-                                 self.cleaned_data['public_port'],
-                                 self.cleaned_data['bind_ip'],
-                                 self.cleaned_data['bind_port'],
-                                 self.cleaned_data['use_vpn'],
-                                 self.cleaned_data['active'],
-                                 self.instance if self.instance.pk is not None else None)
-        if commit:
-            assert user_as is not None
-            user_as.create_or_update_attachment(ap_conf)
-        return ap_conf
+        assert not commit, "Persistency in the DB shall be handled in the save(...) method of the \
+                           AttachmentLinksFormSet"
+        return AttachmentConf(self.cleaned_data['attachment_point'],
+                              self.cleaned_data['public_ip'],
+                              self.cleaned_data['public_port'],
+                              self.cleaned_data['bind_ip'],
+                              self.cleaned_data['bind_port'],
+                              self.cleaned_data['use_vpn'],
+                              self.cleaned_data['active'],
+                              self.instance if self.instance.pk is not None else None)

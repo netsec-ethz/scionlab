@@ -133,7 +133,7 @@ def _add_vagrantfiles(host, archive):
 
 def _expand_vagrantfile_template(host):
     public_ifaces = [iface for iface in host.interfaces.iterator()
-                     if host.AS.useras.is_link_over_vpn(iface.link())]
+                     if not UserAS.is_link_over_vpn(iface)]
     forwarding_strings = []
     for iface in public_ifaces:
         port = iface.bind_port or iface.public_port

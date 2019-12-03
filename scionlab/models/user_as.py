@@ -163,7 +163,6 @@ class UserAS(AS):
         Attach a UserAS to the specified attachment point creating the Link and the Interfaces,
         and if needed a VPNClient. The new `Link` is stored in `ap_conf.link` as side effect
         :param 'AttachmentPointConf' ap_conf:
-        :return Link link: The entity representing the relationship (UserAS, AttachmentPoint)
         """
         ap = ap_conf.attachment_point
         if self.isd != ap.AS.isd:
@@ -233,17 +232,15 @@ class UserAS(AS):
 
         self.save()
 
-    def _delete_attachments(self, deleted_links):
+    def _delete_attachment(self, deleted_link):
         """
-        Delete the designated links and update the attachment points involved.
-        Deletions are carried out in bulk to avoid unnecessary updates of the attachment points
-        :return: A set of aps involved in links deletion
+        Delete the `deleted_link` link
         """
-        deleted_aps_set = set()
-        for attachment_link in deleted_links:
-            deleted_aps_set.add(attachment_link.interfaceA.AS.attachment_point_info)
-            attachment_link.delete()
-        return deleted_aps_set
+        iface = deleted_link.interfaceB
+        if UserAS.is_link_over_vpn(iface):
+            # Delete the VPNClient if the link was over VPN
+            iface.host.vpn_clients.filter(ip=iface.public_ip).delete()
+        deleted_link.delete()
 
     def _create_or_update_vpn_connection(self, ap_conf):
         assert ap_conf.attachment_point.vpn is not None
@@ -291,24 +288,13 @@ class UserAS(AS):
     def host(self):
         return self.hosts.get()  # UserAS always has only one host
 
-    def is_link_over_vpn(self, link):
+    @staticmethod
+    def is_link_over_vpn(iface):
         """
-        Returns whether the link is over vpn
+        Returns whether this UserAS interface corresponds to a link over VPN.
         """
-        ap = link.interfaceA.AS.attachment_point_info
-        if ap.vpn is None:
-            return False
-        vpn_client = VPNClient.objects.filter(host=self.host, vpn=ap.vpn).first()
-        if vpn_client is None:
-            return False
-        return link.interfaceB.public_ip == vpn_client.ip
-
-    # TODO(andrea_tulimiero): Doesn't make too much sense anymore ...
-    def is_use_vpn(self):
-        """
-        Is this UserAS currently configured with VPN?
-        """
-        return VPNClient.objects.filter(host__AS=self, active=True).exists()
+        assert hasattr(iface.AS, 'useras')
+        return iface.host.vpn_clients.filter(ip=iface.public_ip).exists()
 
     def is_active(self):
         """
