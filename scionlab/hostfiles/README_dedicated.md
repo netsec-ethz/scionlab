@@ -7,7 +7,7 @@ This is the SCION configuration for a dedicated system.
 
 You need to install SCION to the system, and/or update it to the version you need, manually.
 Please refer to the documentation on:
-https://netsec-ethz.github.io/scion-tutorials/
+https://docs.scionlab.org
 
 ## Further information
 
