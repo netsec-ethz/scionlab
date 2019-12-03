@@ -93,3 +93,9 @@ flake8 --config=flake8.ini
 
 A set of more complex integration tests that will actually run the generated
 configuration for multiple SCION ASes uses the CircleCI infrastructure.
+
+## Deployment
+
+There exists an internal [GitLab repository](https://gitlab.inf.ethz.ch/PRV-PERRIG/scionlab-deploy) containing the configuration for the pipeline deploying SCIONLab coordinator into running environment. GitHub webhook against this repo will triger deployment every time when there are changes in the `master` branch.
+
+In order to have a fully functional installation [the internal configuration](https://gitlab.inf.ethz.ch/PRV-PERRIG/scionlab-config) is needed. It contains some internal secret keys and configurations for accessing the SCIONLab infrastructure machines. More detailed informations can be found directly in its repository.
