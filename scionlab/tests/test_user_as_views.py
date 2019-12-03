@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import re
 import yaml
-from os import path
+import pathlib
 
 from django.conf import settings
 from django.test import TestCase
@@ -29,7 +30,7 @@ from scionlab.tests import utils
 from scionlab.views.user_as_views import UserASForm
 
 
-_FORM_CASES_FOLDER = path.join(settings.BASE_DIR, 'scionlab', 'tests')
+_FORM_CASES_FOLDER = os.path.join(settings.BASE_DIR, 'scionlab', 'tests', 'data', 'test_user_forms')
 _QUOTA_EXCEEDED_MESSAGE = ('You have reached the maximum number of ASes '
                            'and cannot create further ones.')
 _NO_USER_AS_MESSAGE = 'You currently have no registered SCIONLab ASes'
@@ -57,47 +58,76 @@ def _create_ases_for_testuser(num):
         user_as.update_attachments([ap_conf])
 
 
-class UserASFormTests(TestCase):
-    fixtures = ['testdata']
-
-    useras_initial = {
+def _get_form_fields(data):
+    """
+    :returns Dict[Str, Any]: dictionary containing UserASForm and AttachmentLinksFormSet data
+    """
+    useras_defaults = {
         "user-as-label": "",
         "user-as-installation_type": "VM"
     }
-    attachment_initial = {
+    attachment_defaults = {
         "active": "on", "use_vpn": "",
         "attachment_point": "", "id": "",
         "public_ip": "", "public_port": "50000",
         "bind_ip": "", "bind_port": ""
     }
+    d = useras_defaults
+    d['form-INITIAL_FORMS'] = 0
+    d['form-TOTAL_FORMS'] = len(data['attachments'])
+    d['form-MIN_NUM_FORMS'] = 0
+    d['form-MAX_NUM_FORMS'] = UserAS.MAX_AP_PER_USERAS
+    d['user-as-label'] = data.get('label', d['user-as-label'])
+    d['user-as-installation_type'] = data.get('installation_type',
+                                              d['user-as-installation_type'])
+    for i, attachment in enumerate(data['attachments']):
+        t = {}
+        for k, v in attachment_defaults.items():
+            # Update defaults with index of current item
+            t['form-{}-{}'.format(i, k)] = v
+        for k, v in attachment.items():
+            t['form-{}-{}'.format(i, k)] = v
+        d.update(t)
+    return d
+
+
+def _form_has_single_ap(form_data):
+    return form_data['form-TOTAL_FORMS'] == 1
+
+
+class UserASFormTests(TestCase):
+    fixtures = ['testdata']
+
     # Valid form cases
-    valid_cases_file_path = path.join(_FORM_CASES_FOLDER, 'test_user_as_views_valid_forms.yaml')
-    valid_form_cases = yaml.safe_load(open(valid_cases_file_path).read())
+    valid_cases_file_path = pathlib.Path(_FORM_CASES_FOLDER, 'valid_forms.yaml')
+    valid_form_cases = yaml.safe_load(valid_cases_file_path.read_text())
+    valid_forms_params = [_get_form_fields(c) for c in valid_form_cases]
     # Invalid form cases
-    invalid_cases_file_path = path.join(_FORM_CASES_FOLDER, 'test_user_as_views_invalid_forms.yaml')
-    invalid_form_cases = yaml.safe_load(open(invalid_cases_file_path).read())
+    invalid_cases_file_path = pathlib.Path(_FORM_CASES_FOLDER, 'invalid_forms.yaml')
+    invalid_form_cases = yaml.safe_load(invalid_cases_file_path.read_text())
+    invalid_forms_params = [_get_form_fields(c) for c in invalid_form_cases]
 
     def test_render_create(self):
         form = UserASForm(user=get_testuser())
         self.assertIsNotNone(form.as_table())
 
     # Note: not all combinations, most parameters are independent
-    @parameterized.expand(zip(valid_form_cases))
-    def test_create_valid(self, data):
+    @parameterized.expand(zip(valid_forms_params))
+    def test_create_valid(self, form_data):
         """
         Check that the form is valid with the given values as user input,
         and saving the form results in a new UserAS object.
         """
-        form_data = UserASFormTests._get_form_fields(data)
+        #  form_data = _get_form_fields(data)
         form = UserASForm(user=get_testuser(), data=form_data)
         self.assertTrue(form.is_valid(),
                         '{}\n{}'.format(form.errors, form.attachment_links_form_set.errors))
         user_as = form.save()
         self.assertIsNotNone(user_as)
 
-    @parameterized.expand(zip(invalid_form_cases))
-    def test_create_invalid(self, data):
-        form_data = UserASFormTests._get_form_fields(data)
+    @parameterized.expand(zip(invalid_forms_params))
+    def test_create_invalid(self, form_data):
+        #  form_data = _get_form_fields(data)
         form = UserASForm(user=get_testuser(), data=form_data)
         self.assertFalse(form.is_valid())
         # TODO: It would be nice to also check against the returned errors
@@ -107,7 +137,7 @@ class UserASFormTests(TestCase):
         Submitting the creation form with quota exceeded leads to
         a form-error.
         """
-        form_data = UserASFormTests._get_form_fields(UserASFormTests.valid_form_cases[0])
+        form_data = UserASFormTests.valid_forms_params[0]
 
         for i in range(get_testuser().max_num_ases()):
             form = UserASForm(user=get_testuser(), data=form_data)
@@ -120,14 +150,14 @@ class UserASFormTests(TestCase):
         self.assertTrue(any(e.find("quota exceeded") >= 0 for e in form.non_field_errors()),
                         form.errors)
 
-    @parameterized.expand(zip(valid_form_cases))
-    def test_edit_render(self, data):
+    @parameterized.expand(zip(valid_forms_params))
+    def test_edit_render(self, form_data):
         """
         The form can be instantiated with a (freshly created) UserAS.
         The instantiated form should not show any changes if the same data is
         submitted.
         """
-        form_data = UserASFormTests._get_form_fields(data)
+        #  form_data = _get_form_fields(data)
 
         # Create a UserAS with the given data
         create_form = UserASForm(user=get_testuser(), data=form_data)
@@ -152,29 +182,6 @@ class UserASFormTests(TestCase):
         self.assertFalse(edit_form_2.has_changed(), edit_form_2.changed_data)
         user_as_edited_2 = edit_form_2.save()
         self.assertEqual(user_as.pk, user_as_edited_2.pk)
-
-    @staticmethod
-    def _get_form_fields(data):
-        """
-        :returns Dict[Str, Any]: dictionary containing UserASForm and AttachmentLinksFormSet data
-        """
-        d = UserASFormTests.useras_initial.copy()
-        d['form-INITIAL_FORMS'] = 0
-        d['form-TOTAL_FORMS'] = len(data['attachments'])
-        d['form-MIN_NUM_FORMS'] = 0
-        d['form-MAX_NUM_FORMS'] = UserAS.MAX_AP_PER_USERAS
-        d['user-as-label'] = data.get('label', d['user-as-label'])
-        d['user-as-installation_type'] = data.get('installation_type',
-                                                  d['user-as-installation_type'])
-        for i, attachment in enumerate(data['attachments']):
-            t = {}
-            for k, v in UserASFormTests.attachment_initial.items():
-                # Update initial with index of current item
-                t['form-{}-{}'.format(i, k)] = v
-            for k, v in attachment.items():
-                t['form-{}-{}'.format(i, k)] = v
-            d.update(t)
-        return d
 
 
 class UserASPageTests(WebTest):
@@ -253,13 +260,13 @@ class UserASCreateTests(WebTest):
         self.assertEqual(form['form-0-public_port'].value,
                          str(DEFAULT_PUBLIC_PORT))
 
-    @parameterized.expand(zip(filter(lambda c: len(c['attachments']) == 1,
-                                     UserASFormTests.valid_form_cases)))
-    def test_submit_create_form_valid(self, data):
+    @parameterized.expand(zip(filter(_form_has_single_ap, UserASFormTests.valid_forms_params)))
+    def test_submit_create_form_valid(self, form_data):
         """ Submitting valid data creates the AS and forwards to the detail page """
         self.app.set_user(TESTUSER_EMAIL)
         create_page = self.app.get(reverse('user_as_add'))
-        self._fill_form(create_page.form, **UserASFormTests._get_form_fields(data))
+        #  self._fill_form(create_page.form, **_get_form_fields(data))
+        self._fill_form(create_page.form, **form_data)
         response = create_page.form.submit()
 
         user_as = UserAS.objects.filter(owner=get_testuser()).last()
@@ -276,13 +283,13 @@ class UserASCreateTests(WebTest):
                          reverse('user_as_detail', kwargs={'pk': user_as_2.pk}))
         self.assertEqual(response_2.follow().status_code, 200)
 
-    @parameterized.expand(zip(filter(lambda c: len(c['attachments']) == 1,
-                                     UserASFormTests.invalid_form_cases)))
-    def test_submit_create_form_invalid(self, data):
+    @parameterized.expand(zip(filter(_form_has_single_ap, UserASFormTests.invalid_forms_params)))
+    def test_submit_create_form_invalid(self, form_data):
         """ Submitting invalid data bumps back to the form with error messages """
         self.app.set_user(TESTUSER_EMAIL)
         create_page = self.app.get(reverse('user_as_add'))
-        self._fill_form(create_page.form, **UserASFormTests._get_form_fields(data))
+        #  self._fill_form(create_page.form, **_get_form_fields(data))
+        self._fill_form(create_page.form, **form_data)
         response = create_page.form.submit()
         self.assertEqual(response.status_code, 200)
 
@@ -305,14 +312,12 @@ class UserASCreateTests(WebTest):
 
         _create_ases_for_testuser(get_testuser().max_num_ases())
 
-        self._fill_form(create_page.form,
-                        **UserASFormTests._get_form_fields(UserASFormTests.valid_form_cases[0]))
+        self._fill_form(create_page.form, **UserASFormTests.valid_forms_params[0])
         response = create_page.form.submit(expect_errors=True)
         self.assertEqual(response.status_code, 403)
 
     @staticmethod
     def _fill_form(form, **kwargs):
-        print(kwargs)
         for key, value in kwargs.items():
             form[key] = value
 
