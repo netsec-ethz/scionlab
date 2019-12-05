@@ -1,5 +1,6 @@
 {% extends 'scionlab/base.html' %}
 {% load static %}
+{% load scionlab_extras %}
 
 {% block title %}{{block.super}} - My ASes{% endblock %}
 {% block content_title %}My SCIONLab ASes{% endblock %}
@@ -32,6 +33,8 @@
     <th scope="col">AS ID</th>
     <th scope="col">Label</th>
     <th scope="col">ISD</th>
+    <th scope="col">Parent ASes</th>
+    <th scope="col">IP/Port</th>
     <th scope="col">Active</th>
     <th scope="col">Configuration</th>
   </tr>
@@ -42,7 +45,22 @@
     <th scope="row">{{ forloop.counter }}</th>
     <td><span class="nowrap"><a href="{% url 'user_as_detail' pk=user_as.pk %}"><span class="fa fa-edit"></span> {{ user_as.isd_as_str }}</a></span></td>
     <td>{{ user_as.label|default:"-" }}</td>
-    <td>{{ user_as.useras.isd }}</td>
+    <td>{{ user_as.useras.isd.label }}</td>
+    <td>
+      {% for ap in user_as.attachment_points  %}
+        {{ ap.AS.label }}{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    </td>
+    <td>
+      {% for iface in user_as.host.interfaces.all|active_interfaces %}
+        {% if iface|is_link_over_vpn %}
+          <i>VPN</i>:{{ iface.public_port }}
+        {% else %}
+          {{ iface.public_ip }}:{{ iface.public_port }}
+        {% endif %}
+        {% if not forloop.last %},{% endif %}
+      {% endfor %}
+    </td>
     <td>
       {% if user_as.is_active %}
       <img src="{% static "admin/img/icon-yes.svg" %}" alt="Active">

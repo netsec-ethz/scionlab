@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import ipaddress
+from typing import List
 
 from django import urls
 from django.core.exceptions import ValidationError
@@ -278,7 +279,7 @@ class UserAS(AS):
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
-        # XXX(andrea_tulimiero): Useless since the model instance has already got the updated fields
+        # XXX Useless since the model instance has already got the updated fields
         self.label = label
         self.host.update()
 
@@ -315,19 +316,6 @@ class UserAS(AS):
             link.update_active(active)
             link.interfaceA.host.AS.attachment_point_info.trigger_deployment()
 
-    def _get_ap_link(self):
-        # FIXME(matzf): find the correct link to the AP if multiple links present!
-        return self.interfaces.get().link()
-
-    @property
-    def attachment_points(self):
-        def _ap_from_link(l):
-            return l.interfaceA.AS.attachment_point_info
-
-        # Boost query with related_values to avoid hitting the database multiple times
-        ap_links = Link.objects.filter(interfaceB__AS=self)\
-                               .select_related('interfaceA__AS__attachment_point_info')
-        return [_ap_from_link(l) for l in ap_links]
 
     def _create_or_activate_vpn_client(self, vpn):
         """
@@ -346,6 +334,21 @@ class UserAS(AS):
             return vpn_client
         else:
             return vpn.create_client(host, True)
+
+    def attachment_points(self, active=True) -> List['AttachmentPoint']:
+        """
+        :returns: a list of attachments points to which the user is attached to
+        """
+        def _ap_of_iface(iface: Interface) -> AttachmentPoint:
+            return iface.link_as_interfaceB.interfaceA.AS.attachment_point_info
+
+        # Filter all interfaces all the current UserAS
+        query = Interface.objects.filter(AS=self)
+        # Select related to hit the databes less often
+        query = query.select_related('link_as_interfaceB__interfaceA__AS__attachment_point_info')
+        if active:
+            query = query.filter(link_as_interfaceB__active=True)
+        return [_ap_of_iface(iface) for iface in query]
 
 
 class AttachmentPoint(models.Model):

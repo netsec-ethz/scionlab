@@ -99,7 +99,7 @@ def create_and_check_useras(testcase,
                             owner,
                             installation_type=UserAS.PKG,
                             label='label foo',
-                            **kwargs):
+                            **kwargs) -> UserAS:
     """
     Helper function for testing. Create a UserAS, attach it to the attachment_points as
     specified in att_confs, and verify that things look right.
@@ -144,10 +144,10 @@ def create_and_check_useras(testcase,
 
 
 def check_useras(testcase,
-                 user_as,
-                 att_confs,
+                 user_as: UserAS,
+                 att_confs: List[AttachmentConf],
                  owner,
-                 vpn_choice,
+                 vpn_choice: VPNChoice,
                  installation_type,
                  label,
                  **kwargs):
@@ -223,7 +223,7 @@ def check_useras(testcase,
             ))
 
 
-def _check_attachment_point(testcase, attachment_point):
+def _check_attachment_point(testcase, attachment_point: AttachmentPoint):
     """
     Check the assignment of interfaces to border routers in the attachment point.
     """
@@ -248,7 +248,11 @@ def _check_attachment_point(testcase, attachment_point):
             testcase.assertEqual(c, MAX_IFACES)
 
 
-def update_useras(testcase, user_as, att_confs, deleted_links=[], **kwargs):
+def update_useras(testcase,
+                  user_as,
+                  att_confs: List[AttachmentConf],
+                  deleted_links: List[Link] = [],
+                  **kwargs):
     """
     Helper function for tests: update only the given parameters of a UserAS, leaving
     all others unchanged.
