@@ -38,7 +38,7 @@ from scionlab.fixtures import testtopo
 from scionlab.fixtures.testtopo import ASdef
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
-from scionlab.util import as_ids, flatten
+from scionlab.util import as_ids as as_ids_utils, flatten
 
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 testtopo_vpns_as_ids = [vpn.as_id for vpn in testtopo.vpns]
@@ -406,7 +406,7 @@ class GenerateUserASIDTests(TestCase):
     def test_first(self):
         as_id_int = UserAS.objects.get_next_id()
         self.assertEqual(as_id_int, USER_AS_ID_BEGIN)
-        self.assertEqual(as_ids.format(as_id_int), 'ffaa:1:1')
+        self.assertEqual(as_ids_utils.format(as_id_int), 'ffaa:1:1')
 
     @patch('scionlab.models.user_as.UserAS.objects._max_id', return_value=USER_AS_ID_BEGIN)
     def test_second(self, mock):
@@ -478,8 +478,10 @@ def get_random_as_ids_combinations(has_vpn: bool = False, seed=1) -> List[List[s
     r = random.Random(seed)
     as_per_isd = {}
     as_ids_combs = []
+
     def _is_ap(asdef: ASdef) -> bool:
         return asdef.is_ap
+
     for as_def in filter(_is_ap, testtopo.ases):
         as_per_isd.setdefault(as_def.isd_id, [])
         as_per_isd[as_def.isd_id].append(as_def)

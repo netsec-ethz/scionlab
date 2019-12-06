@@ -29,7 +29,7 @@ from scionlab.models.core import (
     BorderRouter,
     Host
 )
-from scionlab.models.vpn import VPN, VPNClient
+from scionlab.models.vpn import VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
@@ -130,7 +130,9 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def update_attachments(self, att_confs: List['AttachmentConf'] = [], deleted_links: List[Link] = []):
+    def update_attachments(self,
+                           att_confs: List['AttachmentConf'] = [],
+                           deleted_links: List[Link] = []):
         """
         Update the attachment of the UserAS handling creation, update and
         deletion of the attachments.
