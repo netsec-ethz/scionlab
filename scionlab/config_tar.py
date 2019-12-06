@@ -137,7 +137,8 @@ def _expand_vagrantfile_template(host):
     forwarding_strings = []
     for iface in public_ifaces:
         port = iface.bind_port or iface.public_port
-        forwarding_strings.append('\tconfig.vm.network "forwarded_port", guest: {port},'
+        # XXX: The two spaces are on purpose for indentation, don't remove them (I'm watching you)
+        forwarding_strings.append('  config.vm.network "forwarded_port", guest: {port},'
                                   ' host: {port}, protocol: "udp"'.format(port=port))
     forwarding_string = '\n'.join(forwarding_strings)
 
