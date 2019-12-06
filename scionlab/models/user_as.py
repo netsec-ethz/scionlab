@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import ipaddress
-from typing import List, Tuple
+from typing import List, Tuple, Set
 
 from django import urls
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils.html import format_html
+from django.contrib.auth.models import User
 
 import scionlab.tasks
 from scionlab.models.core import (
@@ -26,8 +27,9 @@ from scionlab.models.core import (
     Interface,
     Link,
     BorderRouter,
+    Host
 )
-from scionlab.models.vpn import VPNClient
+from scionlab.models.vpn import VPN, VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
@@ -40,11 +42,11 @@ _VAGRANT_VM_LOCAL_IP = '10.0.2.15'
 
 class UserASManager(models.Manager):
     def create(self,
-               owner,
-               installation_type,
-               isd,
-               as_id=None,
-               label=None):
+               owner: User,
+               installation_type: str,
+               isd: int,
+               as_id: str = None,
+               label: str = None) -> 'UserAS':
         """
         Create a UserAS attached to the given attachment point.
 
@@ -128,7 +130,7 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def update_attachments(self, att_confs=[], deleted_links=[]):
+    def update_attachments(self, att_confs: List['AttachmentConf'] = [], deleted_links: List[Link] = []):
         """
         Update the attachment of the UserAS handling creation, update and
         deletion of the attachments.
@@ -162,7 +164,7 @@ class UserAS(AS):
                 vpn_client.save()
         self.save()
 
-    def _create_or_update_attachment(self, att_conf):
+    def _create_or_update_attachment(self, att_conf: 'AttachmentConf'):
         """
         Proxy function that either calls create or update over a UserAS
         attachment point configuration, based on the presence of a link object
@@ -173,10 +175,10 @@ class UserAS(AS):
         else:
             return self._update_attachment(att_conf)
 
-    def _create_attachment(self, att_conf):
+    def _create_attachment(self, att_conf: 'AttachmentConf'):
         """
         Attach a UserAS to the specified attachment point creating the Link and the Interfaces,
-        and if needed a VPNClient. The new `Link` is stored in `att_conf.link` as side effect
+        and if needed a VPNClient. The new `Link` is stored in `att_conf.link`
         :param 'AttachmentPointConf' att_conf:
         """
         ap = att_conf.attachment_point
@@ -205,7 +207,7 @@ class UserAS(AS):
         )
         att_conf.link = link
 
-    def _update_attachment(self, att_conf):
+    def _update_attachment(self, att_conf: 'AttachmentConf'):
         """
         Update a Link and Interfaces(A and B) involved in a UserAS attachment
         :param 'AttachmentPointConf' att_conf:
@@ -232,13 +234,13 @@ class UserAS(AS):
         att_conf.link.update(active=att_conf.active)
         att_conf.link.save()
 
-    def _delete_attachment(self, deleted_link):
+    def _delete_attachment(self, deleted_link: List[Link]):
         """
         Delete the `deleted_link` link
         """
         deleted_link.delete()
 
-    def _create_or_update_vpn_connection(self, att_conf) -> Tuple['IP', Interface]:
+    def _create_or_update_vpn_connection(self, att_conf) -> Tuple[Interface, Interface]:
         """
         Create or reuse a `VPNClient` with the specified `AttachmentPoint`.
         The function also takes care of the attachment_point interface
@@ -301,16 +303,16 @@ class UserAS(AS):
         assert hasattr(iface.AS, 'useras')
         return iface.host.vpn_clients.filter(ip=iface.public_ip).exists()
 
-    def is_active(self):
+    def is_active(self) -> bool:
         """
-        Is this UserAS currently active?
+        Does the user have any active `Interface`?
         """
         return any(self.interfaces.prefetch_related('link_as_interfaceB')
                                   .values_list('link_as_interfaceB__active', flat=True)
                                   .all()
                    )
 
-    def update_active(self, active):
+    def update_active(self, active: bool):
         """
         Set the UserAS to be active/inactive by activating/deactivating all the links with
         attachment points. This will trigger a deployment of all the attachment points configuration
@@ -319,24 +321,6 @@ class UserAS(AS):
             link = iface.link()
             link.update_active(active)
             link.interfaceA.host.AS.attachment_point_info.trigger_deployment()
-
-    def _create_or_activate_vpn_client(self, vpn):
-        """
-        Get or create the VPN client config for the given VPN.
-        Deactivate all other VPN clients configured on this host.
-        :param VPN vpn:
-        :returns: VPNClient
-        """
-        host = self.hosts.get()
-        host.vpn_clients.exclude(vpn=vpn).update(active=False)
-        vpn_client = host.vpn_clients.filter(vpn=vpn).first()
-        if vpn_client:
-            if not vpn_client.active:
-                vpn_client.active = True
-                vpn_client.save()
-            return vpn_client
-        else:
-            return vpn.create_client(host, True)
 
     def attachment_points(self, active=True) -> List['AttachmentPoint']:
         """
@@ -371,7 +355,7 @@ class AttachmentPoint(models.Model):
     def __str__(self):
         return str(self.AS)
 
-    def get_border_router_for_useras_interface(self):
+    def get_border_router_for_useras_interface(self) -> BorderRouter:
         """
         Selects the preferred border router on which the Interfaces to UserASes should be configured
 
@@ -401,14 +385,14 @@ class AttachmentPoint(models.Model):
         for host in self.AS.hosts.iterator():
             transaction.on_commit(lambda: scionlab.tasks.deploy_host_config(host))
 
-    def supported_ip_versions(self):
+    def supported_ip_versions(self) -> Set[int]:
         """
         Returns the IP versions for the host where the user ASes will attach to
         """
         host = self._get_host_for_useras_attachment()
         return {ipaddress.ip_address(host.public_ip).version}
 
-    def _get_host_for_useras_attachment(self):
+    def _get_host_for_useras_attachment(self) -> Host:
         """
         Finds the host where user ASes would attach to
         """
@@ -491,13 +475,13 @@ class AttachmentConf:
         self.link = link
 
     @staticmethod
-    def attachment_points(att_confs):
+    def attachment_points(att_confs: List['AttachmentConf']) -> List[AttachmentPoint]:
         """
         :returns List[AttachmentPoint]: the attachment points in a list of `AttachmentConf`s
         """
         return [att_conf.attachment_point for att_conf in att_confs]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         _str = 'AttachmentPointConf('
         for k, v in self.__dict__.items():
             _str += '{}={}, '.format(k, v)
