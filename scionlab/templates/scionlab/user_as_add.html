@@ -5,16 +5,16 @@
 {% block title %}Create User AS{% endblock %}
 
 {% block content %}
-    <form action="{% url 'user_as_add' %}" id="id_user_as_form" method="post">
-        {% csrf_token %}
-        <h2>Configuration</h2>
-        {% crispy form %}
+<form action="{% url 'user_as_add' %}" id="id_user_as_form" method="post">
+  {% csrf_token %}
+  <h2>Configuration</h2>
+  {% crispy form %}
 
-        <h2>Attachment point</h2>
-        {% crispy form.attachment_links_form_set %}
-        <button type="submit" class="btn btn-primary savebtn mt-3">Create AS</button>
-    </form>
+  <h2 class="mt-2">Attachment point</h2>
+  {% crispy form.attachment_links_form_set %}
+  <button type="submit" class="btn btn-primary savebtn mt-3">Create AS</button>
+</form>
 
-    {% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}
+{% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}
 
 {% endblock content %}

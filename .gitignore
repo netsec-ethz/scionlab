@@ -110,7 +110,7 @@ venv.bak/
 # Vim
 **.swp
 # Ctags
-**tags
+tags
 # Idea
 .idea/
 # UML

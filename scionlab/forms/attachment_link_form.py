@@ -252,10 +252,6 @@ class AttachmentLinkForm(forms.ModelForm):
             initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['bind_port'] = instance.interfaceB.bind_port
         super().__init__(*args, initial=initial, **kwargs)
-        if instance:
-            # Done here since `self.fields` is populated only after calling `super()`
-            self.fields['attachment_point'].widget.attrs['readonly'] = True
-            self.fields['attachment_point'].required = False
 
     def clean(self):
         cleaned_data = super().clean()

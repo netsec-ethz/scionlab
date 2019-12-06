@@ -19,7 +19,7 @@
     <button type="submit" class="btn btn-primary savebtn mt-2" form="id_user_as_form">Save Changes</button>
 
     {% if object.is_active %}
-        <a class="ml-3" href="{% url 'user_as_config' pk=object.pk %}">
+        <a class="ml-2 mt-2" href="{% url 'user_as_config' pk=object.pk %}">
           <i class="fa fa-download"></i> 
           Download configuration
         </a>

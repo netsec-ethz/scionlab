@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import ipaddress
-from typing import List
+from typing import List, Tuple
 
 from django import urls
 from django.core.exceptions import ValidationError
@@ -135,18 +135,32 @@ class UserAS(AS):
         """
         aps_set = set(c.attachment_point for c in att_confs)
         aps_set |= set(l.interfaceA.AS.attachment_point_info for l in deleted_links)
-        isd_num = len(set(c.attachment_point.AS.isd for c in att_confs if c.active is True))
-        assert isd_num <= 1, "ISD consistency infringed"
-        # Update attachments
+        isds = set(c.attachment_point.AS.isd for c in att_confs if c.active is True)
+        assert len(isds) <= 1, "ISD consistency infringed"
+        # Update ISD if needed
+        if len(isds) == 1:
+            isd = isds.pop()
+            if isd != self.isd:
+                self._change_isd(isd)
+
         for att_conf in att_confs:
+            # Update attachments
             self._create_or_update_attachment(att_conf)
-        # Delete links, and drop attachments
         for deleted_link in deleted_links:
+            # Delete links
             self._delete_attachment(deleted_link)
-        # Update AttachmentPoints
         for ap in aps_set:
+            # Update AttachmentPoints
             ap.split_border_routers()
             ap.trigger_deployment()
+
+        # Deactivate useless VPNClients
+        active_vpns = set(c.attachment_point.vpn for c in att_confs if c.active and c.use_vpn)
+        for vpn_client in VPNClient.objects.filter(host=self.host):
+            if vpn_client.vpn not in active_vpns:
+                vpn_client.active = False
+                vpn_client.save()
+        self.save()
 
     def _create_or_update_attachment(self, att_conf):
         """
@@ -166,19 +180,18 @@ class UserAS(AS):
         :param 'AttachmentPointConf' att_conf:
         """
         ap = att_conf.attachment_point
-        if self.isd != ap.AS.isd:
-            self._change_isd(ap.AS.isd)
+
         if att_conf.use_vpn:
-            iface_ap, iface_client = self._create_or_update_vpn_connection(att_conf)
+            iface_client, iface_ap = self._create_or_update_vpn_connection(att_conf)
         else:
-            _bind_ip = att_conf.bind_ip
             if self.installation_type == UserAS.VM:
-                _bind_ip = _VAGRANT_VM_LOCAL_IP
+                att_conf.bind_ip = _VAGRANT_VM_LOCAL_IP
+
             iface_client = Interface.objects.create(
                 border_router=BorderRouter.objects.first_or_create(self.host),
                 public_ip=att_conf.public_ip,
                 public_port=att_conf.public_port,
-                bind_ip=_bind_ip,
+                bind_ip=att_conf.bind_ip,
                 bind_port=att_conf.bind_port
             )
             iface_ap = Interface.objects.create(
@@ -190,7 +203,6 @@ class UserAS(AS):
             interfaceA=iface_ap,
             interfaceB=iface_client
         )
-        self.save()
         att_conf.link = link
 
     def _update_attachment(self, att_conf):
@@ -199,77 +211,69 @@ class UserAS(AS):
         :param 'AttachmentPointConf' att_conf:
         """
         ap = att_conf.attachment_point
-        if att_conf.active and self.isd != ap.AS.isd:
-            self._change_isd(ap.AS.isd)
+
+        if att_conf.use_vpn:
+            self._create_or_update_vpn_connection(att_conf)
+        else:
+            if self.installation_type == UserAS.VM:
+                att_conf.bind_ip = _VAGRANT_VM_LOCAL_IP
+
+            iface_ap, iface_client = att_conf.link.interfaceA, att_conf.link.interfaceB
+            iface_client.update(public_ip=att_conf.public_ip,
+                                public_port=att_conf.public_port,
+                                bind_ip=att_conf.bind_ip,
+                                bind_port=att_conf.bind_port)
+            iface_ap.update(
+                border_router=ap.get_border_router_for_useras_interface(),
+                public_ip=None,
+                public_port=None
+            )
 
         att_conf.link.update(active=att_conf.active)
         att_conf.link.save()
-        if ap.vpn is None:
-            assert not att_conf.use_vpn, "AttachmentPoint doesn't support VPN connections"
-            # We simply cannot have a VPN connection if the ap does not support VPN
-            vpn_client = None
-        else:
-            vpn_client = VPNClient.objects.filter(host=self.host, vpn=ap.vpn).first()
-
-        if att_conf.use_vpn:
-            # Create or Update the vpn_client accordingly
-            iface_ap, iface_client = self._create_or_update_vpn_connection(att_conf)
-        else:
-            if vpn_client is not None and vpn_client.active:
-                # Deactivate the existing vpn_client
-                vpn_client.active = False
-                vpn_client.save()
-            iface_ap, iface_client = att_conf.link.interfaceA, att_conf.link.interfaceB
-            iface_ap.update(border_router=ap.get_border_router_for_useras_interface(),
-                            public_ip=None,
-                            public_port=None)
-            _bind_ip = att_conf.bind_ip
-            if self.installation_type == UserAS.VM:
-                _bind_ip = _VAGRANT_VM_LOCAL_IP
-            iface_client.update(public_ip=att_conf.public_ip,
-                                public_port=att_conf.public_port,
-                                bind_ip=_bind_ip,
-                                bind_port=att_conf.bind_port)
-
-        self.save()
 
     def _delete_attachment(self, deleted_link):
         """
         Delete the `deleted_link` link
         """
-        iface = deleted_link.interfaceB
-        if UserAS.is_link_over_vpn(iface):
-            # Delete the VPNClient if the link was over VPN
-            iface.host.vpn_clients.filter(ip=iface.public_ip).delete()
         deleted_link.delete()
 
-    def _create_or_update_vpn_connection(self, att_conf):
-        assert att_conf.attachment_point.vpn is not None
+    def _create_or_update_vpn_connection(self, att_conf) -> Tuple['IP', Interface]:
+        """
+        Create or reuse a `VPNClient` with the specified `AttachmentPoint`.
+        The function also takes care of the attachment_point interface
+        :returns: public_ip and port of the `VPNClient`
+        """
+        assert att_conf.attachment_point.vpn, "VPN not supported by this Attachment Point"
+        ap = att_conf.attachment_point
+        host = self.hosts.get()
         # Reuse VPNClient if there's one with this AttachmentPoint
-        vpn_client = VPNClient.objects.filter(host=self.host,
-                                              vpn=att_conf.attachment_point.vpn).first()
-        if vpn_client is None:
-            vpn_client = att_conf.attachment_point.vpn.create_client(host=self.host, active=True)
-        elif vpn_client.active is not True:
+        vpn_client = host.vpn_clients.filter(vpn=ap.vpn).first()
+        if not vpn_client:
+            vpn_client = ap.vpn.create_client(host, active=True)
+        elif not vpn_client.active:
             vpn_client.active = True
             vpn_client.save()
 
         if att_conf.link is not None:
             iface_ap, iface_client = att_conf.link.interfaceA, att_conf.link.interfaceB
-            iface_ap.update(public_ip=att_conf.attachment_point.vpn.server_vpn_ip)
             iface_client.update(public_ip=vpn_client.ip,
                                 public_port=att_conf.public_port,
                                 bind_ip=None,
                                 bind_port=None)
+            iface_ap.update(
+                    border_router=ap.get_border_router_for_useras_interface(),
+                    public_ip=att_conf.attachment_point.vpn.server_vpn_ip
+            )
         else:
-            border_router = BorderRouter.objects.first_or_create(self.host)
+            border_router = BorderRouter.objects.first_or_create(host)
             iface_client = Interface.objects.create(border_router=border_router,
                                                     public_ip=vpn_client.ip,
                                                     public_port=att_conf.public_port)
             iface_ap = Interface.objects.create(
                 border_router=att_conf.attachment_point.get_border_router_for_useras_interface(),
                 public_ip=att_conf.attachment_point.vpn.server_vpn_ip)
-        return iface_ap, iface_client
+        return iface_client, iface_ap
 
     def update(self,
                label,
@@ -315,7 +319,6 @@ class UserAS(AS):
             link = iface.link()
             link.update_active(active)
             link.interfaceA.host.AS.attachment_point_info.trigger_deployment()
-
 
     def _create_or_activate_vpn_client(self, vpn):
         """
@@ -460,6 +463,14 @@ class AttachmentPoint(models.Model):
         # delete old BRs
         if brs_to_delete:
             BorderRouter.objects.filter(pk__in=brs_to_delete).delete()
+
+    @staticmethod
+    def from_link(link: Link) -> 'AttachmentPoint':
+        """
+        :returns: an attachment point given a link with a UserAS
+        """
+        assert hasattr(link.interfaceB.AS, 'useras')
+        return link.interfaceA.AS.attachment_point_info
 
 
 class AttachmentConf:
