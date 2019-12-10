@@ -237,37 +237,30 @@ jobs:
             # Debug
             for i in $(seq 1 1000); do if [ -e /tmp/done ]; then break; fi; sleep 500; echo ${i}; done
             echo "Start containers required for VPN AP and verify they are working"
-            docker-compose up -d as1401 as1405
+            docker-compose up -d as1401 as1404
 
-            for c in as1401 as1405; do
+            for c in as1401 as1404; do
               docker-compose exec $c /bin/bash -c \
                 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             done
 
-            # Load setup files
-            for dst_AS in as1401 as1405; do
-                for f in $(ls .circleci/setup/); do
-                    docker cp .circleci/setup/${f} ${dst_AS}:/etc/scion/
-                done
+            sleep 20
+            docker-compose up -d userAS
+
+            for c in userAS; do
+              docker-compose exec $c /bin/bash -c \
+                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             done
-            docker-compose exec as1401 /bin/bash -c 'until [ -e /etc/scion/reloadASConfig.sh ]; do sleep 1; done; /etc/scion/reloadASConfig.sh; cat;'
-            # Wait for AP to be set up (key generation is slow)
-            docker-compose exec as1405 /bin/bash -c 'until [ -e /etc/scion/VPNexistingAS.sh ]; do sleep 1; done; /etc/scion/VPNexistingAS.sh; grep "Registered beacons" -r /var/log/scion/; scmp echo -c 10 -local 20-ffaa:0:1405,[127.0.0.1] -remote 20-ffaa:0:1401,[127.0.0.1]; touch /etc/scion/done; sleep 120; echo "reloading AP"; /etc/scion/reloadASConfig.sh; cat;'
-            docker exec as1405 /bin/bash -c "until [ -e /etc/scion/done ]; do sleep 0.1; done;"
-            echo "AP started"
 
             # Start user AS container, create user AS and connect:
-            docker run --net circleci_as_net --privileged -dt --name userAS1\
+            docker run --net circleci_as_net --privileged -dt --rm --name userAS1\
               --entrypoint /bin/bash scionhost:tmp -c 'sleep 10; /etc/scion/VPNnewUserAS.sh; cat;'  # waits for setup script to be loaded
             docker-compose exec userAS1 /bin/bash -c \
               'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
-            for f in $(ls .circleci/setup/); do
-                docker cp .circleci/setup/${f} userAS1:/etc/scion/
-            done
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker exec userAS1 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 20-ffaa:1:1,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
-            docker stop userAS1; docker rm userAS1;
+            docker exec userAS1 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 20-ffaa:1:3,[127.0.0.1] -remote 20-ffaa:0:1404,[127.0.0.1]'
+            docker stop userAS1
 
 workflows:
   version: 2

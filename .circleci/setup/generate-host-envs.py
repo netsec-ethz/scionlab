@@ -11,7 +11,8 @@ TEST_ASES = [
     'ffaa:0:1303',
     'ffaa:0:1305',
     'ffaa:0:1401',
-    'ffaa:0:1405',
+    'ffaa:0:1404',
+    'ffaa:1:3',
 ]
 
 with open(TESTDATA_FILE) as f:
