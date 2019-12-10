@@ -92,7 +92,7 @@ services:
     env_file: /tmp/as1404.env
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  userAS:
+  useras3:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost

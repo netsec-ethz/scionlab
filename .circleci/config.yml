@@ -245,22 +245,22 @@ jobs:
             done
 
             sleep 20
-            docker-compose up -d userAS
+            docker-compose up -d useras3
 
-            for c in userAS; do
+            for c in useras3; do
               docker-compose exec $c /bin/bash -c \
                 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             done
 
             # Start user AS container, create user AS and connect:
-            docker run --net circleci_as_net --privileged -dt --rm --name userAS1\
+            docker run --net circleci_as_net --privileged -dt --rm --name useras3\
               --entrypoint /bin/bash scionhost:tmp -c 'sleep 10; /etc/scion/VPNnewUserAS.sh; cat;'  # waits for setup script to be loaded
-            docker-compose exec userAS1 /bin/bash -c \
+            docker-compose exec useras3 /bin/bash -c \
               'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker exec userAS1 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 20-ffaa:1:3,[127.0.0.1] -remote 20-ffaa:0:1404,[127.0.0.1]'
-            docker stop userAS1
+            docker exec useras3 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 20-ffaa:1:3,[127.0.0.1] -remote 20-ffaa:0:1404,[127.0.0.1]'
+            docker stop useras3
 
 workflows:
   version: 2
