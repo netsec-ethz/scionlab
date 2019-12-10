@@ -89,7 +89,7 @@ services:
       as_net:
         ipv4_address: 172.31.0.114
     privileged: true
-    env_file: /tmp/as1405.env
+    env_file: /tmp/as1404.env
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
   userAS:
