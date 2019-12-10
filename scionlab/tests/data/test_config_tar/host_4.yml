@@ -1442,7 +1442,7 @@ gen/scionlab-config.json: |-
     "host_id": "bff6b39ba77e46a4a775a36f5fdf892d",
     "host_secret": "3560964a022346459556ca5eb71756c7",
     "url": "http://localhost:8000",
-    "version": 14
+    "version": 13
   }
 scionlab-services.txt: |-
   scion-border-router@17-ffaa_0_1107-1.service
@@ -1525,9 +1525,9 @@ server.conf: |
   V2UFd5iyu8SMUf+AdSI9Z6h6JvH8h3qIfTjhUHOS0stigQIDAQABo4GdMIGaMCIG
   A1UdEQQbMBmCF2ZmYWFfMF8xMTA3X18xOTIuMC4yLjE3MB8GA1UdIwQYMBaAFNnS
   pWmZlqsECJAaMqXfa5s+QCU/MB0GA1UdDgQWBBRqsNSS11w2U5fEoFFb7RWjsqiU
-  STAOBgNVHQ8BAf8EBAMCB4AwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwEwDAYDVR0T
-  AQH/BAIwADANBgkqhkiG9w0BAQsFAANBAHpNs4FNszOL3J8Nc88ZznmpXGlHRh2a
-  th70Ag09rY1KTWwwYVnhehDwKpsX0fXdNg3KOWUDiZ7JQ69Ll/0mB7s=
+  STAOBgNVHQ8BAf8EBAMCBaAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwEwDAYDVR0T
+  AQH/BAIwADANBgkqhkiG9w0BAQsFAANBAFI279/s2rfPRKIMT4+IUb4+ivTrK1DX
+  FQwPIKHe/s1+gQKDfzbfKA43lGLgaOaQapktM9V+2szPeCOMcnUfdk4=
   -----END CERTIFICATE-----
 
   </cert>

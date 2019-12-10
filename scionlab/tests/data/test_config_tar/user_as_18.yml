@@ -1,100 +1,5 @@
 README.md: |-
   content_not_checked
-client.conf: |
-  # Specify that we are a client
-  client
-
-  # We use a TUN device, a virtual point-to-point IP link
-  dev tun
-
-  # Connecting to a UDP server
-  proto udp
-
-  # Enable server authentication
-  remote-cert-tls server
-
-  # Select prefered cipher available in ovpn 2.3
-  cipher AES-256-CBC
-
-  # IP and port of the server
-  remote 192.0.2.44 1194
-
-  # Keep trying indefinitely to resolve the
-  # host name of the OpenVPN server.
-  resolv-retry infinite
-
-  # Do not bind to a specific local port number
-  nobind
-
-  # Preserve state accross restarts
-  persist-key
-  persist-tun
-
-  # Enable compression on the VPN link.
-  comp-lzo
-
-  # Log verbosity
-  verb 3
-
-  # Silence repeating messages
-  mute 10
-  <ca>
-  -----BEGIN CERTIFICATE-----
-  MIICiDCCAjKgAwIBAgIUY03EscLp/tV8/HiQuWm/cAGhnyIwDQYJKoZIhvcNAQEL
-  BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
-  MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
-  MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
-  aW5mLmV0aHouY2gwHhcNMTkwMzE4MTYxMzI4WhcNMjExMjEyMTYxMzI4WjCBljEL
-  MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
-  BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMQ8wDQYDVQQDDAZFVEggQ0ExETAPBgNV
-  BCkMCFNDSU9OVlBOMSYwJAYJKoZIhvcNAQkBFhdzY2lvbkBsaXN0cy5pbmYuZXRo
-  ei5jaDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQCYEEeAWRrJkwZv+8KQrhX/pPxJ
-  f89V1DT5V26f7cpXvYX++UD6wWN/nvrlxWMn0ogFXMXTzF4vzjbkDdr+TUWzAgMB
-  AAGjVjBUMB8GA1UdIwQYMBaAFNnSpWmZlqsECJAaMqXfa5s+QCU/MB0GA1UdDgQW
-  BBTZ0qVpmZarBAiQGjKl32ubPkAlPzASBgNVHRMBAf8ECDAGAQH/AgEAMA0GCSqG
-  SIb3DQEBCwUAA0EAFM4SoKTgWogTbZv2hUK5RZOFnxHfFmdt58lWh8ddYnjBftVO
-  H/MPzcX6Zss1ys5GCJpf2G2uKJJxTtstqEBEsg==
-  -----END CERTIFICATE-----
-  </ca>
-  <cert>
-  -----BEGIN CERTIFICATE-----
-  MIIDLzCCAtmgAwIBAgIUL8UCzU5jvPAeIwVOKW9mMntQDcQwDQYJKoZIhvcNAQEL
-  BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
-  MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
-  MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
-  aW5mLmV0aHouY2gwHhcNMTkxMDAyMTEwNzQxWhcNMjExMDAxMTEwNzQxWjCBrDEL
-  MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
-  BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMSUwIwYDVQQDDBxleGJlcnRAc2Npb25s
-  YWIub3JnX2ZmYWFfMV8zMREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJ
-  ARYXc2Npb25AbGlzdHMuaW5mLmV0aHouY2gwgZ8wDQYJKoZIhvcNAQEBBQADgY0A
-  MIGJAoGBAKD9u0fLYiqPac5IsYOQA3M2bmHmW2tVtr6l/AaxoUTukRG17EYoIXGr
-  PJwhHI76PULope4bqsT7vMGZvE0gSH+GFDH3rRD4F0ie7nb13Y8FGnt46WAR5TbG
-  6NIGlJgWLRArjfNeDAQs6a3vuFMS5Ox2PEpEQBdwCZxqF8YOoUAfAgMBAAGjgaIw
-  gZ8wJwYDVR0RBCAwHoIcZXhiZXJ0QHNjaW9ubGFiLm9yZ19mZmFhXzFfMzAfBgNV
-  HSMEGDAWgBTZ0qVpmZarBAiQGjKl32ubPkAlPzAdBgNVHQ4EFgQU1W7EKLUD1I/9
-  Y/fWXYGB7M3pIYIwDgYDVR0PAQH/BAQDAgeAMBYGA1UdJQEB/wQMMAoGCCsGAQUF
-  BwMCMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQAtLKwgrlpb0cSSa72d
-  SZmuW9qGeG+5qD1NBudMV8eI37IpGBMzqgneCLhuCr2Z0DtOWQb57bvoIA3TlXgQ
-  acgv
-  -----END CERTIFICATE-----
-  </cert>
-  <key>
-  -----BEGIN RSA PRIVATE KEY-----
-  MIICXAIBAAKBgQCg/btHy2Iqj2nOSLGDkANzNm5h5ltrVba+pfwGsaFE7pERtexG
-  KCFxqzycIRyO+j1C6KXuG6rE+7zBmbxNIEh/hhQx960Q+BdInu529d2PBRp7eOlg
-  EeU2xujSBpSYFi0QK43zXgwELOmt77hTEuTsdjxKREAXcAmcahfGDqFAHwIDAQAB
-  AoGAIQ85sCqRxA+jOJsw6MVgD/6zeCMnzsjROCE5ud4sMc2TuMFU/assAv2Y+q7K
-  AIpenijMOjMwRDc1scPyKRxiBop7KfYIlOY/XAcwy6SOTKXlFGBLJMCHOOyQBQds
-  zzcMrTtiBMJym/uyTT5CgCrRticuLZKEQ/DUL/PR8fN3Q0ECQQDUA2jrbjDnfHTZ
-  ifoIV8VNB2Q7QvWJSuG5bTQaulQDPx83oqUznyfsPXfeYqCeKl/7CRaPIy0C8qoH
-  EYJ1QVUxAkEAwmRl9S4xsS9PD+fWzP7vpT9x/QWfAL9IncRTyJav5OXe17Rd3oA3
-  eh05EAIRUDVgEQzWykTHBi1qh9CzuhHWTwJBAM4xisb94f4gopw3fr7CbhbeS3L/
-  SkF+XE20kWo1MSP/LeM0AatU7MTrezsDfOaWm8ZQLmqDcXFehFJfixtysOECQGoG
-  WnnkzSOn+wZg3A6JSeomdaSciUHeEtxB9bSlQ6CkI+wgq0YtRpTrFXF+vzSxOAl0
-  qD5ATxE2ejFDipOFIQ8CQByn/pmF+R5MROop2U5jtBiY7anElkIMhKPTQbeRkO6O
-  sI7Vy6JwwTziNs9QvB1PWndRZXSWuiamODVFh8F7KYo=
-  -----END RSA PRIVATE KEY-----
-  </key>
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/as.yml: |
   CertChainVersion: 0
   PathSegmentTTL: 21600
@@ -133,10 +38,10 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
-      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
+      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -191,13 +96,13 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-decrypt.key: |-
-  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+  YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-sig.seed: |-
-  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
+  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/master0.key: |-
-  YckGa2+R6a9Vtj/sI12CNw==
+  OeplPaV7ZeuUEdVA/0bihg==
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/master1.key: |-
-  YckGa2+R6a9Vtj/sI12CNw==
+  OeplPaV7ZeuUEdVA/0bihg==
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/topology.json: |-
   {
     "BeaconService": {
@@ -230,12 +135,12 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/topology.json: |-
             "MTU": 1472,
             "Overlay": "UDP/IPv4",
             "PublicOverlay": {
-              "Addr": "10.0.8.2",
+              "Addr": "172.31.0.200",
               "OverlayPort": 54321
             },
             "RemoteOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
+              "Addr": "192.0.2.44",
+              "OverlayPort": 50002
             }
           }
         },
@@ -335,10 +240,10 @@ gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
-      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
+      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -393,13 +298,13 @@ gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/as-decrypt.key: |-
-  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+  YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/as-sig.seed: |-
-  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
+  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/master0.key: |-
-  YckGa2+R6a9Vtj/sI12CNw==
+  OeplPaV7ZeuUEdVA/0bihg==
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/master1.key: |-
-  YckGa2+R6a9Vtj/sI12CNw==
+  OeplPaV7ZeuUEdVA/0bihg==
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/topology.json: |-
   {
     "BeaconService": {
@@ -432,12 +337,12 @@ gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/topology.json: |-
             "MTU": 1472,
             "Overlay": "UDP/IPv4",
             "PublicOverlay": {
-              "Addr": "10.0.8.2",
+              "Addr": "172.31.0.200",
               "OverlayPort": 54321
             },
             "RemoteOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
+              "Addr": "192.0.2.44",
+              "OverlayPort": 50002
             }
           }
         },
@@ -497,10 +402,10 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
-      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
+      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -594,13 +499,13 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/cs.toml: |
   MaxBackups = 1
   Path = "/var/log/scion/cs20-ffaa_1_3-1.log"
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-decrypt.key: |-
-  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+  YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-sig.seed: |-
-  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
+  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/master0.key: |-
-  YckGa2+R6a9Vtj/sI12CNw==
+  OeplPaV7ZeuUEdVA/0bihg==
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/master1.key: |-
-  YckGa2+R6a9Vtj/sI12CNw==
+  OeplPaV7ZeuUEdVA/0bihg==
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/topology.json: |-
   {
     "BeaconService": {
@@ -633,12 +538,12 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/topology.json: |-
             "MTU": 1472,
             "Overlay": "UDP/IPv4",
             "PublicOverlay": {
-              "Addr": "10.0.8.2",
+              "Addr": "172.31.0.200",
               "OverlayPort": 54321
             },
             "RemoteOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
+              "Addr": "192.0.2.44",
+              "OverlayPort": 50002
             }
           }
         },
@@ -698,10 +603,10 @@ gen/ISD20/ASffaa_1_3/endhost/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
-      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
+      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -826,12 +731,12 @@ gen/ISD20/ASffaa_1_3/endhost/topology.json: |-
             "MTU": 1472,
             "Overlay": "UDP/IPv4",
             "PublicOverlay": {
-              "Addr": "10.0.8.2",
+              "Addr": "172.31.0.200",
               "OverlayPort": 54321
             },
             "RemoteOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
+              "Addr": "192.0.2.44",
+              "OverlayPort": 50002
             }
           }
         },
@@ -891,10 +796,10 @@ gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
+      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
-      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
+      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
+      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -949,13 +854,13 @@ gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/as-decrypt.key: |-
-  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+  YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/as-sig.seed: |-
-  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
+  kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/master0.key: |-
-  YckGa2+R6a9Vtj/sI12CNw==
+  OeplPaV7ZeuUEdVA/0bihg==
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/master1.key: |-
-  YckGa2+R6a9Vtj/sI12CNw==
+  OeplPaV7ZeuUEdVA/0bihg==
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/ps.toml: |
   [general]
   ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1"
@@ -1025,12 +930,12 @@ gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/topology.json: |-
             "MTU": 1472,
             "Overlay": "UDP/IPv4",
             "PublicOverlay": {
-              "Addr": "10.0.8.2",
+              "Addr": "172.31.0.200",
               "OverlayPort": 54321
             },
             "RemoteOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
+              "Addr": "192.0.2.44",
+              "OverlayPort": 50002
             }
           }
         },
@@ -1091,10 +996,10 @@ gen/ia: |-
   20-ffaa_1_3
 gen/scionlab-config.json: |-
   {
-    "host_id": "8866122168904859b7186ee56f3e7861",
-    "host_secret": "39ea653da57b45eb9411d540ff46e286",
+    "host_id": "5f8a059a9cc749e0bc460a9c52decc64",
+    "host_secret": "f6a01b88e0da4c24b66406c46bbbdef9",
     "url": "http://localhost:8000",
-    "version": 7
+    "version": 6
   }
 scionlab-services.txt: |-
   scion-border-router@20-ffaa_1_3-1.service

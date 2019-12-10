@@ -79,7 +79,7 @@ services:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
-  as1404:
+  as1405:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
@@ -89,19 +89,19 @@ services:
       as_net:
         ipv4_address: 172.31.0.114
     privileged: true
-    env_file: /tmp/as1404.env
+    env_file: /tmp/as1405.env
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  useras3:
+  useras4:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
     depends_on:
-      - as1404
+      - as1405
     networks:
       as_net:
         ipv4_address: 172.31.0.2
     privileged: true
-    env_file: /tmp/as3.env
+    env_file: /tmp/as4.env
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
