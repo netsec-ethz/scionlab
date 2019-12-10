@@ -234,11 +234,6 @@ jobs:
           working_directory: ~/project/.circleci
           command: |
             set -x
-            # Skip if not running locally, since CircleCI does not support docker privileged
-            # Run locally with: circleci local execute --job build -e CIRCLE_ENV=local
-            if [[ ${CIRCLE_ENV} != *"local"* ]]; then
-              exit 0
-            fi
             echo "Start containers required for VPN AP and verify they are working"
             docker-compose -f .circleci/docker-compose.yml create as1401 as1405
 
