@@ -39,19 +39,6 @@ from scionlab.defines import (
     GEN_PATH,
 )
 
-from lib.crypto.asymcrypto import (
-    get_core_sig_key_file_path,
-    get_enc_key_file_path,
-    get_sig_key_file_path,
-)
-from lib.crypto.util import (
-    CERT_DIR,
-    get_offline_key_file_path,
-    get_online_key_file_path,
-    get_master_key_file_path,
-    MASTER_KEY_0,
-    MASTER_KEY_1,
-)
 from lib.defines import (
     AS_CONF_FILE,
     SCIOND_API_SOCKDIR,
@@ -168,24 +155,24 @@ class _ConfigGenerator:
 
     def _write_certs_trc(self, elem_dir):
         trc_version = self.AS.isd.trc['Version']
-        self.archive.write_json((elem_dir, CERT_DIR, _trc_filename(self.AS.isd, trc_version)),
+        self.archive.write_json((elem_dir, "certs", _trc_filename(self.AS.isd, trc_version)),
                                 self.AS.isd.trc)
 
         cert_version = self.AS.certificate_chain['0']['Version']
-        self.archive.write_json((elem_dir, CERT_DIR, _cert_chain_filename(self.AS, cert_version)),
+        self.archive.write_json((elem_dir, "certs", _cert_chain_filename(self.AS, cert_version)),
                                 self.AS.certificate_chain)
 
     def _write_keys(self, elem_dir):
         as_ = self.AS
         archive = self.archive
-        archive.write_text(get_sig_key_file_path(elem_dir), as_.sig_priv_key)
-        archive.write_text(get_enc_key_file_path(elem_dir), as_.enc_priv_key)
-        archive.write_text(get_master_key_file_path(elem_dir, MASTER_KEY_0), as_.master_as_key)
-        archive.write_text(get_master_key_file_path(elem_dir, MASTER_KEY_1), as_.master_as_key)
+        archive.write_text((elem_dir, "keys", "as-sig.seed"), as_.sig_priv_key)
+        archive.write_text((elem_dir, "keys", "as-decrypt.key"), as_.enc_priv_key)
+        archive.write_text((elem_dir, "keys", "master0.key"), as_.master_as_key)
+        archive.write_text((elem_dir, "keys", "master1.key"), as_.master_as_key)
         if as_.is_core:
-            archive.write_text(get_core_sig_key_file_path(elem_dir), as_.core_sig_priv_key)
-            archive.write_text(get_online_key_file_path(elem_dir), as_.core_online_priv_key)
-            archive.write_text(get_offline_key_file_path(elem_dir), as_.core_offline_priv_key)
+            archive.write_text((elem_dir, "keys", "core-sig.seed"), as_.core_sig_priv_key)
+            archive.write_text((elem_dir, "keys", "online-root.seed"), as_.core_online_priv_key)
+            archive.write_text((elem_dir, "keys", "offline-root.seed"), as_.core_offline_priv_key)
 
     def _write_topo(self, elem_dir):
         self.archive.write_json((elem_dir, 'topology.json'), self.topo_info.topo)
