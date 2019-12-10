@@ -1450,6 +1450,7 @@ scionlab-services.txt: |-
   scion-beacon-server@17-ffaa_0_1107-1.service
   scion-path-server@17-ffaa_0_1107-1.service
   scion-certificate-server@17-ffaa_0_1107-1.service
+  scion-bwtestserver.service
   scion-daemon@17-ffaa_0_1107.service
   scion-dispatcher.service
 server.conf: |
@@ -1459,6 +1460,11 @@ server.conf: |
   dev tun
   port 1194
   proto udp
+
+  # 1. choice: recommended, long term
+  # 2. choice: compatible with clients with openvpn 2.3 and updated client.conf file
+  # 3. choice: compatible with older clients
+  ncp-ciphers AES-256-GCM:AES-256-CBC:BF-CBC
 
   topology subnet
   push "topology subnet"

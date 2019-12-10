@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y graphviz
 RUN pip install appdeps
 
 # Clone SCION repo to get it's python modules
-RUN git clone https://github.com/netsec-ethz/netsec-scion/ -b scionlab /scion
+RUN git clone https://github.com/netsec-ethz/scion/ -b scionlab /scion
 ENV PYTHONPATH=/scion/python:/scion
 
 RUN mkdir /scionlab
