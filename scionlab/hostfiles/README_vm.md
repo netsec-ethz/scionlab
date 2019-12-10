@@ -52,4 +52,4 @@ https://www.vagrantup.com/docs/cli
 The SCION infrastructure is automatically started when the VM boots up.
 
 Please refer to the online tutorials for more information:
-https://netsec-ethz.github.io/scion-tutorials/
+https://docs.scionlab.org

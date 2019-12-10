@@ -103,7 +103,6 @@ links = [
 
 # other than default services
 extra_services = [
-    (_expand_as_id(0x1107), Service.PP),
     (_expand_as_id(0x1107), Service.BW),
     (_expand_as_id(0x1406), Service.BW),
 ]

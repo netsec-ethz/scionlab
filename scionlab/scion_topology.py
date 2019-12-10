@@ -76,7 +76,7 @@ def _fetch_routers(as_):
 
 def _fetch_services(as_):
     services = []
-    for stype, _ in Service.SERVICE_TYPES:
+    for stype, _ in [x for x in Service.SERVICE_TYPES if x[0] not in Service.EXTRA_SERVICE_TYPES]:
         for id, service in enumerate(as_.services.filter(type=stype).order_by('pk'), start=1):
             service.instance_id = id
             service.instance_name = "%s%s-%s" % (stype.lower(), as_.isd_as_path_str(), id)

@@ -173,8 +173,9 @@ class ISDAdmin(admin.ModelAdmin):
 
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
-        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'ssh_host',
-                  'secret')
+        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'ssh_host')
+
+    secret = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '32'}))
 
     def create(self):
         return Host.objects.create(
@@ -216,6 +217,16 @@ class HostAdminMixin:
         return format_html('<a class="viewlink" href="%s"></a>' % url)
 
     get_config_link.short_description = 'Config'
+
+    def get_scionlab_config_cmd(self, obj):
+        return ('scionlab-config'
+                ' --host-id {host_id}'
+                ' --host-secret {host_secret}'.format(
+                    host_id=obj.uid,
+                    host_secret=obj.secret)
+                )
+
+    get_scionlab_config_cmd.short_description = 'Commandline'
 
 
 class HostInline(HostAdminMixin, admin.TabularInline):
@@ -730,11 +741,11 @@ class LinkAdmin(admin.ModelAdmin):
 @admin.register(Host)
 class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
-    readonly_fields = ['uid']
+    readonly_fields = ['uid', 'get_scionlab_config_cmd']
     actions = ['trigger_config_deployment']
     list_display = ('__str__', 'AS',
                     'internal_ip', 'public_ip', 'bind_ip', 'managed', 'ssh_host',
-                    'latest_config_deployed', 'get_config_link')
+                    'latest_config_deployed', 'get_scionlab_config_cmd', 'get_config_link')
     list_filter = ('AS__isd', 'AS', )
     ordering = ['AS']
 
