@@ -240,11 +240,13 @@ jobs:
             for c in as1401 as1405; do
               docker-compose exec $c /bin/bash -c \
                 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+              docker-compose logs $c
             done
 
             docker-compose up -d useras4
             docker-compose exec useras4 /bin/bash -c \
               'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+            docker-compose logs useras4
 
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
