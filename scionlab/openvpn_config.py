@@ -277,7 +277,7 @@ def _make_cert(subject_name, subject_key, issuer_name, issuer_key,
         critical=False,
     ).add_extension(
         # digital_signature
-        x509.KeyUsage(True, False, False, False, False, False, False, False, False),
+        x509.KeyUsage(True, False, True, False, False, False, False, False, False),
         critical=True,
     ).add_extension(
         x509.ExtendedKeyUsage([extended_key_usage_oid]),
