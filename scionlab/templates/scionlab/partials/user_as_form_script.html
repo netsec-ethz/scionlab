@@ -111,6 +111,7 @@ function update_use_vpn_enable(sel) {
     toggle.prop('disabled', true);
     toggle.prop('was-checked', toggle.prop('checked'));
     toggle.prop('checked', false);
+    if (toggle.prop('was-checked')) update_ip_fields_show(toggle)
   }
 }
 

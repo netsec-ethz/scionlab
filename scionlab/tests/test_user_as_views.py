@@ -58,8 +58,10 @@ def _create_ases_for_testuser(num):
         user_as.update_attachments([att_conf])
 
 
-def _get_form_fields(data):
+def _get_form_fields(data, include_errors: bool = False):
     """
+    :include_errors: includes the expected error string in the form (NOTE: this piece of information
+                     should be removed from the returned dict before passing it to the Form)
     :returns Dict[Str, Any]: dictionary containing UserASForm and AttachmentLinksFormSet data
     """
     useras_defaults = {
@@ -88,11 +90,23 @@ def _get_form_fields(data):
         for k, v in attachment.items():
             t['form-{}-{}'.format(i, k)] = v
         d.update(t)
+    if include_errors and 'error' in data:
+        d['error'] = data['error']
     return d
 
 
 def _form_has_single_ap(form_data):
     return form_data['form-TOTAL_FORMS'] == 1
+
+
+def _get_forms_error_descs(form: UserASForm) -> str:
+    """
+    Return all the fields and non fields errors in the `UserASForm`, as well as
+    all the fields, non fields, and non form errors of the `AttachmentLinkForm`
+    """
+    formset = form.attachment_links_form_set
+    return '\n'.join(map(str, [form.errors, form.non_field_errors(),
+                     formset.errors, formset.non_form_errors()]))
 
 
 class UserASFormTests(TestCase):
@@ -106,6 +120,8 @@ class UserASFormTests(TestCase):
     invalid_cases_file_path = pathlib.Path(_FORM_CASES_FOLDER, 'invalid_forms.yaml')
     invalid_form_cases = yaml.safe_load(invalid_cases_file_path.read_text())
     invalid_forms_params = [_get_form_fields(c) for c in invalid_form_cases]
+    invalid_forms_params_with_errors = [_get_form_fields(c, include_errors=True)
+                                        for c in invalid_form_cases]
 
     def test_render_create(self):
         form = UserASForm(user=get_testuser())
@@ -118,19 +134,20 @@ class UserASFormTests(TestCase):
         Check that the form is valid with the given values as user input,
         and saving the form results in a new UserAS object.
         """
-        #  form_data = _get_form_fields(data)
         form = UserASForm(user=get_testuser(), data=form_data)
-        self.assertTrue(form.is_valid(),
-                        '{}\n{}'.format(form.errors, form.attachment_links_form_set.errors))
+        error_descs = _get_forms_error_descs(form)
+        self.assertTrue(form.is_valid(), error_descs)
         user_as = form.save()
         self.assertIsNotNone(user_as)
 
-    @parameterized.expand(zip(invalid_forms_params))
+    @parameterized.expand(zip(invalid_forms_params_with_errors))
     def test_create_invalid(self, form_data):
-        #  form_data = _get_form_fields(data)
+        error_desc = form_data.pop('error', None)
         form = UserASForm(user=get_testuser(), data=form_data)
         self.assertFalse(form.is_valid())
-        # TODO: It would be nice to also check against the returned errors
+        if error_desc:
+            error_descs = _get_forms_error_descs(form)
+            self.assertIn(error_desc, error_descs)
 
     def test_create_too_many(self):
         """
@@ -157,7 +174,6 @@ class UserASFormTests(TestCase):
         The instantiated form should not show any changes if the same data is
         submitted.
         """
-        #  form_data = _get_form_fields(data)
 
         # Create a UserAS with the given data
         create_form = UserASForm(user=get_testuser(), data=form_data)
@@ -265,7 +281,6 @@ class UserASCreateTests(WebTest):
         """ Submitting valid data creates the AS and forwards to the detail page """
         self.app.set_user(TESTUSER_EMAIL)
         create_page = self.app.get(reverse('user_as_add'))
-        #  self._fill_form(create_page.form, **_get_form_fields(data))
         self._fill_form(create_page.form, **form_data)
         response = create_page.form.submit()
 
@@ -288,7 +303,6 @@ class UserASCreateTests(WebTest):
         """ Submitting invalid data bumps back to the form with error messages """
         self.app.set_user(TESTUSER_EMAIL)
         create_page = self.app.get(reverse('user_as_add'))
-        #  self._fill_form(create_page.form, **_get_form_fields(data))
         self._fill_form(create_page.form, **form_data)
         response = create_page.form.submit()
         self.assertEqual(response.status_code, 200)

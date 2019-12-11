@@ -174,7 +174,7 @@ class AttachmentLinksFormSet(BaseModelFormSet):
                                   "same ISD")
         elif len(isd_set) < 1:
             # This means no attachment point has been selected
-            raise ValidationError("Select at least one attachment point")
+            raise ValidationError("Please select at least one attachment point")
         else:
             self.isd = list(isd_set)[0]
         # Add public ports clash errors to forms

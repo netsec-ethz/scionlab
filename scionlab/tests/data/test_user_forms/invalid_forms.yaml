@@ -10,34 +10,49 @@
 #       use_vpn: "on"
 #       public_port: "50000"
 - desc: "Needs either VPN or public IP"
+  error: "Please provide a value for public IP, or enable \"Use VPN\"."
   attachments:
     - attachment_point: "1"
+
 - desc: "AP2 does not have VPN"
+  error: "Selected attachment point does not support VPN"
   attachments:
     - attachment_point: "2"
       use_vpn: "on"
+
 - desc: "Invalid IP"
+  error: "Enter a valid IPv4 or IPv6 address."
   attachments:
     - attachment_point: "1"
       public_ip: "aa"
+
 - desc: "Localhost is not allowed"
+  error: >-
+    Public IP address must be a publically routable address.
+    It cannot be a multicast, loopback or otherwise reserved address.
   attachments:
     - attachment_point: "1"
       public_ip: "127.0.0.1"
+
 - desc: "The attachment point doesn't support IPv6"
+  error: "IP version 6 not supported by the selected attachment point"
   attachments:
     - attachment_point: "1"
-      public_ip: "127.0.0.1"
-- desc: "No attachment point selected"
+      public_ip: "2a00:1450:400a:801::2004"
+
+- desc: "No attachment point data"
   attachments: []
 
 - desc: "Inconsistent ISD"
+  error: "All attachment points must belong to the same ISD"
   attachments:
     - attachment_point: "1"
       use_vpn: "on"
     - attachment_point: "3"
       use_vpn: "on"
+
 - desc: "Conflicting public port with PKG installation"
+  error: "The port is already in use"
   installation_type: "PKG"
   attachments:
     - attachment_point: "3"
@@ -46,7 +61,9 @@
     - attachment_point: "4"
       public_ip: "192.1.2.111"
       public_port: "50000"
+
 - desc: "Conflicting public port with VM"
+  error: "The port is already in use"
   attachments:
     - attachment_point: "3"
       public_ip: "192.1.2.111"
@@ -54,7 +71,9 @@
     - attachment_point: "4"
       public_ip: "192.1.2.111"
       public_port: "50000"
-- desc: "Conflicting forwarding port because of public ports"
+
+- desc: "Conflicting forwarding port in VM setup"
+  error: "This port clashes in the VM setup"
   attachments:
     - attachment_point: "1"
       public_ip: "192.1.2.111"
@@ -62,7 +81,9 @@
     - attachment_point: "1"
       public_ip: "192.1.2.112"
       public_port: "50000"
+
 - desc: "Conflicting forwarding port because of public/bind ports"
+  error: "This port clashes in the VM setup"
   attachments:
     - attachment_point: "1"
       public_ip: "192.1.2.111"
