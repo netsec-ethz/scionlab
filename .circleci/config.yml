@@ -242,6 +242,10 @@ jobs:
                 'mkdir -p /etc/openvpn/ccd; scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             done
 
+            # FIXME: scionlab-config should properly create the ccd dir and at least attempt to get the tun interface ready before starting the corresponding br
+            docker-compose exec as1405 /bin/bash -c \
+              'systemctl restart scionlab.target'
+
             docker-compose up -d useras4
             docker-compose exec useras4 /bin/bash -c \
               'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
