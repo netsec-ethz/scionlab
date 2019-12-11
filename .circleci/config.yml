@@ -244,16 +244,14 @@ jobs:
                 'mkdir -p /etc/openvpn/ccd; scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             done
 
-            sleep 20
             docker-compose up -d useras4
-
             docker-compose exec useras4 /bin/bash -c \
               'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
 
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec useras4 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; scmp echo -c 10 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
-            docker stop useras4
+            docker-compose exec useras4 /bin/bash -c 'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; \
+              scmp echo -c 10 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
 
 workflows:
   version: 2
