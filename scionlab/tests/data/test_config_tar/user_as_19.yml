@@ -40,25 +40,44 @@ client.conf: |
   mute 10
   <ca>
   -----BEGIN CERTIFICATE-----
-  MIICiDCCAjKgAwIBAgIUY03EscLp/tV8/HiQuWm/cAGhnyIwDQYJKoZIhvcNAQEL
+  MIIGEjCCA/qgAwIBAgIUeQZvocnkR3/HEMw9MHBiGbmlbB8wDQYJKoZIhvcNAQEL
   BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
   MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
   MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
-  aW5mLmV0aHouY2gwHhcNMTkwMzE4MTYxMzI4WhcNMjExMjEyMTYxMzI4WjCBljEL
+  aW5mLmV0aHouY2gwHhcNMTkxMjExMDgwOTA3WhcNMjIwOTA2MDgwOTA3WjCBljEL
   MAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMQ8wDQYDVQQHDAZadXJpY2gxDDAKBgNV
   BAoMA0VUSDEPMA0GA1UECwwGTmV0U2VjMQ8wDQYDVQQDDAZFVEggQ0ExETAPBgNV
   BCkMCFNDSU9OVlBOMSYwJAYJKoZIhvcNAQkBFhdzY2lvbkBsaXN0cy5pbmYuZXRo
-  ei5jaDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQCYEEeAWRrJkwZv+8KQrhX/pPxJ
-  f89V1DT5V26f7cpXvYX++UD6wWN/nvrlxWMn0ogFXMXTzF4vzjbkDdr+TUWzAgMB
-  AAGjVjBUMB8GA1UdIwQYMBaAFNnSpWmZlqsECJAaMqXfa5s+QCU/MB0GA1UdDgQW
-  BBTZ0qVpmZarBAiQGjKl32ubPkAlPzASBgNVHRMBAf8ECDAGAQH/AgEAMA0GCSqG
-  SIb3DQEBCwUAA0EAFM4SoKTgWogTbZv2hUK5RZOFnxHfFmdt58lWh8ddYnjBftVO
-  H/MPzcX6Zss1ys5GCJpf2G2uKJJxTtstqEBEsg==
+  ei5jaDCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAMyaw7fZZ7VlvN64
+  U5ZT6oTORKa9G0hvvNF3fX6f/V7k7c849322Uev0VLtLoMVocXJKRFw6orSxVFVU
+  4TqmmNlieqkbGrqEXaAtDzLTzSFUM3pWZGZLXAKDr+tYhy1bC7fMWNFzzhoyYXr0
+  z9obXZiZaoWzWWbceGv5IWo5WlhWL/GjV6vD/kS0qvhDGdm9GCueyC0/mll44P5B
+  Iy1bB089o9vmRUk0ct49H739Q2OhKH/c67CiihV84O+BbkGUXjaeO0lRPM6xXRRK
+  DN389JyQjqGkkc3TkF18PzLkl2ff7XpmLBamnvWxSrTj+bR2KPHj7wGOPDbh+kgr
+  f1ofZigp0pqUQtJLrXdtTxjlPG1o88/RqXBfgeBLMTfC8CenYxoHWnCzGqmHtKJD
+  zE8odGf/cHzwgJV2Xksm1DVpsKys2/cTdrqQ0sjZGyZMLPMsJoAKi3XHTXKF6wPT
+  MTHAhALZUPLQJ/H1rU200Oz/S9EhIFnUaMtlWIDWG9I6Fu9c9N+Po6+6P1RU2rcv
+  C30h76rFVLCd4n1Pb94pmNQXgPo5x7Cw3oGqez+EF5j8JOxdvYJ6Aqv87fBLOz/Q
+  JJxoUeHaMj/CII1AJx39Pn3pOqERczZSbyJ5tOhbPJd1VmXOHsxBCtVcrE/8zqJ6
+  1FPmeRAvIh91eZdk+CKoEhUgR29fAgMBAAGjVjBUMB8GA1UdIwQYMBaAFE4JEc3/
+  hi5PNjOAmVv5WHAM3E4AMB0GA1UdDgQWBBROCRHN/4YuTzYzgJlb+VhwDNxOADAS
+  BgNVHRMBAf8ECDAGAQH/AgEAMA0GCSqGSIb3DQEBCwUAA4ICAQCx3y4SV08ms6wg
+  jv8KyNdWTRCWVRBiHXiH+0TgOwExe2RG3YVKVjrgrx4H2ZhPPEtDfmoSkSWXbKWG
+  0lyiLqlPfvAnQ/CI1O2Ekx/cAA9vYb7hPEimCnaAzNpkUQN/pIUw6vzX7lnRNLrt
+  Z3MfdnSPn2QK+o3iNx9G2zbzz2U64LEub93g0IMS5MpXIOSkogzUeqCPcK4HRGdv
+  ETj4Q748AvB8c9IhTFxhYx6NaeS4+PqnKsncKfApvsXjZ7qctK6PtUEk4NX2rv5N
+  m3f9T4Xqu/6tPwmt5drB7yZGGuDFuvnMbWGYB0KCfZ040WvgQoqkqiPIEZcr07SE
+  6n+jliz4pGGE/4UiWUjHXl78fJAC/wYCS4xKaB74PKruoxzGJJh5w7mFhkbdSgH6
+  0Y2FIKXt7S6sgfvstrj7cMyMeEP+ElncazPYCxkkyhkCvrP67JB6VIra6WS2yu4c
+  G2NSxyG9xSS5g8+GPQa5An61ZdDc86usyYAD8Jsoa5m4vYX09xZWDat5jAsILp8I
+  06/+s6Zdkw3X9SF4F4nG7NWVGhSibLSScTLsfAdi8Fe66UXliZV9BdXglt/B23w7
+  0Vhh6gKBAYwRY9wbOozHrgxa0cCplI+/cYbNYY0au8+jkDDIG3tEKLjyX8icb+Kw
+  zJAvxmLzWhIc0mnZYx4xy7pKviopEA==
   -----END CERTIFICATE-----
   </ca>
   <cert>
   -----BEGIN CERTIFICATE-----
-  MIIDLzCCAtmgAwIBAgIUcPV/MCwx+TxBJ3s0fzRoDNd8k5IwDQYJKoZIhvcNAQEL
+  MIIE8TCCAtmgAwIBAgIUFZOalR0DwxFovy3zcM/eJNvlqtcwDQYJKoZIhvcNAQEL
   BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
   MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
   MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
@@ -71,11 +90,20 @@ client.conf: |
   PJwhHI76PULope4bqsT7vMGZvE0gSH+GFDH3rRD4F0ie7nb13Y8FGnt46WAR5TbG
   6NIGlJgWLRArjfNeDAQs6a3vuFMS5Ox2PEpEQBdwCZxqF8YOoUAfAgMBAAGjgaIw
   gZ8wJwYDVR0RBCAwHoIcZXhiZXJ0QHNjaW9ubGFiLm9yZ19mZmFhXzFfNDAfBgNV
-  HSMEGDAWgBTZ0qVpmZarBAiQGjKl32ubPkAlPzAdBgNVHQ4EFgQU1W7EKLUD1I/9
+  HSMEGDAWgBROCRHN/4YuTzYzgJlb+VhwDNxOADAdBgNVHQ4EFgQU1W7EKLUD1I/9
   Y/fWXYGB7M3pIYIwDgYDVR0PAQH/BAQDAgWgMBYGA1UdJQEB/wQMMAoGCCsGAQUF
-  BwMCMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQA6Zkm3kSPIwRi/YxL9
-  yX70ZYS3w23h0fbRY0EWvwIzQp0PcOj27HSskVaAg3BnfVO52sx+ju0bRvqPC5a2
-  ijCD
+  BwMCMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADggIBABsZ/cjHnlRnCSgl
+  chSsz+O459aeyOY1IwKGZS7v6aTPBr2Fx1wZhGIuAbnxWDz3MAkdKRHxC6fEwBfH
+  XzrVAkaA5XNQjtMg724epnXHcz+QoxNOsISmZ1diJmD5A2vIphjMkDS4TxZr8Xi4
+  sd3Es6zqmd09PQeDtnqJwfEirnNpctscDW5K9C3m59BrN2FGi+cCgLSTlWfNMGCN
+  UCgx3Qzy4NwMQ2HfLEYXTWTdBJhxgBt3jNMj97dN5Fz8aNFyjP/UKFrAsnvlewOq
+  2GimfiZbYy/R+A6tHdNyqPVu/YtwAicWRBhaPoeKCG1YcunKZgbjeuyB7E+gNfZy
+  Z6BnjMs0aQMTucPam0lUGyIliMB9C/55TpsuDyl0Bt4+nELhGs4Y56mDD7xPj1zd
+  YPmCRDeOSFNHsyChUk3i9FPmVlt0NDyzEzhxFtT5qTgp0LuB88p/nSOaVwcVEpQ/
+  y9EN3As9x8MtoG85e+9rhjUU9owTGmXvA9mSuNjs0weATMUG/MjuSGA+YY6xxLsm
+  viMQpUtG3FeZtPkzpMgDhbYBPxp0MXrVTUOBMnlFM7TYtNcFw9eXhHqzJ7ZHTAdp
+  hhMHrUMYQAzVE9o4I5cCv1JeAxZOvlXf1B43c5iMn7wuqJQwuv2XpMxzpmPs2RDl
+  5XOsLafGiXJppDW7CTOjcAC+l4v7
   -----END CERTIFICATE-----
   </cert>
   <key>
@@ -133,10 +161,10 @@ gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/certs/ISD20-ASffaa_1_4-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "8cMD2lwKEhJziIYfQR96y09gisF4gwd7HBuX87Jn5cxRB9tJNhIVBgnUXjvP8YdtkCq0ul8sdsGlcQhXqod0AA==",
+      "Signature": "uhGv3LuocTpJwO5wfnh46I7S7AFHk+t22x14ItBBM3VnNJhrkksTABjClOYY+6XpZPCOmjD8dR/34Rm/NqIHDA==",
       "Subject": "20-ffaa:1:4",
-      "SubjectEncKey": "euLoRB8sW3rcCYlfxh5Hn2y51ZJ0E7Hpj4z1uLEQGV8=",
-      "SubjectSignKey": "PPDaT1QuYUT0J0pPpU9M4uWSFH+DJHjH1pjhQCT69lY=",
+      "SubjectEncKey": "e/eK1AlVKchgn3HEhUPl+K1FHgQFcm77eSfBaSjw1V4=",
+      "SubjectSignKey": "QzLK5QvUqrpKI1udVIkbGgWDv7BCqs9bajM7OSNBkjM=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -191,13 +219,13 @@ gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/as-decrypt.key: |-
-  bgiuaURgujVYIiEcnFsqB26TZXYTpLW1rhPHbIu5jSM=
+  ZG7sGrZ1mnYpK1d5aSiX6/7dSMOAHO5eWCSgW8R5oYQ=
 gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/as-sig.seed: |-
-  /t1Iw4Ac7l5YJKBbxHmhhMANMuD1QS25lVNLYaIKSo0=
+  X4oFmpzHeeA8RgqcUt7MZPagG4jg2gwktmQGxGu73vk=
 gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/master0.key: |-
-  Kyc1KjoHhiLRflvm4Z+8SQ==
+  wA0y4PVBLbmVU0thogpKjQ==
 gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/master1.key: |-
-  Kyc1KjoHhiLRflvm4Z+8SQ==
+  wA0y4PVBLbmVU0thogpKjQ==
 gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/topology.json: |-
   {
     "BeaconService": {
@@ -335,10 +363,10 @@ gen/ISD20/ASffaa_1_4/bs20-ffaa_1_4-1/certs/ISD20-ASffaa_1_4-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "8cMD2lwKEhJziIYfQR96y09gisF4gwd7HBuX87Jn5cxRB9tJNhIVBgnUXjvP8YdtkCq0ul8sdsGlcQhXqod0AA==",
+      "Signature": "uhGv3LuocTpJwO5wfnh46I7S7AFHk+t22x14ItBBM3VnNJhrkksTABjClOYY+6XpZPCOmjD8dR/34Rm/NqIHDA==",
       "Subject": "20-ffaa:1:4",
-      "SubjectEncKey": "euLoRB8sW3rcCYlfxh5Hn2y51ZJ0E7Hpj4z1uLEQGV8=",
-      "SubjectSignKey": "PPDaT1QuYUT0J0pPpU9M4uWSFH+DJHjH1pjhQCT69lY=",
+      "SubjectEncKey": "e/eK1AlVKchgn3HEhUPl+K1FHgQFcm77eSfBaSjw1V4=",
+      "SubjectSignKey": "QzLK5QvUqrpKI1udVIkbGgWDv7BCqs9bajM7OSNBkjM=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -393,13 +421,13 @@ gen/ISD20/ASffaa_1_4/bs20-ffaa_1_4-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_4/bs20-ffaa_1_4-1/keys/as-decrypt.key: |-
-  bgiuaURgujVYIiEcnFsqB26TZXYTpLW1rhPHbIu5jSM=
+  ZG7sGrZ1mnYpK1d5aSiX6/7dSMOAHO5eWCSgW8R5oYQ=
 gen/ISD20/ASffaa_1_4/bs20-ffaa_1_4-1/keys/as-sig.seed: |-
-  /t1Iw4Ac7l5YJKBbxHmhhMANMuD1QS25lVNLYaIKSo0=
+  X4oFmpzHeeA8RgqcUt7MZPagG4jg2gwktmQGxGu73vk=
 gen/ISD20/ASffaa_1_4/bs20-ffaa_1_4-1/keys/master0.key: |-
-  Kyc1KjoHhiLRflvm4Z+8SQ==
+  wA0y4PVBLbmVU0thogpKjQ==
 gen/ISD20/ASffaa_1_4/bs20-ffaa_1_4-1/keys/master1.key: |-
-  Kyc1KjoHhiLRflvm4Z+8SQ==
+  wA0y4PVBLbmVU0thogpKjQ==
 gen/ISD20/ASffaa_1_4/bs20-ffaa_1_4-1/topology.json: |-
   {
     "BeaconService": {
@@ -497,10 +525,10 @@ gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/certs/ISD20-ASffaa_1_4-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "8cMD2lwKEhJziIYfQR96y09gisF4gwd7HBuX87Jn5cxRB9tJNhIVBgnUXjvP8YdtkCq0ul8sdsGlcQhXqod0AA==",
+      "Signature": "uhGv3LuocTpJwO5wfnh46I7S7AFHk+t22x14ItBBM3VnNJhrkksTABjClOYY+6XpZPCOmjD8dR/34Rm/NqIHDA==",
       "Subject": "20-ffaa:1:4",
-      "SubjectEncKey": "euLoRB8sW3rcCYlfxh5Hn2y51ZJ0E7Hpj4z1uLEQGV8=",
-      "SubjectSignKey": "PPDaT1QuYUT0J0pPpU9M4uWSFH+DJHjH1pjhQCT69lY=",
+      "SubjectEncKey": "e/eK1AlVKchgn3HEhUPl+K1FHgQFcm77eSfBaSjw1V4=",
+      "SubjectSignKey": "QzLK5QvUqrpKI1udVIkbGgWDv7BCqs9bajM7OSNBkjM=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -594,13 +622,13 @@ gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/cs.toml: |
   MaxBackups = 1
   Path = "/var/log/scion/cs20-ffaa_1_4-1.log"
 gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/as-decrypt.key: |-
-  bgiuaURgujVYIiEcnFsqB26TZXYTpLW1rhPHbIu5jSM=
+  ZG7sGrZ1mnYpK1d5aSiX6/7dSMOAHO5eWCSgW8R5oYQ=
 gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/as-sig.seed: |-
-  /t1Iw4Ac7l5YJKBbxHmhhMANMuD1QS25lVNLYaIKSo0=
+  X4oFmpzHeeA8RgqcUt7MZPagG4jg2gwktmQGxGu73vk=
 gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/master0.key: |-
-  Kyc1KjoHhiLRflvm4Z+8SQ==
+  wA0y4PVBLbmVU0thogpKjQ==
 gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/master1.key: |-
-  Kyc1KjoHhiLRflvm4Z+8SQ==
+  wA0y4PVBLbmVU0thogpKjQ==
 gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/topology.json: |-
   {
     "BeaconService": {
@@ -698,10 +726,10 @@ gen/ISD20/ASffaa_1_4/endhost/certs/ISD20-ASffaa_1_4-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "8cMD2lwKEhJziIYfQR96y09gisF4gwd7HBuX87Jn5cxRB9tJNhIVBgnUXjvP8YdtkCq0ul8sdsGlcQhXqod0AA==",
+      "Signature": "uhGv3LuocTpJwO5wfnh46I7S7AFHk+t22x14ItBBM3VnNJhrkksTABjClOYY+6XpZPCOmjD8dR/34Rm/NqIHDA==",
       "Subject": "20-ffaa:1:4",
-      "SubjectEncKey": "euLoRB8sW3rcCYlfxh5Hn2y51ZJ0E7Hpj4z1uLEQGV8=",
-      "SubjectSignKey": "PPDaT1QuYUT0J0pPpU9M4uWSFH+DJHjH1pjhQCT69lY=",
+      "SubjectEncKey": "e/eK1AlVKchgn3HEhUPl+K1FHgQFcm77eSfBaSjw1V4=",
+      "SubjectSignKey": "QzLK5QvUqrpKI1udVIkbGgWDv7BCqs9bajM7OSNBkjM=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -891,10 +919,10 @@ gen/ISD20/ASffaa_1_4/ps20-ffaa_1_4-1/certs/ISD20-ASffaa_1_4-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "8cMD2lwKEhJziIYfQR96y09gisF4gwd7HBuX87Jn5cxRB9tJNhIVBgnUXjvP8YdtkCq0ul8sdsGlcQhXqod0AA==",
+      "Signature": "uhGv3LuocTpJwO5wfnh46I7S7AFHk+t22x14ItBBM3VnNJhrkksTABjClOYY+6XpZPCOmjD8dR/34Rm/NqIHDA==",
       "Subject": "20-ffaa:1:4",
-      "SubjectEncKey": "euLoRB8sW3rcCYlfxh5Hn2y51ZJ0E7Hpj4z1uLEQGV8=",
-      "SubjectSignKey": "PPDaT1QuYUT0J0pPpU9M4uWSFH+DJHjH1pjhQCT69lY=",
+      "SubjectEncKey": "e/eK1AlVKchgn3HEhUPl+K1FHgQFcm77eSfBaSjw1V4=",
+      "SubjectSignKey": "QzLK5QvUqrpKI1udVIkbGgWDv7BCqs9bajM7OSNBkjM=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -949,13 +977,13 @@ gen/ISD20/ASffaa_1_4/ps20-ffaa_1_4-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_4/ps20-ffaa_1_4-1/keys/as-decrypt.key: |-
-  bgiuaURgujVYIiEcnFsqB26TZXYTpLW1rhPHbIu5jSM=
+  ZG7sGrZ1mnYpK1d5aSiX6/7dSMOAHO5eWCSgW8R5oYQ=
 gen/ISD20/ASffaa_1_4/ps20-ffaa_1_4-1/keys/as-sig.seed: |-
-  /t1Iw4Ac7l5YJKBbxHmhhMANMuD1QS25lVNLYaIKSo0=
+  X4oFmpzHeeA8RgqcUt7MZPagG4jg2gwktmQGxGu73vk=
 gen/ISD20/ASffaa_1_4/ps20-ffaa_1_4-1/keys/master0.key: |-
-  Kyc1KjoHhiLRflvm4Z+8SQ==
+  wA0y4PVBLbmVU0thogpKjQ==
 gen/ISD20/ASffaa_1_4/ps20-ffaa_1_4-1/keys/master1.key: |-
-  Kyc1KjoHhiLRflvm4Z+8SQ==
+  wA0y4PVBLbmVU0thogpKjQ==
 gen/ISD20/ASffaa_1_4/ps20-ffaa_1_4-1/ps.toml: |
   [general]
   ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_4/ps20-ffaa_1_4-1"
@@ -1091,8 +1119,8 @@ gen/ia: |-
   20-ffaa_1_4
 gen/scionlab-config.json: |-
   {
-    "host_id": "b7cb55af1ecd46ea9ad668c5dc43e628",
-    "host_secret": "57a080f754884125a960fcbdbe8e4e3c",
+    "host_id": "6e08ae6944604a359822211c9c5b2a07",
+    "host_secret": "6e93657613a445b5ae13c76c8bb98d23",
     "url": "http://localhost:8000",
     "version": 7
   }

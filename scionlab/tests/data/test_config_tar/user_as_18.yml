@@ -38,10 +38,10 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
-      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -96,13 +96,13 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-decrypt.key: |-
-  YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
-gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-sig.seed: |-
   kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-sig.seed: |-
+  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/master0.key: |-
-  OeplPaV7ZeuUEdVA/0bihg==
+  YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/master1.key: |-
-  OeplPaV7ZeuUEdVA/0bihg==
+  YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/topology.json: |-
   {
     "BeaconService": {
@@ -240,10 +240,10 @@ gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
-      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -298,13 +298,13 @@ gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/as-decrypt.key: |-
-  YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
-gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/as-sig.seed: |-
   kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/as-sig.seed: |-
+  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/master0.key: |-
-  OeplPaV7ZeuUEdVA/0bihg==
+  YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/keys/master1.key: |-
-  OeplPaV7ZeuUEdVA/0bihg==
+  YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/bs20-ffaa_1_3-1/topology.json: |-
   {
     "BeaconService": {
@@ -402,10 +402,10 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
-      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -499,13 +499,13 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/cs.toml: |
   MaxBackups = 1
   Path = "/var/log/scion/cs20-ffaa_1_3-1.log"
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-decrypt.key: |-
-  YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
-gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-sig.seed: |-
   kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-sig.seed: |-
+  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/master0.key: |-
-  OeplPaV7ZeuUEdVA/0bihg==
+  YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/master1.key: |-
-  OeplPaV7ZeuUEdVA/0bihg==
+  YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/topology.json: |-
   {
     "BeaconService": {
@@ -603,10 +603,10 @@ gen/ISD20/ASffaa_1_3/endhost/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
-      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -796,10 +796,10 @@ gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
       "Issuer": "20-ffaa:0:1401",
       "IssuingTime": 1570002792,
       "SignAlgorithm": "ed25519",
-      "Signature": "xYfhIlxmgAOcOfNWlCx8+LQv7KkfSfo36eePANifsP09xOi8v5Yg6syBQXBvP2DZYzjucD15HENR1c+E6aRhBw==",
+      "Signature": "jVZnb1oPNZLL5mg94z+tNN8THwCBB4siICvAGuE06rpVHOBqo0+uJWDjiC1Oge2Efjf7R4BAOo73Jvu4eS+nDA==",
       "Subject": "20-ffaa:1:3",
-      "SubjectEncKey": "qD2Zmg427efKUwk+NXe5/2ewTbAnwCmxqeN5sx2l8FA=",
-      "SubjectSignKey": "MBgt/2YRLf5HWvRsq+2vEswiaK2uOaxBp+04nrDA9zA=",
+      "SubjectEncKey": "z4sEiWdq4jAbQBdb8Lyt1BYoiC6VsBO46IQclpqC9XA=",
+      "SubjectSignKey": "qIvj9jwle8NG3JAXG3A+EtWC5s58Jp9xN6Q2teI+0nU=",
       "TRCVersion": 1,
       "Version": 1
     },
@@ -854,13 +854,13 @@ gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
     "Version": 1
   }
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/as-decrypt.key: |-
-  YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
-gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/as-sig.seed: |-
   kMUDKe6VAa9jt80s/yYEBtJSggAJDMbsHJKcJccnrMk=
+gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/as-sig.seed: |-
+  4O+fVPIGe/XjoK1lCzk9okhUK/c8Wjkp4Gt2XeCQI2I=
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/master0.key: |-
-  OeplPaV7ZeuUEdVA/0bihg==
+  YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/keys/master1.key: |-
-  OeplPaV7ZeuUEdVA/0bihg==
+  YckGa2+R6a9Vtj/sI12CNw==
 gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1/ps.toml: |
   [general]
   ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_3/ps20-ffaa_1_3-1"
@@ -996,8 +996,8 @@ gen/ia: |-
   20-ffaa_1_3
 gen/scionlab-config.json: |-
   {
-    "host_id": "5f8a059a9cc749e0bc460a9c52decc64",
-    "host_secret": "f6a01b88e0da4c24b66406c46bbbdef9",
+    "host_id": "8866122168904859b7186ee56f3e7861",
+    "host_secret": "39ea653da57b45eb9411d540ff46e286",
     "url": "http://localhost:8000",
     "version": 6
   }
