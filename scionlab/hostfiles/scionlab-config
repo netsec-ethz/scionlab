@@ -273,9 +273,9 @@ def install_config(tar):
         tmpdir = tempfile.mkdtemp()
         tar.extractall(path=tmpdir)
         install_vpn_client_config(tmpdir)
+        install_vpn_server_config(tmpdir)
         install_scionlab_service(tmpdir)
         install_scion_config(tmpdir)
-        install_vpn_server_config(tmpdir)
     finally:
         shutil.rmtree(tmpdir)
 
