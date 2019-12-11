@@ -346,7 +346,7 @@ def install_vpn_client_config(tmpdir):
 def install_vpn_server_config(tmpdir):
     exists, changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
     if exists:
-        _mv_dir(tmpdir, 'ccd', '/etc/openvpnv')
+        _mv_dir(tmpdir, 'ccd', '/etc/openvpn/')
     if changed:
         if exists:
             if not os.path.exists('/etc/openvpn/dh.pem'):
