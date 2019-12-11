@@ -34,6 +34,22 @@
     - attachment_point: "1"
       public_ip: "127.0.0.1"
 
+- desc: "Multicast is not allowed"
+  error: >-
+    Public IP address must be a publically routable address.
+    It cannot be a multicast, loopback or otherwise reserved address.
+  attachments:
+    - attachment_point: "1"
+      public_ip: "10.0.0.1"
+
+- desc: "Private address is not allowed"
+  error: >-
+    Public IP address must be a publically routable address.
+    It cannot be a multicast, loopback or otherwise reserved address.
+  attachments:
+    - attachment_point: "1"
+      public_ip: "224.0.0.1"
+
 - desc: "The attachment point doesn't support IPv6"
   error: "IP version 6 not supported by the selected attachment point"
   attachments:
@@ -41,6 +57,7 @@
       public_ip: "2a00:1450:400a:801::2004"
 
 - desc: "No attachment point data"
+  error: "Please select at least one attachment point"
   attachments: []
 
 - desc: "Inconsistent ISD"
