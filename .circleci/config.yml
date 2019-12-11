@@ -234,8 +234,6 @@ jobs:
           working_directory: ~/project/.circleci
           command: |
             set -x
-            # Debug
-            for i in $(seq 1 1000); do if [ -e /tmp/done ]; then break; fi; sleep 500; echo ${i}; done
             echo "Start containers required for VPN AP and verify they are working"
             docker-compose up -d as1401 as1405
 
