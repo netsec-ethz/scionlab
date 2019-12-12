@@ -32,9 +32,8 @@ $(document).ready(function() {
 
     let attachment = sel.closest('.attachment')
     let toggle = attachment.find("input[id*='use_vpn']")
-    // A wrapper to call `update_ip_fields_show` with `$(this)` as its argument
-    function _update_ip_fields_show () { update_ip_fields_show($(this)) }
-    toggle.change(_update_ip_fields_show)
+
+    toggle.change(function _update_ip_fields_show () { update_ip_fields_show($(this)) })
   });
 
   setup_bind_row_collapse();
