@@ -29,14 +29,14 @@ from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS
 from scionlab.util.portmap import PortMap
 
 
-class AttachmentLinksFormSetHelper(FormHelper):
+class AttachmentConfFormSetHelper(FormHelper):
     """
     Create the crispy-forms FormHelper. The form will then be rendered
     using {% crispy form %} in the template.
     """
 
     def __init__(self, *args, **kwargs):
-        super(AttachmentLinksFormSetHelper, self).__init__(*args, **kwargs)
+        super(AttachmentConfFormSetHelper, self).__init__(*args, **kwargs)
         self.layout = Layout(
             Div(
                 HTML("""
@@ -123,15 +123,15 @@ class AttachmentLinksFormSetHelper(FormHelper):
         self.disable_csrf = True
 
 
-class AttachmentLinksFormSet(BaseModelFormSet):
+class AttachmentConfFormSet(BaseModelFormSet):
     """
     A FormSet companion for the UserASForm, representing its `AttachmentPoint`s
     """
 
     def __init__(self, *args, **kwargs):
         self.userASForm = kwargs.pop('userASForm')
-        super(AttachmentLinksFormSet, self).__init__(*args, **kwargs)
-        self.helper = AttachmentLinksFormSetHelper()
+        super(AttachmentConfFormSet, self).__init__(*args, **kwargs)
+        self.helper = AttachmentConfFormSetHelper()
 
     def clean(self):
         if any(self.errors):

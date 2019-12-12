@@ -17,7 +17,7 @@ from crispy_forms.layout import Layout, Div, Field
 from django import forms
 from django.forms import modelformset_factory
 
-from scionlab.forms.attachment_link_form import AttachmentLinkForm, AttachmentLinksFormSet
+from scionlab.forms.attachment_conf_form import AttachmentLinkForm, AttachmentConfFormSet
 from scionlab.models.core import Link
 from scionlab.models.user_as import UserAS
 
@@ -92,7 +92,7 @@ class UserASForm(forms.ModelForm):
         attachment_links_form_set = modelformset_factory(Link,
                                                          form=AttachmentLinkForm,
                                                          fields=('active',),
-                                                         formset=AttachmentLinksFormSet,
+                                                         formset=AttachmentConfFormSet,
                                                          max_num=UserAS.MAX_AP_PER_USERAS,
                                                          validate_max=True,
                                                          can_delete=True)

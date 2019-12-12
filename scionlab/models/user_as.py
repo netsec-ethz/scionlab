@@ -47,8 +47,7 @@ class UserASManager(models.Manager):
                isd: int,
                as_id: str = None,
                label: str = None) -> 'UserAS':
-        """
-        Create a UserAS attached to the given attachment point.
+        """Create a UserAS
 
         :param User owner: owner of this UserAS
         :param str installation_type:
@@ -99,7 +98,7 @@ class UserASManager(models.Manager):
         """
         :returns: the max `as_id_int` of all UserASes, or None
         """
-        return next(iter(self.aggregate(models.Max('as_id_int')).values()), None)
+        return self.aggregate(models.Max('as_id_int')).get('as_id_int__max', None)
 
 
 class UserAS(AS):
@@ -134,10 +133,11 @@ class UserAS(AS):
                            att_confs: List['AttachmentConf'] = [],
                            deleted_links: List[Link] = []):
         """
-        Update the attachment of the UserAS handling creation, update and
-        deletion of the attachments.
+        Update the attachments of the UserAS, handling their creation, update and deletion.
         """
+        # Attachment points of active connections
         aps_set = set(c.attachment_point for c in att_confs)
+        # Attachment points of inactive connections
         aps_set |= set(l.interfaceA.AS.attachment_point_info for l in deleted_links)
         isds = set(c.attachment_point.AS.isd for c in att_confs if c.active is True)
         assert len(isds) <= 1, "ISD consistency infringed"
@@ -154,11 +154,11 @@ class UserAS(AS):
             # Delete links
             self._delete_attachment(deleted_link)
         for ap in aps_set:
-            # Update AttachmentPoints
+            # Bump AttachmentPoints configurations
             ap.split_border_routers()
             ap.trigger_deployment()
 
-        # Deactivate useless VPNClients
+        # Deactivate unused VPNClients
         active_vpns = set(c.attachment_point.vpn for c in att_confs if c.active and c.use_vpn)
         for vpn_client in VPNClient.objects.filter(host=self.host):
             if vpn_client.vpn not in active_vpns:
@@ -168,8 +168,8 @@ class UserAS(AS):
 
     def _create_or_update_attachment(self, att_conf: 'AttachmentConf'):
         """
-        Proxy function that either calls create or update over a UserAS
-        attachment point configuration, based on the presence of a link object
+        Proxy function which calls create or update over a UserAS attachment point
+        configuration, based on the existence of `att_conf.link`
         """
         if att_conf.link is None:
             assert att_conf.active, "Cannot deactivate a non existing Link"
@@ -179,9 +179,8 @@ class UserAS(AS):
 
     def _create_attachment(self, att_conf: 'AttachmentConf'):
         """
-        Attach a UserAS to the specified attachment point creating the Link and the Interfaces,
-        and if needed a VPNClient. The new `Link` is stored in `att_conf.link`
-        :param 'AttachmentPointConf' att_conf:
+        Attach a UserAS to the specified attachment point creating the `Link` and the `Interface`s,
+        and if needed a `VPNClient`. The new `Link` is stored in `att_conf.link`
         """
         ap = att_conf.attachment_point
 
@@ -198,9 +197,7 @@ class UserAS(AS):
                 bind_ip=att_conf.bind_ip,
                 bind_port=att_conf.bind_port
             )
-            iface_ap = Interface.objects.create(
-                border_router=ap.get_border_router_for_useras_interface(),
-            )
+            iface_ap = Interface.objects.create(ap.get_border_router_for_useras_interface())
 
         link = Link.objects.create(
             type=Link.PROVIDER,
@@ -211,8 +208,8 @@ class UserAS(AS):
 
     def _update_attachment(self, att_conf: 'AttachmentConf'):
         """
-        Update a Link and Interfaces(A and B) involved in a UserAS attachment
-        :param 'AttachmentPointConf' att_conf:
+        Update the `Link` between the `UserAS` and the `AttachmentPoint`,
+        and the respective `Interface`s (A and B)
         """
         ap = att_conf.attachment_point
 
@@ -237,18 +234,16 @@ class UserAS(AS):
         att_conf.link.save()
 
     def _delete_attachment(self, deleted_link: List[Link]):
-        """
-        Delete the `deleted_link` link
-        """
         deleted_link.delete()
 
-    def _create_or_update_vpn_connection(self, att_conf) -> Tuple[Interface, Interface]:
+    def _create_or_update_vpn_connection(self,
+                                         att_conf: 'AttachmentConf') -> Tuple[Interface, Interface]:
         """
-        Create or reuse a `VPNClient` with the specified `AttachmentPoint`.
-        The function also takes care of the attachment_point interface
-        :returns: public_ip and port of the `VPNClient`
+        Create or reuse a `VPNClient` to connect the `UserAS` to the `AttachmentPoint`.
+        The function also takes care of the `AttachmentPoint`'s `Interface`.
+        :returns: `Interface`s of the `UserAS` and the `AttachmentPoint`
         """
-        assert att_conf.attachment_point.vpn, "VPN not supported by this Attachment Point"
+        assert att_conf.attachment_point.vpn, "VPN not supported by this attachment point"
         ap = att_conf.attachment_point
         host = self.hosts.get()
         # Reuse VPNClient if there's one with this AttachmentPoint
@@ -282,12 +277,12 @@ class UserAS(AS):
     def update(self,
                label,
                installation_type):
-        """
-        Update this UserAS instance and immediately `save`.
+        """Update this UserAS instance and immediately `save`.
+
         Updates the related host, interface and link instances and will trigger
         a configuration bump for the hosts of the affected attachment point(s).
         """
-        # XXX Useless since the model instance has already got the updated fields
+        # XXX Useless assignment since the model instance's fields are already up to date
         self.label = label
         self.host.update()
 
@@ -298,7 +293,7 @@ class UserAS(AS):
         return self.hosts.get()  # UserAS always has only one host
 
     @staticmethod
-    def is_link_over_vpn(iface):
+    def is_link_over_vpn(iface: Interface) -> bool:
         """
         Returns whether this UserAS interface corresponds to a link over VPN.
         """
@@ -309,16 +304,17 @@ class UserAS(AS):
         """
         Does the user have any active `Interface`?
         """
-        return any(self.interfaces.prefetch_related('link_as_interfaceB')
-                                  .values_list('link_as_interfaceB__active', flat=True)
-                                  .all()
-                   )
+        return any(self.interfaces
+                       .prefetch_related('link_as_interfaceB__active')
+                       .values_list('link_as_interfaceB__active', flat=True)
+                       .all())
 
     def update_active(self, active: bool):
         """
         Set the UserAS to be active/inactive by activating/deactivating all the links with
         attachment points. This will trigger a deployment of all the attachment points configuration
         """
+        # FIXME(andrea_tulimiero): Update a compatible subset of attachment points
         for iface in self.interfaces.all():
             link = iface.link()
             link.update_active(active)
