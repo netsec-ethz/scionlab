@@ -29,7 +29,6 @@ from scionlab.models.core import (
     BorderRouter,
     Host
 )
-from scionlab.models.vpn import VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
@@ -129,17 +128,31 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
+    def update(self,
+               label,
+               installation_type):
+        """Update this UserAS instance and immediately `save`.
+
+        Updates the related host, interface and link instances and will trigger
+        a configuration bump for the hosts of the affected attachment point(s).
+        """
+        # XXX Useless assignment since the model instance's fields are already up to date
+        self.label = label
+        self.host.update()
+
+        self.save()
+
     def update_attachments(self,
                            att_confs: List['AttachmentConf'] = [],
                            deleted_links: List[Link] = []):
         """
         Update the attachments of the UserAS, handling their creation, update and deletion.
         """
-        # Attachment points of active connections
         aps_set = set(c.attachment_point for c in att_confs)
-        # Attachment points of inactive connections
+        # Attachment points of deleted connections
         aps_set |= set(l.interfaceA.AS.attachment_point_info for l in deleted_links)
-        isds = set(c.attachment_point.AS.isd for c in att_confs if c.active is True)
+        # ISDs of active attachment points
+        isds = set(c.attachment_point.AS.isd for c in att_confs if c.active)
         assert len(isds) <= 1, "ISD consistency infringed"
         # Update ISD if needed
         if len(isds) == 1:
@@ -148,22 +161,14 @@ class UserAS(AS):
                 self._change_isd(isd)
 
         for att_conf in att_confs:
-            # Update attachments
             self._create_or_update_attachment(att_conf)
         for deleted_link in deleted_links:
-            # Delete links
             self._delete_attachment(deleted_link)
         for ap in aps_set:
-            # Bump AttachmentPoints configurations
             ap.split_border_routers()
             ap.trigger_deployment()
+        self._deactivate_unused_vpn_clients(att_confs)
 
-        # Deactivate unused VPNClients
-        active_vpns = set(c.attachment_point.vpn for c in att_confs if c.active and c.use_vpn)
-        for vpn_client in VPNClient.objects.filter(host=self.host):
-            if vpn_client.vpn not in active_vpns:
-                vpn_client.active = False
-                vpn_client.save()
         self.save()
 
     def _create_or_update_attachment(self, att_conf: 'AttachmentConf'):
@@ -231,7 +236,6 @@ class UserAS(AS):
             )
 
         att_conf.link.update(active=att_conf.active)
-        att_conf.link.save()
 
     def _delete_attachment(self, deleted_link: List[Link]):
         deleted_link.delete()
@@ -274,19 +278,12 @@ class UserAS(AS):
                 public_ip=att_conf.attachment_point.vpn.server_vpn_ip)
         return iface_client, iface_ap
 
-    def update(self,
-               label,
-               installation_type):
-        """Update this UserAS instance and immediately `save`.
-
-        Updates the related host, interface and link instances and will trigger
-        a configuration bump for the hosts of the affected attachment point(s).
-        """
-        # XXX Useless assignment since the model instance's fields are already up to date
-        self.label = label
-        self.host.update()
-
-        self.save()
+    def _deactivate_unused_vpn_clients(self, att_confs: 'AttachmentConf'):
+        active_vpns = set(c.attachment_point.vpn for c in att_confs if c.active and c.use_vpn)
+        for vpn_client in self.host.vpn_clients.all():
+            if vpn_client.vpn not in active_vpns:
+                vpn_client.active = False
+                vpn_client.save()
 
     @property
     def host(self):
