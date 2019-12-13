@@ -273,9 +273,9 @@ def install_config(tar):
         tmpdir = tempfile.mkdtemp()
         tar.extractall(path=tmpdir)
         install_vpn_client_config(tmpdir)
+        install_vpn_server_config(tmpdir)
         install_scionlab_service(tmpdir)
         install_scion_config(tmpdir)
-        install_vpn_server_config(tmpdir)
     finally:
         shutil.rmtree(tmpdir)
 
@@ -324,39 +324,47 @@ def install_vpn_client_config(tmpdir):
     if changed:
         if exists:
             subprocess.run(['systemctl', 'restart', 'openvpn@client'], check=True)
-            # ensure the interface is up; give up after 5 tries
-            vpn_ready = False
-            for i in range(5):
-                logging.debug('Waiting for VPN ...')
-                time.sleep(1)
-                st = subprocess.run(['ip', 'address', 'show', 'dev', 'tun0'],
-                                    stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL)
-                if st.returncode == 0:
-                    vpn_ready = True
-                    break
-            if vpn_ready:
-                logging.debug("Got VPN")
-            else:
-                logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
+            wait_for_tun0()
         else:
             subprocess.run(['systemctl', 'stop', 'openvpn@client'], check=True)
 
 
 def install_vpn_server_config(tmpdir):
     exists, changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
+    if exists:
+        _mv_dir(tmpdir, 'ccd', '/etc/openvpn/')
     if changed:
         if exists:
             if not os.path.exists('/etc/openvpn/dh.pem'):
                 subprocess.run(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'],
                                check=True)
             subprocess.run(['systemctl', 'restart', 'openvpn@server'], check=True)
+            wait_for_tun0()
         else:
             subprocess.run(['systemctl', 'stop', 'openvpn@server'], check=False)
 
-    if exists:
-        subprocess.run(['rm', '-rf', '/etc/openvpn/ccd/'], check=True)
-        subprocess.run(['mv', os.path.join(tmpdir, 'ccd'), '/etc/openvpn/'], check=True)
+
+def wait_for_tun0():
+    """
+    Wait at most 5 seconds for the tun0 network interface come up.
+
+    This is a hack/workaround; the border router will fail to bind on startup if it starts before
+    the VPN interface is fully up.
+    This check here is particularly ugly because there is no guarantee that the relevant tunnel
+    interface will actually be called tun0.
+    """
+    # ensure the interface is up; give up after 5 tries
+    for i in range(5):
+        logging.debug('Waiting for VPN ...')
+        time.sleep(1)
+        st = subprocess.run(['ip', 'address', 'show', 'dev', 'tun0'],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
+        if st.returncode == 0:
+            logging.debug("VPN tun0 up")
+            return True
+    logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
+    return False
 
 
 def _mv_dir(srcdir, dirname, dstdir):
