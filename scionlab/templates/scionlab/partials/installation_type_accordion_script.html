@@ -1,0 +1,13 @@
+<script>
+$(document).ready(function() {
+  let accordion_container = $("#accordion_id_user-as-installation_type")
+  accordion_container.find('input').click(function(e) {
+    // Keep at least an open accordion item
+    let target = $($(this).data('target'))
+    if (target.hasClass('show')) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  });
+});
+</script>

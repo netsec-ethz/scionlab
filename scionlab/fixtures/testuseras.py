@@ -21,8 +21,8 @@ def create_testuserases():
     aps = AttachmentPoint.objects.all()
     _create_user_as(exbert, aps[0], UserAS.VM, True)
     _create_user_as(exbert, aps[1], UserAS.VM, False)
-    _create_user_as(exbert, aps[2], UserAS.PKG, True)
-    _create_user_as(exbert, aps[3], UserAS.PKG, False)
+    _create_user_as(exbert, aps[2], UserAS.PKG, False)
+    _create_user_as(exbert, aps[3], UserAS.PKG, True)
     _create_user_as(exbert, aps[0], UserAS.SRC, False)
 
 

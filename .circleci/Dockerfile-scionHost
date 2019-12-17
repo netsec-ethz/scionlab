@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:bionic
 
 # Install base
 RUN apt-get update && apt-get install --assume-yes \

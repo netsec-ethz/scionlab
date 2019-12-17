@@ -17,7 +17,7 @@
 </head>
 
 <body>
-  <header class="navbar navbar-expand navbar-light" style="background-color: #e3f2fd;" >
+  <header class="navbar navbar-expand navbar-dark" style="background-color: #00539F;" >
 
     {# Ribbon to indicate dev/testing instances #}
     {% if 'debug' in instance_indicator %}
@@ -28,14 +28,15 @@
 
     {# Home link / logo #}
     <a class="navbar-brand" href="/">
-      <img height=32 width=32 src="{% static "scionlab/images/favicon.ico" %}" alt="SCION Logo"> SCIONLab
+      <img style="border: solid white 1px" height=32 width=32 src="{% static "scionlab/images/favicon.ico" %}" alt="SCION Logo">
+      <span class="d-none d-sm-inline"> SCIONLab</span>
     </a>
 
     {# Left aligned part of navbar #}
     {% if user.is_authenticated %}
     <ul class="navbar-nav">
       <li class="navbar-item">
-        <a class="nav-link" href="{% url 'user' %}">My ASes</a>
+        <a class="nav-link active" href="{% url 'user' %}">My ASes</a>
       </li>
     </ul>
     {% endif %}
@@ -44,10 +45,10 @@
     <ul class="navbar-nav flex-row ml-md-auto d-flex">
       {# External links: #}
       <li class="navbar-item">
-        <a class="nav-link" href="https://docs.scionlab.org/" target="_blank"><span class="fa fa-external-link"></span> Tutorials</a>
+        <a class="nav-link" href="https://docs.scionlab.org/"><span class="fa fa-external-link d-none d-sm-inline"></span> Documentation</a>
       </li>
-      <li class="navbar-item mr-4">
-        <a class="nav-link" href="https://www.scion-architecture.net/" target="_blank"><span class="fa fa-external-link"></span> SCION Architecture</a>
+      <li class="navbar-item">
+        <a class="nav-link" href="https://www.scion-architecture.net/" target="_blank"><span class="fa fa-external-link d-none d-sm-inline"></span> SCION</a>
       </li>
     {% if user.is_authenticated %}
       {# User drop down menu #}
@@ -65,7 +66,7 @@
     {% else %}
       {# Login link #}
       <li class="navbar-item">
-        <a class="nav-link" href="{% url 'login' %}"><span class="fa fa-sign-in"></span> Log in</a>
+        <a class="nav-link active nowrap" href="{% url 'login' %}"><span class="fa fa-sign-in"></span> Log in</a>
       </li>
     {% endif %}
     </ul>
@@ -76,9 +77,15 @@
     {% block content %}base.html{% endblock content %}
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <span class="text-muted">&copy; SCIONLab 2019</span>
+  <footer>
+    <div class="container text-muted mt-4">
+      <ul class="list-inline">
+        <li class="list-inline-item mr-4"><a href="mailto:scionlab-admins@sympa.ethz.ch"><span class="fa fa-envelope"></span> Contact</a></li>
+        <li class="list-inline-item mr-4"><a href="https://lists.inf.ethz.ch/mailman/listinfo/scion"><span class="fa fa-users"></span> SCION community mailing list</a></li>
+        <li class="list-inline-item mr-4"><a href="https://docs.scionlab.org/">Documenation</a></li>
+        <li class="list-inline-item"><a href="https://docs.scionlab.org/content/faq/">FAQ</a></li>
+      </ul>
+      <p class="mt-2">&copy; 2019 Network Security Group, ETH Zurich</p>
     </div>
   </footer>
 </body>
