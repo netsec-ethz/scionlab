@@ -56,10 +56,6 @@
     - attachment_point: "1"
       public_ip: "2a00:1450:400a:801::2004"
 
-- desc: "No attachment point data"
-  error: "Please select at least one attachment point"
-  attachments: []
-
 - desc: "Inconsistent ISD"
   error: "All attachment points must belong to the same ISD"
   attachments:

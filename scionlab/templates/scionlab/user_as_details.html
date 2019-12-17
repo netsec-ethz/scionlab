@@ -12,7 +12,11 @@
         {% crispy form %}
 
         <h2 class="mt-4" >Attachment points</h2>
-        {% crispy form.attachment_links_form_set %}
+        {{ form.attachment_conf_form_set.management_form|crispy }}
+        {{ form.attachment_conf_form_set|as_crispy_errors }}
+        {% for form in form.attachment_conf_form_set %}
+          {% crispy form %}
+        {% endfor %}
     </form>
 
     <hr>
@@ -27,7 +31,10 @@
         <form id="id_deactivate_form" method="post" action="{% url 'user_as_deactivate' pk=object.pk %}">{% csrf_token %}
         </form>
     {% else %}
-        <button type="submit" form="id_activate_form" class="btn btn-success pull-right mt-2">Activate this AS</button>
+        <button type="submit" form="id_activate_form" class="btn btn-success pull-right mt-2"
+          {% if not object.host.interfaces.all %} disabled {% endif %}>
+          Activate this AS
+        </button>
         <form id="id_activate_form" method="post" action="{% url 'user_as_activate' pk=object.pk %}">{% csrf_token %}
         </form>
     {% endif %}

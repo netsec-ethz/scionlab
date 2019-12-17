@@ -46,21 +46,8 @@
     <td><span class="nowrap"><a href="{% url 'user_as_detail' pk=user_as.pk %}"><span class="fa fa-edit"></span> {{ user_as.isd_as_str }}</a></span></td>
     <td>{{ user_as.label|default:"-" }}</td>
     <td>{{ user_as.useras.isd.label }}</td>
-    <td>
-      {% for ap in user_as.attachment_points  %}
-        {{ ap.AS.label }}{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    </td>
-    <td>
-      {% for iface in user_as.host.interfaces.all|active_interfaces %}
-        {% if iface|is_link_over_vpn %}
-          <i>VPN</i>:{{ iface.public_port }}
-        {% else %}
-          {{ iface.public_ip }}:{{ iface.public_port }}
-        {% endif %}
-        {% if not forloop.last %},{% endif %}
-      {% endfor %}
-    </td>
+    <td>{{ user_as.attachment_points_labels|join:', ' }}</td>
+    <td>{{ user_as.ip_port_labels|join:', ' }}</td>
     <td>
       {% if user_as.is_active %}
       <img src="{% static "admin/img/icon-yes.svg" %}" alt="Active">

@@ -12,7 +12,11 @@
     {% crispy form %}
 
     <h2 class="mt-2">Attachment point</h2>
-    {% crispy form.attachment_links_form_set %}
+    {{ form.attachment_conf_form_set.management_form|crispy }}
+    {{ form.attachment_conf_form_set|as_crispy_errors }}
+    {% for form in form.attachment_conf_form_set %}
+      {% crispy form %}
+    {% endfor %}
     <button type="submit" class="btn btn-primary savebtn mt-3">Create AS</button>
   </form>
 </div>

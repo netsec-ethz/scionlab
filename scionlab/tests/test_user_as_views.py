@@ -69,10 +69,13 @@ def _get_form_fields(data, include_errors: bool = False):
         "user-as-installation_type": "VM"
     }
     attachment_defaults = {
-        "active": "on", "use_vpn": "",
-        "attachment_point": "", "id": "",
-        "public_ip": "", "public_port": "50000",
-        "bind_ip": "", "bind_port": ""
+        "active": "on",
+        "use_vpn": "",
+        "attachment_point": "",
+        "public_ip": "",
+        "public_port": "50000",
+        "bind_ip": "",
+        "bind_port": ""
     }
     d = useras_defaults
     d['form-INITIAL_FORMS'] = 0
@@ -102,9 +105,9 @@ def _form_has_single_ap(form_data):
 def _get_forms_error_descs(form: UserASForm) -> str:
     """
     Return all the fields and non fields errors in the `UserASForm`, as well as
-    all the fields, non fields, and non form errors of the `AttachmentLinkForm`
+    all the fields, non fields, and non form errors of the `AttachmentConfForm`
     """
-    formset = form.attachment_links_form_set
+    formset = form.attachment_conf_form_set
     return '\n'.join(map(str, [form.errors, form.non_field_errors(),
                      formset.errors, formset.non_form_errors()]))
 

@@ -17,7 +17,7 @@ from crispy_forms.layout import Layout, Div, Field
 from django import forms
 from django.forms import modelformset_factory
 
-from scionlab.forms.attachment_conf_form import AttachmentLinkForm, AttachmentConfFormSet
+from scionlab.forms.attachment_conf_form import AttachmentConfForm, AttachmentConfFormSet
 from scionlab.models.core import Link
 from scionlab.models.user_as import UserAS
 
@@ -44,7 +44,7 @@ def _crispy_helper(instance):
         )
     )
 
-    # We need this to render the UserASForm along with the AttachmentLinkForm
+    # We need this to render the UserASForm along with the AttachmentConfForm
     helper.form_tag = False
     helper.disable_csrf = True
 
@@ -84,27 +84,27 @@ class UserASForm(forms.ModelForm):
             'installation_type': forms.RadioSelect(),
         }
 
-    def _get_attachment_links_form_set(self, data, instance):
+    def _get_attachment_conf_form_set(self, data, instance: UserAS):
         """
-        Returns an instance of a `FormSet` composed of `AttachmentLinkForm`s
+        Returns an instance of  `AttachmentConfFormSet`
         :param UserAS instance:
         """
-        attachment_links_form_set = modelformset_factory(Link,
-                                                         form=AttachmentLinkForm,
-                                                         fields=('active',),
-                                                         formset=AttachmentConfFormSet,
-                                                         max_num=UserAS.MAX_AP_PER_USERAS,
-                                                         validate_max=True,
-                                                         can_delete=True)
+        attachment_conf_form_set = modelformset_factory(Link,
+                                                        form=AttachmentConfForm,
+                                                        fields=('active',),
+                                                        formset=AttachmentConfFormSet,
+                                                        max_num=UserAS.MAX_AP_PER_USERAS,
+                                                        validate_max=True,
+                                                        can_delete=True)
         attach_links = Link.objects.filter(interfaceB__AS=instance)
-        return attachment_links_form_set(data, queryset=attach_links,
-                                         userASForm=self,
-                                         form_kwargs={'user': self.user})
+        return attachment_conf_form_set(data, queryset=attach_links,
+                                        userASForm=self,
+                                        form_kwargs={'user': self.user, 'userAS': instance})
 
     def __init__(self, data=None, *args, **kwargs):
         self.user = kwargs.pop('user')
         instance = kwargs.get('instance')
-        self.attachment_links_form_set = self._get_attachment_links_form_set(data, instance)
+        self.attachment_conf_form_set = self._get_attachment_conf_form_set(data, instance)
         initial = kwargs.pop('initial', {})
         self.helper = _crispy_helper(instance)
         super().__init__(data, *args, initial=initial, **kwargs)
@@ -114,7 +114,7 @@ class UserASForm(forms.ModelForm):
         if self.instance.pk is None:
             self.user.check_as_quota()
 
-        self.attachment_links_form_set.full_clean()
+        self.attachment_conf_form_set.full_clean()
         return cleaned_data
 
     def is_valid(self):
@@ -126,19 +126,17 @@ class UserASForm(forms.ModelForm):
         :returns: whether `UserASForm` (`self`) and the related `AttachmentLinksFormSet` are valid
         """
         # We first need to validate the `UserASForm` to then validate the `AttachmentLinksFormSet`
-        return super(UserASForm, self).is_valid() and self.attachment_links_form_set.is_valid()
+        return super(UserASForm, self).is_valid() and self.attachment_conf_form_set.is_valid()
 
     def save(self, commit=True):
         if self.instance.pk is None:
             user_as = UserAS.objects.create(self.user,
                                             self.cleaned_data['installation_type'],
-                                            self.attachment_links_form_set.isd,
+                                            self.attachment_conf_form_set.isd,
                                             label=self.cleaned_data['label'])
-            self.attachment_links_form_set.save(user_as)
+            self.attachment_conf_form_set.save(user_as)
             return user_as
         else:
-            self.instance.update(self.cleaned_data['label'],
-                                 self.cleaned_data['installation_type'],
-                                 )
-            self.attachment_links_form_set.save(self.instance)
+            self.instance.save()
+            self.attachment_conf_form_set.save(self.instance)
             return self.instance

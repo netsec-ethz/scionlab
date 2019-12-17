@@ -29,100 +29,6 @@ from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS
 from scionlab.util.portmap import PortMap
 
 
-class AttachmentConfFormSetHelper(FormHelper):
-    """
-    Create the crispy-forms FormHelper. The form will then be rendered
-    using {% crispy form %} in the template.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(AttachmentConfFormSetHelper, self).__init__(*args, **kwargs)
-        self.layout = Layout(
-            Div(
-                HTML("""
-                     {{% if forloop.first != forloop.last and forloop.last and\
-                             forloop.counter != {MAX_AP_PER_USERAS} %}}
-                     <button type="button" id="new-ap-collapser" class="mt-3 btn btn-link collapsed"
-                             aria-expanded="false" aria-controls="new-ap-form">
-                        New attachment point
-                        <i class="mt-3 fa fa-plus-circle"></i>
-                        <i class="mt-3 fa fa-minus-circle"></i>
-                     </button>
-                     {{% endif %}}
-                     """.format(MAX_AP_PER_USERAS=UserAS.MAX_AP_PER_USERAS)
-                     ),
-                Div(
-                    Div(
-                        Row(
-                            Column(
-                                'active',
-                                css_class='form-group col-md-2 mb-0',
-                                ),
-                            Column(
-                                'use_vpn',
-                                css_class='form-group col-md-5 mb-0',
-                                ),
-                            Column(
-                                'attachment_point',
-                                css_class='form-group col-md-5 mb-0',
-                                ),
-                            ),
-                        css_class="card-header"
-                        ),
-                    Div(
-                        Row(
-                            Column(
-                                AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-                                css_class='form-group col-md-6 mb-0',
-                                ),
-                            Column(
-                                AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
-                                css_class='form-group col-md-6 mb-0',
-                                ),
-                            ),
-                        Row(
-                            HTML("""
-                                 <button type="button"
-                                         class="mt-3 btn btn-link bind-row-collapser collapsed"
-                                         aria-expanded="false" aria-controls="bind-row">
-                                    Show binding options for NAT
-                                    <i class="mt-3 fa fa-plus-circle"></i>
-                                    <i class="mt-3 fa fa-minus-circle"></i>
-                                 </button>
-                                 """
-                                 ),
-                            ),
-                        Row(
-                            Column(
-                                AppendedText('bind_ip',
-                                             '<span class="fa fa-external-link-square"/>'),
-                                css_class='form-group col-md-6 mb-0',
-                                ),
-                            Column(
-                                AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
-                                css_class='form-group col-md-6 mb-0',
-                                ),
-                            css_class="bind-row"
-                            ),
-                        Row(
-                            Column(
-                                'DELETE',
-                                css_class='text-danger form-group col-md-6 mb-0'
-                                )
-                            ),
-                        css_class="card-body"
-                        ),
-                    css_class="card attachment-form",
-                    style="margin-top: 16px;",
-                    ),
-                css_class="attachment"
-                )
-        )
-        # We need this to render the AttachmentLinksFormSet along with the UserASForm
-        self.form_tag = False
-        self.disable_csrf = True
-
-
 class AttachmentConfFormSet(BaseModelFormSet):
     """
     A FormSet companion for the UserASForm, representing its `AttachmentPoint`s
@@ -130,8 +36,8 @@ class AttachmentConfFormSet(BaseModelFormSet):
 
     def __init__(self, *args, **kwargs):
         self.userASForm = kwargs.pop('userASForm')
-        super(AttachmentConfFormSet, self).__init__(*args, **kwargs)
-        self.helper = AttachmentConfFormSetHelper()
+        self.isd = None
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         if any(self.errors):
@@ -172,11 +78,12 @@ class AttachmentConfFormSet(BaseModelFormSet):
         if len(isd_set) > 1:
             raise ValidationError("All attachment points must belong to the "
                                   "same ISD")
-        elif len(isd_set) < 1:
-            # This means no attachment point has been selected
-            raise ValidationError("Please select at least one attachment point")
-        else:
+        elif len(isd_set) == 1:
             self.isd = list(isd_set)[0]
+        elif not self.userASForm.instance.pk:
+            # One attachment point must be selected at creation time
+            raise ValidationError("Select at least one attachment point")
+
         # Add public ports clash errors to forms
         for form in public_port_clashing_forms:
             form.add_error('public_port',
@@ -199,7 +106,95 @@ class AttachmentConfFormSet(BaseModelFormSet):
         user_as.update_attachments(att_confs, self.deleted_objects)
 
 
-class AttachmentLinkForm(forms.ModelForm):
+class AttachmentConfFormHelper(FormHelper):
+    """
+    Create the crispy-forms FormHelper. The form will then be rendered
+    using {% crispy form %} in the template.
+    """
+
+    conf_header = Div(
+            Row(
+                Column('attachment_point', css_class='form-group col-md-7 mb-0'),
+                Column('use_vpn', css_class='form-group col-md-5 mb-0'),
+                'id'
+                ),
+            css_class="card-header"
+            )
+
+    conf_body = Div(
+            Row(
+                Column(AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
+                       css_class='form-group col-md-6 mb-0'),
+                Column(AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
+                       css_class='form-group col-md-6 mb-0')
+                ),
+            Row(
+                HTML("""<button type="button" class="mt-3 btn btn-link bind-row-collapser collapsed"
+                                aria-expanded="false" aria-controls="bind-row">
+                            Show binding options for NAT
+                            <i class="mt-3 fa fa-plus-circle"></i>
+                            <i class="mt-3 fa fa-minus-circle"></i>
+                        </button>""")
+                ),
+            Row(
+                Column(AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
+                       css_class='form-group col-md-6 mb-0'),
+                Column(AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
+                       css_class='form-group col-md-6 mb-0'),
+                css_class="bind-row"
+                ),
+            css_class="card-body"
+            )
+
+    # XXX: New instance needed since we modify this in the __init__(...), `if not initial`
+    @property
+    def conf_footer(self):
+        return Div(
+                Row(
+                    Column('active', css_class='col-md-6 mb-0'),
+                    Column('DELETE', css_class='text-danger col-md-6 mb-0')
+                    ),
+                css_class="card-footer"
+                )
+
+    @property
+    def conf_collapser(self):
+        return HTML("""<button type="button" id="new-ap-collapser"
+                               class="mt-3 btn btn-link collapsed"
+                               aria-expanded="false"
+                               aria-controls="new-ap-form">
+                           New attachment point
+                           <i class="mt-3 fa fa-plus-circle"></i>
+                           <i class="mt-3 fa fa-minus-circle"></i>
+                       </button>""")
+
+    def __init__(self, instance, userAS, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = Layout(
+                Div(
+                    Div(
+                        self.conf_header,
+                        self.conf_body,
+                        self.conf_footer,
+                        css_class="card attachment-form",
+                    ),
+                    css_class='attachment'
+                )
+            )
+        if not instance:
+            # Not the most expressive syntax, but at least less boilerplate ...
+            form_card_footer = self.layout[0][0][2]
+            if userAS:
+                self.layout[0].insert(0, self.conf_collapser)
+                form_card_footer = self.layout[0][1][2]
+            form_card_footer.css_class = 'd-none'
+
+        # We need `form_tag = False` to render the AttachmentConfFormSet along with the UserASForm
+        self.form_tag = False
+        self.disable_csrf = True
+
+
+class AttachmentConfForm(forms.ModelForm):
     """
     Form for creating and updating a Link involving a UserAS
     """
@@ -237,10 +232,11 @@ class AttachmentLinkForm(forms.ModelForm):
 
     class Meta:
         model = Link
-        fields = ('active',)
+        fields = ('id', 'active')
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
+        userAS = kwargs.pop('userAS')
         instance = kwargs.get('instance')
         initial = kwargs.pop('initial', {})
         if instance:
@@ -251,14 +247,15 @@ class AttachmentLinkForm(forms.ModelForm):
             initial['public_port'] = instance.interfaceB.public_port
             initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['bind_port'] = instance.interfaceB.bind_port
+        self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
         if 'attachment_point' not in cleaned_data:
             raise ValidationError(
-                        'Please select at least one attachment point',
-                        code='missing_attachment_point')
+                'Please select at least one attachment point',
+                code='missing_attachment_point')
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
         elif 'public_ip' in self.errors:
