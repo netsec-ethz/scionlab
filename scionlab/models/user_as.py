@@ -128,18 +128,12 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def update(self,
-               label,
-               installation_type):
-        """Update this UserAS instance and immediately `save`.
-
-        Updates the related host, interface and link instances and will trigger
-        a configuration bump for the hosts of the affected attachment point(s).
+    def update(self, label: str, installation_type: str):
         """
-        # XXX Useless assignment since the model instance's fields are already up to date
+        Updates the `UserAS` fields and immediately saves
+        """
         self.label = label
-        self.host.update()
-
+        self.installation_type = installation_type
         self.save()
 
     def update_attachments(self,
@@ -147,6 +141,7 @@ class UserAS(AS):
                            deleted_links: List[Link] = []):
         """
         Update the attachments of the UserAS, handling their creation, update and deletion.
+        Moreover, bumps the related host configuration
         """
         aps_set = set(c.attachment_point for c in att_confs)
         # Attachment points of deleted connections
@@ -169,6 +164,7 @@ class UserAS(AS):
             ap.trigger_deployment()
         self._deactivate_unused_vpn_clients(att_confs)
 
+        self.host.update()
         self.save()
 
     def _create_or_update_attachment(self, att_conf: 'AttachmentConf'):
@@ -235,7 +231,9 @@ class UserAS(AS):
                 public_port=None
             )
 
-        att_conf.link.update(active=att_conf.active)
+        # Already set if coming from AttachmentConfForm.save(...)
+        att_conf.link.active = att_conf.active
+        att_conf.link.save()
 
     def _delete_attachment(self, deleted_link: List[Link]):
         deleted_link.delete()
@@ -302,35 +300,81 @@ class UserAS(AS):
         Does the user have any active `Interface`?
         """
         return any(self.interfaces
-                       .prefetch_related('link_as_interfaceB__active')
                        .values_list('link_as_interfaceB__active', flat=True)
                        .all())
 
+    def _activate(self) -> Set['AttachmentPoint']:
+        """
+        Activate the first attachment point
+        :return: attachment points that shall be updated
+        """
+        link = self.host.interfaces.first().link_as_interfaceB
+        link.update_active(True)
+        return {link.interfaceA.AS.attachment_point_info}
+
+    def _deactivate(self) -> Set['AttachmentPoint']:
+        """
+        Deactivate all the links with the attachment points
+        :return: attachment points that shall be updated
+        """
+        attachment_points = set()
+        for link in map(lambda iface: iface.link(), self.interfaces.all()):
+            link.update_active(False)
+            attachment_points.add(link.interfaceA.AS.attachment_point_info)
+        return attachment_points
+
     def update_active(self, active: bool):
         """
-        Set the UserAS to be active/inactive by activating/deactivating all the links with
-        attachment points. This will trigger a deployment of all the attachment points configuration
+        Set the `UserAS` to be active (or inactive) by activating (or deactivating) a consistent
+        susbent (or all) the links with attachment points.
+        This will trigger a deployment of all the attachment points configurations
         """
-        # FIXME(andrea_tulimiero): Update a compatible subset of attachment points
-        for iface in self.interfaces.all():
-            link = iface.link()
-            link.update_active(active)
-            link.interfaceA.host.AS.attachment_point_info.trigger_deployment()
+        if active:
+            attachment_points = self._activate()
+        else:
+            attachment_points = self._deactivate()
+        for ap in attachment_points:
+            attachment_points = ap.trigger_deployment()
 
-    def attachment_points(self, active=True) -> List['AttachmentPoint']:
+    def public_addresses(self, active=True):
         """
+        :active: consider public addresses used only by active connections
+        :return: a list of public addresses used by the `UserAS`
+        """
+        ifaces = self.host.interfaces
+        if active:
+            ifaces = ifaces.filter(link_as_interfaceB__active=True)
+        return [iface.public_ip for iface in ifaces if not UserAS.is_link_over_vpn(iface)]
+
+    @property
+    def ip_port_labels(self):
+        ifaces = self.host.interfaces.filter(link_as_interfaceB__active=True)
+        public_labels, vpn_labels = [], []
+        for iface in ifaces:
+            if UserAS.is_link_over_vpn(iface):
+                vpn_labels.append('VPN:{}'.format(iface.public_port))
+            else:
+                public_labels.append('{}:{}'.format(iface.public_ip, iface.public_port))
+        return public_labels + vpn_labels
+
+    def attachment_points(self, active: bool = True) -> List['AttachmentPoint']:
+        """
+        :active: consider attachment points with which the user has an active connection only
         :returns: a list of attachments points to which the user is attached to
         """
         def _ap_of_iface(iface: Interface) -> AttachmentPoint:
             return iface.link_as_interfaceB.interfaceA.AS.attachment_point_info
 
-        # Filter all interfaces all the current UserAS
-        query = Interface.objects.filter(AS=self)
+        ifaces = self.host.interfaces
         # Select related to hit the databes less often
-        query = query.select_related('link_as_interfaceB__interfaceA__AS__attachment_point_info')
+        query = ifaces.select_related('link_as_interfaceB__interfaceA__AS__attachment_point_info')
         if active:
             query = query.filter(link_as_interfaceB__active=True)
         return [_ap_of_iface(iface) for iface in query]
+
+    @property
+    def attachment_points_labels(self):
+        return [ap.AS.label for ap in self.attachment_points()]
 
 
 class AttachmentPoint(models.Model):
