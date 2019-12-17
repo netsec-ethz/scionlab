@@ -64,8 +64,8 @@
     - attachment_point: "3"
       use_vpn: "on"
 
-- desc: "Conflicting public port with PKG installation"
-  error: "The port is already in use"
+- desc: "Conflicting ports in public setup"
+  error: "This port is already in use"
   installation_type: "PKG"
   attachments:
     - attachment_point: "3"
@@ -75,15 +75,17 @@
       public_ip: "192.1.2.111"
       public_port: "50000"
 
-- desc: "Conflicting public port with VM"
-  error: "The port is already in use"
+- desc: "Conflicting actual ports in public setup"
+  error: "This port is already in use"
+  installation_type: "PKG"
   attachments:
     - attachment_point: "3"
       public_ip: "192.1.2.111"
       public_port: "50000"
     - attachment_point: "4"
       public_ip: "192.1.2.111"
-      public_port: "50000"
+      public_port: "50001"
+      bind_port: "50000"
 
 - desc: "Conflicting forwarding port in VM setup"
   error: "This port clashes in the VM setup"

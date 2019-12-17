@@ -39,42 +39,12 @@ class AttachmentConfFormSet(BaseModelFormSet):
         self.isd = None
         super().__init__(*args, **kwargs)
 
-    def clean(self):
-        if any(self.errors):
-            # Don't bother validating the formset unless each form is valid on its own
-            return
-        installation_type = self.userASForm.cleaned_data['installation_type']
+    def _check_isd(self, forms):
+        """
+        Check the consistency of the ISD
+        """
+        isd_set = {form.cleaned_data['attachment_point'].AS.isd for form in forms}
         # Check isd integrity and various ports clash
-        isd_set = set()
-        public_ports_map, public_port_clashing_forms = PortMap(), []
-        bind_ports_map, bind_port_clashing_forms = PortMap(), []
-        forwarded_ports, forwarded_port_clashing_forms = set(), []
-        for form in self.forms:
-            if self.can_delete and self._should_delete_form(form):
-                continue
-            # Skip empty forms and deactivated connections
-            if not form.cleaned_data or not form.cleaned_data['active']:
-                continue
-            isd_set.add(form.cleaned_data['attachment_point'].AS.isd)
-            if form.cleaned_data['use_vpn']:
-                continue
-            forwarded_port = (form.cleaned_data['public_port'], False)  # (port, is_bind_port)
-            # Check (public_ip, public_port) clashes
-            if public_ports_map.add(form.cleaned_data['public_ip'],
-                                    form.cleaned_data['public_port']):
-                public_port_clashing_forms.append(form)
-            # Check (bind_ip, bind_port) clashes
-            if form.cleaned_data['bind_port']:
-                forwarded_port = (form.cleaned_data['bind_port'], True)
-                if bind_ports_map.add(form.cleaned_data['bind_ip'],
-                                      form.cleaned_data['bind_port']):
-                    bind_port_clashing_forms.append(form)
-            # Check forwarded_ports clashes
-            if installation_type == UserAS.VM:
-                if forwarded_port[0] in forwarded_ports:
-                    forwarded_port_clashing_forms.append((form, forwarded_port[1]))
-                else:
-                    forwarded_ports.add(forwarded_port[0])
         if len(isd_set) > 1:
             raise ValidationError("All attachment points must belong to the "
                                   "same ISD")
@@ -84,22 +54,58 @@ class AttachmentConfFormSet(BaseModelFormSet):
             # One attachment point must be selected at creation time
             raise ValidationError("Select at least one attachment point")
 
-        # Add public ports clash errors to forms
-        for form in public_port_clashing_forms:
+    def _check_ip_ports(self, forms):
+        """
+        Check for clashes in (ip, port) combinations
+        """
+        installation_type = self.userASForm.cleaned_data['installation_type']
+        public_addrs, public_addr_clashes = PortMap(), []
+        actual_addrs, actual_addr_clashes = PortMap(), []
+        forward_ports, forward_addr_clashes = set(), []
+
+        for f in filter(lambda f: not f.cleaned_data['use_vpn'], forms):
+            public_ip, public_port = f.cleaned_data['public_ip'], f.cleaned_data['public_port']
+            bind_ip, bind_port = f.cleaned_data['bind_ip'], f.cleaned_data['bind_port']
+            if public_addrs.add(public_ip, public_port):
+                public_addr_clashes.append(f)
+            clashes = actual_addrs.add(bind_ip or public_ip, bind_port or public_port)
+            if bind_port and clashes:
+                actual_addr_clashes.append(f)
+            if installation_type == UserAS.VM:
+                forward_port = bind_port or public_port
+                if forward_port in forward_ports:
+                    forward_addr_clashes.append((f, bind_port is not None))
+                else:
+                    forward_ports.add(forward_port)
+
+        for form in public_addr_clashes:
             form.add_error('public_port',
-                           ValidationError('The port is already in use',
+                           ValidationError('This port is already in use',
                                            code='public_port_clash'))
-        # Add bind ports clash errors to forms
-        for form in bind_port_clashing_forms:
+        for form in actual_addr_clashes:
             form.add_error('bind_port',
-                           ValidationError('The port is already in use',
+                           ValidationError('This port is already in use',
                                            code='bind_port_clash'))
-        # Add VM forwarded ports clash errors
-        for (form, port_type) in forwarded_port_clashing_forms:
-            port_type_name = 'bind' if port_type else 'public'
+        for (form, is_bind_port) in forward_addr_clashes:
+            port_type_name = 'bind' if is_bind_port else 'public'
             form.add_error('{}_port'.format(port_type_name),
                            ValidationError('This port clashes in the VM setup',
                                            code='forwarded_port_clash'))
+
+    def clean(self):
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+        active_forms = []
+        for form in self.forms:
+            if self.can_delete and self._should_delete_form(form):
+                continue
+            # Skip empty forms and deactivated connections
+            if not form.cleaned_data or not form.cleaned_data['active']:
+                continue
+            active_forms.append(form)
+        self._check_isd(active_forms)
+        self._check_ip_ports(active_forms)
 
     def save(self, user_as, commit=True):
         att_confs = super().save(commit=False)

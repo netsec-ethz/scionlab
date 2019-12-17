@@ -72,6 +72,17 @@
     - attachment_point: "1"
       public_ip: "192.1.2.111"
       public_port: "50001"
+- desc: "Multiple attachment with same public_ip and bind_ip"
+  installation_type: "PKG"
+  attachments:
+    - attachment_point: "3"
+      public_ip: "192.1.2.111"
+      public_port: "50000"
+      bind_ip: "192.168.1.1"
+    - attachment_point: "4"
+      public_ip: "192.1.2.111"
+      public_port: "50001"
+      bind_ip: "192.168.1.1"
 - desc: "Multiple attachment through public and VPN to different attachments"
   attachments:
     - attachment_point: "3"
