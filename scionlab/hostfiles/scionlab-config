@@ -272,7 +272,7 @@ def install_config(tar):
     try:
         tmpdir = tempfile.mkdtemp()
         tar.extractall(path=tmpdir)
-        install_vpn_client_config(tmpdir)
+        install_vpn_client_configs(tmpdir)
         install_vpn_server_config(tmpdir)
         install_scionlab_service(tmpdir)
         install_scion_config(tmpdir)
@@ -319,7 +319,7 @@ def restart_scion():
     subprocess.run(['systemctl', 'restart', 'scionlab.target'], check=True)
 
 
-def install_vpn_clients_config(tmpdir):
+def install_vpn_client_configs(tmpdir):
     regex = re.compile(VPN_CLIENT_NAME_REGEX)
     for fname in filter(lambda f: regex.search(f), os.listdir(tmpdir)):
         client_name = fname[:fname.find('.')]
