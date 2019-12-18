@@ -120,8 +120,8 @@ class AttachmentConfFormHelper(FormHelper):
 
     conf_header = Div(
             Row(
-                Column('attachment_point', css_class='form-group col-md-7 mb-0'),
-                Column('use_vpn', css_class='form-group col-md-5 mb-0'),
+                Column('attachment_point', css_class='col-md-5'),
+                Column('use_vpn', css_class='col-md-5'),
                 'id'
                 ),
             css_class="card-header"
@@ -130,23 +130,23 @@ class AttachmentConfFormHelper(FormHelper):
     conf_body = Div(
             Row(
                 Column(AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-                       css_class='form-group col-md-6 mb-0'),
+                       css_class='col-md-4'),
                 Column(AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
-                       css_class='form-group col-md-6 mb-0')
+                       css_class='col-md-4')
                 ),
             Row(
-                HTML("""<button type="button" class="mt-3 btn btn-link bind-row-collapser collapsed"
+                HTML("""<button type="button" class="btn btn-link bind-row-collapser collapsed"
                                 aria-expanded="false" aria-controls="bind-row">
                             Show binding options for NAT
-                            <i class="mt-3 fa fa-plus-circle"></i>
-                            <i class="mt-3 fa fa-minus-circle"></i>
+                            <i class="fa fa-plus-circle"></i>
+                            <i class="fa fa-minus-circle"></i>
                         </button>""")
                 ),
             Row(
                 Column(AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
-                       css_class='form-group col-md-6 mb-0'),
+                       css_class='col-md-6'),
                 Column(AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
-                       css_class='form-group col-md-6 mb-0'),
+                       css_class='col-md-6'),
                 css_class="bind-row"
                 ),
             css_class="card-body"
@@ -157,8 +157,8 @@ class AttachmentConfFormHelper(FormHelper):
     def conf_footer(self):
         return Div(
                 Row(
-                    Column('active', css_class='col-md-6 mb-0'),
-                    Column('DELETE', css_class='text-danger col-md-6 mb-0')
+                    Column('active', css_class='col-md-6'),
+                    Column('DELETE', css_class='col-md-6 text-danger')
                     ),
                 css_class="card-footer"
                 )
@@ -213,7 +213,7 @@ class AttachmentConfForm(forms.ModelForm):
         max_value=MAX_PORT,
         initial=50000,
         label="Public Port (UDP)",
-        help_text="The attachment point will use this port"
+        help_text="The attachment point will use this port "
                   "for the overlay link to your AS."
     )
     bind_ip = forms.GenericIPAddressField(
@@ -233,6 +233,11 @@ class AttachmentConfForm(forms.ModelForm):
         label="Use VPN",
         help_text="Use an OpenVPN connection for the overlay link between this attachment point "
                   "and the border router of my AS."
+    )
+    active = forms.BooleanField(
+        required=False,
+        label="Active",
+        help_text="Activate or deactivate this connection without deleting it"
     )
     attachment_point = forms.ModelChoiceField(queryset=AttachmentPoint.objects)
 

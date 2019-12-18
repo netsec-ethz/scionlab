@@ -187,17 +187,17 @@ class UserAS(AS):
         ap = att_conf.attachment_point
         host = self.host
         border_router = BorderRouter.objects.first_or_create(host)
+        ap_border_router = ap.get_border_router_for_useras_interface()
 
         if att_conf.use_vpn:
+            iface_ap = Interface.objects.create(ap_border_router, ap.vpn.server_vpn_ip)
             vpn_client = self._create_or_activate_vpn_client(att_conf)
             att_conf.public_ip = vpn_client.ip
             att_conf.bind_ip = att_conf.bind_port = None
-            iface_ap = Interface.objects.create(ap.get_border_router_for_useras_interface(),
-                                                ap.vpn.server_vpn_ip)
         else:
+            iface_ap = Interface.objects.create(ap_border_router)
             if self.installation_type == UserAS.VM:
                 att_conf.bind_ip = _VAGRANT_VM_LOCAL_IP
-            iface_ap = Interface.objects.create(ap.get_border_router_for_useras_interface())
 
         iface_client = Interface.objects.create(
             border_router,
@@ -221,24 +221,23 @@ class UserAS(AS):
         ap = att_conf.attachment_point
         iface_ap = att_conf.link.interfaceA
         iface_client = att_conf.link.interfaceB
+        ap_border_router = ap.get_border_router_for_useras_interface()
 
         if att_conf.use_vpn:
+            iface_ap.update(ap_border_router, public_ip=ap.vpn.server_vpn_ip)
             vpn_client = self._create_or_activate_vpn_client(att_conf)
             att_conf.public_ip = vpn_client.ip
             att_conf.bind_ip = att_conf.bind_port = None
-            iface_ap.update(ap.get_border_router_for_useras_interface(),
-                            ap.vpn.server_vpn_ip)
         else:
+            iface_ap.update(ap_border_router, public_ip=None, public_port=None)
             if self.installation_type == UserAS.VM:
                 att_conf.bind_ip = _VAGRANT_VM_LOCAL_IP
-            iface_ap.update(ap.get_border_router_for_useras_interface(),
-                            public_ip=None,
-                            public_port=None)
 
         iface_client.update(public_ip=att_conf.public_ip,
                             public_port=att_conf.public_port,
                             bind_ip=att_conf.bind_ip,
                             bind_port=att_conf.bind_port)
+
         # Attribute already set if coming from AttachmentConfForm.save(...)
         att_conf.link.active = att_conf.active
         att_conf.link.save()
