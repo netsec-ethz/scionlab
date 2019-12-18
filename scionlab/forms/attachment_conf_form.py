@@ -258,6 +258,8 @@ class AttachmentConfForm(forms.ModelForm):
             initial['public_port'] = instance.interfaceB.public_port
             initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['bind_port'] = instance.interfaceB.bind_port
+        else:
+            initial['active'] = True
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
 
