@@ -130,9 +130,9 @@ class AttachmentConfFormHelper(FormHelper):
     conf_body = Div(
             Row(
                 Column(AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-                       css_class='col-md-4'),
+                       css_class='col-md-6'),
                 Column(AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
-                       css_class='col-md-4')
+                       css_class='col-md-6')
                 ),
             Row(
                 HTML("""<button type="button" class="btn btn-link bind-row-collapser collapsed"
