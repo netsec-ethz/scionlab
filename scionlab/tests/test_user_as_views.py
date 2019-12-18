@@ -344,8 +344,8 @@ class UserASActivateTests(WebTest):
 
     def test_cycle_active(self):
         def check_active(active, user_as, edit_page):
-            self.assertEqual("Activate" in edit_page, not active, edit_page)
-            self.assertEqual("Deactivate" in edit_page, active, edit_page)
+            self.assertEqual("Activate this AS" in edit_page, not active, edit_page)
+            self.assertEqual("Deactivate this AS" in edit_page, active, edit_page)
             self.assertEqual(user_as.is_active(), active)
 
         _create_ases_for_testuser(3)
