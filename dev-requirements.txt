@@ -56,9 +56,9 @@ soupsieve==1.9 \
     --hash=sha256:3aef141566afd07201b525c17bfaadd07580a8066f82b57f7c9417f26adbd0a3 \
     --hash=sha256:e41a65e99bd125972d84221022beb1e4b5cfc68fa12c170c39834ce32d1b294c \
     # via beautifulsoup4
-waitress==1.4.1 \
-    --hash=sha256:3776cbb9abebefb51e5b654f8728928aa17b656d9f6943c58ce8f48e87cef4e3 \
-    --hash=sha256:f4118cbce75985fd60aeb4f0d781aba8dc7ae28c18e50753e913d7a7dee76b62 \
+waitress==1.4.2 \
+    --hash=sha256:67a60a376f0eb335ed88967c42b73983a58d66a2a72eb9009a42725f7453b142 \
+    --hash=sha256:cbf1c62fc41393a6f27cb78483f8f6e252630a3598984668244b7bf4e35856f1 \
     # via webtest
 webob==1.8.5 \
     --hash=sha256:05aaab7975e0ee8af2026325d656e5ce14a71f1883c52276181821d6d5bf7086 \
