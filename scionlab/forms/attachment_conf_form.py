@@ -189,15 +189,22 @@ class AttachmentConfFormHelper(FormHelper):
             )
         if not instance:
             # Not the most expressive syntax, but at least less boilerplate ...
-            form_card_footer = self.layout[0][0][2]
+            self.remove_card_footer()
             if userAS:
-                self.layout[0].insert(0, self.conf_collapser)
-                form_card_footer = self.layout[0][1][2]
-            form_card_footer.css_class = 'd-none'
+                self.add_collapser()
 
         # We need `form_tag = False` to render the AttachmentConfFormSet along with the UserASForm
         self.form_tag = False
         self.disable_csrf = True
+
+    def remove_card_footer(self):
+         """ Hide activate and delete functionalities """
+         form_card_footer = self.layout[0][0][2]
+         form_card_footer.css_class = 'd-none'
+ 
+    def add_collapser(self):
+         """ Add a collapser to show/hide the newUserAS form """
+         self.layout[0].insert(0, self.conf_collapser)
 
 
 class AttachmentConfForm(forms.ModelForm):
