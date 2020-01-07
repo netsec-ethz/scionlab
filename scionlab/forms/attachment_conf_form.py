@@ -198,13 +198,13 @@ class AttachmentConfFormHelper(FormHelper):
         self.disable_csrf = True
 
     def remove_card_footer(self):
-         """ Hide activate and delete functionalities """
-         form_card_footer = self.layout[0][0][2]
-         form_card_footer.css_class = 'd-none'
- 
+        """ Hide activate and delete functionalities """
+        form_card_footer = self.layout[0][0][2]
+        form_card_footer.css_class = 'd-none'
+
     def add_collapser(self):
-         """ Add a collapser to show/hide the newUserAS form """
-         self.layout[0].insert(0, self.conf_collapser)
+        """ Add a collapser to show/hide the newUserAS form """
+        self.layout[0].insert(0, self.conf_collapser)
 
 
 class AttachmentConfForm(forms.ModelForm):
