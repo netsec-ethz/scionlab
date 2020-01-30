@@ -165,7 +165,6 @@ class UserAS(AS):
             ap.trigger_deployment()
         self._deactivate_unused_vpn_clients(att_confs)
 
-        self.host.update()
         self.save()
 
     def _create_or_update_attachment(self, att_conf: 'AttachmentConf'):
