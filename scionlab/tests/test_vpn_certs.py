@@ -251,9 +251,7 @@ class VPNCertsMissingCATests(TestCase):
             pass
 
     def test_generate_client_cert(self):
-        print("write_vpn_ca_config()")
         write_vpn_ca_config()
-        print("_setup_vpn_attachment_point()")
         _setup_vpn_attachment_point()
         attachment_point = AttachmentPoint.objects.first()
 

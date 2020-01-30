@@ -678,7 +678,6 @@ class UpdateUserASTests(TestCase):
 
     @parameterized.expand(zip(combinations(get_random_as_ids_combinations(), 2)))
     def test_change_ap(self, AS_defs_pair):
-        print(AS_defs_pair)
         seed = 4
         vpn_choice = VPNChoice.NONE
         user_as, att_confs = create_and_check_random_useras(self, seed, AS_defs_pair[0], vpn_choice)
