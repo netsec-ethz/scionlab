@@ -1,6 +1,6 @@
 README.md: |-
   content_not_checked
-client_20-ffaa_0_1405.conf: |
+client.conf: |
   # Specify that we are a client
   client
 
