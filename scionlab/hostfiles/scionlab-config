@@ -335,7 +335,6 @@ def install_vpn_client_configs(tmpdir):
         os.remove(os.path.join(OPENVPN_CONFIG_DIR, conf))
 
     for conf in sorted(new):
-        unit_name = 'openvpn@{}'.format(os.path.splitext(conf)[0])
         shutil.copy(os.path.join(tmpdir, conf), OPENVPN_CONFIG_DIR)
         subprocess.run(['systemctl', 'restart', unit_name(conf)], check=True)
 
