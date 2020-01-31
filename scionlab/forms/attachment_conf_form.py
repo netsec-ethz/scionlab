@@ -258,12 +258,15 @@ class AttachmentConfForm(forms.ModelForm):
         instance = kwargs.get('instance')
         initial = kwargs.pop('initial', {})
         if instance:
+            use_vpn = UserAS.is_link_over_vpn(instance.interfaceB)
             initial['active'] = instance.active
             initial['attachment_point'] = AttachmentPoint.objects.get(AS=instance.interfaceA.AS)
-            initial['use_vpn'] = UserAS.is_link_over_vpn(instance.interfaceB)
-            initial['public_ip'] = instance.interfaceB.public_ip
+            initial['use_vpn'] = use_vpn
+            if not use_vpn:
+                # Clean IP fields when use_vpn is enabled
+                initial['public_ip'] = instance.interfaceB.public_ip
+                initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['public_port'] = instance.interfaceB.public_port
-            initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['bind_port'] = instance.interfaceB.bind_port
         else:
             initial['active'] = True

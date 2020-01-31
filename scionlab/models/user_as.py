@@ -278,7 +278,7 @@ class UserAS(AS):
         Returns whether this UserAS interface corresponds to a link over VPN.
         """
         assert hasattr(iface.AS, 'useras')
-        return iface.host.vpn_clients.filter(ip=iface.public_ip).exists()
+        return iface.host.vpn_clients.filter(ip=iface.public_ip, active=True).exists()
 
     def is_active(self) -> bool:
         """
