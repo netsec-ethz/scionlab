@@ -170,33 +170,34 @@ class UserASFormTests(TestCase):
         self.assertTrue(any(e.find("quota exceeded") >= 0 for e in form.non_field_errors()),
                         form.errors)
 
-    @parameterized.expand(zip(valid_forms_params))
-    def test_edit_render(self, form_data):
+    @parameterized.expand(zip(valid_forms_params, valid_forms_params))
+    def test_edit_render(self, initial_data, new_data):
         """
         The form can be instantiated with a (freshly created) UserAS.
-        The instantiated form should not show any changes if the same data is
-        submitted.
+        The instantiated form should accept and keep the valid new form data,
+        and should not show any changes if the same data is resubmitted.
         """
 
         # Create a UserAS with the given data
-        create_form = UserASForm(user=get_testuser(), data=form_data)
+        create_form = UserASForm(user=get_testuser(), data=initial_data)
         self.assertIsNotNone(create_form.as_table())
         self.assertTrue(create_form.is_valid(), create_form.errors)
         user_as = create_form.save()
         self.assertIsNotNone(user_as)
 
-        # Check that the form can be instantiated for the object just created
-        # and check that the forms initial values are the same as the
-        # previously submitted values.
-        edit_form_1 = UserASForm(user=get_testuser(), instance=user_as, data=form_data)
+        # Submit a change
+        edit_form_1 = UserASForm(user=get_testuser(), instance=user_as, data=new_data)
         self.assertIsNotNone(edit_form_1.as_table())
         self.assertTrue(edit_form_1.is_valid(), edit_form_1.errors)
-        self.assertFalse(edit_form_1.has_changed(), edit_form_1.changed_data)
+        if initial_data == new_data:
+            self.assertFalse(edit_form_1.has_changed(), edit_form_1.changed_data)
+        else:
+            self.assertTrue(edit_form_1.has_changed())
         user_as_edited_1 = edit_form_1.save()
         self.assertEqual(user_as.pk, user_as_edited_1.pk)
 
-        # Do it again!
-        edit_form_2 = UserASForm(user=get_testuser(), instance=user_as, data=form_data)
+        # Instantiate form again, check that data is identical
+        edit_form_2 = UserASForm(user=get_testuser(), instance=user_as, data=new_data)
         self.assertTrue(edit_form_2.is_valid(), edit_form_2.errors)
         self.assertFalse(edit_form_2.has_changed(), edit_form_2.changed_data)
         user_as_edited_2 = edit_form_2.save()
