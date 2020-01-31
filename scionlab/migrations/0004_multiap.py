@@ -3,6 +3,27 @@
 from django.db import migrations, models
 
 
+def move_ips_to_interface(apps, schema_editor):
+    """
+    Previously, we had stored public_ip and bind_ip on the level of the UserAS.host. With multiple
+    attachment links per UserAS, we know store this information (only) in the (already existing)
+    per-interface fields.
+    """
+    UserAS = apps.get_model('scionlab', 'UserAS')
+
+    for useras in UserAS.objects.iterator():
+        # UserASes have a unique host and before the multi-AP feature had a unique interface
+        host = useras.hosts.get()
+        iface = useras.interfaces.get()
+        if not iface.public_ip:
+            iface.public_ip = host.public_ip
+            iface.bind_ip = host.bind_ip
+            iface.save()
+        host.public_ip = None
+        host.bind_ip = None
+        host.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -36,4 +57,8 @@ class Migration(migrations.Migration):
             name='public_ip',
             field=models.GenericIPAddressField(blank=True, help_text='Default public IP for border router interfaces running on this host.', null=True),
         ),
+
+        # This does not depend on (similarly named) removed fields! Can be run before or after
+        # removing fields
+        migrations.RunPython(move_ips_to_interface),
     ]
