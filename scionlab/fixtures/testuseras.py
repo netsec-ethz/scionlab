@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from scionlab.fixtures.testuser import get_testuser_exbert
-from scionlab.models.user_as import AttachmentPoint, UserAS
+from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS
 
 
 def create_testuserases():
@@ -27,12 +27,19 @@ def create_testuserases():
 
 
 def _create_user_as(owner, attachment_point, installation_type, use_vpn):
-    return UserAS.objects.create(
+    user_as = UserAS.objects.create(
         owner=owner,
-        attachment_point=attachment_point,
         installation_type=installation_type,
         label="",
-        use_vpn=use_vpn,
-        public_ip='172.31.0.200',
-        public_port=54321,
+        isd=attachment_point.AS.isd
+    )
+    user_as.update_attachments([
+        AttachmentConf(
+            attachment_point=attachment_point,
+            use_vpn=use_vpn,
+            public_ip='172.31.0.200',
+            public_port=54321,
+            bind_ip=None,
+            bind_port=None
+        )]
     )

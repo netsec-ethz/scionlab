@@ -954,7 +954,7 @@
     ssh_host: 192.0.2.17
     uid: bff6b39ba77e46a4a775a36f5fdf892d
     secret: 3560964a022346459556ca5eb71756c7
-    config_version: 13
+    config_version: 12
     config_version_deployed: 0
 - model: scionlab.host
   pk: 5
@@ -1094,7 +1094,7 @@
     ssh_host: 172.31.0.114
     uid: 2c872b10a8a348949cf181a1cb8b9a62
     secret: c16f444f48034dc7bdd1b747f2428986
-    config_version: 12
+    config_version: 11
     config_version_deployed: 0
 - model: scionlab.host
   pk: 15
@@ -1115,8 +1115,8 @@
   fields:
     AS: 16
     internal_ip: 127.0.0.1
-    public_ip: 172.31.0.200
-    bind_ip: 10.0.2.15
+    public_ip: null
+    bind_ip: null
     label: null
     managed: false
     ssh_host: null
@@ -1129,8 +1129,8 @@
   fields:
     AS: 17
     internal_ip: 127.0.0.1
-    public_ip: 172.31.0.200
-    bind_ip: 10.0.2.15
+    public_ip: null
+    bind_ip: null
     label: null
     managed: false
     ssh_host: null
@@ -1143,7 +1143,7 @@
   fields:
     AS: 18
     internal_ip: 127.0.0.1
-    public_ip: 172.31.0.200
+    public_ip: null
     bind_ip: null
     label: null
     managed: false
@@ -1157,7 +1157,7 @@
   fields:
     AS: 19
     internal_ip: 127.0.0.1
-    public_ip: 172.31.0.200
+    public_ip: null
     bind_ip: null
     label: null
     managed: false
@@ -1171,7 +1171,7 @@
   fields:
     AS: 20
     internal_ip: 127.0.0.1
-    public_ip: 172.31.0.200
+    public_ip: null
     bind_ip: null
     label: null
     managed: false
@@ -1557,17 +1557,6 @@
 - model: scionlab.interface
   pk: 35
   fields:
-    AS: 16
-    interface_id: 1
-    host: 16
-    border_router: 16
-    public_ip: 10.0.0.1
-    public_port: 54321
-    bind_ip: null
-    bind_port: null
-- model: scionlab.interface
-  pk: 36
-  fields:
     AS: 4
     interface_id: 2
     host: 4
@@ -1577,18 +1566,18 @@
     bind_ip: null
     bind_port: null
 - model: scionlab.interface
-  pk: 37
+  pk: 36
   fields:
-    AS: 17
+    AS: 16
     interface_id: 1
-    host: 17
-    border_router: 18
-    public_ip: null
+    host: 16
+    border_router: 16
+    public_ip: 10.0.0.1
     public_port: 54321
     bind_ip: null
-    bind_port: 54321
+    bind_port: null
 - model: scionlab.interface
-  pk: 38
+  pk: 37
   fields:
     AS: 7
     interface_id: 3
@@ -1599,18 +1588,18 @@
     bind_ip: null
     bind_port: null
 - model: scionlab.interface
-  pk: 39
+  pk: 38
   fields:
-    AS: 18
+    AS: 17
     interface_id: 1
-    host: 18
-    border_router: 20
-    public_ip: null
+    host: 17
+    border_router: 18
+    public_ip: 172.31.0.200
     public_port: 54321
-    bind_ip: null
-    bind_port: null
+    bind_ip: 10.0.2.15
+    bind_port: 54321
 - model: scionlab.interface
-  pk: 40
+  pk: 39
   fields:
     AS: 13
     interface_id: 3
@@ -1621,18 +1610,18 @@
     bind_ip: null
     bind_port: null
 - model: scionlab.interface
-  pk: 41
+  pk: 40
   fields:
-    AS: 19
+    AS: 18
     interface_id: 1
-    host: 19
-    border_router: 22
-    public_ip: 10.8.0.2
+    host: 18
+    border_router: 20
+    public_ip: 172.31.0.200
     public_port: 54321
     bind_ip: null
     bind_port: null
 - model: scionlab.interface
-  pk: 42
+  pk: 41
   fields:
     AS: 14
     interface_id: 3
@@ -1643,18 +1632,18 @@
     bind_ip: null
     bind_port: null
 - model: scionlab.interface
-  pk: 43
+  pk: 42
   fields:
-    AS: 20
+    AS: 19
     interface_id: 1
-    host: 20
-    border_router: 24
-    public_ip: null
+    host: 19
+    border_router: 22
+    public_ip: 10.8.0.2
     public_port: 54321
     bind_ip: null
     bind_port: null
 - model: scionlab.interface
-  pk: 44
+  pk: 43
   fields:
     AS: 4
     interface_id: 3
@@ -1662,6 +1651,17 @@
     border_router: 17
     public_ip: null
     public_port: 50001
+    bind_ip: null
+    bind_port: null
+- model: scionlab.interface
+  pk: 44
+  fields:
+    AS: 20
+    interface_id: 1
+    host: 20
+    border_router: 24
+    public_ip: 172.31.0.200
+    public_port: 54321
     bind_ip: null
     bind_port: null
 - model: scionlab.link
@@ -1820,8 +1820,8 @@
 - model: scionlab.link
   pk: 18
   fields:
-    interfaceA: 36
-    interfaceB: 35
+    interfaceA: 35
+    interfaceB: 36
     type: PROVIDER
     active: true
     bandwidth: 1000
@@ -1829,8 +1829,8 @@
 - model: scionlab.link
   pk: 19
   fields:
-    interfaceA: 38
-    interfaceB: 37
+    interfaceA: 37
+    interfaceB: 38
     type: PROVIDER
     active: true
     bandwidth: 1000
@@ -1838,8 +1838,8 @@
 - model: scionlab.link
   pk: 20
   fields:
-    interfaceA: 40
-    interfaceB: 39
+    interfaceA: 39
+    interfaceB: 40
     type: PROVIDER
     active: true
     bandwidth: 1000
@@ -1847,8 +1847,8 @@
 - model: scionlab.link
   pk: 21
   fields:
-    interfaceA: 42
-    interfaceB: 41
+    interfaceA: 41
+    interfaceB: 42
     type: PROVIDER
     active: true
     bandwidth: 1000
@@ -1856,8 +1856,8 @@
 - model: scionlab.link
   pk: 22
   fields:
-    interfaceA: 44
-    interfaceB: 43
+    interfaceA: 43
+    interfaceB: 44
     type: PROVIDER
     active: true
     bandwidth: 1000
