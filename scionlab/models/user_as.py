@@ -133,6 +133,7 @@ class UserAS(AS):
         """
         Updates the `UserAS` fields and immediately saves
         """
+        # XXX(matzf): updating installation type to/from VM should fix up bind IP
         self.label = label
         self.installation_type = installation_type
         self.save()
@@ -143,6 +144,9 @@ class UserAS(AS):
         """
         Update the attachments of the UserAS handling their creation, update and deletion.
         Moreover, bumps the related host configuration
+
+        :param att_confs: updated AttachmentConf for _modified_ links (can be a subset)
+        :param deleted_links: links that should be deleted
         """
         aps_set = set(c.attachment_point for c in att_confs)
         # Attachment points of deleted connections
@@ -241,7 +245,7 @@ class UserAS(AS):
         att_conf.link.active = att_conf.active
         att_conf.link.save()
 
-    def _delete_attachment(self, deleted_link: List[Link]):
+    def _delete_attachment(self, deleted_link: Link):
         deleted_link.delete()
 
     def _create_or_activate_vpn_client(self, att_conf: 'AttachmentConf') -> VPNClient:
@@ -262,9 +266,24 @@ class UserAS(AS):
         return vpn_client
 
     def _deactivate_unused_vpn_clients(self, att_confs: 'AttachmentConf'):
-        active_vpns = set(c.attachment_point.vpn for c in att_confs if c.active and c.use_vpn)
-        for vpn_client in self.host.vpn_clients.all():
-            if vpn_client.vpn not in active_vpns:
+
+        # TODO(matzf): combine this with _create_or_activate_vpn_client, to simplify & avoid a few
+        # DB queries
+        vpn_clients = self.host.vpn_clients.filter(active=True)
+
+        # Find out which VPN clients should remain active for one of the un-modified interfaces
+        modified_iface_pks = [a.link.interfaceB_id for a in att_confs if a.link]
+        unmodified_ifaces = self.interfaces.active().exclude(pk__in=modified_iface_pks)
+        unmodified_iface_ips = [iface.public_ip for iface in unmodified_ifaces]
+
+        active_vpns = set(vpn_client.vpn_id for vpn_client in vpn_clients
+                          if vpn_client.ip in unmodified_iface_ips)
+
+        # and add the VPN clients for the modified interfaces that are set to use VPN
+        active_vpns |= set(c.attachment_point.vpn_id for c in att_confs if c.active and c.use_vpn)
+
+        for vpn_client in vpn_clients:
+            if vpn_client.vpn_id not in active_vpns:
                 vpn_client.active = False
                 vpn_client.save()
 
