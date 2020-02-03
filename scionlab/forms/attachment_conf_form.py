@@ -281,35 +281,39 @@ class AttachmentConfForm(forms.ModelForm):
                 code='missing_attachment_point')
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
-        elif 'public_ip' in self.errors:
-            assert ('public_ip' not in cleaned_data)
-            return cleaned_data
         else:
             public_ip = cleaned_data.get('public_ip')
             if not public_ip:
                 # public_ip cannot be empty when use_vpn is false
-                raise ValidationError(
-                    'Please provide a value for public IP, or enable "Use VPN".',
-                    code='missing_public_ip_no_vpn'
+                self.add_error(
+                    'public_ip',
+                    ValidationError('Please provide a value for public IP, or enable "Use VPN".',
+                                    code='missing_public_ip_no_vpn')
                 )
-            ip_addr = ipaddress.ip_address(public_ip)
+            else:
+                ip_addr = ipaddress.ip_address(public_ip)
 
-            if ip_addr.version not in cleaned_data['attachment_point'].supported_ip_versions():
-                raise ValidationError('IP version {ipv} not supported by the selected '
-                                      'attachment point'.format(ipv=ip_addr.version),
-                                      code='unsupported_ip_version')
+                if ip_addr.version not in cleaned_data['attachment_point'].supported_ip_versions():
+                    self.add_error(
+                        'public_ip',
+                        ValidationError('IP version {ipv} not supported by the selected '
+                                        'attachment point'.format(ipv=ip_addr.version),
+                                        code='unsupported_ip_version')
+                    )
 
-            if (not settings.DEBUG and (not ip_addr.is_global or ip_addr.is_loopback)) or \
-                    ip_addr.is_multicast or \
-                    ip_addr.is_reserved or \
-                    ip_addr.is_link_local or \
-                    (ip_addr.version == 6 and ip_addr.is_site_local) or \
-                    ip_addr.is_unspecified:
-                self.add_error('public_ip',
-                               ValidationError("Public IP address must be a publically routable "
-                                               "address. It cannot be a multicast, loopback or "
-                                               "otherwise reserved address.",
-                                               code='invalid_public_ip'))
+                if (not settings.DEBUG and (not ip_addr.is_global or ip_addr.is_loopback)) or \
+                        ip_addr.is_multicast or \
+                        ip_addr.is_reserved or \
+                        ip_addr.is_link_local or \
+                        (ip_addr.version == 6 and ip_addr.is_site_local) or \
+                        ip_addr.is_unspecified:
+                    self.add_error(
+                        'public_ip',
+                        ValidationError("Public IP address must be a publically routable address. "
+                                        "It cannot be a multicast, loopback or otherwise reserved "
+                                        "address.",
+                                        code='invalid_public_ip')
+                    )
         return cleaned_data
 
     def save(self, commit=True, user_as=None):
