@@ -85,6 +85,7 @@
     - attachment_point: "4"
       public_ip: "192.1.2.111"
       public_port: "50001"
+      bind_ip: "192.1.2.111"
       bind_port: "50000"
 
 - desc: "Conflicting forwarding port in VM setup"
@@ -106,4 +107,5 @@
     - attachment_point: "1"
       public_ip: "192.1.2.112"
       public_port: "50001"
+      bind_ip: "192.1.2.112"
       bind_port: "50000"

@@ -262,14 +262,23 @@ class AttachmentConfForm(forms.ModelForm):
             initial['active'] = instance.active
             initial['attachment_point'] = AttachmentPoint.objects.get(AS=instance.interfaceA.AS)
             initial['use_vpn'] = use_vpn
-            if not use_vpn:
-                # Clean IP fields when use_vpn is enabled
-                initial['public_ip'] = instance.interfaceB.public_ip
-                initial['bind_ip'] = instance.interfaceB.bind_ip
+            initial['public_ip'] = instance.interfaceB.public_ip
+            initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['public_port'] = instance.interfaceB.public_port
             initial['bind_port'] = instance.interfaceB.bind_port
+
+            # Clean IP fields when use_vpn is enabled
+            if use_vpn:
+                initial.pop('public_ip', None)
+                initial.pop('bind_ip', None)
+
+            # Clean bind fields when installation type VM
+            if userAS.installation_type == UserAS.VM:
+                initial.pop('bind_ip', None)
+                initial.pop('bind_port', None)
         else:
             initial['active'] = True
+
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
 
@@ -314,6 +323,11 @@ class AttachmentConfForm(forms.ModelForm):
                                         "address.",
                                         code='invalid_public_ip')
                     )
+
+        # Ignore bind port if bind_ip not set
+        if not self.cleaned_data['bind_ip']:
+            self.cleaned_data['bind_port'] = None
+
         return cleaned_data
 
     def save(self, commit=True, user_as=None):
