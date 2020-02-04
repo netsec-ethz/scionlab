@@ -117,6 +117,12 @@ class UserASForm(forms.ModelForm):
         self.attachment_conf_form_set.full_clean()
         return cleaned_data
 
+    def has_changed(self):
+        # Note: avoid shortcut eval, to allow inspecting changed_data of the individual forms
+        formset_changed = self.attachment_conf_form_set.has_changed()
+        self_changed = super().has_changed()
+        return self_changed or formset_changed
+
     def is_valid(self):
         """
         Validate the `UserASForm` (`self`) and the `AttachmentLinksFormSet` attached to it
@@ -126,7 +132,7 @@ class UserASForm(forms.ModelForm):
         :returns: whether `UserASForm` (`self`) and the related `AttachmentLinksFormSet` are valid
         """
         # We first need to validate the `UserASForm` to then validate the `AttachmentLinksFormSet`
-        return super(UserASForm, self).is_valid() and self.attachment_conf_form_set.is_valid()
+        return super().is_valid() and self.attachment_conf_form_set.is_valid()
 
     def save(self, commit=True):
         if self.instance.pk is None:

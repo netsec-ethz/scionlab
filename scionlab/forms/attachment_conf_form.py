@@ -337,9 +337,9 @@ class AttachmentConfForm(forms.ModelForm):
         assert not commit, "Persistency in the DB shall be handled in the save(...) method of the \
                            AttachmentLinksFormSet"
         return AttachmentConf(self.cleaned_data['attachment_point'],
-                              self.cleaned_data['public_ip'],
+                              self.cleaned_data['public_ip'] or None,  # Interface needs None not ''
                               self.cleaned_data['public_port'],
-                              self.cleaned_data['bind_ip'],
+                              self.cleaned_data['bind_ip'] or None,
                               self.cleaned_data['bind_port'],
                               self.cleaned_data['use_vpn'],
                               self.cleaned_data['active'],

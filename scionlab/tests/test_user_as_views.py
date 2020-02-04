@@ -98,6 +98,47 @@ def _get_form_fields(data, include_errors: bool = False):
     return d
 
 
+def _get_form_fields_for_edit(form_data, user_as: UserAS):
+    """
+    Prepare form data (obtained from _get_form_fields) to submit on an existing user AS instance.
+    This sets up the correct form count and the object IDs in the form set forms.
+    Also removes redundant data and fills auto-filled fields -- this is essentially filling in the
+    expected user visible behaviour for the form.
+
+    """
+    # XXX(matzf) we should revisit the entire setup here. Mucking with this form data seems ugly as
+    # and very error prone.
+
+    # Let's assume that links where inserted in order.
+    links = [iface.link() for iface in user_as.interfaces.order_by('pk')]
+    d = form_data.copy()
+
+    # Set up ids for existing link objects
+    d['form-INITIAL_FORMS'] = user_as.interfaces.count()
+    for i, link in enumerate(links):
+        d['form-{}-id'.format(i)] = link.pk
+
+    # Mark left over instances to be deleted
+    num = d['form-TOTAL_FORMS']
+    for i in range(num, len(links)):
+        d['form-{}-DELETE'.format(i)] = True
+
+    # Remove redundant public IP if VPN is enabled, to avoid causing a form "change"
+    for i in range(form_data['form-TOTAL_FORMS']):
+        if d['form-{}-use_vpn'.format(i)]:
+            d['form-{}-public_ip'.format(i)] = ''
+
+    # Use auto-assigned bind port
+    for i in range(form_data['form-TOTAL_FORMS']):
+        if d['form-{}-bind_ip'.format(i)] and not d['form-{}-bind_port'.format(i)]:
+            # Assume that bind port will be set to public port. Should work for most test data.
+            # Could also inspect the link object directly, but this seems to trust the thing that we
+            # want to check.
+            d['form-{}-bind_port'.format(i)] = d['form-{}-public_port'.format(i)]
+
+    return d
+
+
 def _form_has_single_ap(form_data):
     return form_data['form-TOTAL_FORMS'] == 1
 
@@ -110,6 +151,14 @@ def _get_forms_error_descs(form: UserASForm) -> str:
     formset = form.attachment_conf_form_set
     return '\n'.join(map(str, [form.errors, form.non_field_errors(),
                      formset.errors, formset.non_form_errors()]))
+
+
+def _get_forms_change_data(form: UserASForm):
+    return (
+        form.changed_data,
+        {i: {k: f.initial.get(k) for k in f.changed_data} for i, f in
+         enumerate(form.attachment_conf_form_set.forms)},
+    )
 
 
 class UserASFormTests(TestCase):
@@ -170,14 +219,33 @@ class UserASFormTests(TestCase):
         self.assertTrue(any(e.find("quota exceeded") >= 0 for e in form.non_field_errors()),
                         form.errors)
 
-    @parameterized.expand(zip(valid_forms_params, valid_forms_params))
-    def test_edit_render(self, initial_data, new_data):
-        """
-        The form can be instantiated with a (freshly created) UserAS.
-        The instantiated form should accept and keep the valid new form data,
-        and should not show any changes if the same data is resubmitted.
-        """
+    @parameterized.expand(zip(valid_forms_params))
+    def test_create_check(self, form_data):
+        # Create a UserAS with the given data
+        create_form = UserASForm(user=get_testuser(), data=form_data)
+        self.assertIsNotNone(create_form.as_table())
+        self.assertTrue(create_form.is_valid(), create_form.errors)
+        user_as = create_form.save()
 
+        self.assertIsNotNone(user_as.pk)
+        links = [iface.link().pk for iface in user_as.interfaces.all()]
+        self.assertEqual(len(links), form_data['form-TOTAL_FORMS'])
+
+        # Submittng the ~same data on the previously created instance should have no changes
+        form_data_2 = _get_form_fields_for_edit(form_data, user_as)
+
+        edit_form = UserASForm(user=get_testuser(), instance=user_as, data=form_data_2)
+        self.assertFalse(edit_form.has_changed(), _get_forms_change_data(edit_form))
+        self.assertTrue(edit_form.is_valid(), edit_form.errors)
+
+        # Also, if we save the updated form, nothing should change
+        user_as_edited = edit_form.save()
+        self.assertEqual(user_as.pk, user_as_edited.pk)
+        links_edited = [iface.link().pk for iface in user_as.interfaces.all()]
+        self.assertEqual(links, links_edited)
+
+    @parameterized.expand(zip(valid_forms_params, valid_forms_params))
+    def test_edit(self, initial_data, new_data):
         # Create a UserAS with the given data
         create_form = UserASForm(user=get_testuser(), data=initial_data)
         self.assertIsNotNone(create_form.as_table())
@@ -185,23 +253,37 @@ class UserASFormTests(TestCase):
         user_as = create_form.save()
         self.assertIsNotNone(user_as)
 
-        # Submit a change
-        edit_form_1 = UserASForm(user=get_testuser(), instance=user_as, data=new_data)
-        self.assertIsNotNone(edit_form_1.as_table())
+        # Submittng the new data on the previously created instance should change it
+        edit_form_1_data = _get_form_fields_for_edit(new_data, user_as)
+
+        edit_form_1 = UserASForm(user=get_testuser(), instance=user_as, data=edit_form_1_data)
+        rendered_1 = edit_form_1.as_table()
+        self.assertIsNotNone(rendered_1)
+        rendered_formset_1 = edit_form_1.attachment_conf_form_set.as_table()
+        self.assertIsNotNone(rendered_formset_1)
         self.assertTrue(edit_form_1.is_valid(), edit_form_1.errors)
         if initial_data == new_data:
-            self.assertFalse(edit_form_1.has_changed(), edit_form_1.changed_data)
+            self.assertFalse(edit_form_1.has_changed(), _get_forms_change_data(edit_form_1))
         else:
             self.assertTrue(edit_form_1.has_changed())
         user_as_edited_1 = edit_form_1.save()
         self.assertEqual(user_as.pk, user_as_edited_1.pk)
 
-        # Instantiate form again, check that data is identical
-        edit_form_2 = UserASForm(user=get_testuser(), instance=user_as, data=new_data)
+        links_edited_1 = [iface.link().pk for iface in user_as.interfaces.all()]
+        self.assertEqual(len(links_edited_1), new_data['form-TOTAL_FORMS'])
+
+        if initial_data == new_data:
+            return  # no need to do this _again_
+
+        # Submittng the ~same data on the previously edited instance should have no further changes
+        edit_form_2_data = _get_form_fields_for_edit(new_data, user_as)
+
+        edit_form_2 = UserASForm(user=get_testuser(), instance=user_as, data=edit_form_2_data)
+        self.assertFalse(edit_form_2.has_changed(), _get_forms_change_data(edit_form_2))
         self.assertTrue(edit_form_2.is_valid(), edit_form_2.errors)
-        self.assertFalse(edit_form_2.has_changed(), edit_form_2.changed_data)
-        user_as_edited_2 = edit_form_2.save()
-        self.assertEqual(user_as.pk, user_as_edited_2.pk)
+
+        links_edited_2 = [iface.link().pk for iface in user_as.interfaces.all()]
+        self.assertEqual(links_edited_1, links_edited_2)
 
 
 class UserASPageTests(WebTest):
