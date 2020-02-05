@@ -284,10 +284,9 @@ class AttachmentConfForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if 'attachment_point' not in cleaned_data:
-            raise ValidationError(
-                'Please select at least one attachment point',
-                code='missing_attachment_point')
+        if 'attachment_point' in self.errors:
+            return cleaned_data
+
         if cleaned_data.get('use_vpn'):
             cleaned_data.get('attachment_point').check_vpn_available()
         else:
