@@ -152,59 +152,71 @@ class AttachmentConfFormHelper(FormHelper):
             css_class="card-body"
             )
 
-    # XXX: New instance needed since we modify this in the __init__(...), `if not initial`
-    @property
-    def conf_footer(self):
-        return Div(
-                Row(
-                    Column('active', css_class='col-md-6'),
-                    Column('DELETE', css_class='col-md-6 text-danger')
-                    ),
-                css_class="card-footer"
-                )
+    conf_footer = Div(
+        Row(
+            Column('active', css_class='col-md-6'),
+            Column('DELETE', css_class='col-md-6 text-danger')
+            ),
+        css_class="card-footer"
+    )
 
-    @property
-    def conf_collapser(self):
-        return HTML("""<button type="button" id="new-ap-collapser"
-                               class="mt-3 btn btn-link collapsed"
-                               aria-expanded="false"
-                               aria-controls="new-ap-form">
-                           New attachment point
-                           <i class="mt-3 fa fa-plus-circle"></i>
-                           <i class="mt-3 fa fa-minus-circle"></i>
-                       </button>""")
+    conf_collapser = HTML(
+        """<button type="button" id="new-ap-collapser"
+                   class="mt-3 btn btn-link collapsed"
+                   aria-expanded="false"
+                   aria-controls="new-ap-form">
+                New attachment point
+                <i class="mt-3 fa fa-plus-circle"></i>
+                <i class="mt-3 fa fa-minus-circle"></i>
+           </button>"""
+    )
 
     def __init__(self, instance, userAS, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.layout = Layout(
-                Div(
-                    Div(
-                        self.conf_header,
-                        self.conf_body,
-                        self.conf_footer,
-                        css_class="card attachment-form",
-                    ),
-                    css_class='attachment'
-                )
+
+        outter_parts = ()
+        if instance:
+            # existing link, existing user AS
+            # - can be deleted / deactivated
+            card_parts = (
+                self.conf_header,
+                self.conf_body,
+                self.conf_footer,
             )
-        if not instance:
-            # Not the most expressive syntax, but at least less boilerplate ...
-            self.remove_card_footer()
-            if userAS:
-                self.add_collapser()
+        elif userAS:
+            # new link, existing user AS
+            # - cannot be deleted (it doesnt exist) or deactivated (because it doesnt make sense to
+            #   create an inactive link).
+            # - initially collapsed
+            outter_parts = (
+                self.conf_collapser,
+            )
+            card_parts = (
+                self.conf_header,
+                self.conf_body
+            )
+        else:
+            # new (and only) link, user AS
+            # - cannot be deleted / deactivated nor collapsed
+            card_parts = (
+                self.conf_header,
+                self.conf_body
+            )
+
+        self.layout = Layout(
+            Div(
+                *outter_parts,
+                Div(
+                    *card_parts,
+                    css_class="card attachment-form",
+                ),
+                css_class='attachment'
+            )
+        )
 
         # We need `form_tag = False` to render the AttachmentConfFormSet along with the UserASForm
         self.form_tag = False
         self.disable_csrf = True
-
-    def remove_card_footer(self):
-        """ Hide activate and delete functionalities """
-        form_card_footer = self.layout[0][0][2]
-        form_card_footer.css_class = 'd-none'
-
-    def add_collapser(self):
-        """ Add a collapser to show/hide the newUserAS form """
-        self.layout[0].insert(0, self.conf_collapser)
 
 
 class AttachmentConfForm(forms.ModelForm):
@@ -276,8 +288,6 @@ class AttachmentConfForm(forms.ModelForm):
             if userAS.installation_type == UserAS.VM:
                 initial.pop('bind_ip', None)
                 initial.pop('bind_port', None)
-        else:
-            initial['active'] = True
 
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
@@ -326,6 +336,10 @@ class AttachmentConfForm(forms.ModelForm):
         # Ignore bind port if bind_ip not set
         if not self.cleaned_data['bind_ip']:
             self.cleaned_data['bind_port'] = None
+
+        # Ignore active flag while creating a new instance
+        if self.instance.pk is None:
+            self.cleaned_data['active'] = True
 
         return cleaned_data
 
