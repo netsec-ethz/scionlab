@@ -50,7 +50,7 @@ class AttachmentConfFormSet(BaseModelFormSet):
                                   "same ISD")
         elif len(isd_set) == 1:
             self.isd = list(isd_set)[0]
-        elif not self.userASForm.instance.pk:
+        elif not self.userASForm.instance:
             # One attachment point must be selected at creation time
             raise ValidationError("Select at least one attachment point")
 
@@ -58,7 +58,7 @@ class AttachmentConfFormSet(BaseModelFormSet):
         """
         Check for clashes in (ip, port) combinations
         """
-        installation_type = self.userASForm.cleaned_data['installation_type']
+        installation_type = self.userASForm.cleaned_data.get('installation_type')
         public_addrs, public_addr_clashes = PortMap(), []
         actual_addrs, actual_addr_clashes = PortMap(), []
         forward_ports, forward_addr_clashes = set(), []

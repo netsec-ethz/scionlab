@@ -69,6 +69,7 @@ class UserASForm(forms.Form):
     )
     installation_type = forms.ChoiceField(
         choices=UserAS.INSTALLATION_TYPES,
+        initial=UserAS.VM,
         required=True,
         widget=forms.RadioSelect(),
     )
