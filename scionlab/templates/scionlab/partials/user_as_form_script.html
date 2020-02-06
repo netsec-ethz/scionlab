@@ -1,7 +1,6 @@
 {{ attachment_points|json_script:"attachment_points" }}
 
 <script>
-const _VAGRANT_VM_LOCAL_IP = "10.0.2.15"
 const _DEFAULT_BIND_PORT = "50000"
 let attachment_points = JSON.parse(document.getElementById('attachment_points').textContent);
 $(document).ready(function() {
@@ -42,15 +41,12 @@ $(document).ready(function() {
   setup_new_attachment_point_collapse();
 });
 
-function get_installation_type() { return $('#accordion_id_user-as-installation_type').find('input[checked=checked]').val() }
-
 function setup_bind_row_collapse() {
   let should_collapse_bind_row = (row) => {
     // Hide bind row only if no items specified
     let bind_ip = row.find('input[name*="bind_ip"]').val()
     let bind_port = row.find('input[name*="bind_port"]').val()
-    return (bind_ip === '' && bind_port === '') || 
-      (get_installation_type() === "VM" && bind_ip === _VAGRANT_VM_LOCAL_IP && bind_port === _DEFAULT_BIND_PORT)
+    return (bind_ip === '' && bind_port === '')
   }
   $('.bind-row-collapser').each(function() {
     // Init collapser and bind-row
@@ -71,13 +67,9 @@ function setup_bind_row_collapse() {
 
 function setup_new_attachment_point_collapse() {
   let should_collapse_new_ap = (new_ap) => {
-    // Hide bind row only if no items specified
-    let public_ip = new_ap.find('input[name*="public_ip"]').val()
-    let public_port = new_ap.find('input[name*="public_port"]').val()
-    let bind_ip = new_ap.find('input[name*="bind_ip"]').val()
-    let bind_port = new_ap.find('input[name*="bind_port"]').val()
     let ap = new_ap.find('select[name*="attachment_point"]').val()
-    return public_ip === '' && public_port == 50000 && bind_ip === '' && bind_port === '' && ap === ''
+    let has_errors = new_ap.find('select.is-invalid,input.is-invalid').length > 0
+    return ap === '' && !has_errors
   }
   let collapser = $('#new-ap-collapser')
   let attachment = collapser.closest('.attachment')

@@ -23,7 +23,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Div, HTML
 from crispy_forms.bootstrap import AppendedText
 
-from scionlab.defines import MAX_PORT
+from scionlab.defines import MAX_PORT, DEFAULT_PUBLIC_PORT
 from scionlab.models.core import Link
 from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS
 from scionlab.util.portmap import PortMap
@@ -230,7 +230,7 @@ class AttachmentConfForm(forms.ModelForm):
     public_port = forms.IntegerField(
         min_value=1024,
         max_value=MAX_PORT,
-        initial=50000,
+        initial=DEFAULT_PUBLIC_PORT,
         label="Public Port (UDP)",
         help_text="The attachment point will use this port "
                   "for the overlay link to your AS."
@@ -288,9 +288,29 @@ class AttachmentConfForm(forms.ModelForm):
             if userAS.installation_type == UserAS.VM:
                 initial.pop('bind_ip', None)
                 initial.pop('bind_port', None)
+        elif userAS:
+            # Set some convenient default values for adding new links:
+            # Copy first public IP:
+            iface = next((iface for iface in userAS.interfaces.all()
+                          if not UserAS.is_link_over_vpn(iface)), None)
+            if iface:
+                initial['public_ip'] = iface.public_ip
+            # Set simple increasing port number:
+            index = self._get_formset_index(kwargs['prefix'])
+            initial['public_port'] = DEFAULT_PUBLIC_PORT + index
 
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
+
+    @staticmethod
+    def _get_formset_index(prefix):
+        """
+        Extract index of form in formset by parsing the _default_ formset form prefix
+        "<prefix>-<index>".
+        Fail hard if the prefix does not match.
+        """
+        _, idx = prefix.split('-')
+        return int(idx)
 
     def clean(self):
         cleaned_data = super().clean()

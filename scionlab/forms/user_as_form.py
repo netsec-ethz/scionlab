@@ -90,7 +90,7 @@ class UserASForm(forms.ModelForm):
                                                         max_num=UserAS.MAX_AP_PER_USERAS,
                                                         validate_max=True,
                                                         can_delete=True)
-        attach_links = Link.objects.filter(interfaceB__AS=instance)
+        attach_links = Link.objects.filter(interfaceB__AS=instance).order_by('pk')
         return attachment_conf_form_set(data, queryset=attach_links,
                                         userASForm=self,
                                         form_kwargs={'user': self.user, 'userAS': instance})
