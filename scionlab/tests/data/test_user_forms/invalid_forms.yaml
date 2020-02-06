@@ -26,6 +26,13 @@
     - attachment_point: "1"
       public_ip: "aa"
 
+- desc: "Invalid bind IP"
+  error: "Enter a valid IPv4 or IPv6 address."
+  attachments:
+    - attachment_point: "1"
+      public_ip: "192.1.2.111"
+      bind_ip: "aaa"
+
 - desc: "Localhost is not allowed"
   error: >-
     Public IP address must be a publically routable address.

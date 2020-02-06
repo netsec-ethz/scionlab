@@ -354,7 +354,7 @@ class AttachmentConfForm(forms.ModelForm):
                     )
 
         # Ignore bind port if bind_ip not set
-        if not self.cleaned_data['bind_ip']:
+        if not self.cleaned_data.get('bind_ip'):
             self.cleaned_data['bind_port'] = None
 
         # Ignore active flag while creating a new instance
