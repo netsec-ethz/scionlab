@@ -347,7 +347,7 @@ class AttachmentConfForm(forms.ModelForm):
                         ip_addr.is_unspecified:
                     self.add_error(
                         'public_ip',
-                        ValidationError("Public IP address must be a publically routable address. "
+                        ValidationError("Public IP address must be a publicly routable address. "
                                         "It cannot be a multicast, loopback or otherwise reserved "
                                         "address.",
                                         code='invalid_public_ip')

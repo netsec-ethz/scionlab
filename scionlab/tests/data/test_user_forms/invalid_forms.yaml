@@ -35,7 +35,7 @@
 
 - desc: "Localhost is not allowed"
   error: >-
-    Public IP address must be a publically routable address.
+    Public IP address must be a publicly routable address.
     It cannot be a multicast, loopback or otherwise reserved address.
   attachments:
     - attachment_point: "1"
@@ -43,7 +43,7 @@
 
 - desc: "Multicast is not allowed"
   error: >-
-    Public IP address must be a publically routable address.
+    Public IP address must be a publicly routable address.
     It cannot be a multicast, loopback or otherwise reserved address.
   attachments:
     - attachment_point: "1"
@@ -51,7 +51,7 @@
 
 - desc: "Private address is not allowed"
   error: >-
-    Public IP address must be a publically routable address.
+    Public IP address must be a publicly routable address.
     It cannot be a multicast, loopback or otherwise reserved address.
   attachments:
     - attachment_point: "1"
