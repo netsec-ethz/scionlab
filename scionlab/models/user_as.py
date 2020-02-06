@@ -133,9 +133,13 @@ class UserAS(AS):
         """
         Updates the `UserAS` fields and immediately saves
         """
-        # XXX(matzf): updating installation type to/from VM should fix up bind IP
         self.label = label
-        self.installation_type = installation_type
+        if installation_type != self.installation_type:
+            if installation_type == UserAS.VM:
+                self._set_bind_ips_for_vagrant()
+            elif self.installation_type == UserAS.VM:
+                self._unset_bind_ips_for_vagrant()
+            self.installation_type = installation_type
         self.save()
 
     def update_attachments(self,
@@ -201,6 +205,7 @@ class UserAS(AS):
             iface_ap = Interface.objects.create(ap_border_router)
             if self.installation_type == UserAS.VM:
                 att_conf.bind_ip = _VAGRANT_VM_LOCAL_IP
+                att_conf.bind_port = None
 
         iface_client = Interface.objects.create(
             border_router,
@@ -235,6 +240,7 @@ class UserAS(AS):
             iface_ap.update(ap_border_router, public_ip=None, public_port=None)
             if self.installation_type == UserAS.VM:
                 att_conf.bind_ip = _VAGRANT_VM_LOCAL_IP
+                att_conf.bind_port = None
 
         iface_client.update(public_ip=att_conf.public_ip,
                             public_port=att_conf.public_port,
@@ -286,6 +292,30 @@ class UserAS(AS):
             if vpn_client.vpn_id not in active_vpns:
                 vpn_client.active = False
                 vpn_client.save()
+
+    def _set_bind_ips_for_vagrant(self):
+        """
+        When changing to installation VM, all existing non-VPN interfaces need to be updated
+        to use the vagrant local address.
+        """
+        vpn_ips = self.host.vpn_clients.filter(active=True).values_list('ip', flat=True)
+        self.interfaces.exclude(
+            public_ip__in=vpn_ips
+        ).update(
+            bind_ip=_VAGRANT_VM_LOCAL_IP,
+            bind_port=None
+        )
+
+    def _unset_bind_ips_for_vagrant(self):
+        """
+        When changing away from installation VM, remove the vagrant local address.
+        """
+        self.interfaces.filter(
+            bind_ip=_VAGRANT_VM_LOCAL_IP
+        ).update(
+            bind_ip=None,
+            bind_port=None
+        )
 
     @property
     def host(self):

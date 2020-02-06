@@ -55,28 +55,23 @@ def _crispy_helper(instance):
     return helper
 
 
-class UserASForm(forms.ModelForm):
+class UserASForm(forms.Form):
     """
     Form responsible for the  UserAS model
     """
 
     prefix = 'user-as'
 
-    class Meta:
-        model = UserAS
-        fields = (
-            'label',
-            'installation_type',
-        )
-        labels = {
-            'label': "Label",
-        }
-        help_texts = {
-            'label': "Optional short label for your AS",
-        }
-        widgets = {
-            'installation_type': forms.RadioSelect(),
-        }
+    label = forms.CharField(
+        label="Label",
+        help_text="Optional short label for your AS",
+        required=False,
+    )
+    installation_type = forms.ChoiceField(
+        choices=UserAS.INSTALLATION_TYPES,
+        required=True,
+        widget=forms.RadioSelect(),
+    )
 
     def _get_attachment_conf_form_set(self, data, instance: UserAS):
         """
@@ -97,15 +92,20 @@ class UserASForm(forms.ModelForm):
 
     def __init__(self, data=None, *args, **kwargs):
         self.user = kwargs.pop('user')
-        instance = kwargs.get('instance')
-        self.attachment_conf_form_set = self._get_attachment_conf_form_set(data, instance)
+        self.instance = kwargs.pop('instance', None)
+        self.attachment_conf_form_set = self._get_attachment_conf_form_set(data, self.instance)
         initial = kwargs.pop('initial', {})
-        self.helper = _crispy_helper(instance)
+        if self.instance:
+            initial.update({
+                'label': self.instance.label,
+                'installation_type': self.instance.installation_type,
+            })
+        self.helper = _crispy_helper(self.instance)
         super().__init__(data, *args, initial=initial, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
-        if self.instance.pk is None:
+        if self.instance is None:
             self.user.check_as_quota()
 
         self.attachment_conf_form_set.full_clean()
@@ -129,14 +129,19 @@ class UserASForm(forms.ModelForm):
         return super().is_valid() and self.attachment_conf_form_set.is_valid()
 
     def save(self, commit=True):
-        if self.instance.pk is None:
-            user_as = UserAS.objects.create(self.user,
-                                            self.cleaned_data['installation_type'],
-                                            self.attachment_conf_form_set.isd,
-                                            label=self.cleaned_data['label'])
+        if not self.instance:
+            user_as = UserAS.objects.create(
+                owner=self.user,
+                isd=self.attachment_conf_form_set.isd,
+                installation_type=self.cleaned_data['installation_type'],
+                label=self.cleaned_data['label'],
+            )
             self.attachment_conf_form_set.save(user_as)
             return user_as
         else:
-            self.instance.save()
+            self.instance.update(
+                installation_type=self.cleaned_data['installation_type'],
+                label=self.cleaned_data['label']
+            )
             self.attachment_conf_form_set.save(self.instance)
             return self.instance
