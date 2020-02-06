@@ -419,6 +419,9 @@ class UserASCreateTests(WebTest):
     @staticmethod
     def _fill_form(form, **kwargs):
         for key, value in kwargs.items():
+            # ugly workaround: active field not rendered for creation forms.
+            if key not in form.fields and key.endswith('-active'):
+                continue
             form[key] = value
 
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 from crispy_forms.bootstrap import AppendedText
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Field
+from crispy_forms.layout import Layout, Field
 from django import forms
 from django.forms import modelformset_factory
 

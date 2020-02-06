@@ -193,14 +193,14 @@ class AttachmentConfFormHelper(FormHelper):
             )
             card_parts = (
                 self.conf_header,
-                self.conf_body
+                self.conf_body,
             )
         else:
             # new (and only) link, user AS
             # - cannot be deleted / deactivated nor collapsed
             card_parts = (
                 self.conf_header,
-                self.conf_body
+                self.conf_body,
             )
 
         self.layout = Layout(
