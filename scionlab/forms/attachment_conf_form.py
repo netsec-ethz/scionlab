@@ -165,7 +165,7 @@ class AttachmentConfFormHelper(FormHelper):
                    class="mt-3 btn btn-link collapsed"
                    aria-expanded="false"
                    aria-controls="new-ap-form">
-                New attachment point
+                New provider link
                 <i class="mt-3 fa fa-plus-circle"></i>
                 <i class="mt-3 fa fa-minus-circle"></i>
            </button>"""

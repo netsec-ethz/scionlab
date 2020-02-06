@@ -31,17 +31,11 @@ def _crispy_helper(instance):
     helper = FormHelper()
     helper.attrs['id'] = 'id_user_as_form'
     helper.layout = Layout(
-        Div(
-            Div(
-                AppendedText('label', '<span class="fa fa-pencil"/>'),
-                Field(
-                    'installation_type',
-                    template='scionlab/partials/installation_type_accordion.html',
-                ),
-                css_class="card-body"
-            ),
-            css_class="card"
-        )
+        AppendedText('label', '<span class="fa fa-pencil"/>'),
+        Field(
+            'installation_type',
+            template='scionlab/partials/installation_type_accordion.html',
+        ),
     )
 
     # We need this to render the UserASForm along with the AttachmentConfForm
