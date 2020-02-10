@@ -24,17 +24,13 @@ DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-po
 DEFAULT_INTERNAL_PORT = 31045  # 30242-30251
 DEFAULT_CONTROL_PORT = 30045   # 30042-30051
 
-BS_PORT = 31041  # 30252
-PS_PORT = 31043  # 30253
-CS_PORT = 31042  # 30254
+CS_PORT = 31042  # 30254 # XXX(matzf): update to actual port
 BW_PORT = 40001
 PP_PORT = 40002
 DISPATCHER_PORT = 30041
 
-BS_QUIC_PORT = 30352  # QUIC port for the infrastructure's messenger
-PS_QUIC_PORT = 30353
-CS_QUIC_PORT = 30354
-SD_QUIC_PORT = 0
+CS_QUIC_PORT = 30354  # QUIC port for the infrastructure's messenger
+SD_QUIC_PORT = 0      # XXX(matzf): TCP PORT? update
 
 PROM_PORT_OFFSET = 1000  # e.g. PS Prometheus port = PS.Public.Port + 1000 = 32043
 PROM_PORT_DI = 30441  # prometheus metrics exposed in go dispatcher

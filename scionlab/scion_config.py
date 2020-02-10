@@ -26,11 +26,7 @@ from scionlab.defines import (
     PROM_PORT_OFFSET,
     PROM_PORT_DI,
     PROM_PORT_SD,
-    BS_PORT,
-    PS_PORT,
     CS_PORT,
-    BS_QUIC_PORT,
-    PS_QUIC_PORT,
     CS_QUIC_PORT,
     SD_QUIC_PORT,
     SCION_CONFIG_DIR,
@@ -60,9 +56,7 @@ from lib.defines import (
 TYPE_BR = 'BR'
 TYPE_SD = 'SD'
 SERVICES_TO_SYSTEMD_NAMES = {
-    Service.BS: 'scion-beacon-server',
-    Service.CS: 'scion-certificate-server',
-    Service.PS: 'scion-path-server',
+    Service.CS: 'scion-control-server',
     Service.BW: 'scion-bwtestserver',
     TYPE_BR: 'scion-border-router',
 }
@@ -71,9 +65,7 @@ DEFAULT_ENV = ['TZ=UTC']
 BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 
 CMDS = {
-    Service.BS: 'beacon_srv',
-    Service.CS: 'cert_srv',
-    Service.PS: 'path_srv',
+    Service.CS: 'cs',
     TYPE_BR: 'border',
     TYPE_SD: 'sciond',
 }
@@ -135,11 +127,7 @@ class _ConfigGenerator:
             self._write_elem_dir(router.instance_name, 'br.toml', cb.build_br_conf(router))
 
         for service in self._services():
-            if service.type == Service.BS:
-                self._write_elem_dir(service.instance_name, 'bs.toml', cb.build_bs_conf(service))
-            elif service.type == Service.PS:
-                self._write_elem_dir(service.instance_name, 'ps.toml', cb.build_ps_conf(service))
-            elif service.type == Service.CS:
+            if service.type == Service.CS:
                 self._write_elem_dir(service.instance_name, 'cs.toml', cb.build_cs_conf(service))
 
         self._write_elem_dir('endhost', 'sd.toml', cb.build_sciond_conf(self.host),
@@ -270,7 +258,7 @@ class _ConfigBuilder:
         self.var_dir = var_dir
 
     def build_disp_conf(self):
-        conf = self._build_common_conf('dispatcher', PROM_PORT_DI)
+        conf = self._build_logging_conf('dispatcher', PROM_PORT_DI)
         conf.update({
             'dispatcher': {'ID': 'dispatcher', 'SocketFileMode': '0777'},
         })
@@ -307,32 +295,23 @@ class _ConfigBuilder:
         })
         return conf
 
-    def build_ps_conf(self, service):
+    def build_cs_conf(self, service):
         conf = self._build_goservice_conf(service.instance_name, service.host.internal_ip,
-                                          PS_QUIC_PORT, PS_PORT + PROM_PORT_OFFSET)
+                                          CS_QUIC_PORT, CS_PORT + PROM_PORT_OFFSET)
         conf.update({
+            # XXX(matzf) sd_client not needed anymore, i guess
+            'cs': {
+                'LeafReissueTime': "6h",
+                'IssuerReissueTime': "3d",
+                'ReissueRate': "10s",
+                'ReissueTimeout': "5s",
+            },
             'ps': {
                 'PathDB': {
                     'Backend': 'sqlite',
                     'Connection': '%s.path.db' % os.path.join(self.var_dir, service.instance_name),
                 },
                 'SegSync': True,
-            },
-        })
-        return conf
-
-    def build_cs_conf(self, service):
-        conf = self._build_goservice_conf(service.instance_name, service.host.internal_ip,
-                                          CS_QUIC_PORT, CS_PORT + PROM_PORT_OFFSET)
-        conf.update({
-            'sd_client': {
-                'Path': os.path.join(SCIOND_API_SOCKDIR, 'default.sock')
-            },
-            'cs': {
-                'LeafReissueTime': "6h",
-                'IssuerReissueTime': "3d",
-                'ReissueRate': "10s",
-                'ReissueTimeout': "5s",
             },
         })
         return conf
@@ -375,8 +354,8 @@ class _ConfigBuilder:
         return conf
 
     def _build_base_goservice_conf(self, instance_name, prometheus_port, instance_dir=None):
-        """ Builds the toml configuration common to SD,BS,CS,PS and BR """
-        conf = self._build_common_conf(instance_name, prometheus_port)
+        """ Builds the toml configuration common to SD,CS and BR """
+        conf = self._build_logging_conf(instance_name, prometheus_port)
         conf.update({
             'general': {
                 'ID': instance_name,
@@ -389,8 +368,8 @@ class _ConfigBuilder:
         })
         return conf
 
-    def _build_common_conf(self, logfile_name, prometheus_port):
-        """ Builds the toml configuration common to all services (disp,SD,BS,CS,PS and BR) """
+    def _build_logging_conf(self, logfile_name, prometheus_port):
+        """ Builds the metrics and logging configuration common to all services """
         conf = {
             'metrics': {'Prometheus': '[127.0.0.1]:%s' % prometheus_port},
             'logging': {
