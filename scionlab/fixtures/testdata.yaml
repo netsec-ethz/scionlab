@@ -912,7 +912,7 @@
     ssh_host: 192.0.2.11
     uid: e5ad96d3f36b4446b37ea9a4ffb3eafb
     secret: cb5b15539c1d4c96a155d8303e04bb45
-    config_version: 9
+    config_version: 7
     config_version_deployed: 0
 - model: scionlab.host
   pk: 2
@@ -926,7 +926,7 @@
     ssh_host: 192.0.2.12
     uid: 33425be7bb7846e6ab912bb2ac34f7c4
     secret: 0ec9ad28d8294787801e98eb71aa2c03
-    config_version: 8
+    config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
   pk: 3
@@ -940,7 +940,7 @@
     ssh_host: 192.0.2.13
     uid: 721042b3287247e2bce88f9ac100e209
     secret: 7e534fd6770c4fd2a0f9cf6a308cfff6
-    config_version: 8
+    config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
   pk: 4
@@ -954,7 +954,7 @@
     ssh_host: 192.0.2.17
     uid: bff6b39ba77e46a4a775a36f5fdf892d
     secret: 3560964a022346459556ca5eb71756c7
-    config_version: 13
+    config_version: 11
     config_version_deployed: 0
 - model: scionlab.host
   pk: 5
@@ -968,7 +968,7 @@
     ssh_host: 172.31.0.110
     uid: 098625df419a48279761954bb7b4ce78
     secret: 10cc1584deea4a10b9210a4c03c2d872
-    config_version: 10
+    config_version: 8
     config_version_deployed: 0
 - model: scionlab.host
   pk: 6
@@ -982,7 +982,7 @@
     ssh_host: 192.0.2.32
     uid: caa113f40be64f0abc41e606f185aa91
     secret: 92e0373a17c641e2a3a0c780b2866b81
-    config_version: 8
+    config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
   pk: 7
@@ -996,7 +996,7 @@
     ssh_host: 172.31.0.111
     uid: f5422107f7354c55b9f54a4befe0f58d
     secret: a2532f97fe144a88944e2860e525f220
-    config_version: 10
+    config_version: 8
     config_version_deployed: 0
 - model: scionlab.host
   pk: 8
@@ -1010,7 +1010,7 @@
     ssh_host: 192.0.2.34
     uid: 7457ef85245a46a1a3167bc1344b00d4
     secret: b2729e7601374c1d84faa14d8b9b276c
-    config_version: 8
+    config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
   pk: 9
@@ -1024,7 +1024,7 @@
     ssh_host: 172.31.0.112
     uid: 4a715f91a023481fb21e61669777238f
     secret: ab4c5aa179be4a37ba7db180517ea6f5
-    config_version: 8
+    config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
   pk: 10
@@ -1038,7 +1038,7 @@
     ssh_host: 172.31.0.113
     uid: 528974e4534147858b305e1435de8658
     secret: 30d63340acba4c4d8f84dc62417b58df
-    config_version: 9
+    config_version: 7
     config_version_deployed: 0
 - model: scionlab.host
   pk: 11
@@ -1052,7 +1052,7 @@
     ssh_host: 192.0.2.42
     uid: a17fe6ea1b9d450686985b7d744f03f5
     secret: 388ea729a9e14ecfb4bc7b8b50b4d914
-    config_version: 9
+    config_version: 7
     config_version_deployed: 0
 - model: scionlab.host
   pk: 12
@@ -1066,7 +1066,7 @@
     ssh_host: 192.0.2.43
     uid: 68e4438888cd4cfbafb476c20a90eb1f
     secret: 68f4632b0080439f9ea983d7bbb32514
-    config_version: 9
+    config_version: 7
     config_version_deployed: 0
 - model: scionlab.host
   pk: 13
@@ -1080,7 +1080,7 @@
     ssh_host: 192.0.2.44
     uid: af097465b81e4758be0d0545bdfe0841
     secret: aeae94b3c6ed4afeafc335c387845762
-    config_version: 11
+    config_version: 9
     config_version_deployed: 0
 - model: scionlab.host
   pk: 14
@@ -1094,7 +1094,7 @@
     ssh_host: 172.31.0.114
     uid: 2c872b10a8a348949cf181a1cb8b9a62
     secret: c16f444f48034dc7bdd1b747f2428986
-    config_version: 12
+    config_version: 10
     config_version_deployed: 0
 - model: scionlab.host
   pk: 15
@@ -1108,7 +1108,7 @@
     ssh_host: 192.0.2.46
     uid: ec10ed6da2654045806fe1c1c65b9c53
     secret: 174e077e02c340338365626fc6a2a0ac
-    config_version: 8
+    config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
   pk: 16
@@ -1122,7 +1122,7 @@
     ssh_host: null
     uid: 28b555e9a72249c58e0e8b15d2845700
     secret: d0c6141a6d9b4a91b355d560835cfcd7
-    config_version: 7
+    config_version: 5
     config_version_deployed: 0
 - model: scionlab.host
   pk: 17
@@ -1136,7 +1136,7 @@
     ssh_host: null
     uid: 555bf41978f74827a884a0ce49f50900
     secret: 605628f18cb24529acc7eb28a3ae3ef1
-    config_version: 6
+    config_version: 4
     config_version_deployed: 0
 - model: scionlab.host
   pk: 18
@@ -1150,7 +1150,7 @@
     ssh_host: null
     uid: 8866122168904859b7186ee56f3e7861
     secret: 39ea653da57b45eb9411d540ff46e286
-    config_version: 6
+    config_version: 4
     config_version_deployed: 0
 - model: scionlab.host
   pk: 19
@@ -1164,7 +1164,7 @@
     ssh_host: null
     uid: 6e08ae6944604a359822211c9c5b2a07
     secret: 6e93657613a445b5ae13c76c8bb98d23
-    config_version: 7
+    config_version: 5
     config_version_deployed: 0
 - model: scionlab.host
   pk: 20
@@ -1178,7 +1178,7 @@
     ssh_host: null
     uid: e45cd1b87b514badb35e95b240aa7ccf
     secret: c63aec288f8d43e593c7db82ebe22b06
-    config_version: 6
+    config_version: 4
     config_version_deployed: 0
 - model: scionlab.interface
   pk: 1
@@ -2035,369 +2035,129 @@
   fields:
     AS: 1
     host: 1
-    type: BS
+    type: CS
 - model: scionlab.service
   pk: 2
   fields:
-    AS: 1
-    host: 1
-    type: PS
+    AS: 2
+    host: 2
+    type: CS
 - model: scionlab.service
   pk: 3
   fields:
-    AS: 1
-    host: 1
+    AS: 3
+    host: 3
     type: CS
 - model: scionlab.service
   pk: 4
   fields:
-    AS: 2
-    host: 2
-    type: BS
+    AS: 4
+    host: 4
+    type: CS
 - model: scionlab.service
   pk: 5
   fields:
-    AS: 2
-    host: 2
-    type: PS
+    AS: 5
+    host: 5
+    type: CS
 - model: scionlab.service
   pk: 6
   fields:
-    AS: 2
-    host: 2
+    AS: 6
+    host: 6
     type: CS
 - model: scionlab.service
   pk: 7
   fields:
-    AS: 3
-    host: 3
-    type: BS
+    AS: 7
+    host: 7
+    type: CS
 - model: scionlab.service
   pk: 8
   fields:
-    AS: 3
-    host: 3
-    type: PS
+    AS: 8
+    host: 8
+    type: CS
 - model: scionlab.service
   pk: 9
   fields:
-    AS: 3
-    host: 3
+    AS: 9
+    host: 9
     type: CS
 - model: scionlab.service
   pk: 10
   fields:
-    AS: 4
-    host: 4
-    type: BS
+    AS: 10
+    host: 10
+    type: CS
 - model: scionlab.service
   pk: 11
   fields:
-    AS: 4
-    host: 4
-    type: PS
+    AS: 11
+    host: 11
+    type: CS
 - model: scionlab.service
   pk: 12
   fields:
-    AS: 4
-    host: 4
+    AS: 12
+    host: 12
     type: CS
 - model: scionlab.service
   pk: 13
   fields:
-    AS: 5
-    host: 5
-    type: BS
+    AS: 13
+    host: 13
+    type: CS
 - model: scionlab.service
   pk: 14
   fields:
-    AS: 5
-    host: 5
-    type: PS
+    AS: 14
+    host: 14
+    type: CS
 - model: scionlab.service
   pk: 15
   fields:
-    AS: 5
-    host: 5
+    AS: 15
+    host: 15
     type: CS
 - model: scionlab.service
   pk: 16
-  fields:
-    AS: 6
-    host: 6
-    type: BS
-- model: scionlab.service
-  pk: 17
-  fields:
-    AS: 6
-    host: 6
-    type: PS
-- model: scionlab.service
-  pk: 18
-  fields:
-    AS: 6
-    host: 6
-    type: CS
-- model: scionlab.service
-  pk: 19
-  fields:
-    AS: 7
-    host: 7
-    type: BS
-- model: scionlab.service
-  pk: 20
-  fields:
-    AS: 7
-    host: 7
-    type: PS
-- model: scionlab.service
-  pk: 21
-  fields:
-    AS: 7
-    host: 7
-    type: CS
-- model: scionlab.service
-  pk: 22
-  fields:
-    AS: 8
-    host: 8
-    type: BS
-- model: scionlab.service
-  pk: 23
-  fields:
-    AS: 8
-    host: 8
-    type: PS
-- model: scionlab.service
-  pk: 24
-  fields:
-    AS: 8
-    host: 8
-    type: CS
-- model: scionlab.service
-  pk: 25
-  fields:
-    AS: 9
-    host: 9
-    type: BS
-- model: scionlab.service
-  pk: 26
-  fields:
-    AS: 9
-    host: 9
-    type: PS
-- model: scionlab.service
-  pk: 27
-  fields:
-    AS: 9
-    host: 9
-    type: CS
-- model: scionlab.service
-  pk: 28
-  fields:
-    AS: 10
-    host: 10
-    type: BS
-- model: scionlab.service
-  pk: 29
-  fields:
-    AS: 10
-    host: 10
-    type: PS
-- model: scionlab.service
-  pk: 30
-  fields:
-    AS: 10
-    host: 10
-    type: CS
-- model: scionlab.service
-  pk: 31
-  fields:
-    AS: 11
-    host: 11
-    type: BS
-- model: scionlab.service
-  pk: 32
-  fields:
-    AS: 11
-    host: 11
-    type: PS
-- model: scionlab.service
-  pk: 33
-  fields:
-    AS: 11
-    host: 11
-    type: CS
-- model: scionlab.service
-  pk: 34
-  fields:
-    AS: 12
-    host: 12
-    type: BS
-- model: scionlab.service
-  pk: 35
-  fields:
-    AS: 12
-    host: 12
-    type: PS
-- model: scionlab.service
-  pk: 36
-  fields:
-    AS: 12
-    host: 12
-    type: CS
-- model: scionlab.service
-  pk: 37
-  fields:
-    AS: 13
-    host: 13
-    type: BS
-- model: scionlab.service
-  pk: 38
-  fields:
-    AS: 13
-    host: 13
-    type: PS
-- model: scionlab.service
-  pk: 39
-  fields:
-    AS: 13
-    host: 13
-    type: CS
-- model: scionlab.service
-  pk: 40
-  fields:
-    AS: 14
-    host: 14
-    type: BS
-- model: scionlab.service
-  pk: 41
-  fields:
-    AS: 14
-    host: 14
-    type: PS
-- model: scionlab.service
-  pk: 42
-  fields:
-    AS: 14
-    host: 14
-    type: CS
-- model: scionlab.service
-  pk: 43
-  fields:
-    AS: 15
-    host: 15
-    type: BS
-- model: scionlab.service
-  pk: 44
-  fields:
-    AS: 15
-    host: 15
-    type: PS
-- model: scionlab.service
-  pk: 45
-  fields:
-    AS: 15
-    host: 15
-    type: CS
-- model: scionlab.service
-  pk: 46
   fields:
     AS: 4
     host: 4
     type: BW
 - model: scionlab.service
-  pk: 47
+  pk: 17
   fields:
     AS: 15
     host: 15
     type: BW
 - model: scionlab.service
-  pk: 48
-  fields:
-    AS: 16
-    host: 16
-    type: BS
-- model: scionlab.service
-  pk: 49
-  fields:
-    AS: 16
-    host: 16
-    type: PS
-- model: scionlab.service
-  pk: 50
+  pk: 18
   fields:
     AS: 16
     host: 16
     type: CS
 - model: scionlab.service
-  pk: 51
-  fields:
-    AS: 17
-    host: 17
-    type: BS
-- model: scionlab.service
-  pk: 52
-  fields:
-    AS: 17
-    host: 17
-    type: PS
-- model: scionlab.service
-  pk: 53
+  pk: 19
   fields:
     AS: 17
     host: 17
     type: CS
 - model: scionlab.service
-  pk: 54
-  fields:
-    AS: 18
-    host: 18
-    type: BS
-- model: scionlab.service
-  pk: 55
-  fields:
-    AS: 18
-    host: 18
-    type: PS
-- model: scionlab.service
-  pk: 56
+  pk: 20
   fields:
     AS: 18
     host: 18
     type: CS
 - model: scionlab.service
-  pk: 57
-  fields:
-    AS: 19
-    host: 19
-    type: BS
-- model: scionlab.service
-  pk: 58
-  fields:
-    AS: 19
-    host: 19
-    type: PS
-- model: scionlab.service
-  pk: 59
+  pk: 21
   fields:
     AS: 19
     host: 19
     type: CS
 - model: scionlab.service
-  pk: 60
-  fields:
-    AS: 20
-    host: 20
-    type: BS
-- model: scionlab.service
-  pk: 61
-  fields:
-    AS: 20
-    host: 20
-    type: PS
-- model: scionlab.service
-  pk: 62
+  pk: 22
   fields:
     AS: 20
     host: 20
