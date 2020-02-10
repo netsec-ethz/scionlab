@@ -386,7 +386,7 @@ class AS(TimestampedModel):
             internal_ip=internal_ip or DEFAULT_HOST_INTERNAL_IP
         )
 
-        default_services = (Service.CS)
+        default_services = (Service.CS, )
         for service_type in default_services:
             Service.objects.create(host=host, type=service_type)
 
