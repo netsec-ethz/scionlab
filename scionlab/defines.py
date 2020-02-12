@@ -30,7 +30,8 @@ PP_PORT = 40002
 DISPATCHER_PORT = 30041
 
 CS_QUIC_PORT = 30354  # QUIC port for the infrastructure's messenger
-SD_QUIC_PORT = 0      # XXX(matzf): TCP PORT? update
+SD_QUIC_PORT = 0
+SD_TCP_PORT = 30255
 
 PROM_PORT_OFFSET = 1000  # e.g. PS Prometheus port = PS.Public.Port + 1000 = 32043
 PROM_PORT_DI = 30441  # prometheus metrics exposed in go dispatcher

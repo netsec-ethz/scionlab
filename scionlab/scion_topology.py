@@ -69,7 +69,7 @@ def _fetch_routers(as_):
 
 def _fetch_services(as_):
     services = []
-    for stype in Service.CONTROL_SERVICE_TYPES:
+    for stype, _ in Service.SERVICE_TYPES:
         for id, service in enumerate(as_.services.filter(type=stype).order_by('pk'), start=1):
             service.instance_id = id
             service.instance_name = "%s%s-%s" % (stype.lower(), as_.isd_as_path_str(), id)
@@ -151,7 +151,8 @@ def _topo_add_interface(router_entry, interface):
 
 
 def _topo_add_control_services(topo_dict, services, as_address_type):
-    for service in Service.CONTROL_SERVICE_TYPES:
+    control_services = (s for s in services if s.type in Service.CONTROL_SERVICE_TYPES)
+    for service in control_services:
         service_type_entry = topo_dict.setdefault(TYPES_TO_KEYS[service.type], {})
         addrs = {
             "Public": {
