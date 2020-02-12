@@ -80,8 +80,7 @@ class InitASTests(TestCase):
         self.assertTrue(host.needs_config_deployment())
 
         self.assertTrue(hasattr(host, 'services'))
-        self.assertEqual(sorted(s.type for s in host.services.iterator()),
-                         ['BS', 'CS', 'PS'])
+        self.assertEqual(sorted(s.type for s in host.services.iterator()), ['CS'])
 
 
 class UpdateASKeysTests(TestCase):
