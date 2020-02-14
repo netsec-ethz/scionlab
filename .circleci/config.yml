@@ -17,6 +17,53 @@
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
 version: 2
+
+check_services_status: &check_services_status
+  command: |
+    set -x
+
+    sleep 10  # Give the services enough time to start (or fail)
+
+    for c in as1301 as1303 as1305; do
+      docker-compose exec $c /bin/bash -c \
+        '! systemctl is-failed scion-*'
+    done
+
+check_scion_connections: &check_scion_connections
+  command: |
+    set -x
+
+    # Wait for beacons
+    docker-compose exec -T as1303 /bin/bash -c \
+      'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
+    docker-compose exec -T as1305 /bin/bash -c \
+      'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
+
+    # Check that we can SCMP
+    docker-compose exec -T as1301 /bin/bash -c \
+      'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
+    docker-compose exec -T as1303 /bin/bash -c \
+      'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+    docker-compose exec -T as1305 /bin/bash -c \
+      'scmp echo -c 5 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+
+start_coordinator: &start_coordinator
+  command: |
+    docker-compose run -T coord /bin/bash -c \
+     './scripts/init-test-db.sh && \
+      cp .circleci/setup/deploy_ssh_config run/ssh_config && \
+      cp .circleci/setup/deploy_rsa* run/ && \
+      chmod 644 run/deploy_rsa.pub && \
+      chmod 600 run/deploy_rsa'
+
+    docker-compose up -d coord
+
+    # We start another container in the same network as `coord` to check `coord` is ready.
+    # All exposed ports from `coord` are available on `localhost` in this new container.
+    # NOTE: uses python:3.6 to re-use already fetched image from `coord`; contains more tools than ubuntu:xenial
+    docker run --net circleci_as_net --entrypoint /bin/bash python:3.6 -c \
+      'wget --tries 10 --retry-connrefused http://coord:8000/login/'
+
 jobs:
   basic:
     docker:
@@ -93,21 +140,7 @@ jobs:
       - run:
           name: Start coordinator
           working_directory: ~/project/.circleci
-          command: |
-            docker-compose run -T coord /bin/bash -c \
-             './scripts/init-test-db.sh && \
-              cp .circleci/setup/deploy_ssh_config run/ssh_config && \
-              cp .circleci/setup/deploy_rsa* run/ && \
-              chmod 644 run/deploy_rsa.pub && \
-              chmod 600 run/deploy_rsa'
-
-            docker-compose up -d coord
-
-            # We start another container in the same network as `coord` to check `coord` is ready.
-            # All exposed ports from `coord` are available on `localhost` in this new container.
-            # NOTE: uses python:3.6 to re-use already fetched image from `coord`; contains more tools than ubuntu:xenial
-            docker run --net circleci_as_net --entrypoint /bin/bash python:3.6 -c \
-              'wget --tries 10 --retry-connrefused http://coord:8000/login/'
+          <<: *start_coordinator
 
       # Start integration tests
       - run:
@@ -127,36 +160,13 @@ jobs:
       - run:
           name: Check AS services status
           working_directory: ~/project/.circleci
-          command: |
-            set -x
-
-            sleep 10  # Give the services enough time to start (or fail)
-
-            for c in as1301 as1303 as1305; do
-              docker-compose exec $c /bin/bash -c \
-                '! systemctl is-failed scion-*'
-            done
+          <<: *check_services_status
 
       - run:
           name: Check SCION connections
           working_directory: ~/project/.circleci
           no_output_time: "3m0s"
-          command: |
-            set -x
-
-            # Wait for beacons
-            docker-compose exec -T as1303 /bin/bash -c \
-              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
-            docker-compose exec -T as1305 /bin/bash -c \
-              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
-
-            # Check that we can SCMP
-            docker-compose exec -T as1301 /bin/bash -c \
-              'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
-            docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
-            docker-compose exec -T as1305 /bin/bash -c \
-              'scmp echo -c 5 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+          <<: *check_scion_connections
 
       - run:
           name: "Push changes to AS ffaa:0:1303"
@@ -246,9 +256,110 @@ jobs:
              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; \
               scmp echo -c 10 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
 
+  upgrade_integration:
+    machine:
+      image: ubuntu-1604:201903-01
+
+    steps:
+      - checkout
+
+      # Start old version of coordinator
+      - run:
+          name: Checkout previous version
+          working_directory: ~/project
+          command: |
+            mkdir ./previous_version && cd ./previous_version
+            git clone https://github.com/netsec-ethz/scionlab.git -b master ./
+
+      - run:
+          name: Extract host configuration info from testdata.yaml fixture
+          working_directory: ~/project/previous_version
+          command: |
+            pip install pyyaml
+            python .circleci/setup/generate-host-envs.py
+
+      - run:
+          name: Build container images
+          working_directory: ~/project/previous_version/.circleci
+          command: |
+            sed -i '/.circleci/d' ~/project/previous_version/.dockerignore  # The .dockerignore is for production, we'll need this
+            docker-compose build
+
+
+      - run:
+          name: Start old coordinator
+          working_directory: ~/project/previous_version/.circleci
+          <<: *start_coordinator
+
+      - run:
+          name: Start ASes running old version in containers
+          working_directory: ~/project/previous_version/.circleci
+          command: |
+            set -x
+            docker-compose up -d as1301 as1303 as1305
+
+            for c in as1301 as1303 as1305; do
+              docker-compose exec $c /bin/bash -c \
+                'apt-get install --assume-yes -t all scionlab; \
+                 scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+            done
+
+            docker-compose logs
+
+      - run:
+          name: Check AS services status running old config
+          working_directory: ~/project/previous_version/.circleci
+          <<: *check_services_status
+
+      - run:
+          name: Stop old coordinator
+          working_directory: ~/project/previous_version/.circleci
+          command: |
+            docker-compose stop coord
+            docker-compose rm -f coord && docker rmi circleci_coord:latest
+
+      # Starting upgrade integration tests
+
+      - run:
+          name: Build current coord container image
+          working_directory: ~/project/.circleci
+          command: |
+            sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
+            echo "previous_version" >> ~/project/.dockerignore  # ignore previous version
+            docker-compose build coord
+
+      - run:
+          name: Start coordinator from current branch
+          working_directory: ~/project/.circleci
+          <<: *start_coordinator
+
+      - run:
+          name: Run client cronjob
+          working_directory: ~/project/previous_version/.circleci
+          command: |
+            set -x
+            # Simulate command that is executed on hosts with upgrade cronjob (VMs), upgrade package
+            for c in as1301 as1303 as1305; do
+              docker-compose exec -T as1303 /bin/bash -c \
+                'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian testing main" | sudo tee /etc/apt/sources.list.d/scionlab.list; \
+                 apt-get update; apt-get install -y --only-upgrade -t testing scionlab'
+            done
+
+      - run:
+          name: Check updated AS services status
+          working_directory: ~/project/previous_version/.circleci
+          <<: *check_services_status
+
+      #- run:
+      #    name: Check SCION connections after update
+      #    working_directory: ~/project/previous_version/.circleci
+      #    no_output_time: "3m0s"
+      #    <<: *check_scion_connections
+
 workflows:
   version: 2
   tests:
     jobs:
       - basic
       - integration
+      - upgrade_integration
