@@ -1,17 +1,26 @@
-FROM python:3.6
-ENV PYTHONUNBUFFERED 1
+FROM scionlab_django AS circleci_coord
 
+# Add dev requirements
 RUN pip install --upgrade pip
-COPY requirements.txt dev-requirements.txt /scionlab/
-WORKDIR /scionlab/
-RUN pip install -r requirements.txt -r dev-requirements.txt
+COPY dev-requirements.txt /scionlab/
+
+RUN pip install -r dev-requirements.txt
 
 COPY . /scionlab/
 
 # Fixup django settings for the integration tests:
 RUN sed -i 's/^SCIONLAB_SITE = .*/SCIONLAB_SITE = "http:\/\/coord:8000"/' scionlab/settings/development.py
 
+# Fixup entrypoint for the integration tests:
+# Not using Postgres in dev, not waiting for it
+RUN sed -i 's/appdeps\.py/#appdeps\.py/' /scionlab/deploy/django-entrypoint.sh
+# Don't run using gunicorn
+RUN sed -i 's/gunicorn/#gunicorn/' /scionlab/deploy/django-entrypoint.sh
+# Run using django development server
+RUN sed -i 's/#\/scionlab\/manage.py/\/scionlab\/manage.py/' /scionlab/deploy/django-entrypoint.sh
+
 # Add /scionlab/ to PYTHONPATH to simplify running the scripts in .circleci/actions/
 ENV PYTHONPATH /scionlab/
 
-CMD ["python", "manage.py","runserver","0.0.0.0:8000"]
+ENV DJANGO_SETTINGS_MODULE=scionlab.settings.development
+CMD /scionlab/deploy/django-entrypoint.sh

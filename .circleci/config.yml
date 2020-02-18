@@ -49,6 +49,7 @@ check_scion_connections: &check_scion_connections
 
 start_coordinator: &start_coordinator
   command: |
+    # Initialize coordinator with test data and test keys
     docker-compose run -T coord /bin/bash -c \
      './scripts/init-test-db.sh && \
       cp .circleci/setup/deploy_ssh_config run/ssh_config && \
@@ -135,6 +136,7 @@ jobs:
           working_directory: ~/project/.circleci
           command: |
             sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
+            docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/ # Build base image, as used in production
             docker-compose build
 
       - run:
@@ -282,6 +284,7 @@ jobs:
           name: Build container images
           working_directory: ~/project/previous_version/.circleci
           command: |
+            #docker build --file ~/project/previous_version/deploy/Dockerfile-django --tag scionlab_django ~/project/ # We are only extending the production image
             sed -i '/.circleci/d' ~/project/previous_version/.dockerignore  # The .dockerignore is for production, we'll need this
             docker-compose build
 
@@ -311,27 +314,16 @@ jobs:
           working_directory: ~/project/previous_version/.circleci
           <<: *check_services_status
 
-      - run:
-          name: Stop old coordinator
-          working_directory: ~/project/previous_version/.circleci
-          command: |
-            docker-compose stop coord
-            docker-compose rm -f coord && docker rmi circleci_coord:latest
-
       # Starting upgrade integration tests
 
       - run:
-          name: Build current coord container image
+          name: Rebuild and start coordinator from current branch
           working_directory: ~/project/.circleci
           command: |
             sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
             echo "previous_version" >> ~/project/.dockerignore  # ignore previous version
-            docker-compose build coord
-
-      - run:
-          name: Start coordinator from current branch
-          working_directory: ~/project/.circleci
-          <<: *start_coordinator
+            docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/
+            docker-compose up -d --force-recreate --build coord
 
       - run:
           name: Run client cronjob
@@ -362,4 +354,7 @@ workflows:
     jobs:
       - basic
       - integration
-      - upgrade_integration
+      - upgrade_integration:
+          filters:
+            branches:
+              only: /.*_upgrade_.*/
