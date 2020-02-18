@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
+
 MAX_PORT = 2**16-1
 """ Max value for ports """
 
@@ -51,3 +54,5 @@ SCION_CONFIG_DIR = "/etc/scion"
 SCION_LOG_DIR = "/var/log/scion"
 SCION_VAR_DIR = "/var/lib/scion"
 GEN_PATH = "gen"
+
+DEFAULT_EXPIRATION = datetime.timedelta(days=365)

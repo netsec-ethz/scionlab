@@ -246,20 +246,9 @@ class AS(TimestampedModel):
         blank=True
     )
 
-    sig_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    sig_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    enc_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    enc_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-
     master_as_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
 
     is_core = models.BooleanField(default=False)
-    core_sig_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_sig_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_online_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_online_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_offline_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_offline_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
 
     certificate_chain = jsonfield.JSONField(null=True, blank=True)
     core_certificate = jsonfield.JSONField(null=True, blank=True)

@@ -265,38 +265,30 @@ def check_as_core_keys(testcase, as_):
     check_sig_keypair(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
 
 
-def check_sig_keypair(testcase, sig_pub_key_b64, sig_priv_key_b64):
+def check_sig_key(testcase, sig_priv_key):
     """
     Check that this signing keypair was correctly created
     """
-    testcase.assertIsNotNone(sig_pub_key_b64)
-    testcase.assertIsNotNone(sig_priv_key_b64)
-    _sanity_check_base64(testcase, sig_pub_key_b64)
-    _sanity_check_base64(testcase, sig_priv_key_b64)
+    testcase.assertIsNotNone(sig_priv_key)
+    _sanity_check_base64(testcase, sig_priv_key)
 
     m = "message".encode()
 
     # Sign a message and verify
-    sig_pub_key = base64.b64decode(sig_pub_key_b64.encode())
-    sig_priv_key = base64.b64decode(sig_priv_key_b64.encode())
-    s = lib.crypto.asymcrypto.sign(m, sig_priv_key)
-    testcase.assertTrue(lib.crypto.asymcrypto.verify(m, s, sig_pub_key))
+    s = keys.sign(m, sig_priv_key)
+    testcase.assertTrue(keys.verify(m, s, sig_pub_key))
 
 
-def check_enc_keypair(testcase, enc_pub_key_b64, enc_priv_key_b64):
+def check_enc_keypair(testcase, enc_priv_key_b64):
     """
     Check that this encryption keypair was correctly created
     """
-    testcase.assertIsNotNone(enc_pub_key_b64)
     testcase.assertIsNotNone(enc_priv_key_b64)
-    _sanity_check_base64(testcase, enc_pub_key_b64)
     _sanity_check_base64(testcase, enc_priv_key_b64)
 
     m = "message".encode()
 
     # Encode and decode a message for myself
-    enc_pub_key = base64.b64decode(enc_pub_key_b64.encode())
-    enc_priv_key = base64.b64decode(enc_priv_key_b64.encode())
     c = lib.crypto.asymcrypto.encrypt(m, enc_priv_key, enc_pub_key)
     d = lib.crypto.asymcrypto.decrypt(c, enc_priv_key, enc_pub_key)
     testcase.assertEqual(m, d)
