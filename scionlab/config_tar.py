@@ -147,7 +147,7 @@ def _expand_vagrantfile_template(host):
         host_secret=host.secret,
         url=settings.SCIONLAB_SITE,
         hostname="scionlab-" + host.AS.as_id.replace(":", "-"),
-        vmname="SCIONLabVM-" + host.AS.as_id,
+        vmname="SCIONLabVM-" + host.AS.as_path_str()
     )
 
 
