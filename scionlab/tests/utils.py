@@ -420,7 +420,7 @@ def check_tarball_user_as(testcase, response, user_as):
         vagrantfile = tar.extractfile('Vagrantfile')
         lines = [l.decode() for l in vagrantfile]
         name_lines = [l.strip() for l in lines if l.strip().startswith('vb.name')]
-        testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_id])
+        testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_path_str()])
     else:
         testcase.assertEquals(sorted(['README.md', 'gen']),
                               _tar_ls(tar, ''))
