@@ -14,6 +14,7 @@
 
 import datetime
 import jsonfield
+from typing import List
 
 from django.db import models
 
@@ -21,15 +22,11 @@ from scionlab.models.core import (
     AS,
     ISD,
 )
-from scionlab.certificates import (
-    generate_trc,
-    generate_core_certificate,
-    generate_as_certificate_chain,
-)
 from scionlab.defines import (
     DEFAULT_EXPIRATION,
+    DEFAULT_TRC_GRACE_PERIOD,
 )
-from scionlab.scion import keys
+from scionlab.scion import keys, trcs
 
 _MAX_LEN_CHOICES_DEFAULT = 16
 """ Max length value for choices fields without specific requirements to max length """
@@ -58,6 +55,9 @@ class KeyManager(models.Manager):
             not_after=not_after
         )
 
+    def latest(self, usage):
+        return self.filter(usage=usage).latest('version')
+
 
 class Key(models.Model):
     DECRYPT = 'as-decrypt'
@@ -82,15 +82,17 @@ class Key(models.Model):
         AS,
         related_name='keys',
         on_delete=models.CASCADE,
+        editable=False,
     )
 
     usage = models.CharField(
         choices=list(zip(USAGES, USAGES)),
         max_length=_MAX_LEN_CHOICES_DEFAULT,
+        editable=False,
     )
-    version = models.PositiveIntegerField()
+    version = models.PositiveIntegerField(editable=False)
 
-    key = models.CharField(max_length=_MAX_LEN_KEYS)
+    key = models.CharField(max_length=_MAX_LEN_KEYS, editable=False)
     not_before = models.DateField()
     not_after = models.DateField()
 
@@ -102,7 +104,6 @@ class Key(models.Model):
     def __str__(self):
         return "%s-v%i.key" % (self.usage, self.version)
 
-
     @staticmethod
     def next_version(as_, usage):
         if as_.pk:
@@ -112,8 +113,50 @@ class Key(models.Model):
 
 
 class TRCManager(models.Manager):
-    def create():
-        pass
+    def create(self, isd, version, grace_period):
+
+        prev = self.latest(isd)
+
+        if prev:
+            version = prev.version + 1
+            prev_trc = prev.trc
+            prev_voting_offline = {key.AS.as_id: _key_info(key)
+                                   for key in prev.voting_offline.all()}
+        else:
+            version = 1
+            prev_trc = None
+            prev_voting_offline = None
+
+        keys = {as_.as_id: _latest_core_keys(as_) for as_ in isd.ases.filter(is_core=True)}
+
+        all_keys = sum(keys.values(), [])
+        not_before = max(key.not_before for key in all_keys)
+        not_after = min(key.not_after for key in all_keys)
+
+        primary_ases = {as_id: _core_key_info(as_keys) for as_id, as_keys in keys}
+
+        trc = trcs.generate_trc(
+            isd=isd,
+            version=version,
+            grace_period=DEFAULT_TRC_GRACE_PERIOD,
+            not_before=not_before,
+            not_after=not_after,
+            primary_ases=primary_ases,
+            prev_trc=prev_trc,
+            prev_voting_offline=prev_voting_offline,
+        )
+
+        voting_offline = [k for k in all_keys if k.usage == Key.TRC_VOTING_OFFLINE]
+
+        return super().create(
+            isd=isd,
+            version=version,
+            trc=trc,
+            voting_offline=voting_offline,
+        )
+
+    def latest(self, isd):
+        return self.filter(isd=isd).latest('version')
 
 
 class TRC(models.Model):
@@ -124,18 +167,48 @@ class TRC(models.Model):
         verbose_name='ISD'
     )
 
-    version = models.PositiveIntegerField()  # TODO can this be auto?
+    version = models.PositiveIntegerField(editable=False)
 
-    content = jsonfield.JSONField()
-    content_signed = jsonfield.JSONField()  # TODO
+    trc = jsonfield.JSONField(editable=False)
 
-    voting_keys = models.ManyToManyField(Key)
+            # TODO(matzf) o-oh, cannot delete core ASes, ever.
+            # Maybe a solution can be on_delete=models.SET() on Key, which
+            # could, for offline keys, null the AS relation and store the
+            # as_id in a separate field. Bah.
+    voting_offline = models.ManyToManyField(
+        Key,
+    )
 
     objects = TRCManager()
 
     class Meta:
         verbose_name = 'TRC'
         verbose_name_plural = 'TRCs'
+
+
+def _latest_core_keys(as_: AS) -> List[Key]:
+    return [
+        as_.keys.latest(Key.TRC_ISSUING_GRANT),
+        as_.keys.latest(Key.TRC_VOTING_ONLINE),
+        as_.keys.latest(Key.TRC_VOTING_OFFLINE),
+    ]
+
+
+def _key_info(key: Key):
+    return trcs.Key(
+        version=key.version,
+        priv_key=key.key,
+        pub_key=keys.public_sign_key(key.key),
+    )
+
+
+def _core_key_info(keys: List[Key]):
+    key_by_usage = {key.usage: key for key in keys}
+    return trcs.CoreKeys(
+        issuing_grant=key_by_usage[Key.TRC_ISSUING_GRANT],
+        voting_online=key_by_usage[Key.TRC_VOTING_ONLINE],
+        voting_offline=key_by_usage[Key.TRC_VOTING_OFFLINE],
+    )
 
 
 class Certificate(models.Model):
@@ -149,4 +222,3 @@ class Certificate(models.Model):
 
     content = jsonfield.JSONField()
     content_signed = jsonfield.JSONField()  # TODO
-

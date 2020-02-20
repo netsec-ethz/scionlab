@@ -56,3 +56,4 @@ SCION_VAR_DIR = "/var/lib/scion"
 GEN_PATH = "gen"
 
 DEFAULT_EXPIRATION = datetime.timedelta(days=365)
+DEFAULT_TRC_GRACE_PERIOD = datetime.timedelta(hours=6)

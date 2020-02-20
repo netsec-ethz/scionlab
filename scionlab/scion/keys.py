@@ -17,11 +17,13 @@
 :mod:`scionlab.scion.keys` --- SCION key creation and handling functions
 =======================================================
 """
-# External
 from nacl.exceptions import BadSignatureError
 from nacl.public import Box, PrivateKey, PublicKey
 from nacl.signing import SigningKey, VerifyKey
 from nacl.utils import random
+
+
+# TODO just default encode/decode as base64, using e.g. encode(encoder=nacl.encoding.Base64Encoder)
 
 
 def generate_sign_key():
@@ -33,6 +35,17 @@ def generate_sign_key():
     """
     sk = SigningKey.generate()
     return sk.encode()
+
+
+def public_sign_key(signing_key):
+    """
+    Return the public key corresponding to this signing private key.
+
+    :returns: a public key corresponding to priv_key
+    :rtype: bytes:
+    """
+    sk = SigningKey(signing_key)
+    return sk.verify_key.encode()
 
 
 def generate_enc_key():

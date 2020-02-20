@@ -12,10 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
+
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key
 from scionlab.util import as_ids
-from scionlab.defines import DEFAULT_EXPIRATION
+from scionlab.defines import (
+    DEFAULT_EXPIRATION,
+    DEFAULT_TRC_GRACE_PERIOD,
+)
+
+from scionlab.scion import keys, trcs
 
 from django.test import TestCase
 
@@ -50,3 +57,34 @@ class GenerateKeyTests(TestCase):
         self.assertEqual(k.usage, Key.SIGNING)
         self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION)
         # XXX check sign/verify (c.f. test utils for "old" keys)
+
+
+class GenerateTRCTests(TestCase):
+
+    def test_generate_initial(self):
+        isd = ISD.objects.create(isd_id=1, label='Test')
+
+        primary_ases = {
+            'ff00:0:110': trcs.CoreKeys(
+                issuing_grant=_gen_key(1),
+                voting_online=_gen_key(1),
+                voting_offline=_gen_key(1),
+            )
+        }
+
+        not_before = datetime(2020, 2, 20)
+        not_after = not_before + DEFAULT_EXPIRATION
+
+        trc = trcs.generate_trc(isd, 1, DEFAULT_TRC_GRACE_PERIOD, not_before, not_after,
+                                primary_ases, None, None)
+
+        # initial version, is signed by _all_ keys
+        self.assertTrue(trcs.validate(trc, {as_id: keys._asdict() for as_id, keys in primary_ases}))
+
+        _ = trcs.decode_payload(trc)
+
+
+def _gen_key(version):
+    priv = keys.generate_sign_key()
+    pub = keys.public_sign_key(priv)
+    return trcs.Key(version=version, priv_key=priv, pub_key=pub)
