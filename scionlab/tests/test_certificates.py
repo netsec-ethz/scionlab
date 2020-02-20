@@ -17,8 +17,6 @@ from django.test import TestCase
 from scionlab.models.core import ISD, AS
 from scionlab.tests import utils
 
-from lib.errors import SCIONVerificationError
-
 
 class TRCAndCoreASCertificateTestsSimple(TestCase):
     def test_empty_isd(self):

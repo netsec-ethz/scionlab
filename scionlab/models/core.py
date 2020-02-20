@@ -24,14 +24,8 @@ from django.db import models
 from django.db.models import F, Q, Count
 from django.db.models.signals import pre_delete, post_delete
 
-import lib.crypto.asymcrypto
 
 from scionlab.models.user import User
-from scionlab.certificates import (
-    generate_trc,
-    generate_core_certificate,
-    generate_as_certificate_chain,
-)
 from scionlab.util import as_ids
 from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap
@@ -125,21 +119,27 @@ class ISD(TimestampedModel):
             self._update_coreas_certificates(as_)
 
     def _update_trc(self):
-        self.trc, self.trc_priv_keys = generate_trc(self)
-        self.save()
+        # TODO(matzf)
+        raise NotImplementedError
+        # self.trc, self.trc_priv_keys = generate_trc(self)
+        # self.save()
 
     @staticmethod
     def _update_as_certificates(as_):
+        # TODO(matzf)
+        raise NotImplementedError
         as_.generate_certificate_chain()
         as_.hosts.bump_config()
         as_.save()
 
     @staticmethod
     def _update_coreas_certificates(as_):
-        as_.generate_core_certificate()
-        as_.generate_certificate_chain()
-        as_.hosts.bump_config()
-        as_.save()
+        # TODO(matzf)
+        raise NotImplementedError
+        # as_.generate_core_certificate()
+        # as_.generate_certificate_chain()
+        # as_.hosts.bump_config()
+        # as_.save()
 
 
 class ASManager(models.Manager):
@@ -356,7 +356,9 @@ class AS(TimestampedModel):
             issuer = candidates.first()
 
         if issuer:  # Skip if failed to find a core AS as issuer
-            self.certificate_chain = generate_as_certificate_chain(self, issuer)
+            # TODO(matzf)
+            raise NotImplementedError
+            # self.certificate_chain = generate_as_certificate_chain(self, issuer)
 
     def generate_core_certificate(self):
         """
@@ -364,7 +366,9 @@ class AS(TimestampedModel):
 
         Requires that the TRC in this ISD exists/is up to date.
         """
-        self.core_certificate = generate_core_certificate(self)
+        # TODO(matzf)
+        raise NotImplementedError
+        # self.core_certificate = generate_core_certificate(self)
 
     def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):
         """
@@ -409,8 +413,8 @@ class AS(TimestampedModel):
         """
         Generate signing and encryption key pairs.
         """
-        self.sig_pub_key, self.sig_priv_key = _gen_sig_keypair()
-        self.enc_pub_key, self.enc_priv_key = _gen_enc_keypair()
+        # TODO(matzf)
+        raise NotImplementedError
 
     def _gen_master_as_key(self):
         """
@@ -422,9 +426,8 @@ class AS(TimestampedModel):
         """
         Generate core AS signing key pairs.
         """
-        self.core_sig_pub_key, self.core_sig_priv_key = _gen_sig_keypair()
-        self.core_online_pub_key, self.core_online_priv_key = _gen_sig_keypair()
-        self.core_offline_pub_key, self.core_offline_priv_key = _gen_sig_keypair()
+        # TODO(matzf)
+        raise NotImplementedError
 
 
 class HostManager(models.Manager):
@@ -1313,11 +1316,3 @@ def _base64encode(key):
 
 def _base64encode_tuple(keys):
     return (_base64encode(k) for k in keys)
-
-
-def _gen_sig_keypair():
-    return _base64encode_tuple(lib.crypto.asymcrypto.generate_sign_keypair())
-
-
-def _gen_enc_keypair():
-    return _base64encode_tuple(lib.crypto.asymcrypto.generate_enc_keypair())

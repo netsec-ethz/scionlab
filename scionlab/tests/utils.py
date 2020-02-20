@@ -20,7 +20,6 @@ import pathlib
 import re
 import tarfile
 
-import lib.crypto.asymcrypto
 import logging
 from lib.crypto.trc import TRC
 from lib.crypto.certificate import Certificate
@@ -30,6 +29,8 @@ from collections import namedtuple, Counter, OrderedDict
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
 from scionlab.models.user_as import UserAS
+
+from scionlab.scion import keys
 
 
 def check_topology(testcase):
@@ -247,7 +248,7 @@ def check_as_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    check_sig_keypair(testcase, as_.sig_pub_key, as_.sig_priv_key)
+    check_sig_key(testcase, as_.sig_pub_key, as_.sig_priv_key)
     check_enc_keypair(testcase, as_.enc_pub_key, as_.enc_priv_key)
     testcase.assertIsNotNone(as_.master_as_key)
     _sanity_check_base64(testcase, as_.master_as_key)
@@ -260,9 +261,9 @@ def check_as_core_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    check_sig_keypair(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
-    check_sig_keypair(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
-    check_sig_keypair(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
+    check_sig_key(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
+    check_sig_key(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
+    check_sig_key(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
 
 
 def check_sig_key(testcase, sig_priv_key):
@@ -289,8 +290,8 @@ def check_enc_keypair(testcase, enc_priv_key_b64):
     m = "message".encode()
 
     # Encode and decode a message for myself
-    c = lib.crypto.asymcrypto.encrypt(m, enc_priv_key, enc_pub_key)
-    d = lib.crypto.asymcrypto.decrypt(c, enc_priv_key, enc_pub_key)
+    c = keys.encrypt(m, enc_priv_key, enc_pub_key)
+    d = keys.decrypt(c, enc_priv_key, enc_pub_key)
     testcase.assertEqual(m, d)
 
 
@@ -341,8 +342,8 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None, pre
     testcase.assertEqual(set(isd.trc_priv_keys.keys()), set(expected_core_ases))
 
     for isd_as in isd.trc['CoreASes'].keys():
-        check_sig_keypair(testcase, isd.trc['CoreASes'][isd_as]['OnlineKey'],
-                          isd.trc_priv_keys[isd_as])
+        check_sig_key(testcase, isd.trc['CoreASes'][isd_as]['OnlineKey'],
+                      isd.trc_priv_keys[isd_as])
 
     json_trc = json.dumps(isd.trc)  # round trip through json, just to make sure this works
     trc = TRC.from_raw(json_trc)
