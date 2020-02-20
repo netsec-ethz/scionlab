@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 from datetime import datetime
 
 from scionlab.models.core import ISD, AS
@@ -78,8 +79,14 @@ class GenerateTRCTests(TestCase):
         trc = trcs.generate_trc(isd, 1, DEFAULT_TRC_GRACE_PERIOD, not_before, not_after,
                                 primary_ases, None, None)
 
-        # initial version, is signed by _all_ keys
-        self.assertTrue(trcs.validate(trc, {as_id: keys._asdict() for as_id, keys in primary_ases}))
+        # initial version, is signed by _all_ keys (as proof of posession)
+        signing_keys = {as_id: keys._asdict() for as_id, keys in primary_ases.items()}
+        self.assertTrue(trcs.verify(trc, signing_keys))
+
+        # sanity check: if we mess with one of the signatures, it will not verify:
+        trc_bad = copy.deepcopy(trc)
+        trc_bad['signatures'][0]['signature'] = 'forged'
+        self.assertFalse(trcs.verify(trc_bad, signing_keys))
 
         _ = trcs.decode_payload(trc)
 

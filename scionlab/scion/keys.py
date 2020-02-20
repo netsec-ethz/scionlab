@@ -17,13 +17,38 @@
 :mod:`scionlab.scion.keys` --- SCION key creation and handling functions
 =======================================================
 """
+
+import base64
+
 from nacl.exceptions import BadSignatureError
 from nacl.public import Box, PrivateKey, PublicKey
 from nacl.signing import SigningKey, VerifyKey
 from nacl.utils import random
 
 
-# TODO just default encode/decode as base64, using e.g. encode(encoder=nacl.encoding.Base64Encoder)
+class Base64StringEncoder:
+    @staticmethod
+    def encode(data):
+        return base64.b64encode(data).decode()
+
+    @staticmethod
+    def decode(data):
+        return base64.b64decode(data)
+
+
+# XXX(matzf): instead of repeating encoder=Base64StringEncoder a dozen times:
+# class _B64EncodedMixin(SigningKey):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, encoder=Base64StringEncoder, **kwargs)
+
+#     def encode(self, *args, **kwargs):
+#         return super().encode(*args, encoder=Base64StringEncoder, **kwargs)
+
+# class _SigningKey(PrivateKey, _B64EncodedMixin):
+#     pass
+# class _VerifyKey(PrivateKey, _B64EncodedMixin):
+#     pass
+
 
 
 def generate_sign_key():
@@ -34,7 +59,7 @@ def generate_sign_key():
     :rtype: bytes:
     """
     sk = SigningKey.generate()
-    return sk.encode()
+    return sk.encode(encoder=Base64StringEncoder)
 
 
 def public_sign_key(signing_key):
@@ -44,19 +69,8 @@ def public_sign_key(signing_key):
     :returns: a public key corresponding to priv_key
     :rtype: bytes:
     """
-    sk = SigningKey(signing_key)
-    return sk.verify_key.encode()
-
-
-def generate_enc_key():
-    """
-    Generate Curve25519 keypair
-
-    :returns: a private key, usable for encryption.
-    :rtype: bytes:
-    """
-    private_key = PrivateKey.generate()
-    return private_key.encode()
+    sk = SigningKey(signing_key, encoder=Base64StringEncoder)
+    return sk.verify_key.encode(encoder=Base64StringEncoder)
 
 
 def sign(msg, signing_key):
@@ -68,7 +82,7 @@ def sign(msg, signing_key):
     :returns: ed25519 signature.
     :rtype: bytes
     """
-    return SigningKey(signing_key).sign(msg)[:64]
+    return SigningKey(signing_key, encoder=Base64StringEncoder).sign(msg)[:64]
 
 
 def verify(msg, sig, verifying_key):
@@ -82,9 +96,20 @@ def verify(msg, sig, verifying_key):
     :rtype: boolean
     """
     try:
-        return msg == VerifyKey(verifying_key).verify(msg, sig)
+        return msg == VerifyKey(verifying_key, encoder=Base64StringEncoder).verify(msg, sig)
     except BadSignatureError:
         return False
+
+
+def generate_enc_key():
+    """
+    Generate Curve25519 keypair
+
+    :returns: a private key, usable for encryption.
+    :rtype: bytes:
+    """
+    private_key = PrivateKey.generate()
+    return private_key.encode(encoder=Base64StringEncoder)
 
 
 def encrypt(msg, private_key, public_key):
@@ -97,7 +122,11 @@ def encrypt(msg, private_key, public_key):
     :returns: The encrypted message.
     :rtype: nacl.utils.EncryptedMessage
     """
-    return Box(PrivateKey(private_key), PublicKey(public_key)).encrypt(msg, random(Box.NONCE_SIZE))
+    box = Box(
+        PrivateKey(private_key, encoder=Base64StringEncoder),
+        PublicKey(public_key, encoder=Base64StringEncoder)
+    )
+    return box.encrypt(msg, random(Box.NONCE_SIZE))
 
 
 def decrypt(msg, private_key, public_key):
@@ -110,4 +139,8 @@ def decrypt(msg, private_key, public_key):
     :returns: The decrypted message.
     :rtype: bytes
     """
-    return Box(PrivateKey(private_key), PublicKey(public_key)).decrypt(msg)
+    box = Box(
+        PrivateKey(private_key, encoder=Base64StringEncoder),
+        PublicKey(public_key, encoder=Base64StringEncoder)
+    )
+    return box.decrypt(msg)

@@ -18,7 +18,7 @@ from collections import namedtuple
 from datetime import timedelta
 from typing import Dict
 
-from scionlab.scion.keys import public_sign_key, sign, verify
+from scionlab.scion import keys
 
 Key = namedtuple('Key', ['version', 'priv_key', 'pub_key'])
 CoreKeys = namedtuple('CoreKeys', ['issuing_grant', 'voting_online', 'voting_offline'])
@@ -93,11 +93,11 @@ def _regular_voting_keys(primary_ases: Dict[str, CoreKeys],
         else:
             return {'voting_online', keys.voting_online}
 
-    return {as_id: regular_voting_key(as_id, keys) for as_id, keys in primary_ases}
+    return {as_id: regular_voting_key(as_id, keys) for as_id, keys in primary_ases.items()}
 
 
 def _sensitive_voting_keys(prev_voting_offline: Dict[str, Key]) -> Dict[str, CoreKeySet]:
-    return {as_id: {'voting_offline': key} for as_id, key in prev_voting_offline}
+    return {as_id: {'voting_offline': key} for as_id, key in prev_voting_offline.items()}
 
 
 def _changed_keys(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> Dict[str, CoreKeySet]:
@@ -110,7 +110,7 @@ def _changed_keys(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> Dict[s
             return new_as_keys._asdict()
         else:
             return {usage: new_key
-                    for usage, new_key in new_as_keys._asdict()
+                    for usage, new_key in new_as_keys._asdict().items()
                     if not equal_key(new_key, getattr(prev_as_keys, usage))}
 
     return {as_id: changed_set(new[as_id], prev.get(as_id)) for as_id in new.keys()}
@@ -144,15 +144,17 @@ def _build_payload(isd,
                     usage: {
                         "key_version": key.version,
                         "algorithm": "Ed25519",
-                        "key": public_sign_key(key.priv_key),
+                        "key": key.pub_key
                     }
-                    for usage, key in primary_ases[as_id]._asdict()
+                    for usage, key in primary_ases[as_id]._asdict().items()
                 }
             }
             for as_id in primary_ases.keys()
         },
-        "votes": {as_id: next(iter(keys.keys())) for as_id, keys in votes},
-        "proof_of_posession": {as_id: list(keys.keys()) for as_id, keys in proof_of_posession},
+        "votes": {as_id: next(iter(keys.keys()))
+                  for as_id, keys in votes.items()},
+        "proof_of_posession": {as_id: list(keys.keys())
+                               for as_id, keys in proof_of_posession.items()},
     }
 
 
@@ -161,8 +163,8 @@ def _build_signed_trc(payload, votes, proof_of_posession):
     # one signature for each vote or proof of posession.
     signatures = [(as_id, usage, key)
                   for keyset in (votes, proof_of_posession)
-                  for as_id, keys in keyset
-                  for usage, key in keys]
+                  for as_id, keys in keyset.items()
+                  for usage, key in keys.items()]
 
     payload_enc = b64url(json.dumps(payload).encode())
     return {
@@ -183,9 +185,10 @@ def _jws_signature(payload_enc, as_id, key_usage, key):
 
     protected_enc = b64url(json.dumps(protected).encode())
 
+    sigmsg = (protected_enc + '.' + payload_enc).encode()
     return {
-        "protected": protected,
-        "signature": sign(protected_enc + '.' + payload_enc, key.priv_key)
+        "protected": protected_enc,
+        "signature": b64url(keys.sign(sigmsg, key.priv_key))
     }
 
 
@@ -200,11 +203,11 @@ def _decode_primary_ases(trc):
 
     def _core_keys(as_entry):
         return CoreKeys(**{
-            usage: _key_info(key_entry) for usage, key_entry in as_entry['keys']
+            usage: _key_info(key_entry) for usage, key_entry in as_entry['keys'].items()
         })
 
     return {as_id: _core_keys(as_entry)
-            for as_id, as_entry in payload['primary_ases']}
+            for as_id, as_entry in payload['primary_ases'].items()}
 
 
 def decode_payload(trc):
@@ -213,9 +216,9 @@ def decode_payload(trc):
     return payload
 
 
-def validate(trc, keys: Dict[str, CoreKeySet]) -> bool:
+def verify(trc, signing_keys: Dict[str, CoreKeySet]) -> bool:
     """
-    Validate the TRC signatures with the given keys.
+    Verify that the TRC was signed with (exactly) the given signing keys.
 
     WARNING: for testing only!
     """
@@ -224,8 +227,8 @@ def validate(trc, keys: Dict[str, CoreKeySet]) -> bool:
     signatures = trc['signatures']
 
     remaining_keys = {(as_id, usage, key.version): key
-                      for as_id, keyset in keys
-                      for usage, key in keyset._asdict()}
+                      for as_id, keyset in signing_keys.items()
+                      for usage, key in keyset.items()}
 
     for signature in signatures:
         protected_enc = signature['protected']
@@ -240,12 +243,15 @@ def validate(trc, keys: Dict[str, CoreKeySet]) -> bool:
         if not key:
             return False
 
-        valid = verify(protected_enc + '.' + payload_enc, signature['signature'], key.pub_key)
+        sigmsg = (protected_enc + '.' + payload_enc).encode()
+        valid = keys.verify(sigmsg, b64urldec(signature['signature']), key.pub_key)
         if not valid:
             return False
 
     if remaining_keys:
         return False
+
+    return True
 
 
 def b64url(input: bytes) -> str:
