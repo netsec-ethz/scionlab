@@ -271,7 +271,7 @@ class UserAS(AS):
             vpn_client.save()
         return vpn_client
 
-    def _deactivate_unused_vpn_clients(self, att_confs: 'AttachmentConf'):
+    def _deactivate_unused_vpn_clients(self, att_confs: List['AttachmentConf']):
 
         # TODO(matzf): combine this with _create_or_activate_vpn_client, to simplify & avoid a few
         # DB queries
