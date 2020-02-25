@@ -71,13 +71,14 @@ def _add_files_user_as_dedicated(archive, host, process_control):
     - config_info file (scionlab-config.json) inside the gen directory
     - full gen directory:
         - if SRC: including supervisord files
-    - VPN file client.conf (if using VPN)
+    - VPN file client-scionlab-.conf (if using VPN)
     """
 
     _add_config_info(host, archive, with_version=True)
     _add_ia_file(host, archive)
     scion_config.create_gen(host, archive, process_control)
-    _add_vpn_config(host, archive)
+    _add_vpn_client_configs(host, archive)
+    _add_vpn_server_config(host, archive)
     archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
 
@@ -90,7 +91,8 @@ def generate_host_config_tar(host, archive):
     """
     _add_config_info(host, archive, with_version=True)
     _add_ia_file(host, archive)
-    _add_vpn_config(host, archive)
+    _add_vpn_client_configs(host, archive)
+    _add_vpn_server_config(host, archive)
     scion_config.create_gen(host, archive, scion_config.ProcessControl.SYSTEMD)
 
 
@@ -104,21 +106,33 @@ def is_empty_config(host):
             and not host.vpn_servers.exists())
 
 
-def _add_vpn_config(host, archive):
+def _add_vpn_client_configs(host, archive):
     """
     Generate the VPN config files and add them to the tar.
     """
-    vpn_clients = list(host.vpn_clients.filter(active=True))
-    for vpn_client in vpn_clients:
-        client_config = generate_vpn_client_config(vpn_client)
-        archive.write_text("client.conf", client_config)
+    # Each host can run at most one VPN-Client per VPN
+    clients = host.vpn_clients.filter(active=True).select_related('vpn__server__AS').all()
+    configs = dict()
+    for client in clients:
+        name = client.vpn.server.AS.isd_as_path_str()
+        configs[name] = generate_vpn_client_config(client)
 
-    vpn_servers = list(host.vpn_servers.all())
-    for vpn_server in vpn_servers:
-        archive.write_text("server.conf", generate_vpn_server_config(vpn_server))
+    if len(configs) == 1:
+        # Keep old file name if only one client configured:
+        # TODO(matzf): backwards compatibility, remove this with next set of breaking changes
+        archive.write_text("client.conf", next(iter(configs.values())))
+    else:
+        for name, config in configs.items():
+            archive.write_text("client-scionlab-{}.conf".format(name), config)
+
+
+def _add_vpn_server_config(host, archive):
+    server = host.vpn_servers.first()  # only one server per host supported for now
+    if server:
+        archive.write_text("server.conf", generate_vpn_server_config(server))
         archive.add_dir("ccd")
-        for vpn_client in vpn_server.clients.iterator():
-            common_name, config_string = ccd_config(vpn_client)
+        for client in server.clients.iterator():
+            common_name, config_string = ccd_config(client)
             archive.write_text("ccd/" + common_name, config_string)
 
 
@@ -131,13 +145,15 @@ def _add_vagrantfiles(host, archive):
 
 
 def _expand_vagrantfile_template(host):
-    if not host.vpn_clients.filter(active=True).exists():
-        interface = host.interfaces.get()
-        port = interface.bind_port or interface.public_port
-        forwarding_string = 'config.vm.network "forwarded_port",' \
-                            ' guest: {port}, host: {port}, protocol: "udp"'.format(port=port)
-    else:
-        forwarding_string = ''
+    public_ifaces = [iface for iface in host.interfaces.iterator()
+                     if not UserAS.is_link_over_vpn(iface)]
+    forwarding_strings = []
+    for iface in public_ifaces:
+        port = iface.bind_port or iface.public_port
+        # XXX: The two spaces are on purpose for indentation, don't remove them (I'm watching you)
+        forwarding_strings.append('  config.vm.network "forwarded_port", guest: {port},'
+                                  ' host: {port}, protocol: "udp"'.format(port=port))
+    forwarding_string = '\n'.join(forwarding_strings)
 
     vagrant_tmpl = pathlib.Path(_hostfiles_path("Vagrantfile.tmpl")).read_text()
 

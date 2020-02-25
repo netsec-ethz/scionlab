@@ -1442,7 +1442,7 @@ gen/scionlab-config.json: |-
     "host_id": "bff6b39ba77e46a4a775a36f5fdf892d",
     "host_secret": "3560964a022346459556ca5eb71756c7",
     "url": "http://localhost:8000",
-    "version": 13
+    "version": 12
   }
 scionlab-services.txt: |-
   scion-border-router@17-ffaa_0_1107-1.service

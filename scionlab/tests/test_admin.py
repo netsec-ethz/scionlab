@@ -60,8 +60,9 @@ class LinkAdminFormTests(TestCase):
         self.assertIsNotNone(form.as_table())
 
     def test_create_link(self):
-        as_a = AS.objects.first()
-        as_b = AS.objects.last()
+        ases = AS.objects.iterator()
+        as_a = next(ases)
+        as_b = next(ases)
         form_data = dict(
             type=Link.PROVIDER,
             active=True,
@@ -83,15 +84,17 @@ class LinkAdminFormTests(TestCase):
         self.assertFalse(edit_form.has_changed(), edit_form.changed_data)
 
     def test_render_edit(self):
-        as_a = AS.objects.first()
-        as_b = AS.objects.last()
+        ases = AS.objects.iterator()
+        as_a = next(ases)
+        as_b = next(ases)
         link = Link.objects.create_from_ases(Link.PROVIDER, as_a, as_b)
         form = LinkAdminForm(instance=link)
         self.assertIsNotNone(form.as_table())
 
     def test_edit_link(self):
-        as_a = AS.objects.first()
-        as_b = AS.objects.last()
+        ases = AS.objects.iterator()
+        as_a = next(ases)
+        as_b = next(ases)
         link = Link.objects.create_from_ases(Link.PROVIDER, as_a, as_b)
 
         form_data = dict(
@@ -140,8 +143,9 @@ class LinkAdminViewTests(WebTest):
         link_create_page = self.app.get('/admin/scionlab/link/add/')
         form = link_create_page.form
 
-        as_a = AS.objects.first()
-        as_b = AS.objects.last()
+        ases = AS.objects.iterator()
+        as_a = next(ases)
+        as_b = next(ases)
 
         form.select('type', value=Link.PROVIDER)
         form.select('from_host', text=str(as_a.hosts.first()))

@@ -6,21 +6,38 @@
 {% block content_title %}AS {{object.as_id }}{% endblock %}
 
 {% block content %}
+    <form action="{% url 'user_as_detail' pk=object.pk %}" id="id_user_as_form" method="post">
+        {% csrf_token %}
+        {% crispy form %}
 
-{% crispy form %}
+        <h4 class="mt-4" >Provider links</h4>
+        {{ form.attachment_conf_form_set.management_form|crispy }}
+        {{ form.attachment_conf_form_set|as_crispy_errors }}
+        {% for form in form.attachment_conf_form_set %}
+          {% crispy form %}
+        {% endfor %}
+    </form>
 
-<button type="submit" form="id_user_as_form" class="btn btn-primary savebtn">Save Changes</button>
-{% if object.is_active %}
-  <a class="ml-3" href="{% url 'user_as_config' pk=object.pk %}"><span class="fa fa-download"></span> Download configuration</a>
-  <button type="submit" form="id_deactivate_form" class="btn btn-outline-danger pull-right">Deactivate this AS</button>
-  <form id="id_deactivate_form" method="post" action="{% url 'user_as_deactivate' pk=object.pk %}">{% csrf_token %}
-</form>
-{% else %}
-  <button type="submit" form="id_activate_form" class="btn btn-success pull-right">Activate this AS</button>
-  <form id="id_activate_form" method="post" action="{% url 'user_as_activate' pk=object.pk %}">{% csrf_token %}
-  </form>
-{% endif %}
+    <hr>
+    <button type="submit" class="btn btn-primary savebtn mt-2" form="id_user_as_form">Save Changes</button>
 
-{% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}
+    {% if object.is_active %}
+        <a class="ml-2 mt-2" href="{% url 'user_as_config' pk=object.pk %}">
+          <i class="fa fa-download"></i> 
+          Download configuration
+        </a>
+        <button type="submit" form="id_deactivate_form" class="btn btn-outline-danger pull-right mt-2">Deactivate this AS</button>
+        <form id="id_deactivate_form" method="post" action="{% url 'user_as_deactivate' pk=object.pk %}">{% csrf_token %}
+        </form>
+    {% else %}
+        <button type="submit" form="id_activate_form" class="btn btn-success pull-right mt-2"
+          {% if not object.host.interfaces.all %} disabled {% endif %}>
+          Activate this AS
+        </button>
+        <form id="id_activate_form" method="post" action="{% url 'user_as_activate' pk=object.pk %}">{% csrf_token %}
+        </form>
+    {% endif %}
+
+    {% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}
 
 {% endblock content %}

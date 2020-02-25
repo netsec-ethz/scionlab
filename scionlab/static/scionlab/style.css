@@ -81,6 +81,31 @@ pre {
   display: block;
 }
 
+/* UserAS add/detail
+------------------------------------*/
+/* Since there is no :first-of-class in CSS, this is a trick to say "all but the first .attachment" */
+.attachment ~ .attachment {
+  margin-top: 16px;
+}
+/* Uncollapsed state */
+#id_user_as_form #new-ap-collapser .fa-minus-circle,
+#id_user_as_form .bind-row-collapser .fa-minus-circle {
+  display: inline;
+}
+#id_user_as_form #new-ap-collapser .fa-plus-circle,
+#id_user_as_form .bind-row-collapser .fa-plus-circle {
+  display: none;
+}
+/* Collapsed state */
+#id_user_as_form #new-ap-collapser.collapsed .fa-minus-circle,
+#id_user_as_form .bind-row-collapser.collapsed .fa-minus-circle {
+  display: none;
+}
+#id_user_as_form #new-ap-collapser.collapsed .fa-plus-circle,
+#id_user_as_form .bind-row-collapser.collapsed .fa-plus-circle {
+  display: inline;
+}
+
 /* "TESTING" ribbon over nav bar
 ------------------------------------*/
 .ribbon {

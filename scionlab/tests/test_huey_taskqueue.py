@@ -28,7 +28,7 @@ from django.db import transaction
 
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.models.core import Host
-from scionlab.models.user_as import AttachmentPoint, UserAS
+from scionlab.models.user_as import AttachmentPoint, UserAS, AttachmentConf
 from scionlab.tasks import _deploy_host_config
 from scionlab.tests import utils
 from scionlab.tests.utils import basic_auth
@@ -119,16 +119,20 @@ def _create_user_as(attachment_point, label="Some label"):
     """
     Create a UserAS in a transaction, as would happen in a view.
     This will then trigger the on_commit and run the deployment tasks.
+    :returns UserAS: the created user_as
     """
-    return UserAS.objects.create(
+    user_as = UserAS.objects.create(
         owner=get_testuser(),
-        attachment_point=attachment_point,
         installation_type=UserAS.PKG,
+        isd=attachment_point.AS.isd,
         label=label,
-        use_vpn=False,
-        public_ip=str(ipaddress.ip_address(test_public_ip)+2),
-        public_port=test_public_port,
     )
+    att_conf = AttachmentConf(attachment_point,
+                              str(ipaddress.ip_address(test_public_ip)+2), test_public_port,
+                              bind_ip=None, bind_port=None,
+                              use_vpn=False)
+    user_as.update_attachments([att_conf])
+    return user_as
 
 
 class TestingConsumer:

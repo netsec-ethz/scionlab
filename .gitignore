@@ -106,3 +106,12 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Vim
+**.swp
+# Ctags
+tags
+# Idea
+.idea/
+# UML
+uml.pdf
