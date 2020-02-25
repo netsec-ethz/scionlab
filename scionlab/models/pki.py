@@ -171,10 +171,10 @@ class TRC(models.Model):
 
     trc = jsonfield.JSONField(editable=False)
 
-            # TODO(matzf) o-oh, cannot delete core ASes, ever.
-            # Maybe a solution can be on_delete=models.SET() on Key, which
-            # could, for offline keys, null the AS relation and store the
-            # as_id in a separate field. Bah.
+    # TODO(matzf) o-oh, cannot delete core ASes, ever.
+    # Maybe a solution can be on_delete=models.SET() on Key, which
+    # could, for offline keys, null the AS relation and store the
+    # as_id in a separate field. Bah.
     voting_offline = models.ManyToManyField(
         Key,
     )
@@ -220,5 +220,4 @@ class Certificate(models.Model):
 
     version = models.PositiveIntegerField()
 
-    content = jsonfield.JSONField()
-    content_signed = jsonfield.JSONField()  # TODO
+    certificate = jsonfield.JSONField()

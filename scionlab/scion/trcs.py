@@ -20,6 +20,9 @@ from typing import Dict, List, Tuple
 
 from scionlab.scion import keys
 
+
+# XXX(matzf): maybe this entire thing would be a bit simpler if we keep usage as member of Key.
+# Then we dont need so many dicts and stuff.
 Key = namedtuple('Key', ['version', 'priv_key', 'pub_key'])
 CoreKeys = namedtuple('CoreKeys', ['issuing_grant', 'voting_online', 'voting_offline'])
 CoreKeySet = Dict[str, Key]
@@ -83,16 +86,17 @@ def _is_regular_update(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> b
     """
 
     return (new.keys() == prev.keys() and
-            all(new[as_id].voting_offline == prev[as_id].voting_offline for as_id in prev.keys()))
+            all(_equal_key(new[as_id].voting_offline, prev[as_id].voting_offline)
+                for as_id in prev.keys()))
 
 
 def _regular_voting_keys(primary_ases: Dict[str, CoreKeys],
                          changed_keys: Dict[str, CoreKeySet]) -> Dict[str, CoreKeySet]:
     def regular_voting_key(as_id, keys):
         if 'voting_online' in changed_keys[as_id]:
-            return {'voting_offline', keys.voting_offline}
+            return {'voting_offline': keys.voting_offline}
         else:
-            return {'voting_online', keys.voting_online}
+            return {'voting_online': keys.voting_online}
 
     return {as_id: regular_voting_key(as_id, keys) for as_id, keys in primary_ases.items()}
 
@@ -102,18 +106,19 @@ def _sensitive_voting_keys(prev_voting_offline: Dict[str, Key]) -> Dict[str, Cor
 
 
 def _changed_keys(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> Dict[str, CoreKeySet]:
-    def equal_key(a, b):
-        return (a.version, a.pub_key) == (b.version, b.pub_key)
-
     def changed_set(new_as_keys, prev_as_keys):
         if prev_as_keys is None:
             return new_as_keys._asdict()
         else:
             return {usage: new_key
                     for usage, new_key in new_as_keys._asdict().items()
-                    if not equal_key(new_key, getattr(prev_as_keys, usage))}
+                    if not _equal_key(new_key, getattr(prev_as_keys, usage))}
 
     return {as_id: changed_set(new[as_id], prev.get(as_id)) for as_id in new.keys()}
+
+
+def _equal_key(a, b):
+    return (a.version, a.pub_key) == (b.version, b.pub_key)
 
 
 def _build_payload(isd,
@@ -123,10 +128,10 @@ def _build_payload(isd,
                    not_after,
                    primary_ases,
                    votes,
-                   proof_of_posession):
+                   proof_of_possession):
     return {
         "isd": isd.isd_id,
-        "version": version,
+        "trc_version": version,
         "base_version": 1,
         "description": "SCIONLab %s" % isd,
         "voting_quorum": len(primary_ases),
@@ -153,33 +158,36 @@ def _build_payload(isd,
         },
         "votes": {as_id: next(iter(keys.keys()))
                   for as_id, keys in votes.items()},
-        "proof_of_posession": {as_id: list(keys.keys())
-                               for as_id, keys in proof_of_posession.items()},
+        "proof_of_possession": {as_id: list(keys.keys())
+                                for as_id, keys in proof_of_possession.items()},
     }
 
 
-def _build_signed_trc(payload, votes, proof_of_posession):
+def _build_signed_trc(payload, votes, proof_of_possession):
 
-    # one signature for each vote or proof of posession.
-    signatures = [(as_id, usage, key)
-                  for keyset in (votes, proof_of_posession)
-                  for as_id, keys in keyset.items()
+    # one signature for each vote or proof of possession.
+    signatures = [(as_id, usage, "vote", key)
+                  for as_id, keys in votes.items()
                   for usage, key in keys.items()]
+    signatures += [(as_id, usage, "proof_of_possession", key)
+                   for as_id, keys in proof_of_possession.items()
+                   for usage, key in keys.items()]
 
     payload_enc = b64url(json.dumps(payload).encode())
 
     return {
         "payload": payload_enc,
-        "signatures": [_jws_signature(payload_enc, as_id, usage, key)
-                       for as_id, usage, key in signatures]
+        "signatures": [_jws_signature(payload_enc, as_id, type, usage, key)
+                       for as_id, usage, type, key in signatures]
     }
 
 
-def _jws_signature(payload_enc, as_id, key_usage, key):
+def _jws_signature(payload_enc, as_id, type, key_usage, key):
     protected = {
         "alg": "Ed25519",
-        "crit": ["type", "key_version", "as"],
-        "type": key_usage,
+        "crit": ["type", "key_type", "key_version", "as"],
+        "type": type,
+        "key_type": key_usage,
         "key_version": key.version,
         "as": as_id,
     }
@@ -218,7 +226,7 @@ def decode_payload(trc):
     return payload
 
 
-def verify(trc, signing_keys: List[Tuple[str, str, Key]]) -> bool:
+def verify(trc, expected_signatures: List[Tuple[str, str, str, Key]]) -> bool:
     """
     Verify that the TRC was signed with (exactly) the given signing keys.
 
@@ -228,19 +236,20 @@ def verify(trc, signing_keys: List[Tuple[str, str, Key]]) -> bool:
     payload_enc = trc['payload']
     signatures = trc['signatures']
 
-    remaining_keys = {(as_id, usage, key.version): key.pub_key
-                      for as_id, usage, key in signing_keys}
+    remaining_signatures = {(as_id, type, usage, key.version): key.pub_key
+                            for as_id, type, usage, key in expected_signatures}
 
     for signature in signatures:
         protected_enc = signature['protected']
         protected = json.loads(b64urldec(protected_enc).decode())
 
         as_id = protected['as']
-        key_usage = protected['type']
+        type = protected['type']
+        key_usage = protected['key_type']
         key_version = protected['key_version']
         # assume that other fields in protected header are fine.
 
-        pub_key = remaining_keys.pop((as_id, key_usage, key_version))
+        pub_key = remaining_signatures.pop((as_id, type, key_usage, key_version))
         if not pub_key:
             return False
 
@@ -249,7 +258,7 @@ def verify(trc, signing_keys: List[Tuple[str, str, Key]]) -> bool:
         if not valid:
             return False
 
-    if remaining_keys:
+    if remaining_signatures:
         return False
 
     return True
