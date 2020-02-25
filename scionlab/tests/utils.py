@@ -50,7 +50,8 @@ def check_as(testcase, as_):
     # TODO: generalize (topo checks)
     for interface in as_.interfaces.iterator():
         link = interface.link()
-        if link.type == Link.PROVIDER and link.interfaceB == interface:
+        # Check if the link is active, otherwise the ISD can be different
+        if link.type == Link.PROVIDER and link.interfaceB == interface and link.active:
             parent_as = link.interfaceA.AS
             testcase.assertEqual(parent_as.isd, as_.isd)
 
@@ -93,7 +94,7 @@ def check_host_ports(testcase, host):
     for router in host.border_routers.iterator():
         _add_port(router.host.internal_ip, router.internal_port)
         _add_port(router.host.internal_ip, router.control_port)
-        for interface in router.interfaces.iterator():
+        for interface in filter(lambda iface: iface.link().active, router.interfaces.iterator()):
             _add_port(interface.get_public_ip(), interface.public_port)
             if interface.get_bind_ip():
                 _add_port(interface.get_bind_ip(), interface.bind_port)
@@ -413,7 +414,7 @@ def check_tarball_user_as(testcase, response, user_as):
         vagrantfile = tar.extractfile('Vagrantfile')
         lines = [l.decode() for l in vagrantfile]
         name_lines = [l.strip() for l in lines if l.strip().startswith('vb.name')]
-        testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_id])
+        testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_path_str()])
     else:
         testcase.assertEquals(sorted(['README.md', 'gen']),
                               _tar_ls(tar, ''))

@@ -21,6 +21,7 @@ SCIONLAB_SITE = 'http://localhost:8000'
 # ##### DEBUG CONFIGURATION ###############################
 DEBUG = True
 TEMPLATES[0]['OPTIONS']['debug'] = True
+CRISPY_FAIL_SILENTLY = not DEBUG
 
 # allow all hosts during development
 ALLOWED_HOSTS = ['*']
