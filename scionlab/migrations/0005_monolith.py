@@ -19,7 +19,7 @@ def combine_services_to_monolith(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scionlab', '0003_installation_types'),
+        ('scionlab', '0004_multiap'),
     ]
 
     operations = [

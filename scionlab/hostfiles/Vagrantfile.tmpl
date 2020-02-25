@@ -45,7 +45,7 @@ Unattended-Upgrade::Automatic-Reboot-Time "02:00";' > /etc/apt/apt.conf.d/51unat
 
   config.vm.box = "ubuntu/xenial64"
   # forward border router port (unless using OpenVPN):
-  ${PortForwarding}
+${PortForwarding}
   # forward scion dispatcher port, for running SCION endhosts connected to the AS in this VM:
   config.vm.network "forwarded_port", guest: 30041, host: 30041, protocol: "udp"
   # forward "webapp" port:

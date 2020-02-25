@@ -375,7 +375,7 @@ class AS(TimestampedModel):
         """
         self.core_certificate = generate_core_certificate(self)
 
-    def init_default_services(self, public_ip, bind_ip=None, internal_ip=None):
+    def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """
         Initialise a default Host object and the default AS services
         """
@@ -484,12 +484,12 @@ class Host(models.Model):
     public_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
-        help_text="Default public IP for for border router interfaces running on this host."
+        help_text="Default public IP for border router interfaces running on this host."
     )
     bind_ip = models.GenericIPAddressField(
         null=True,
         blank=True,
-        help_text="Default bind IP for for border router interfaces running on this host."
+        help_text="Default bind IP for border router interfaces running on this host."
     )
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
@@ -674,7 +674,7 @@ class InterfaceManager(models.Manager):
             public_ip=public_ip,
             public_port=public_port,
             bind_ip=bind_ip,
-            bind_port=bind_port,
+            bind_port=bind_port
         )
 
     def active(self):

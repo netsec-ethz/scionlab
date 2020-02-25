@@ -6,8 +6,18 @@
 
 {% block content %}
 <div class="form-box">
-  {% crispy form %}
-  <button type="submit" form="id_user_as_form" class="btn btn-primary savebtn">Create AS</button>
+  <form action="{% url 'user_as_add' %}" id="id_user_as_form" method="post">
+    {% csrf_token %}
+    {% crispy form %}
+
+    <h4 class="mt-4" >Provider link</h4>
+    {{ form.attachment_conf_form_set.management_form|crispy }}
+    {{ form.attachment_conf_form_set|as_crispy_errors }}
+    {% for form in form.attachment_conf_form_set %}
+      {% crispy form %}
+    {% endfor %}
+    <button type="submit" class="btn btn-primary savebtn mt-3">Create AS</button>
+  </form>
 </div>
 
 {% include "scionlab/partials/user_as_form_script.html" with attachment_points=attachment_points %}

@@ -30,8 +30,8 @@
 
   {# the radioselect part #}
   <div class="accordion" id="accordion_{{ field.auto_id }}">
+    {% for choice in field.field.choices %}
     <div class="card">
-      {% for choice in field.field.choices %}
         <div class="card-header">
           <div class="form-check">
             <input type="radio" class="form-check-input{%if is_bound %} is-{% if field.errors %}in{%endif%}valid{% endif %}"{% if choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} checked="checked"{% endif %} data-toggle="collapse" data-target="#collapse_{{ field.html_name }}_{{ forloop.counter }}" name="{{ field.html_name }}" id="id_{{ field.html_name }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>
@@ -45,8 +45,8 @@
             {% include accordion_templates|slice:forloop.counter|last %} {# WHAT THE F... is this the only way to access a list by index??? #}
           </div>
         </div>
-      {% endfor %}
     </div>
+    {% endfor %}
   </div>
 </div>
 
