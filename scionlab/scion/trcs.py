@@ -226,7 +226,9 @@ def decode_payload(trc):
     return jws.decode(trc['payload'])
 
 
-def verify(trc, expected_signatures: List[Tuple[str, str, str, Key]]) -> bool:
+def verify(trc,
+           expected_votes: List[Tuple[str, str, Key]],
+           expected_pops: List[Tuple[str, str, Key]]) -> bool:
     """
     Verify that the TRC was signed with (exactly) the given signing keys.
 
@@ -235,6 +237,12 @@ def verify(trc, expected_signatures: List[Tuple[str, str, str, Key]]) -> bool:
 
     payload_enc = trc['payload']
     signatures = trc['signatures']
+
+    expected_signatures = [
+        (as_id, 'vote', usage, key) for as_id, usage, key in expected_votes
+    ] + [
+        (as_id, 'proof_of_possession', usage, key) for as_id, usage, key in expected_pops
+    ]
 
     remaining_signatures = {(as_id, type, usage, key.version): key.pub_key
                             for as_id, type, usage, key in expected_signatures}
