@@ -26,7 +26,7 @@ from scionlab.defines import (
     DEFAULT_EXPIRATION,
     DEFAULT_TRC_GRACE_PERIOD,
 )
-from scionlab.scion import keys, trcs
+from scionlab.scion import keys, trcs, certs
 
 _MAX_LEN_CHOICES_DEFAULT = 16
 """ Max length value for choices fields without specific requirements to max length """
@@ -128,10 +128,9 @@ class TRCManager(models.Manager):
             prev_voting_offline = None
 
         keys = {as_.as_id: _latest_core_keys(as_) for as_ in isd.ases.filter(is_core=True)}
-
         all_keys = sum(keys.values(), [])
-        not_before = max(key.not_before for key in all_keys)
-        not_after = min(key.not_after for key in all_keys)
+
+        not_before, not_after = _validity(all_keys)
 
         primary_ases = {as_id: _core_key_info(as_keys) for as_id, as_keys in keys}
 
@@ -211,13 +210,81 @@ def _core_key_info(keys: List[Key]):
     )
 
 
+class CertificateManager(models.Manager):
+    def create_as_cert(self, subject: AS, issuer: AS):
+        encryption_key = subject.keys.latest(usage=Key.DECRYPT)
+        signing_key = subject.keys.latest(usage=Key.SIGNING)
+
+        issuer_key = issuer.keys.latest(usage=Key.CERT_SIGNING)
+        issuer_cert = issuer.certificates.latest(type=Certificate.ISSUER)
+
+        not_before, not_after = _validity([encryption_key, signing_key, issuer_key])
+
+        version = Certificate.next_version(subject, Certificate.CHAIN)
+
+        cert = certs.generate_as_certificates(subject, version, not_before, not_after,
+                                              encryption_key, signing_key,
+                                              issuer, issuer_cert, issuer_key)
+
+        return super().create(
+            AS=subject,
+            version=version,
+            type=Certificate.CHAIN,
+            certificate=cert
+        )
+
+    def create_issuer_cert(self, as_: AS):
+        issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
+        issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
+
+        not_before, not_after = _validity([issuer_key, issuing_grant])
+
+        version = Certificate.next_version(as_, Certificate.ISSUER)
+
+        cert = certs.generate_issuer_certificate(as_, version, not_before, not_after,
+                                                 issuing_grant, issuer_key)
+
+        return super().create(
+            AS=as_,
+            version=version,
+            type=Certificate.ISSUER,
+            certificate=cert
+        )
+
+
 class Certificate(models.Model):
+    ISSUER = 'issuer'
+    CHAIN = 'chain'  # AS certificates are a certificate chain
+
+    TYPES = (
+        ISSUER,
+        CHAIN,
+    )
+
     AS = models.ForeignKey(
         AS,
         related_name='certificates',
         on_delete=models.CASCADE,
     )
 
+    type = models.CharField(
+        choices=list(zip(TYPES, TYPES)),
+        max_length=_MAX_LEN_CHOICES_DEFAULT,
+        editable=False,
+    )
     version = models.PositiveIntegerField()
 
     certificate = jsonfield.JSONField()
+
+    @staticmethod
+    def next_version(as_, type):
+        if as_.pk:
+            return Certificate.objects.filter(AS=as_, type=type).count() + 1  # XXX(matzf) max version pls
+        else:
+            return 1
+
+
+def _validity(keys: List[Key]):
+    not_before = max(key.not_before for key in keys)
+    not_after = min(key.not_after for key in keys)
+    return not_before, not_after

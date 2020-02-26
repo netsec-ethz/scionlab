@@ -1312,7 +1312,3 @@ def _service_pre_delete(sender, instance, using, **kwargs):
 
 def _base64encode(key):
     return base64.b64encode(key).decode()
-
-
-def _base64encode_tuple(keys):
-    return (_base64encode(k) for k in keys)

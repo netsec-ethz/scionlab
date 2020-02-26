@@ -180,8 +180,9 @@ class GenerateTRCTests(TestCase):
     def test_add_as(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
 
-        import pathlib, json
-        pathlib.Path('/tmp/gen/ISD1/trcs/ISD1-V1.trc').write_text(json.dumps(trc_v1, indent=2))
+        # XXX(matzf) remove debugging code
+        # import pathlib, json
+        # pathlib.Path('/tmp/gen/ISD1/trcs/ISD1-V1.trc').write_text(json.dumps(trc_v1, indent=2))
 
         primary_ases_v2 = copy.deepcopy(primary_ases_v1)
         primary_ases_v2[_ASID_3] = trcs.CoreKeys(
@@ -192,7 +193,7 @@ class GenerateTRCTests(TestCase):
 
         trc_v2 = self.gen_trc_update(primary_ases_v2, trc_v1, voting_offline_v1)
 
-        pathlib.Path('/tmp/gen/ISD1/trcs/ISD1-V2.trc').write_text(json.dumps(trc_v2, indent=2))
+        # pathlib.Path('/tmp/gen/ISD1/trcs/ISD1-V2.trc').write_text(json.dumps(trc_v2, indent=2))
 
         # Modifying the set of primary ASese is a sensitive update and must be signed with
         # previous offline keys and all keys for the added AS (proof of possession).

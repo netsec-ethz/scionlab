@@ -13,24 +13,22 @@
 # limitations under the License.
 
 """
-:mod:`scionlab.scion.certs` --- AS Certificate and Issuer certificate creation
-==============================================================================
+:mod:`scionlab.scion.certs` --- SCION Issuer Certificate and AS certificate creation
+====================================================================================
 """
 
 from scionlab.scion import keys, jws
-from scionlab.models.core import AS
-from scionlab.models.pki import Key, Certificate
 
 
-def generate_issuer_certificate(as_, version, trc, not_before, not_after,
+def generate_issuer_certificate(as_, version: int, trc, not_before, not_after,
                                 issuing_grant, issuer_key):
     payload = _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key)
     return _build_signed_issuer_cert(payload, issuing_grant)
 
 
-def generate_as_certificate(subject: AS, version, not_before, not_after,
-                            encryption_key: Key, signing_key: Key,
-                            issuer: AS, issuer_cert: Certificate, issuer_key: Key):
+def generate_as_certificate(subject, version, not_before, not_after,
+                            encryption_key, signing_key,
+                            issuer, issuer_cert, issuer_key):
 
     payload = _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
                                      signing_key, issuer, issuer_cert)
@@ -71,8 +69,8 @@ def _build_signed_issuer_cert(payload, issuing_grant):
     return _build_signed_cert(payload, protected, issuing_grant)
 
 
-def _build_as_cert_payload(subject: AS, version, not_before, not_after, encryption_key: Key,
-                           signing_key: Key, issuer: AS, issuer_cert: Certificate):
+def _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
+                           signing_key, issuer, issuer_cert):
     return {
         "subject": subject.isd_as_str(),
         "version": version,
