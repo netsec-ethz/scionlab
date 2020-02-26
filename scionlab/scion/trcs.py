@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+:mod:`scionlab.scion.trcs` --- TRC creation
+=======================================================
+"""
+
 import json
 import base64
 from collections import namedtuple
@@ -30,7 +35,10 @@ CoreKeySet = Dict[str, Key]
 
 def generate_trc(isd, version, grace_period, not_before, not_after, primary_ases,
                  prev_trc, prev_voting_offline):
-
+    """
+    Generate a new TRC.
+    """
+    # TODO(matzf) doc
     assert (version >= 1)
     assert (version == 1) == (prev_trc is None) == (prev_voting_offline is None)
 
@@ -221,6 +229,10 @@ def _decode_primary_ases(trc):
 
 
 def decode_payload(trc):
+    """
+    Extract the base64-encoded payload of a TRC.
+    Does not verify signatures, nor the payload.
+    """
     payload_enc = trc['payload']
     payload = json.loads(b64urldec(payload_enc).decode())
     return payload
