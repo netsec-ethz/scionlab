@@ -62,6 +62,7 @@ class GenerateKeyTests(TestCase):
 
 _ASID_1 = 'ff00:0:1'
 _ASID_2 = 'ff00:0:2'
+_ASID_3 = 'ff00:0:3'
 
 
 class GenerateTRCTests(TestCase):
@@ -81,7 +82,12 @@ class GenerateTRCTests(TestCase):
                 issuing_grant=_gen_key(1),
                 voting_online=_gen_key(1),
                 voting_offline=_gen_key(1),
-            )
+            ),
+            _ASID_2: trcs.CoreKeys(
+                issuing_grant=_gen_key(1),
+                voting_online=_gen_key(1),
+                voting_offline=_gen_key(1),
+            ),
         }
 
         voting_offline = {as_id: keys.voting_offline for as_id, keys in primary_ases.items()}
@@ -142,10 +148,57 @@ class GenerateTRCTests(TestCase):
 
         # Updating offline keys is a sensitive update and must be signed with previous offline keys
         # and all updated keys (proof of possession).
+        k_asid1_v2 = primary_ases_v2[_ASID_1]
         signatures = [
-            (as_id, 'vote', 'voting_offline', k.voting_offline) for as_id, k in primary_ases_v1.items()
+            (as_id, 'vote', 'voting_offline', k.voting_offline)
+            for as_id, k in primary_ases_v1.items()
         ] + [
-            (as_id, 'proof_of_possession', 'voting_offline', k.voting_offline) for as_id, k in primary_ases_v2.items()
+            (_ASID_1, 'proof_of_possession', 'voting_offline', k_asid1_v2.voting_offline),
+        ]
+        self.assertTrue(trcs.verify(trc_v2, signatures))
+
+    def test_remove_as(self):
+        trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
+
+        primary_ases_v2 = copy.deepcopy(primary_ases_v1)
+        del primary_ases_v2[_ASID_2]
+
+        trc_v2 = self.gen_trc_update(primary_ases_v2, trc_v1, voting_offline_v1)
+
+        # Modifying the set of primary ASese is a sensitive update and must be signed with
+        # previous offline keys.
+        # Note: because we use quorum == len(ases), the removed AS must cast a vote.
+        signatures = [
+            (as_id, 'vote', 'voting_offline', k.voting_offline)
+            for as_id, k in primary_ases_v1.items()
+        ]
+        self.assertTrue(trcs.verify(trc_v2, signatures))
+
+    def test_add_as(self):
+        trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
+
+        import pathlib, json
+        pathlib.Path('/tmp/gen/ISD1/trcs/ISD1-V1.trc').write_text(json.dumps(trc_v1, indent=2))
+
+        primary_ases_v2 = copy.deepcopy(primary_ases_v1)
+        primary_ases_v2[_ASID_3] = trcs.CoreKeys(
+            issuing_grant=_gen_key(1),
+            voting_online=_gen_key(1),
+            voting_offline=_gen_key(1),
+        )
+
+        trc_v2 = self.gen_trc_update(primary_ases_v2, trc_v1, voting_offline_v1)
+
+        pathlib.Path('/tmp/gen/ISD1/trcs/ISD1-V2.trc').write_text(json.dumps(trc_v2, indent=2))
+
+        # Modifying the set of primary ASese is a sensitive update and must be signed with
+        # previous offline keys and all keys for the added AS (proof of possession).
+        signatures = [
+            (as_id, 'vote', 'voting_offline', k.voting_offline)
+            for as_id, k in primary_ases_v1.items()
+        ] + [
+            (_ASID_3, 'proof_of_possession', usage, key)
+            for usage, key in primary_ases_v2[_ASID_3]._asdict().items()
         ]
         self.assertTrue(trcs.verify(trc_v2, signatures))
 
@@ -157,10 +210,14 @@ class GenerateTRCTests(TestCase):
 
         trc_v2 = self.gen_trc_update(primary_ases_v2, trc_v1, voting_offline_v1)
 
-        # Updating online keys is a regular update and is signed with online keys
+        # Updating online keys is a regular update
+        # Votes are cast with offline keys for ASes with changed online key, and online key for
+        # all others.
         k_asid1_v2 = primary_ases_v2[_ASID_1]
+        k_asid2_v2 = primary_ases_v2[_ASID_2]
         signatures = [
             (_ASID_1, 'vote', 'voting_offline', k_asid1_v2.voting_offline),
+            (_ASID_2, 'vote', 'voting_online', k_asid2_v2.voting_online),
             (_ASID_1, 'proof_of_possession', 'voting_online', k_asid1_v2.voting_online),
         ]
 
@@ -169,21 +226,17 @@ class GenerateTRCTests(TestCase):
     def test_update_issuing(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
 
-        import pathlib, json
-        pathlib.Path('/tmp/gen/ISD1/trcs/ISD1-V1.trc').write_text(json.dumps(trc_v1, indent=2))
-
         primary_ases_v2 = copy.deepcopy(primary_ases_v1)
         primary_ases_v2[_ASID_1] = primary_ases_v1[_ASID_1]._replace(issuing_grant=_gen_key(2))
 
         trc_v2 = self.gen_trc_update(primary_ases_v2, trc_v1, voting_offline_v1)
 
-        pathlib.Path('/tmp/gen/ISD1/trcs/ISD1-V2.trc').write_text(json.dumps(trc_v2, indent=2))
-
         # Updating issuing grant keys is a regular update and is signed with online keys and all
         # updated keys (proof of possession).
         k_asid1_v2 = primary_ases_v2[_ASID_1]
         signatures = [
-            (as_id, 'vote', 'voting_online', k.voting_online) for as_id, k in primary_ases_v1.items()
+            (as_id, 'vote', 'voting_online', k.voting_online)
+            for as_id, k in primary_ases_v1.items()
         ] + [
             (_ASID_1, 'proof_of_possession', 'issuing_grant', k_asid1_v2.issuing_grant),
         ]
