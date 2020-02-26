@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-import base64
-from scionlab.scion import keys
+"""
+:mod:`scionlab.scion.certs` --- AS Certificate and Issuer certificate creation
+==============================================================================
+"""
+
+from scionlab.scion import keys, jws
 from scionlab.models.core import AS
 from scionlab.models.pki import Key, Certificate
 
@@ -111,28 +114,10 @@ def _build_signed_as_cert(payload, issuer_key):
 
 
 def _build_signed_cert(payload, protected, signing_key):
-    payload_enc = b64url(json.dumps(payload).encode())
-    protected_enc = b64url(json.dumps(protected).encode())
+    payload_enc = jws.encode(payload)
+    protected_enc = jws.encode(protected)
     return {
         "payload": payload_enc,
         "protected": protected_enc,
-        "signature": _jws_signature(payload_enc, protected_enc, signing_key.key)
+        "signature": jws.signature(payload_enc, protected_enc, signing_key.key)
     }
-
-
-def _jws_signature(payload_enc, protected_enc, signing_key):
-    sigmsg = (protected_enc + '.' + payload_enc).encode()
-    return {
-        "protected": protected_enc,
-        "signature": b64url(keys.sign(sigmsg, signing_key))
-    }
-
-
-def b64url(input: bytes) -> str:
-    return base64.urlsafe_b64encode(input).decode().rstrip('=')
-
-
-def b64urldec(input: str) -> bytes:
-    # We stripped the (redundant) padding '=', but the decoder checks for them.
-    # Appending three = is the easiest way to ensure it won't choke on too little padding.
-    return base64.urlsafe_b64decode(input + '===')

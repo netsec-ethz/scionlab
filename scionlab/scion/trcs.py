@@ -14,16 +14,14 @@
 
 """
 :mod:`scionlab.scion.trcs` --- TRC creation
-=======================================================
+===========================================
 """
 
-import json
-import base64
 from collections import namedtuple
 from datetime import timedelta
 from typing import Dict, List, Tuple
 
-from scionlab.scion import keys
+from scionlab.scion import jws
 
 
 # XXX(matzf): maybe this entire thing would be a bit simpler if we keep usage as member of Key.
@@ -172,7 +170,6 @@ def _build_payload(isd,
 
 
 def _build_signed_trc(payload, votes, proof_of_possession):
-
     # one signature for each vote or proof of possession.
     signatures = [(as_id, usage, "vote", key)
                   for as_id, keys in votes.items()
@@ -181,31 +178,24 @@ def _build_signed_trc(payload, votes, proof_of_possession):
                    for as_id, keys in proof_of_possession.items()
                    for usage, key in keys.items()]
 
-    payload_enc = b64url(json.dumps(payload).encode())
-
+    payload_enc = jws.encode(payload)
     return {
         "payload": payload_enc,
-        "signatures": [_jws_signature(payload_enc, as_id, type, usage, key)
+        "signatures": [jws.signature(payload_enc,
+                                     jws.encode(_build_protected_hdr(as_id, type, usage, key)),
+                                     key.priv_key)
                        for as_id, usage, type, key in signatures]
     }
 
 
-def _jws_signature(payload_enc, as_id, type, key_usage, key):
-    protected = {
+def _build_protected_hdr(as_id, type, key_usage, key):
+    return {
         "alg": "Ed25519",
         "crit": ["type", "key_type", "key_version", "as"],
         "type": type,
         "key_type": key_usage,
         "key_version": key.version,
         "as": as_id,
-    }
-
-    protected_enc = b64url(json.dumps(protected).encode())
-
-    sigmsg = (protected_enc + '.' + payload_enc).encode()
-    return {
-        "protected": protected_enc,
-        "signature": b64url(keys.sign(sigmsg, key.priv_key))
     }
 
 
@@ -233,9 +223,7 @@ def decode_payload(trc):
     Extract the base64-encoded payload of a TRC.
     Does not verify signatures, nor the payload.
     """
-    payload_enc = trc['payload']
-    payload = json.loads(b64urldec(payload_enc).decode())
-    return payload
+    return jws.decode(trc['payload'])
 
 
 def verify(trc, expected_signatures: List[Tuple[str, str, str, Key]]) -> bool:
@@ -253,8 +241,8 @@ def verify(trc, expected_signatures: List[Tuple[str, str, str, Key]]) -> bool:
 
     for signature in signatures:
         protected_enc = signature['protected']
-        protected = json.loads(b64urldec(protected_enc).decode())
 
+        protected = jws.decode(protected_enc)
         as_id = protected['as']
         type = protected['type']
         key_usage = protected['key_type']
@@ -265,22 +253,10 @@ def verify(trc, expected_signatures: List[Tuple[str, str, str, Key]]) -> bool:
         if not pub_key:
             return False
 
-        sigmsg = (protected_enc + '.' + payload_enc).encode()
-        valid = keys.verify(sigmsg, b64urldec(signature['signature']), pub_key)
-        if not valid:
+        if not jws.verify(payload_enc, protected_enc, signature['signature'], pub_key):
             return False
 
     if remaining_signatures:
         return False
 
     return True
-
-
-def b64url(input: bytes) -> str:
-    return base64.urlsafe_b64encode(input).decode().rstrip('=')
-
-
-def b64urldec(input: str) -> bytes:
-    # We stripped the (redundant) padding '=', but the decoder checks for them.
-    # Appending three = is the easiest way to ensure it won't choke on too little padding.
-    return base64.urlsafe_b64decode(input + '===')
