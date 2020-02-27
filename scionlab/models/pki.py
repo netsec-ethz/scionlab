@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
+from datetime import datetime
 import jsonfield
 from typing import List
 
 from django.db import models
 
-from scionlab.models.core import (
-    AS,
-    ISD,
-)
 from scionlab.defines import (
     DEFAULT_EXPIRATION,
     DEFAULT_TRC_GRACE_PERIOD,
@@ -38,8 +34,8 @@ class KeyManager(models.Manager):
     def create(self, AS, usage, version=None, not_before=None, not_after=None):
         version = version or Key.next_version(AS, usage)
 
-        not_before = not_before or datetime.datetime.now()
-        not_after = not_after or not_before + DEFAULT_EXPIRATION
+        not_before = not_before or datetime.now()
+        not_after = not_after or not_before + DEFAULT_EXPIRATION  # TODO(matzf) expiration for different key types
 
         if usage == Key.DECRYPT:
             key = keys.generate_enc_key()
@@ -61,7 +57,7 @@ class KeyManager(models.Manager):
 
 class Key(models.Model):
     DECRYPT = 'as-decrypt'
-    REVOCATION = 'as-revocation'
+    # REVOCATION = 'as-revocation'  # Not currently used by SCIONLab
     SIGNING = 'as-signing'
     CERT_SIGNING = 'as-cert-signing'
     TRC_ISSUING_GRANT = 'trc-issuing-grant'
@@ -70,7 +66,6 @@ class Key(models.Model):
 
     USAGES = (
         DECRYPT,
-        REVOCATION,
         SIGNING,
         CERT_SIGNING,
         TRC_ISSUING_GRANT,
@@ -79,7 +74,7 @@ class Key(models.Model):
     )
 
     AS = models.ForeignKey(
-        AS,
+        'AS',
         related_name='keys',
         on_delete=models.CASCADE,
         editable=False,
@@ -91,10 +86,10 @@ class Key(models.Model):
         editable=False,
     )
     version = models.PositiveIntegerField(editable=False)
+    not_before = models.DateTimeField()
+    not_after = models.DateTimeField()
 
     key = models.CharField(max_length=_MAX_LEN_KEYS, editable=False)
-    not_before = models.DateField()
-    not_after = models.DateField()
 
     objects = KeyManager()
 
@@ -106,14 +101,11 @@ class Key(models.Model):
 
     @staticmethod
     def next_version(as_, usage):
-        if as_.pk:
-            return Key.objects.filter(AS=as_, usage=usage).count() + 1
-        else:
-            return 1
+        return as_.keys.filter(usage=usage).count() + 1 # BUG XXX
 
 
 class TRCManager(models.Manager):
-    def create(self, isd, version, grace_period):
+    def create(self, isd):
 
         prev = self.latest(isd)
 
@@ -132,7 +124,7 @@ class TRCManager(models.Manager):
 
         not_before, not_after = _validity(all_keys)
 
-        primary_ases = {as_id: _core_key_info(as_keys) for as_id, as_keys in keys}
+        primary_ases = {as_id: _core_key_info(as_keys) for as_id, as_keys in keys.items()}
 
         trc = trcs.generate_trc(
             isd=isd,
@@ -147,26 +139,32 @@ class TRCManager(models.Manager):
 
         voting_offline = [k for k in all_keys if k.usage == Key.TRC_VOTING_OFFLINE]
 
-        return super().create(
+        obj = super().create(
             isd=isd,
             version=version,
+            not_before=not_before,
+            not_after=not_after,
             trc=trc,
-            voting_offline=voting_offline,
         )
+        obj.voting_offline.set(voting_offline)
 
     def latest(self, isd):
+        if not self.filter(isd=isd).exists():
+            return None
         return self.filter(isd=isd).latest('version')
 
 
 class TRC(models.Model):
     isd = models.ForeignKey(
-        ISD,
+        'ISD',
         related_name='trcs',
         on_delete=models.CASCADE,
         verbose_name='ISD'
     )
 
     version = models.PositiveIntegerField(editable=False)
+    not_before = models.DateTimeField()
+    not_after = models.DateTimeField()
 
     trc = jsonfield.JSONField(editable=False)
 
@@ -185,7 +183,7 @@ class TRC(models.Model):
         verbose_name_plural = 'TRCs'
 
 
-def _latest_core_keys(as_: AS) -> List[Key]:
+def _latest_core_keys(as_) -> List[Key]:
     return [
         as_.keys.latest(Key.TRC_ISSUING_GRANT),
         as_.keys.latest(Key.TRC_VOTING_ONLINE),
@@ -193,7 +191,7 @@ def _latest_core_keys(as_: AS) -> List[Key]:
     ]
 
 
-def _key_info(key: Key):
+def _key_info(key: Key) -> trcs.Key:
     return trcs.Key(
         version=key.version,
         priv_key=key.key,
@@ -201,8 +199,8 @@ def _key_info(key: Key):
     )
 
 
-def _core_key_info(keys: List[Key]):
-    key_by_usage = {key.usage: key for key in keys}
+def _core_key_info(keys: List[Key]) -> trcs.CoreKeys:
+    key_by_usage = {key.usage: _key_info(key) for key in keys}
     return trcs.CoreKeys(
         issuing_grant=key_by_usage[Key.TRC_ISSUING_GRANT],
         voting_online=key_by_usage[Key.TRC_VOTING_ONLINE],
@@ -211,45 +209,53 @@ def _core_key_info(keys: List[Key]):
 
 
 class CertificateManager(models.Manager):
-    def create_as_cert(self, subject: AS, issuer: AS):
+    # XXX(matzf): change the create functions so they can be called on the reverse relation manager?
+    def create_issuer_cert(self, as_):
+        version = Certificate.next_version(as_, Certificate.ISSUER)
+
+        trc = TRC.objects.latest(as_.isd)
+        issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
+        issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
+
+        not_before, not_after = _validity([issuer_key, issuing_grant, trc])
+
+        cert = certs.generate_issuer_certificate(as_, version, trc, not_before, not_after,
+                                                 issuing_grant, issuer_key)
+
+        return super().create(
+            AS=as_,
+            type=Certificate.ISSUER,
+            version=version,
+            not_before=not_before,
+            not_after=not_after,
+            certificate=cert
+        )
+
+    def create_as_cert(self, subject, issuer):
+        version = Certificate.next_version(subject, Certificate.CHAIN)
+
         encryption_key = subject.keys.latest(usage=Key.DECRYPT)
         signing_key = subject.keys.latest(usage=Key.SIGNING)
-
         issuer_key = issuer.keys.latest(usage=Key.CERT_SIGNING)
         issuer_cert = issuer.certificates.latest(type=Certificate.ISSUER)
 
-        not_before, not_after = _validity([encryption_key, signing_key, issuer_key])
+        not_before, not_after = _validity([encryption_key, signing_key, issuer_cert])
 
-        version = Certificate.next_version(subject, Certificate.CHAIN)
-
-        cert = certs.generate_as_certificates(subject, version, not_before, not_after,
+        cert = certs.generate_as_certificate(subject, version, not_before, not_after,
                                               encryption_key, signing_key,
                                               issuer, issuer_cert, issuer_key)
 
         return super().create(
             AS=subject,
-            version=version,
             type=Certificate.CHAIN,
-            certificate=cert
-        )
-
-    def create_issuer_cert(self, as_: AS):
-        issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
-        issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
-
-        not_before, not_after = _validity([issuer_key, issuing_grant])
-
-        version = Certificate.next_version(as_, Certificate.ISSUER)
-
-        cert = certs.generate_issuer_certificate(as_, version, not_before, not_after,
-                                                 issuing_grant, issuer_key)
-
-        return super().create(
-            AS=as_,
             version=version,
-            type=Certificate.ISSUER,
+            not_before=not_before,
+            not_after=not_after,
             certificate=cert
         )
+
+    def latest(self, type):
+        return self.filter(type=type).latest('version')
 
 
 class Certificate(models.Model):
@@ -262,7 +268,7 @@ class Certificate(models.Model):
     )
 
     AS = models.ForeignKey(
-        AS,
+        'AS',
         related_name='certificates',
         on_delete=models.CASCADE,
     )
@@ -273,18 +279,19 @@ class Certificate(models.Model):
         editable=False,
     )
     version = models.PositiveIntegerField()
+    not_before = models.DateTimeField()
+    not_after = models.DateTimeField()
 
     certificate = jsonfield.JSONField()
 
+    objects = CertificateManager()
+
     @staticmethod
     def next_version(as_, type):
-        if as_.pk:
-            return Certificate.objects.filter(AS=as_, type=type).count() + 1  # XXX(matzf) max version pls
-        else:
-            return 1
+        return as_.certificates.filter(type=type).count() + 1  # BUG XXX
 
 
-def _validity(keys: List[Key]):
-    not_before = max(key.not_before for key in keys)
-    not_after = min(key.not_after for key in keys)
+def _validity(vs):
+    not_before = max(v.not_before for v in vs)
+    not_after = min(v.not_after for v in vs)
     return not_before, not_after

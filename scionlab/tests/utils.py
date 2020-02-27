@@ -21,13 +21,11 @@ import re
 import tarfile
 
 import logging
-from lib.crypto.trc import TRC
-from lib.crypto.certificate import Certificate
-from lib.crypto.certificate_chain import CertificateChain
 
 from collections import namedtuple, Counter, OrderedDict
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
+from scionlab.models.pki import Key
 from scionlab.models.user_as import UserAS
 
 from scionlab.scion import keys
@@ -249,8 +247,10 @@ def check_as_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    check_sig_key(testcase, as_.sig_pub_key, as_.sig_priv_key)
-    check_enc_keypair(testcase, as_.enc_pub_key, as_.enc_priv_key)
+
+    #check_sig_key(testcase, as_.sig_pub_key, as_.sig_priv_key)
+    #check_enc_keypair(testcase, as_.enc_pub_key, as_.enc_priv_key)
+
     testcase.assertIsNotNone(as_.master_as_key)
     _sanity_check_base64(testcase, as_.master_as_key)
 
@@ -262,9 +262,15 @@ def check_as_core_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    check_sig_key(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
-    check_sig_key(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
-    check_sig_key(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
+    #check_sig_key(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
+    #check_sig_key(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
+    #check_sig_key(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
+
+def _check_keys_for_usage(testcase, as_, key_usage):
+    keys = as_.keys.filter(usage=key_usage).order_by('version')
+    testcase.assertGreaterEqual(len(keys), 1)
+    for i, key in enumerate(keys):
+        testcase.assertEqual(key.version, i+1)
 
 
 def check_sig_key(testcase, sig_priv_key):

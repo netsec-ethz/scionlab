@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import base64
 import jsonfield
 import os
@@ -26,6 +27,7 @@ from django.db.models.signals import pre_delete, post_delete
 
 
 from scionlab.models.user import User
+from scionlab.models.pki import Key, Certificate, TRC
 from scionlab.util import as_ids
 from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap
@@ -119,27 +121,20 @@ class ISD(TimestampedModel):
             self._update_coreas_certificates(as_)
 
     def _update_trc(self):
-        # TODO(matzf)
-        raise NotImplementedError
-        # self.trc, self.trc_priv_keys = generate_trc(self)
-        # self.save()
+        TRC.objects.create(self)
 
     @staticmethod
     def _update_as_certificates(as_):
-        # TODO(matzf)
-        raise NotImplementedError
         as_.generate_certificate_chain()
         as_.hosts.bump_config()
         as_.save()
 
     @staticmethod
     def _update_coreas_certificates(as_):
-        # TODO(matzf)
-        raise NotImplementedError
-        # as_.generate_core_certificate()
-        # as_.generate_certificate_chain()
-        # as_.hosts.bump_config()
-        # as_.save()
+        as_.generate_core_certificate()
+        as_.generate_certificate_chain()
+        as_.hosts.bump_config()
+        as_.save()
 
 
 class ASManager(models.Manager):
@@ -155,7 +150,7 @@ class ASManager(models.Manager):
         :returns: AS
         """
         as_id_int = as_ids.parse(as_id)
-        as_ = AS(
+        as_ = super().create(
             isd=isd,
             as_id=as_id,
             as_id_int=as_id_int,
@@ -163,15 +158,16 @@ class ASManager(models.Manager):
             label=label,
             mtu=mtu or DEFAULT_LINK_MTU,
             owner=owner,
+            master_as_key=AS._make_master_as_key()
         )
-        as_.init_keys()
-        if init_certificates and not is_core:
-            as_.generate_certificate_chain()
-        as_.save()
 
-        if init_certificates and is_core:
-            isd.update_trc_and_core_certificates()
-            as_.refresh_from_db()
+        as_.init_keys()
+        if init_certificates:
+            if is_core:
+                isd.update_trc_and_core_certificates()
+                as_.refresh_from_db()  # XXX(matzf) still neeeded? guess not!?
+            else:
+                as_.generate_certificate_chain()
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
@@ -306,17 +302,16 @@ class AS(TimestampedModel):
         Recreatable Keys (DRKeys)).
         If this is a core AS, also initialise the core AS signing key pairs.
         """
-        self._gen_keys()
-        self._gen_master_as_key()
+        valid_not_before = datetime.now()
+        self._gen_keys(valid_not_before)
         if self.is_core:
-            self._gen_core_keys()
+            self._gen_core_keys(valid_not_before)
 
     def update_keys(self):
         """
         Generate new signing and encryption key pairs. Update the certificate.
         Bumps the configuration version on all affected hosts.
         """
-        # TODO(matzf): in coming scion versions, the master key can be updated too.
         self._gen_keys()
         self.generate_certificate_chain()
         self.hosts.bump_config()
@@ -356,9 +351,7 @@ class AS(TimestampedModel):
             issuer = candidates.first()
 
         if issuer:  # Skip if failed to find a core AS as issuer
-            # TODO(matzf)
-            raise NotImplementedError
-            # self.certificate_chain = generate_as_certificate_chain(self, issuer)
+            Certificate.objects.create_as_cert(self, issuer)
 
     def generate_core_certificate(self):
         """
@@ -366,9 +359,7 @@ class AS(TimestampedModel):
 
         Requires that the TRC in this ISD exists/is up to date.
         """
-        # TODO(matzf)
-        raise NotImplementedError
-        # self.core_certificate = generate_core_certificate(self)
+        Certificate.objects.create_issuer_cert(self)
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """
@@ -409,25 +400,32 @@ class AS(TimestampedModel):
         self.generate_certificate_chain()
         self.hosts.bump_config()
 
-    def _gen_keys(self):
+    def _gen_keys(self, valid_not_before):
         """
         Generate signing and encryption key pairs.
         """
-        # TODO(matzf)
-        raise NotImplementedError
+        for usage in [Key.DECRYPT, Key.SIGNING]:
+            Key.objects.create(self, usage=usage, not_before=valid_not_before)
 
-    def _gen_master_as_key(self):
-        """
-        Generate the MasterASKey.
-        """
-        self.master_as_key = _base64encode(os.urandom(16))
-
-    def _gen_core_keys(self):
+    def _gen_core_keys(self, valid_not_before):
         """
         Generate core AS signing key pairs.
         """
-        # TODO(matzf)
-        raise NotImplementedError
+        for usage in [Key.CERT_SIGNING,
+                      Key.TRC_ISSUING_GRANT,
+                      Key.TRC_VOTING_ONLINE,
+                      Key.TRC_VOTING_OFFLINE]:
+            Key.objects.create(self, usage=usage, not_before=valid_not_before)
+
+    @staticmethod
+    def _make_master_as_key():
+        """
+        Generate a random MasterASKey.
+        """
+        return _base64encode(os.urandom(16))
+
+
+
 
 
 class HostManager(models.Manager):

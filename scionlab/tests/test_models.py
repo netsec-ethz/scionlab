@@ -57,11 +57,12 @@ class InitASTests(TestCase):
     def test_create_as_with_keys(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
-        utils.check_as_keys(self, as_)
+        check_as_keys(self, as_)
 
     def test_create_coreas_with_keys(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
+        utils.check_as(self, as_)
         utils.check_as_keys(self, as_)
         utils.check_as_core_keys(self, as_)
 
