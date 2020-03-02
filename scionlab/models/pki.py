@@ -97,7 +97,47 @@ class Key(models.Model):
         unique_together = ('AS', 'usage', 'version')
 
     def __str__(self):
+        return self.filename()
+
+    def filename(self):
         return "%s-v%i.key" % (self.usage, self.version)
+
+    def format_keyfile(self) -> str:
+        """
+        -----BEGIN PRIVATE KEY-----
+        algorithm: {algo}
+        ia: {ia}
+        not_after: {not_before}
+        not_before: {not_after}
+        usage: {usage}
+        version: {version}
+
+        {key}
+        -----END PRIVATE KEY-----
+        """.format(
+            algo=self.algorithm(),
+            ia=self.AS.isd_as_str(),
+            not_after=self.not_after,
+            not_before=self.not_before,
+            usage=self.usage,
+            version=self.version,
+            key=self.key
+        )
+
+    def algorithm(self):
+        """
+        Return the algorithm corresponding to this key, in the format expected for the .key file
+        """
+        if self.is_encryption_key():
+            return 'curve25519xsalsa20poly1305'
+        else:
+            return 'ed25519'
+
+    def is_encryption_key(self):
+        """
+        Returns True iff this is an encryption key. Otherwise, this is a signing key.
+        """
+        return self.usage == Key.DECRYPT
 
     @staticmethod
     def next_version(as_, usage):
@@ -182,6 +222,12 @@ class TRC(models.Model):
         verbose_name = 'TRC'
         verbose_name_plural = 'TRCs'
 
+    def __str__(self):
+        return self.filename()
+
+    def filename(self) -> str:
+        return 'ISD%i-V%i.trc' % (self.isd.isd_id, self.version)
+
 
 def _latest_core_keys(as_) -> List[Key]:
     return [
@@ -242,8 +288,8 @@ class CertificateManager(models.Manager):
         not_before, not_after = _validity([encryption_key, signing_key, issuer_cert])
 
         cert = certs.generate_as_certificate(subject, version, not_before, not_after,
-                                              encryption_key, signing_key,
-                                              issuer, issuer_cert, issuer_key)
+                                             encryption_key, signing_key,
+                                             issuer, issuer_cert, issuer_key)
 
         return super().create(
             AS=subject,
@@ -285,6 +331,12 @@ class Certificate(models.Model):
     certificate = jsonfield.JSONField()
 
     objects = CertificateManager()
+
+    def __str__(self):
+        return self.filename()
+
+    def filename(self):
+        return "ISD%i-AS%s-V%i.crt" % (self.AS.isd.isd_id, self.AS.as_id, self.version)
 
     @staticmethod
     def next_version(as_, type):

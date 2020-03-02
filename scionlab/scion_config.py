@@ -17,6 +17,7 @@ import enum
 import ipaddress
 import os
 from collections import OrderedDict
+from datetime import datetime
 
 from scionlab.models.core import Service
 from scionlab.scion_topology import TopologyInfo
@@ -36,6 +37,11 @@ from scionlab.defines import (
     SCION_VAR_DIR,
     GEN_PATH,
 )
+
+CERT_DIR = "certs"
+KEY_DIR = "keys"
+MASTER_KEY_0 = "master0.key"
+MASTER_KEY_1 = "master1.key"
 
 
 TYPE_BR = 'BR'
@@ -134,48 +140,34 @@ class _ConfigGenerator:
         self.archive.write_toml((elem_dir, toml_filename), conf)
 
         self._write_topo(elem_dir)
-        self._write_as_conf(elem_dir)
-        self._write_certs_trc(elem_dir)
+        self._write_trcs(elem_dir)
+        self._write_certs(elem_dir)
         if with_keys:
             self._write_keys(elem_dir)
 
-    def _write_certs_trc(self, elem_dir):
-        # TODO(matzf)
-        raise NotImplementedError
-        # trc_version = self.AS.isd.trc['Version']
-        # self.archive.write_json((elem_dir, CERT_DIR, _trc_filename(self.AS.isd, trc_version)),
-        #                         self.AS.isd.trc)
+    def _write_trcs(self, elem_dir):
+        if self.AS.is_core:
+            # keep _all_ TRCs
+            relevant_trcs = self.AS.isd.trcs.all()
+        else:
+            # only active TRCs required; simplify, include all non-expired.
+            relevant_trcs = self.AS.isd.trcs.filter(not_after__lt=datetime.now())
+        for trc in relevant_trcs:
+            self.archive.write_json((elem_dir, CERT_DIR, trc.filename()), trc.trc)
 
-        # cert_version = self.AS.certificate_chain['0']['Version']
-        # self.archive.write_json((elem_dir, CERT_DIR, _cert_chain_filename(self.AS, cert_version)),
-        #                         self.AS.certificate_chain)
+    def _write_certs(self, elem_dir):
+        for cert in self.AS.certificates.all():
+            self.archive.write_json((elem_dir, CERT_DIR, cert.filename()), cert.certificate)
 
     def _write_keys(self, elem_dir):
-        as_ = self.AS
-        archive = self.archive
-        # TODO(matzf)
-        raise NotImplementedError
-        # archive.write_text(get_sig_key_file_path(elem_dir), as_.sig_priv_key)
-        # archive.write_text(get_enc_key_file_path(elem_dir), as_.enc_priv_key)
-        # archive.write_text(get_master_key_file_path(elem_dir, MASTER_KEY_0), as_.master_as_key)
-        # archive.write_text(get_master_key_file_path(elem_dir, MASTER_KEY_1), as_.master_as_key)
-        # if as_.is_core:
-        #     archive.write_text(get_core_sig_key_file_path(elem_dir), as_.core_sig_priv_key)
-        #     archive.write_text(get_online_key_file_path(elem_dir), as_.core_online_priv_key)
-        #     archive.write_text(get_offline_key_file_path(elem_dir), as_.core_offline_priv_key)
+        self.archive.write_text((elem_dir, KEY_DIR, MASTER_KEY_0), self.AS.master_as_key)
+        self.archive.write_text((elem_dir, KEY_DIR, MASTER_KEY_1), self.AS.master_as_key)
+
+        for key in self.AS.keys.all():
+            self.archive.write_json((elem_dir, KEY_DIR, key.filename()), key.format_keyfile())
 
     def _write_topo(self, elem_dir):
         self.archive.write_json((elem_dir, 'topology.json'), self.topo_info.topo)
-
-    def _write_as_conf(self, elem_dir):
-        conf = {
-            'RegisterTime': 5,
-            'PropagateTime': 5,
-            'CertChainVersion': 0,
-            'RegisterPath': True,
-            'PathSegmentTTL': 21600,
-        }
-        self.archive.write_yaml((elem_dir, AS_CONF_FILE), conf)
 
     def _write_systemd_services_file(self):
         ia = self.AS.isd_as_path_str()
