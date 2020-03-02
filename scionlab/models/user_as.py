@@ -73,6 +73,7 @@ class UserASManager(models.Manager):
             as_id=as_id,
             as_id_int=as_id_int,
             installation_type=installation_type,
+            master_as_key=AS._make_master_as_key()
         )
 
         user_as.init_keys()
