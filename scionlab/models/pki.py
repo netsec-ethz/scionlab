@@ -34,7 +34,7 @@ class KeyManager(models.Manager):
     def create(self, AS, usage, version=None, not_before=None, not_after=None):
         version = version or Key.next_version(AS, usage)
 
-        not_before = not_before or datetime.now()
+        not_before = not_before or datetime.utcnow()
         not_after = not_after or not_before + DEFAULT_EXPIRATION  # TODO(matzf) expiration for different key types
 
         if usage == Key.DECRYPT:

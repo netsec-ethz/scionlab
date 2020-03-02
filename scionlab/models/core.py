@@ -280,7 +280,7 @@ class AS(TimestampedModel):
         Recreatable Keys (DRKeys)).
         If this is a core AS, also initialise the core AS signing key pairs.
         """
-        valid_not_before = datetime.now()
+        valid_not_before = datetime.utcnow()
         self._gen_keys(valid_not_before)
         if self.is_core:
             self._gen_core_keys(valid_not_before)
@@ -290,7 +290,7 @@ class AS(TimestampedModel):
         Generate new signing and encryption key pairs. Update the certificate.
         Bumps the configuration version on all affected hosts.
         """
-        self._gen_keys(valid_not_before=datetime.now())
+        self._gen_keys(valid_not_before=datetime.utcnow())
         self.generate_certificate_chain()
         self.hosts.bump_config()
         self.save()

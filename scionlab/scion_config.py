@@ -151,7 +151,7 @@ class _ConfigGenerator:
             relevant_trcs = self.AS.isd.trcs.all()
         else:
             # only active TRCs required; simplify, include all non-expired.
-            relevant_trcs = self.AS.isd.trcs.filter(not_after__lt=datetime.now())
+            relevant_trcs = self.AS.isd.trcs.filter(not_after__lt=datetime.utcnow())
         for trc in relevant_trcs:
             self.archive.write_json((elem_dir, CERT_DIR, trc.filename()), trc.trc)
 
