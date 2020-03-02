@@ -14,7 +14,6 @@
 
 from datetime import datetime
 import base64
-import jsonfield
 import os
 import uuid
 
@@ -73,19 +72,6 @@ class ISD(TimestampedModel):
     isd_id = models.PositiveIntegerField()
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
-    trc = jsonfield.JSONField(
-        null=True,
-        blank=True,
-        verbose_name="Trust Root Configuration (TRC)")
-    trc_priv_keys = jsonfield.JSONField(
-        null=True,
-        blank=True,
-        verbose_name="TRC private keys",
-        help_text="""The private keys corresponding to the Core-AS keys in
-            the current TRC. These keys will be used to sign the next version
-            of the TRC."""
-    )
-
     class Meta:
         verbose_name = 'ISD'
         verbose_name_plural = 'ISDs'
@@ -103,7 +89,7 @@ class ISD(TimestampedModel):
         first.
         All updated objects are saved.
         """
-        self._update_trc()
+        TRC.objects.create(self)
         for as_ in self.ases.filter(is_core=True).iterator():
             self._update_coreas_certificates(as_)
 
@@ -116,12 +102,10 @@ class ISD(TimestampedModel):
 
         All updated objects are saved.
         """
-        self._update_trc()
+        TRC.objects.create(self)
         for as_ in self.ases.filter(is_core=True):
             self._update_coreas_certificates(as_)
 
-    def _update_trc(self):
-        TRC.objects.create(self)
 
     @staticmethod
     def _update_as_certificates(as_):

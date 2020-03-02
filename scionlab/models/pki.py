@@ -119,6 +119,7 @@ class TRCManager(models.Manager):
             prev_trc = None
             prev_voting_offline = None
 
+        print(isd, isd.ases.filter(is_core=True))
         keys = {as_.as_id: _latest_core_keys(as_) for as_ in isd.ases.filter(is_core=True)}
         all_keys = sum(keys.values(), [])
 

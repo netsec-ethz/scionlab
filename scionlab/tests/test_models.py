@@ -15,6 +15,7 @@
 from unittest.mock import patch
 from django.test import TestCase
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
+from scionlab.models.pkie import Certificate
 from scionlab.fixtures import testtopo
 from scionlab.tests import utils
 
@@ -97,18 +98,17 @@ class UpdateASKeysTests(TestCase):
 
         as_ = AS.objects.first()
 
-        prev_certificate_chain = as_.certificate_chain
+        prev_certificate_chain = as_.certificates.latest(type=Certificate.CHAIN)
 
         as_.update_keys()
+
+        new_certificate_chain = as_.certificates.latest(type=Certificate.CHAIN)
 
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
             list(as_.hosts.all())
         )
-        self.assertEqual(
-            as_.certificate_chain['0']['Version'],
-            prev_certificate_chain['0']['Version'] + 1
-        )
+        self.assertEqual(new_certificate_chain.version, prev_certificate_chain.version + 1)
 
 
 class LinkModificationTests(TestCase):

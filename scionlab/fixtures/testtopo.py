@@ -134,7 +134,8 @@ def create_ases():
 
     # Initialise TRCs and certificates. Deferred in AS creation to start with TRC/cert versions 1.
     for isd in ISD.objects.iterator():
-        isd.init_trc_and_certificates()
+        if isd.ases.exists():
+            isd.init_trc_and_certificates()
 
 
 def create_links():

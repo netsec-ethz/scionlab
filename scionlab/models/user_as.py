@@ -66,7 +66,7 @@ class UserASManager(models.Manager):
             as_id_int = self.get_next_id()
             as_id = as_ids.format(as_id_int)
 
-        user_as = UserAS(
+        user_as = super().create(
             owner=owner,
             label=label,
             isd=isd,
@@ -77,7 +77,6 @@ class UserASManager(models.Manager):
 
         user_as.init_keys()
         user_as.generate_certificate_chain()
-        user_as.save()
         user_as.init_default_services()
 
         return user_as
