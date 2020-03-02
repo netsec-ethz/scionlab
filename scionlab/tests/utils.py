@@ -69,9 +69,7 @@ def check_as_services(testcase, as_):
     Check that all the AS has all required services configured.
     """
     counter = Counter(service.type for service in as_.services.iterator())
-    testcase.assertGreaterEqual(counter[Service.BS], 1)
-    testcase.assertGreaterEqual(counter[Service.PS], 1)
-    testcase.assertGreaterEqual(counter[Service.CS], 1)
+    testcase.assertEqual(counter[Service.CS], 1)
 
 
 def check_host_ports(testcase, host):

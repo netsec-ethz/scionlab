@@ -16,13 +16,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/br.toml: |
   ID = "br17-ffaa_0_1107-1"
 
   [metrics]
-  Prometheus = "[127.0.0.1]:32045"
-
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
+  Prometheus = "127.0.0.1:32045"
 
   [logging.file]
   Level = "debug"
@@ -99,18 +93,6 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/master1.key: |-
   BAoKNK5CjlDyXfCR6NkK2A==
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
   {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
     "BorderRouters": {
       "br17-ffaa_0_1107-1": {
         "CtrlAddr": {
@@ -198,7 +180,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
         }
       }
     },
-    "CertificateService": {
+    "ControlService": {
       "cs17-ffaa_0_1107-1": {
         "Addrs": {
           "IPv4": {
@@ -211,22 +193,9 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
       }
     },
     "Core": false,
-    "Discovery": {},
     "ISD_AS": "17-ffaa:0:1107",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    "Overlay": "UDP/IPv4"
   }
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/as.yml: |
   CertChainVersion: 0
@@ -243,13 +212,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/br.toml: |
   ID = "br17-ffaa_0_1107-2"
 
   [metrics]
-  Prometheus = "[127.0.0.1]:32046"
-
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
+  Prometheus = "127.0.0.1:32046"
 
   [logging.file]
   Level = "debug"
@@ -326,18 +289,6 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/master1.key: |-
   BAoKNK5CjlDyXfCR6NkK2A==
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
   {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
     "BorderRouters": {
       "br17-ffaa_0_1107-1": {
         "CtrlAddr": {
@@ -425,7 +376,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
         }
       }
     },
-    "CertificateService": {
+    "ControlService": {
       "cs17-ffaa_0_1107-1": {
         "Addrs": {
           "IPv4": {
@@ -438,267 +389,9 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
       }
     },
     "Core": false,
-    "Discovery": {},
     "ISD_AS": "17-ffaa:0:1107",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
-  }
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/as.yml: |
-  CertChainVersion: 0
-  PathSegmentTTL: 21600
-  PropagateTime: 5
-  RegisterPath: true
-  RegisterTime: 5
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/bs.toml: |
-  [BS]
-  OriginationInterval = "5s"
-  PropagationInterval = "5s"
-  RevOverlap = "5s"
-  RevTTL = "20s"
-
-  [beaconDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/bs17-ffaa_0_1107-1.beacon.db"
-
-  [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1"
-  ID = "bs17-ffaa_0_1107-1"
-  ReconnectToDispatcher = true
-
-  [metrics]
-  Prometheus = "[127.0.0.1]:32041"
-
-  [quic]
-  Address = "[127.0.0.1]:30352"
-  CertFile = "/etc/scion/gen-certs/tls.pem"
-  KeyFile = "/etc/scion/gen-certs/tls.key"
-  ResolutionFraction = 0.4
-
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/bs17-ffaa_0_1107-1.trust.db"
-
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
-
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/bs17-ffaa_0_1107-1.log"
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  {
-    "0": {
-      "CanIssue": false,
-      "Comment": "AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538790,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "7hc0egquSIvthVKqRxfJtO4Iap5w06Xppg0Q3zw+IxRJGDQny3aWvJB1wX/Urt+B6T644rRSzwhHDe31KY3LAA==",
-      "Subject": "17-ffaa:0:1107",
-      "SubjectEncKey": "cgTQkIR0MKoA9iPfnWd35oOIxcqN8eCc8P4aI9LABEQ=",
-      "SubjectSignKey": "ERIYaoECQMOX1iUQ485DxbyeDubtAwjBWXb1k83NgZc=",
-      "TRCVersion": 1,
-      "Version": 1
-    },
-    "1": {
-      "CanIssue": true,
-      "Comment": "Core AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538791,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "uOYRNIVOlUYfwSaWFzLuAheXoozzW+6oyx1DOUZyGYYDgb7mmIcRbDwKI7lpzrVRou7N4m9HFBxUZQRMVq4yCQ==",
-      "Subject": "17-ffaa:0:1101",
-      "SubjectEncKey": "",
-      "SubjectSignKey": "Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=",
-      "TRCVersion": 1,
-      "Version": 1
-    }
-  }
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
-  {
-    "CertLogs": {},
-    "CoreASes": {
-      "17-ffaa:0:1101": {
-        "OfflineKey": "b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=",
-        "OfflineKeyAlg": "ed25519",
-        "OnlineKey": "XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=",
-        "OnlineKeyAlg": "ed25519"
-      }
-    },
-    "CreationTime": 1570002792,
-    "Description": "ISD 17 (Switzerland)",
-    "ExpirationTime": 1601538792,
-    "GracePeriod": 0,
-    "ISD": 17,
-    "Quarantine": false,
-    "QuorumCAs": 0,
-    "QuorumTRC": 1,
-    "RAINS": {},
-    "RootCAs": {},
-    "Signatures": {
-      "17-ffaa:0:1101": "a2y3LNNpEGPeMcKUaGwsZafEeDLcyNce9FvuaciQE4jm2DJwTDN+iS4H9P8IX/sBSc+9Qgj7L7YsQwIZFIH7AA=="
-    },
-    "ThresholdEEPKI": 0,
-    "Version": 1
-  }
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/keys/as-decrypt.key: |-
-  R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/keys/as-sig.seed: |-
-  ovoV1rkh/ANm861qUAA2A7fBAPrSrIecGTAem6Yy300=
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/keys/master0.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/keys/master1.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/topology.json: |-
-  {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
-    "BorderRouters": {
-      "br17-ffaa_0_1107-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30045
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 31045
-            }
-          }
-        }
-      },
-      "br17-ffaa_0_1107-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30046
-            }
-          }
-        },
-        "Interfaces": {
-          "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
-            }
-          },
-          "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 31046
-            }
-          }
-        }
-      }
-    },
-    "CertificateService": {
-      "cs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31042
-            }
-          }
-        }
-      }
-    },
-    "Core": false,
-    "Discovery": {},
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    "Overlay": "UDP/IPv4"
   }
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/as.yml: |
   CertChainVersion: 0
@@ -767,9 +460,19 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
     "Version": 1
   }
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
+  [beaconDB]
+  Backend = "sqlite"
+  Connection = "/var/lib/scion/cs17-ffaa_0_1107-1.beacon.db"
+
+  [bs]
+  OriginationInterval = "5s"
+  PropagationInterval = "5s"
+  RevOverlap = "5s"
+  RevTTL = "20s"
+
   [cs]
-  IssuerReissueTime = "3d"
-  LeafReissueTime = "6h"
+  IssuerReissueLeadTime = "3d"
+  LeafReissueLeadTime = "6h"
   ReissueRate = "10s"
   ReissueTimeout = "5s"
 
@@ -779,32 +482,30 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
   ReconnectToDispatcher = true
 
   [metrics]
-  Prometheus = "[127.0.0.1]:32042"
+  Prometheus = "127.0.0.1:32042"
+
+  [ps]
+  SegSync = true
 
   [quic]
-  Address = "[127.0.0.1]:30354"
   CertFile = "/etc/scion/gen-certs/tls.pem"
   KeyFile = "/etc/scion/gen-certs/tls.key"
   ResolutionFraction = 0.4
-
-  [sd_client]
-  Path = "/run/shm/sciond/default.sock"
+  address = "127.0.0.1:30354"
 
   [trustDB]
   Backend = "sqlite"
   Connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
-
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
 
   [logging.file]
   Level = "debug"
   MaxAge = 3
   MaxBackups = 1
   Path = "/var/log/scion/cs17-ffaa_0_1107-1.log"
+
+  [ps.pathDB]
+  Backend = "sqlite"
+  Connection = "/var/lib/scion/cs17-ffaa_0_1107-1.path.db"
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-decrypt.key: |-
   R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-sig.seed: |-
@@ -815,18 +516,6 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/master1.key: |-
   BAoKNK5CjlDyXfCR6NkK2A==
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/topology.json: |-
   {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
     "BorderRouters": {
       "br17-ffaa_0_1107-1": {
         "CtrlAddr": {
@@ -914,7 +603,7 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/topology.json: |-
         }
       }
     },
-    "CertificateService": {
+    "ControlService": {
       "cs17-ffaa_0_1107-1": {
         "Addrs": {
           "IPv4": {
@@ -927,22 +616,9 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/topology.json: |-
       }
     },
     "Core": false,
-    "Discovery": {},
     "ISD_AS": "17-ffaa:0:1107",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    "Overlay": "UDP/IPv4"
   }
 gen/ISD17/ASffaa_0_1107/endhost/as.yml: |
   CertChainVersion: 0
@@ -1017,29 +693,20 @@ gen/ISD17/ASffaa_0_1107/endhost/sd.toml: |
   ReconnectToDispatcher = true
 
   [metrics]
-  Prometheus = "[127.0.0.1]:30455"
+  Prometheus = "127.0.0.1:30455"
 
   [quic]
-  Address = "[127.0.0.1]:0"
   CertFile = "/etc/scion/gen-certs/tls.pem"
   KeyFile = "/etc/scion/gen-certs/tls.key"
   ResolutionFraction = 0.4
+  address = "127.0.0.1:0"
 
   [sd]
-  Public = "17-ffaa:0:1107,[127.0.0.1]:0"
-  Reliable = "/run/shm/sciond/default.sock"
-  SocketFileMode = "0777"
-  Unix = "/run/shm/sciond/default.unix"
+  address = "127.0.0.1:30255"
 
   [trustDB]
   Backend = "sqlite"
   Connection = "/var/lib/scion/sd17-ffaa_0_1107.trust.db"
-
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
 
   [logging.file]
   Level = "debug"
@@ -1047,22 +714,11 @@ gen/ISD17/ASffaa_0_1107/endhost/sd.toml: |
   MaxBackups = 1
   Path = "/var/log/scion/sd17-ffaa_0_1107.log"
 
-  [sd.PathDB]
+  [sd.pathDB]
+  Backend = "sqlite"
   Connection = "/var/lib/scion/sd17-ffaa_0_1107.path.db"
 gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
   {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
     "BorderRouters": {
       "br17-ffaa_0_1107-1": {
         "CtrlAddr": {
@@ -1150,7 +806,7 @@ gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
         }
       }
     },
-    "CertificateService": {
+    "ControlService": {
       "cs17-ffaa_0_1107-1": {
         "Addrs": {
           "IPv4": {
@@ -1163,264 +819,9 @@ gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
       }
     },
     "Core": false,
-    "Discovery": {},
     "ISD_AS": "17-ffaa:0:1107",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
-  }
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/as.yml: |
-  CertChainVersion: 0
-  PathSegmentTTL: 21600
-  PropagateTime: 5
-  RegisterPath: true
-  RegisterTime: 5
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  {
-    "0": {
-      "CanIssue": false,
-      "Comment": "AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538790,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "7hc0egquSIvthVKqRxfJtO4Iap5w06Xppg0Q3zw+IxRJGDQny3aWvJB1wX/Urt+B6T644rRSzwhHDe31KY3LAA==",
-      "Subject": "17-ffaa:0:1107",
-      "SubjectEncKey": "cgTQkIR0MKoA9iPfnWd35oOIxcqN8eCc8P4aI9LABEQ=",
-      "SubjectSignKey": "ERIYaoECQMOX1iUQ485DxbyeDubtAwjBWXb1k83NgZc=",
-      "TRCVersion": 1,
-      "Version": 1
-    },
-    "1": {
-      "CanIssue": true,
-      "Comment": "Core AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538791,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "uOYRNIVOlUYfwSaWFzLuAheXoozzW+6oyx1DOUZyGYYDgb7mmIcRbDwKI7lpzrVRou7N4m9HFBxUZQRMVq4yCQ==",
-      "Subject": "17-ffaa:0:1101",
-      "SubjectEncKey": "",
-      "SubjectSignKey": "Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=",
-      "TRCVersion": 1,
-      "Version": 1
-    }
-  }
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
-  {
-    "CertLogs": {},
-    "CoreASes": {
-      "17-ffaa:0:1101": {
-        "OfflineKey": "b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=",
-        "OfflineKeyAlg": "ed25519",
-        "OnlineKey": "XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=",
-        "OnlineKeyAlg": "ed25519"
-      }
-    },
-    "CreationTime": 1570002792,
-    "Description": "ISD 17 (Switzerland)",
-    "ExpirationTime": 1601538792,
-    "GracePeriod": 0,
-    "ISD": 17,
-    "Quarantine": false,
-    "QuorumCAs": 0,
-    "QuorumTRC": 1,
-    "RAINS": {},
-    "RootCAs": {},
-    "Signatures": {
-      "17-ffaa:0:1101": "a2y3LNNpEGPeMcKUaGwsZafEeDLcyNce9FvuaciQE4jm2DJwTDN+iS4H9P8IX/sBSc+9Qgj7L7YsQwIZFIH7AA=="
-    },
-    "ThresholdEEPKI": 0,
-    "Version": 1
-  }
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/keys/as-decrypt.key: |-
-  R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/keys/as-sig.seed: |-
-  ovoV1rkh/ANm861qUAA2A7fBAPrSrIecGTAem6Yy300=
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/keys/master0.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/keys/master1.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/ps.toml: |
-  [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1"
-  ID = "ps17-ffaa_0_1107-1"
-  ReconnectToDispatcher = true
-
-  [metrics]
-  Prometheus = "[127.0.0.1]:32043"
-
-  [ps]
-  SegSync = true
-
-  [quic]
-  Address = "[127.0.0.1]:30353"
-  CertFile = "/etc/scion/gen-certs/tls.pem"
-  KeyFile = "/etc/scion/gen-certs/tls.key"
-  ResolutionFraction = 0.4
-
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/ps17-ffaa_0_1107-1.trust.db"
-
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
-
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/ps17-ffaa_0_1107-1.log"
-
-  [ps.PathDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/ps17-ffaa_0_1107-1.path.db"
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/topology.json: |-
-  {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
-    "BorderRouters": {
-      "br17-ffaa_0_1107-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30045
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 31045
-            }
-          }
-        }
-      },
-      "br17-ffaa_0_1107-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30046
-            }
-          }
-        },
-        "Interfaces": {
-          "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
-            }
-          },
-          "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 31046
-            }
-          }
-        }
-      }
-    },
-    "CertificateService": {
-      "cs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31042
-            }
-          }
-        }
-      }
-    },
-    "Core": false,
-    "Discovery": {},
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    "Overlay": "UDP/IPv4"
   }
 gen/dispatcher/disp.toml: |
   [dispatcher]
@@ -1428,7 +829,7 @@ gen/dispatcher/disp.toml: |
   SocketFileMode = "0777"
 
   [metrics]
-  Prometheus = "[127.0.0.1]:30441"
+  Prometheus = "127.0.0.1:30441"
 
   [logging.file]
   Level = "debug"
@@ -1442,14 +843,12 @@ gen/scionlab-config.json: |-
     "host_id": "bff6b39ba77e46a4a775a36f5fdf892d",
     "host_secret": "3560964a022346459556ca5eb71756c7",
     "url": "http://localhost:8000",
-    "version": 12
+    "version": 10
   }
 scionlab-services.txt: |-
   scion-border-router@17-ffaa_0_1107-1.service
   scion-border-router@17-ffaa_0_1107-2.service
-  scion-beacon-server@17-ffaa_0_1107-1.service
-  scion-path-server@17-ffaa_0_1107-1.service
-  scion-certificate-server@17-ffaa_0_1107-1.service
+  scion-control-server@17-ffaa_0_1107-1.service
   scion-bwtestserver.service
   scion-daemon@17-ffaa_0_1107.service
   scion-dispatcher.service

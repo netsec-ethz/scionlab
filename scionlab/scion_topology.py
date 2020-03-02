@@ -16,16 +16,10 @@ from scionlab.models.core import Service, Link
 import ipaddress
 
 KEY_BR = 'BorderRouters'
-KEY_BS = 'BeaconService'
-KEY_CS = 'CertificateService'
-KEY_PS = 'PathService'
-KEY_DI = 'Discovery'
+KEY_CS = 'ControlService'
 
 TYPES_TO_KEYS = {
-    "BR": KEY_BR,
-    "BS": KEY_BS,
     "CS": KEY_CS,
-    "PS": KEY_PS,
 }
 
 
@@ -61,7 +55,6 @@ class TopologyInfo:
 
         _topo_add_routers(self.topo, self.routers, address_type)
         _topo_add_control_services(self.topo, self.services, address_type)
-        self.topo[KEY_DI] = {}
 
 
 def _fetch_routers(as_):
@@ -76,7 +69,7 @@ def _fetch_routers(as_):
 
 def _fetch_services(as_):
     services = []
-    for stype, _ in [x for x in Service.SERVICE_TYPES if x[0] not in Service.EXTRA_SERVICE_TYPES]:
+    for stype, _ in Service.SERVICE_TYPES:
         for id, service in enumerate(as_.services.filter(type=stype).order_by('pk'), start=1):
             service.instance_id = id
             service.instance_name = "%s%s-%s" % (stype.lower(), as_.isd_as_path_str(), id)
@@ -158,7 +151,7 @@ def _topo_add_interface(router_entry, interface):
 
 
 def _topo_add_control_services(topo_dict, services, as_address_type):
-    control_services = (s for s in services if s.type in TYPES_TO_KEYS)  # ignore other services
+    control_services = (s for s in services if s.type in Service.CONTROL_SERVICE_TYPES)
     for service in control_services:
         service_type_entry = topo_dict.setdefault(TYPES_TO_KEYS[service.type], {})
         addrs = {
