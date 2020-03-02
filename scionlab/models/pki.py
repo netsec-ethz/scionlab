@@ -336,7 +336,7 @@ class Certificate(models.Model):
         return self.filename()
 
     def filename(self):
-        return "ISD%i-AS%s-V%i.crt" % (self.AS.isd.isd_id, self.AS.as_id, self.version)
+        return "ISD%i-AS%s-V%i.crt" % (self.AS.isd.isd_id, self.AS.as_path_str(), self.version)
 
     @staticmethod
     def next_version(as_, type):
