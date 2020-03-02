@@ -171,20 +171,26 @@ def _build_payload(isd,
 
 def _build_signed_trc(payload, votes, proof_of_possession):
     # one signature for each vote or proof of possession.
-    signatures = [(as_id, usage, "vote", key)
+    signatures = [(as_id, "vote", usage, key)
                   for as_id, keys in votes.items()
                   for usage, key in keys.items()]
-    signatures += [(as_id, usage, "proof_of_possession", key)
+    signatures += [(as_id, "proof_of_possession", usage, key)
                    for as_id, keys in proof_of_possession.items()
                    for usage, key in keys.items()]
 
     payload_enc = jws.encode(payload)
     return {
         "payload": payload_enc,
-        "signatures": [jws.signature(payload_enc,
-                                     jws.encode(_build_protected_hdr(as_id, type, usage, key)),
-                                     key.priv_key)
-                       for as_id, usage, type, key in signatures]
+        "signatures": [_signature_entry(payload_enc, as_id, type, usage, key)
+                       for as_id, type, usage, key in signatures]
+    }
+
+
+def _signature_entry(payload_enc, as_id, type, key_usage, key):
+    protected_enc = jws.encode(_build_protected_hdr(as_id, type, key_usage, key))
+    return {
+        "protected": protected_enc,
+        "signature": jws.signature(payload_enc, protected_enc, key.priv_key)
     }
 
 
@@ -200,7 +206,7 @@ def _build_protected_hdr(as_id, type, key_usage, key):
 
 
 def _decode_primary_ases(trc):
-    payload = decode_payload(trc)
+    payload = jws.decode_payload(trc)
 
     def _key_info(key_entry):
         return Key(
@@ -216,14 +222,6 @@ def _decode_primary_ases(trc):
 
     return {as_id: _core_keys(as_entry)
             for as_id, as_entry in payload['primary_ases'].items()}
-
-
-def decode_payload(trc):
-    """
-    Extract the base64-encoded payload of a TRC.
-    Does not verify signatures, nor the payload.
-    """
-    return jws.decode(trc['payload'])
 
 
 def verify(trc,

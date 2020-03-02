@@ -32,7 +32,8 @@ def generate_as_certificate(subject, version, not_before, not_after,
 
     payload = _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
                                      signing_key, issuer, issuer_cert)
-    return _build_signed_as_cert(payload, issuer_key)
+    leaf_cert = _build_signed_as_cert(payload, issuer_key)
+    return [issuer_cert.certificate, leaf_cert]
 
 
 def _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key):

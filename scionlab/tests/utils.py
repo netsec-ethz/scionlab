@@ -25,10 +25,10 @@ import logging
 from collections import namedtuple, Counter, OrderedDict
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
-from scionlab.models.pki import Key
+from scionlab.models.pki import Key, Certificate, TRC
 from scionlab.models.user_as import UserAS
 
-from scionlab.scion import keys
+from scionlab.scion import keys, jws
 
 
 def check_topology(testcase):
@@ -55,14 +55,10 @@ def check_as(testcase, as_):
 
     check_as_services(testcase, as_)
     check_as_keys(testcase, as_)
-    check_cert_chain(testcase, as_, as_.isd.trc)
+    check_cert_chains(testcase, as_)
     if as_.is_core:
         check_as_core_keys(testcase, as_)
-        check_core_cert(testcase, as_, as_.isd.trc)
-
-    testcase.assertIsNotNone(as_.certificate_chain)
-    if as_.is_core:
-        testcase.assertIsNotNone(as_.core_certificate)
+        check_issuer_certs(testcase, as_)
 
     for host in as_.hosts.iterator():
         check_host_ports(testcase, host)
@@ -362,24 +358,77 @@ def check_noncore_as_certs(testcase, isd):
             check_cert_chain(testcase, as_, isd.trc)
 
 
-def check_core_cert(testcase, as_, trc):
+def check_issuer_certs(testcase, as_):
+    """
+    Check that the AS has an AS certificate (-chain) and that all existing certificate chains
+    can be verified with the issuer certificate.
+    """
+    issuer_certs = as_.certificates.filter(type=Certificate.ISSUER).order_by('version')
+    testcase.assertGreaterEqual(len(issuer_certs), 1)
+    for i, issuer_cert in enumerate(issuer_certs):
+        testcase.assertEqual(issuer_cert.version, i+1)
+        check_issuer_cert(testcase, issuer_cert)
+
+
+def check_issuer_cert(testcase, issuer_cert):
     """
     Check that the AS's core certificate can be verified with the TRC.
     """
-    testcase.assertIsNotNone(as_.core_certificate)
-    cert = Certificate(as_.core_certificate)
-    isd_as = as_.isd_as_str()
-    cert.verify(isd_as, TRC(trc).core_ases[isd_as]['OnlineKey'])
+    testcase.assertIsNotNone(issuer_cert)
+
+    cert = issuer_cert.certificate
+    cert_pld = jws.decode_payload(cert)
+    subject_ia = cert_pld["subject"]
+    subject_as = cert_pld["subject"].split('-')[1]
+    trc_version = cert_pld["issuer"]["trc_version"]
+
+    trc = TRC.objects.get(isd=issuer_cert.AS.isd, version=trc_version)
+    trc_pld = jws.decode_payload(trc.trc)
+    issuing_grant_pub_key = trc_pld["primary_ases"][subject_as]["keys"]["issuing_grant"]["key"]
+    sig_valid = jws.verify(cert["payload"], cert["protected"], cert["signature"],
+                           issuing_grant_pub_key)
+
+    testcase.assertTrue(sig_valid)
 
 
-def check_cert_chain(testcase, as_, trc):
+def check_cert_chains(testcase, as_):
     """
-    Check that the AS's certificate chain can be verified with the TRC.
+    Check that the AS has an AS certificate (-chain) and that all existing certificate chains
+    can be verified with the issuer certificate.
     """
-    testcase.assertIsNotNone(as_.certificate_chain)
-    json_cert_chain = json.dumps(as_.certificate_chain)
-    cert_chain = CertificateChain.from_raw(json_cert_chain)
-    cert_chain.verify(as_.isd_as_str(), TRC(trc))
+    cert_chains = as_.certificates.filter(type=Certificate.CHAIN).order_by('version')
+    testcase.assertGreaterEqual(len(cert_chains), 1)
+    for i, cert_chain in enumerate(cert_chains):
+        testcase.assertEqual(cert_chain.version, i+1)
+        check_cert_chain(testcase, cert_chain)
+
+
+def check_cert_chain(testcase, cert_chain):
+    """
+    Check that the AS's certificate chain can be verified with the issuer certificate.
+    """
+    testcase.assertIsNotNone(cert_chain)
+
+    leaf = cert_chain.certificate[1]
+    leaf_pld = jws.decode_payload(leaf)
+    issuer = leaf_pld["issuer"]
+    issuer_ia = issuer["isd_as"]
+    issuer_as = issuer_ia.split('-')[1]
+    issuer_ver = issuer["certificate_version"]
+
+    # Check that the issuer certificate in the chain is identical to the issuer cert in the DB:
+    issuer_cert = Certificate.objects.get(type=Certificate.ISSUER,
+                                          AS__as_id=issuer_as,
+                                          version=issuer_ver)
+    testcase.assertEqual(issuer_cert.certificate, cert_chain.certificate[0])
+
+    # Verify the signature
+    issuer_pld = jws.decode_payload(issuer_cert.certificate)
+    issuer_pub_key = issuer_pld["keys"]["issuing"]["key"]
+    sig_valid = jws.verify(leaf["payload"], leaf["protected"], leaf["signature"], issuer_pub_key)
+    testcase.assertTrue(sig_valid)
+
+    # Note: not checking issuer cert with TRC, assume that we check that separately.
 
 
 def check_tarball_user_as(testcase, response, user_as):

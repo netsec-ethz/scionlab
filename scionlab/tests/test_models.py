@@ -64,12 +64,15 @@ class InitASTests(TestCase):
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
         utils.check_as_keys(self, as_)
         utils.check_as_core_keys(self, as_)
+        utils.check_issuer_certs(self, as_)
+        utils.check_cert_chains(self, as_)
 
     def test_create_as_with_default_services(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
+        AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
         as_ = AS.objects.create_with_default_services(
             isd=isd,
-            as_id='ff00:1:1',
+            as_id='ff00:1:2',
             public_ip='192.0.2.11'
         )
 
@@ -84,8 +87,6 @@ class InitASTests(TestCase):
                          ['BS', 'CS', 'PS'])
 
         utils.check_as(self, as_)
-
-
 
 
 class UpdateASKeysTests(TestCase):

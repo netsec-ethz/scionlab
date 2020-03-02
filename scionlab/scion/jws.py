@@ -30,12 +30,17 @@ def decode(data_enc: str) -> dict:
     return json.loads(_b64urldec(data_enc).decode())
 
 
+def decode_payload(cert: dict) -> dict:
+    """
+    Extract the base64-encoded JSON payload.
+    Does not verify signatures, nor the payload.
+    """
+    return decode(cert['payload'])
+
+
 def signature(payload_enc, protected_enc, signing_key):
     sigmsg = (protected_enc + '.' + payload_enc).encode()
-    return {
-        "protected": protected_enc,
-        "signature": _b64url(keys.sign(sigmsg, signing_key))
-    }
+    return _b64url(keys.sign(sigmsg, signing_key))
 
 
 def verify(payload_enc, protected_enc, signature, verifying_key):
