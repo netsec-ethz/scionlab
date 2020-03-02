@@ -34,7 +34,7 @@ from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
 )
-from scionlab.util import as_ids
+from scionlab.scion import as_ids
 
 _MAX_LEN_CHOICES_DEFAULT = 16
 _VAGRANT_VM_LOCAL_IP = '10.0.2.15'

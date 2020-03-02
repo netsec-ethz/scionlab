@@ -27,7 +27,7 @@ from django.db.models.signals import pre_delete, post_delete
 
 from scionlab.models.user import User
 from scionlab.models.pki import Key, Certificate, TRC
-from scionlab.util import as_ids
+from scionlab.scion import as_ids
 from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.defines import (
@@ -105,7 +105,6 @@ class ISD(TimestampedModel):
         TRC.objects.create(self)
         for as_ in self.ases.filter(is_core=True):
             self._update_coreas_certificates(as_)
-
 
     @staticmethod
     def _update_as_certificates(as_):
@@ -404,9 +403,6 @@ class AS(TimestampedModel):
         Generate a random MasterASKey.
         """
         return _base64encode(os.urandom(16))
-
-
-
 
 
 class HostManager(models.Manager):

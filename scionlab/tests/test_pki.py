@@ -17,13 +17,12 @@ from datetime import datetime, timedelta
 
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key
-from scionlab.util import as_ids
 from scionlab.defines import (
     DEFAULT_EXPIRATION,
     DEFAULT_TRC_GRACE_PERIOD,
 )
 
-from scionlab.scion import keys, trcs, jws
+from scionlab.scion import as_ids, keys, trcs, jws
 
 from django.test import TestCase
 

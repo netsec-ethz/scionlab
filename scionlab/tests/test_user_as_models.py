@@ -33,12 +33,12 @@ from scionlab.defines import (
     DEFAULT_HOST_INTERNAL_IP,
     DEFAULT_PUBLIC_PORT,
 )
-
+from scionlab.scion import as_ids as as_ids_utils
 from scionlab.fixtures import testtopo
 from scionlab.fixtures.testtopo import ASdef
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
-from scionlab.util import as_ids as as_ids_utils, flatten
+from scionlab.util import flatten
 
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 testtopo_vpns_as_ids = [vpn.as_id for vpn in testtopo.vpns]
