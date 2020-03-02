@@ -151,7 +151,8 @@ class _ConfigGenerator:
             relevant_trcs = self.AS.isd.trcs.all()
         else:
             # only active TRCs required; simplify, include all non-expired.
-            relevant_trcs = self.AS.isd.trcs.filter(not_after__lt=datetime.utcnow())
+            # XXX(matzf): this will lead to issues for tests as testdata has fixed date...
+            relevant_trcs = self.AS.isd.trcs.filter(not_after__gt=datetime.utcnow())
         for trc in relevant_trcs:
             self.archive.write_json((elem_dir, CERT_DIR, trc.filename()), trc.trc)
 
