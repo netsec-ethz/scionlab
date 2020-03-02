@@ -293,7 +293,7 @@ class AS(TimestampedModel):
         Generate new signing and encryption key pairs. Update the certificate.
         Bumps the configuration version on all affected hosts.
         """
-        self._gen_keys()
+        self._gen_keys(valid_not_before=datetime.now())
         self.generate_certificate_chain()
         self.hosts.bump_config()
         self.save()

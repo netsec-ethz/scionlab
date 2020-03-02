@@ -23,7 +23,7 @@ from scionlab.defines import (
     DEFAULT_TRC_GRACE_PERIOD,
 )
 
-from scionlab.scion import keys, trcs
+from scionlab.scion import keys, trcs, jws
 
 from django.test import TestCase
 
@@ -48,7 +48,6 @@ class GenerateKeyTests(TestCase):
         self.assertEqual(k.version, 1)
         self.assertEqual(k.usage, Key.DECRYPT)
         self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION)
-        # XXX check encrypt/decrypt (c.f. test utils for "old" keys)
 
     def test_generate_sign_key(self):
         k = Key.objects.create(AS=self.AS, usage=Key.SIGNING)
@@ -57,7 +56,6 @@ class GenerateKeyTests(TestCase):
         self.assertEqual(k.version, 1)
         self.assertEqual(k.usage, Key.SIGNING)
         self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION)
-        # XXX check sign/verify (c.f. test utils for "old" keys)
 
 
 _ASID_1 = 'ff00:0:1'
@@ -108,7 +106,7 @@ class GenerateTRCTests(TestCase):
         # decode prev payload to find next version number
         # we dont need to do this in production, but here it serves as a little sanity check for
         # the payload.
-        prev = trcs.decode_payload(prev_trc)
+        prev = jws.decode_payload(prev_trc)
         prev_version = prev["trc_version"]
         self.assertGreaterEqual(1, prev_version)
         version = prev_version + 1
