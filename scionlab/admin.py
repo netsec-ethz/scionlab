@@ -148,21 +148,6 @@ class ISDAdmin(admin.ModelAdmin):
     list_editable = ('label',)
     ordering = ['isd_id']
 
-    def get_fieldsets(self, request, obj=None):
-        """
-        Don't show trc fields during ISD creation
-        """
-        base_fields = (None, {
-            'fields': ('isd_id', 'label',)
-        })
-        trc_fields = ('TRC', {
-            'classes': ('collapse',),
-            'fields': ('trc', 'trc_priv_keys')
-        })
-        if not obj:
-            return (base_fields,)
-        return (base_fields, trc_fields)
-
     def get_readonly_fields(self, request, obj):
         """
         Don't allow editing the ISD-id after creation.
@@ -452,14 +437,7 @@ class ASAdmin(admin.ModelAdmin):
             'Keys & Certificates', {
                 'classes': ('collapse',),
                 'fields': (
-                    ('sig_pub_key', 'sig_priv_key'),
-                    ('enc_pub_key', 'enc_priv_key'),
                     'master_as_key',
-                    ('core_sig_pub_key', 'core_sig_priv_key'),
-                    ('core_online_pub_key', 'core_online_priv_key'),
-                    ('core_offline_pub_key', 'core_offline_priv_key'),
-                    'certificate_chain',
-                    'core_certificate',
                 )
             }
         )
