@@ -248,8 +248,8 @@ def check_as_keys(testcase, as_):
     """
     testcase.assertIsNotNone(as_)
 
-    #check_sig_key(testcase, as_.sig_pub_key, as_.sig_priv_key)
-    #check_enc_keypair(testcase, as_.enc_pub_key, as_.enc_priv_key)
+    _check_keys_for_usage(testcase, as_, Key.SIGNING)
+    _check_keys_for_usage(testcase, as_, Key.DECRYPT)
 
     testcase.assertIsNotNone(as_.master_as_key)
     _sanity_check_base64(testcase, as_.master_as_key)
@@ -262,44 +262,22 @@ def check_as_core_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    #check_sig_key(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
-    #check_sig_key(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
-    #check_sig_key(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
+    _check_keys_for_usage(testcase, as_, Key.CERT_SIGNING)
+    _check_keys_for_usage(testcase, as_, Key.TRC_ISSUING_GRANT)
+    _check_keys_for_usage(testcase, as_, Key.TRC_VOTING_ONLINE)
+    _check_keys_for_usage(testcase, as_, Key.TRC_VOTING_OFFLINE)
+
 
 def _check_keys_for_usage(testcase, as_, key_usage):
-    keys = as_.keys.filter(usage=key_usage).order_by('version')
-    testcase.assertGreaterEqual(len(keys), 1)
-    for i, key in enumerate(keys):
+    """
+    Helper: check that key exists and versions are numbered 1...N
+    """
+    ks = as_.keys.filter(usage=key_usage).order_by('version')
+    testcase.assertGreaterEqual(len(ks), 1)
+    for i, key in enumerate(ks):
         testcase.assertEqual(key.version, i+1)
-
-
-def check_sig_key(testcase, sig_priv_key):
-    """
-    Check that this signing keypair was correctly created
-    """
-    testcase.assertIsNotNone(sig_priv_key)
-    _sanity_check_base64(testcase, sig_priv_key)
-
-    m = "message".encode()
-
-    # Sign a message and verify
-    s = keys.sign(m, sig_priv_key)
-    testcase.assertTrue(keys.verify(m, s, sig_pub_key))
-
-
-def check_enc_keypair(testcase, enc_priv_key_b64):
-    """
-    Check that this encryption keypair was correctly created
-    """
-    testcase.assertIsNotNone(enc_priv_key_b64)
-    _sanity_check_base64(testcase, enc_priv_key_b64)
-
-    m = "message".encode()
-
-    # Encode and decode a message for myself
-    c = keys.encrypt(m, enc_priv_key, enc_pub_key)
-    d = keys.decrypt(c, enc_priv_key, enc_pub_key)
-    testcase.assertEqual(m, d)
+        testcase.assertGreater(len(key.key), 0)
+        testcase.assertIsNotNone(keys.Base64StringEncoder.decode(key.key))
 
 
 def _sanity_check_base64(testcase, s):

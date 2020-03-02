@@ -57,12 +57,11 @@ class InitASTests(TestCase):
     def test_create_as_with_keys(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
-        check_as_keys(self, as_)
+        utils.check_as_keys(self, as_)
 
     def test_create_coreas_with_keys(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
-        utils.check_as(self, as_)
         utils.check_as_keys(self, as_)
         utils.check_as_core_keys(self, as_)
 
@@ -83,6 +82,10 @@ class InitASTests(TestCase):
         self.assertTrue(hasattr(host, 'services'))
         self.assertEqual(sorted(s.type for s in host.services.iterator()),
                          ['BS', 'CS', 'PS'])
+
+        utils.check_as(self, as_)
+
+
 
 
 class UpdateASKeysTests(TestCase):

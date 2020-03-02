@@ -246,9 +246,6 @@ class AS(TimestampedModel):
 
     is_core = models.BooleanField(default=False)
 
-    certificate_chain = jsonfield.JSONField(null=True, blank=True)
-    core_certificate = jsonfield.JSONField(null=True, blank=True)
-
     objects = ASManager()
 
     class Meta:
