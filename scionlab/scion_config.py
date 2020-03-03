@@ -40,6 +40,7 @@ from scionlab.defines import (
 
 CERT_DIR = "certs"
 KEY_DIR = "keys"
+TRC_DIR = "trcs"
 MASTER_KEY_0 = "master0.key"
 MASTER_KEY_1 = "master1.key"
 
@@ -114,6 +115,10 @@ class _ConfigGenerator:
         self._write_supervisord_files()
 
     def _gen_configs(self, cb):
+        self.archive.write_toml((GEN_PATH, 'dispatcher', 'disp.toml'), cb.build_disp_conf())
+
+        self._write_trcs(os.path.join(_isd_dir(self.AS.isd), TRC_DIR))
+
         for router in self._routers():
             self._write_elem_dir(router.instance_name, 'br.toml', cb.build_br_conf(router))
 
@@ -123,7 +128,6 @@ class _ConfigGenerator:
 
         self._write_elem_dir('endhost', 'sd.toml', cb.build_sciond_conf(self.host),
                              with_keys=False)
-        self.archive.write_toml((GEN_PATH, 'dispatcher', 'disp.toml'), cb.build_disp_conf())
 
     def _write_elem_dir(self, elem_id, toml_filename, conf, with_keys=True):
         """
@@ -140,12 +144,12 @@ class _ConfigGenerator:
         self.archive.write_toml((elem_dir, toml_filename), conf)
 
         self._write_topo(elem_dir)
-        self._write_trcs(elem_dir)
-        self._write_certs(elem_dir)
+        self._write_trcs(os.path.join(elem_dir, CERT_DIR))
+        self._write_certs(os.path.join(elem_dir, CERT_DIR))
         if with_keys:
-            self._write_keys(elem_dir)
+            self._write_keys(os.path.join(elem_dir, KEY_DIR))
 
-    def _write_trcs(self, elem_dir):
+    def _write_trcs(self, dir):
         if self.AS.is_core:
             # keep _all_ TRCs
             relevant_trcs = self.AS.isd.trcs.all()
@@ -154,21 +158,21 @@ class _ConfigGenerator:
             # XXX(matzf): this will lead to issues for tests as testdata has fixed date...
             relevant_trcs = self.AS.isd.trcs.filter(not_after__gt=datetime.utcnow())
         for trc in relevant_trcs:
-            self.archive.write_json((elem_dir, CERT_DIR, trc.filename()), trc.trc)
+            self.archive.write_json((dir, trc.filename()), trc.trc)
 
-    def _write_certs(self, elem_dir):
+    def _write_certs(self, dir):
         for cert in self.AS.certificates.all():
-            self.archive.write_json((elem_dir, CERT_DIR, cert.filename()), cert.certificate)
+            self.archive.write_json((dir, cert.filename()), cert.certificate)
 
-    def _write_keys(self, elem_dir):
-        self.archive.write_text((elem_dir, KEY_DIR, MASTER_KEY_0), self.AS.master_as_key)
-        self.archive.write_text((elem_dir, KEY_DIR, MASTER_KEY_1), self.AS.master_as_key)
+    def _write_keys(self, dir):
+        self.archive.write_text((dir, MASTER_KEY_0), self.AS.master_as_key)
+        self.archive.write_text((dir, MASTER_KEY_1), self.AS.master_as_key)
 
         for key in self.AS.keys.all():
-            self.archive.write_json((elem_dir, KEY_DIR, key.filename()), key.format_keyfile())
+            self.archive.write_json((dir, key.filename()), key.format_keyfile())
 
-    def _write_topo(self, elem_dir):
-        self.archive.write_json((elem_dir, 'topology.json'), self.topo_info.topo)
+    def _write_topo(self, dir):
+        self.archive.write_json((dir, 'topology.json'), self.topo_info.topo)
 
     def _write_systemd_services_file(self):
         ia = self.AS.isd_as_path_str()
@@ -380,22 +384,12 @@ def _build_supervisord_conf(program_id, cmd, envs, priority=100, startsecs=5):
     return config
 
 
-def _cert_chain_filename(as_, version):
-    """
-    Return the certificate chain file path for a given ISD.
-    """
-    return 'ISD%s-AS%s-V%s.crt' % (as_.isd.isd_id, as_.as_path_str(), version)
-
-
-def _trc_filename(isd, version):
-    """
-    Return the TRC file path for a given ISD.
-    """
-    return 'ISD%s-V%s.trc' % (isd.isd_id, version)
+def _isd_dir(isd):
+    return os.path.join(GEN_PATH, "ISD%s" % isd.isd_id)
 
 
 def _isd_as_dir(as_):
-    return os.path.join(GEN_PATH, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
+    return os.path.join(_isd_dir(as_.isd), "AS%s" % as_.as_path_str())
 
 
 def _join_host_port(host, port):

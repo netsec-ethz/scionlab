@@ -530,6 +530,36 @@ gen/ISD20/ASffaa_1_4/endhost/topology.json: |-
     "MTU": 1472,
     "Overlay": "UDP/IPv4"
   }
+gen/ISD20/trcs/ISD20-V1.trc: |-
+  {
+    "payload": "eyJpc2QiOiAyMCwgInRyY192ZXJzaW9uIjogMSwgImJhc2VfdmVyc2lvbiI6IDEsICJkZXNjcmlwdGlvbiI6ICJTQ0lPTkxhYiBJU0QgMjAgKEtvcmVhKSIsICJ2b3RpbmdfcXVvcnVtIjogMiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImdyYWNlX3BlcmlvZCI6IDAsICJ0cnVzdF9yZXNldF9hbGxvd2VkIjogZmFsc2UsICJ2YWxpZGl0eSI6IHsibm90X2JlZm9yZSI6IDE1NzAwMzI0NjEsICJub3RfYWZ0ZXIiOiAxNjAxNTY4NDYxfSwgInByaW1hcnlfYXNlcyI6IHsiZmZhYTowOjE0MDEiOiB7ImF0dHJpYnV0ZXMiOiBbImF1dGhvcml0YXRpdmUiLCAiY29yZSIsICJpc3N1aW5nIiwgInZvdGluZyJdLCAia2V5cyI6IHsiaXNzdWluZ19ncmFudCI6IHsia2V5X3ZlcnNpb24iOiAxLCAiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInpFYmtGeTIvSVk4cTE1TTVzOVArSEdLRnc3WFNsVThyTFg5M2hLWExuaHc9In0sICJ2b3Rpbmdfb25saW5lIjogeyJrZXlfdmVyc2lvbiI6IDEsICJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiVjBkUjRKZFBNMjByRTM3cHdXOFAzRWlzTHlpU0tKYnRoVGxFZnkzZXdlYz0ifSwgInZvdGluZ19vZmZsaW5lIjogeyJrZXlfdmVyc2lvbiI6IDEsICJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0ifX19LCAiZmZhYTowOjE0MDIiOiB7ImF0dHJpYnV0ZXMiOiBbImF1dGhvcml0YXRpdmUiLCAiY29yZSIsICJpc3N1aW5nIiwgInZvdGluZyJdLCAia2V5cyI6IHsiaXNzdWluZ19ncmFudCI6IHsia2V5X3ZlcnNpb24iOiAxLCAiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInhBQnUrMytTS0NLV0pQSFJJWmFEOE96MEczMFF1RkZWdlVwTkdWSkI1cHM9In0sICJ2b3Rpbmdfb25saW5lIjogeyJrZXlfdmVyc2lvbiI6IDEsICJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiYkFDczV6N0hzYUtOUXRsbzBuTzlmZTY4YlR4dFIxb1BNVHZQTHIwZElhaz0ifSwgInZvdGluZ19vZmZsaW5lIjogeyJrZXlfdmVyc2lvbiI6IDEsICJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0ifX19fSwgInZvdGVzIjoge30sICJwcm9vZl9vZl9wb3NzZXNzaW9uIjogeyJmZmFhOjA6MTQwMSI6IFsiaXNzdWluZ19ncmFudCIsICJ2b3Rpbmdfb25saW5lIiwgInZvdGluZ19vZmZsaW5lIl0sICJmZmFhOjA6MTQwMiI6IFsiaXNzdWluZ19ncmFudCIsICJ2b3Rpbmdfb25saW5lIiwgInZvdGluZ19vZmZsaW5lIl19fQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24iLCAia2V5X3R5cGUiOiAiaXNzdWluZ19ncmFudCIsICJrZXlfdmVyc2lvbiI6IDEsICJhcyI6ICJmZmFhOjA6MTQwMSJ9",
+        "signature": "aB3xcvNpS6TdJ3k_yMG692df1pO8jDBapDCrOGcZIoNtDB21YN-kAH_zeSFzz66XkyFFxNk2uKYt8VjdTd61DQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24iLCAia2V5X3R5cGUiOiAidm90aW5nX29ubGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJhcyI6ICJmZmFhOjA6MTQwMSJ9",
+        "signature": "ewyr84reR4RAzIOb0C6TxANNfJz6u6r_8Ozuy-MDW2mSrh73Idhq4AJ08aJV33raVSFaOtKT2QU6w7eIJrVUBg"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24iLCAia2V5X3R5cGUiOiAidm90aW5nX29mZmxpbmUiLCAia2V5X3ZlcnNpb24iOiAxLCAiYXMiOiAiZmZhYTowOjE0MDEifQ",
+        "signature": "LlDIRtuaZHafulj4o_fgqKz-A4Q1LKfBqGJ3Yq81szMoa6CQCNI9kqid6vLiE4SwxCraQm__jIsPeoH9RlzWBw"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24iLCAia2V5X3R5cGUiOiAiaXNzdWluZ19ncmFudCIsICJrZXlfdmVyc2lvbiI6IDEsICJhcyI6ICJmZmFhOjA6MTQwMiJ9",
+        "signature": "-pDYmXZputmVZrSnUTISD901J4TJeNVeSMJxJqW-_rjoxNh6d-_gkRsXmb_ssziUuituC34tpMD6opI_i27lCw"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24iLCAia2V5X3R5cGUiOiAidm90aW5nX29ubGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJhcyI6ICJmZmFhOjA6MTQwMiJ9",
+        "signature": "AmUoSdx4qyF9BC7Grul1a1uoVrrUMJDOVwP3FRRlFH1tvyz4TG5M3s9fY1S1vlp9ywIBd2N4AFzT32h8hMATCA"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24iLCAia2V5X3R5cGUiOiAidm90aW5nX29mZmxpbmUiLCAia2V5X3ZlcnNpb24iOiAxLCAiYXMiOiAiZmZhYTowOjE0MDIifQ",
+        "signature": "DXtZHBdt7x59MYm2syNYyxiPOw6my5uft0vKuhl1j3M868_n5ZXLB19H-T25Wx7r2sLsmAr-Bzadwgzbx0COCA"
+      }
+    ]
+  }
 gen/dispatcher/disp.toml: |
   [dispatcher]
   ID = "dispatcher"
