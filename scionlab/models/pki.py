@@ -105,6 +105,10 @@ class Key(models.Model):
 
     def format_keyfile(self) -> str:
         """
+        Create the PEM file content for this key.
+        """
+
+        return """
         -----BEGIN PRIVATE KEY-----
         algorithm: {algo}
         ia: {ia}
