@@ -22,6 +22,13 @@ TYPES_TO_KEYS = {
     "CS": KEY_CS,
 }
 
+CORE_ATTRIBUTES = [
+    "authoritative",
+    "core",
+    "issuing",
+    "voting"
+]
+
 
 class TopologyInfo:
     """
@@ -50,7 +57,7 @@ class TopologyInfo:
         self.topo = {}
         self.topo["ISD_AS"] = self.AS.isd_as_str()
         self.topo["MTU"] = self.AS.mtu
-        self.topo["Core"] = self.AS.is_core
+        self.topo["Attributes"] = CORE_ATTRIBUTES if self.AS.is_core else []
         self.topo["Overlay"] = overlay_type
 
         _topo_add_routers(self.topo, self.routers, address_type)
