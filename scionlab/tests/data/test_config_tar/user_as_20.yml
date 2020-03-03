@@ -47,10 +47,28 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD17-V1.trc: |-
       }
     ]
   }
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/as-decrypt-v1.key: |-
-  null
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/as-signing-v1.key: |-
-  null
+gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 17-ffaa:1:5
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-decrypt
+  version: 1
+
+  EfYRemSQ82iOF0N7OtAcSyRczxgjqN0O0qojlo8yAQg=
+  -----END PRIVATE KEY-----
+gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 17-ffaa:1:5
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-signing
+  version: 1
+
+  3GeOs8GafbawG+55j1jfx1ffGK8BPTp/1vtPRjkCflo=
+  -----END PRIVATE KEY-----
 gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/master0.key: |-
   pWR5Qy46il0oTdqb1OokdA==
 gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/master1.key: |-
@@ -201,10 +219,28 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
   [ps.pathDB]
   Backend = "sqlite"
   Connection = "gen-cache/cs17-ffaa_1_5-1.path.db"
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-decrypt-v1.key: |-
-  null
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-signing-v1.key: |-
-  null
+gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 17-ffaa:1:5
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-decrypt
+  version: 1
+
+  EfYRemSQ82iOF0N7OtAcSyRczxgjqN0O0qojlo8yAQg=
+  -----END PRIVATE KEY-----
+gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 17-ffaa:1:5
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-signing
+  version: 1
+
+  3GeOs8GafbawG+55j1jfx1ffGK8BPTp/1vtPRjkCflo=
+  -----END PRIVATE KEY-----
 gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/master0.key: |-
   pWR5Qy46il0oTdqb1OokdA==
 gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/master1.key: |-

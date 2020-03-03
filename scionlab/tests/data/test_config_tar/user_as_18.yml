@@ -59,10 +59,28 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/certs/ISD20-V1.trc: |-
       }
     ]
   }
-gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-decrypt-v1.key: |-
-  null
-gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-signing-v1.key: |-
-  null
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 20-ffaa:1:3
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-decrypt
+  version: 1
+
+  wA0y4PVBLbmVU0thogpKjW4IrmlEYLo1WCIhHJxbKgc=
+  -----END PRIVATE KEY-----
+gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 20-ffaa:1:3
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-signing
+  version: 1
+
+  bpNldhOktbWuE8dsi7mNIysnNSo6B4Yi0X5b5uGfvEk=
+  -----END PRIVATE KEY-----
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/master0.key: |-
   /t1Iw4Ac7l5YJKBbxHmhhA==
 gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/keys/master1.key: |-
@@ -213,10 +231,28 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/cs.toml: |
   [ps.pathDB]
   Backend = "sqlite"
   Connection = "/var/lib/scion/cs20-ffaa_1_3-1.path.db"
-gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-decrypt-v1.key: |-
-  null
-gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-signing-v1.key: |-
-  null
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 20-ffaa:1:3
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-decrypt
+  version: 1
+
+  wA0y4PVBLbmVU0thogpKjW4IrmlEYLo1WCIhHJxbKgc=
+  -----END PRIVATE KEY-----
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 20-ffaa:1:3
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-signing
+  version: 1
+
+  bpNldhOktbWuE8dsi7mNIysnNSo6B4Yi0X5b5uGfvEk=
+  -----END PRIVATE KEY-----
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/master0.key: |-
   /t1Iw4Ac7l5YJKBbxHmhhA==
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/keys/master1.key: |-

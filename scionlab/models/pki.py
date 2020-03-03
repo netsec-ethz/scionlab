@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
 from datetime import datetime
 import jsonfield
 from typing import List
@@ -107,19 +108,18 @@ class Key(models.Model):
         """
         Create the PEM file content for this key.
         """
+        return textwrap.dedent("""\
+            -----BEGIN PRIVATE KEY-----
+            algorithm: {algo}
+            ia: {ia}
+            not_after: {not_before}
+            not_before: {not_after}
+            usage: {usage}
+            version: {version}
 
-        return """
-        -----BEGIN PRIVATE KEY-----
-        algorithm: {algo}
-        ia: {ia}
-        not_after: {not_before}
-        not_before: {not_after}
-        usage: {usage}
-        version: {version}
-
-        {key}
-        -----END PRIVATE KEY-----
-        """.format(
+            {key}
+            -----END PRIVATE KEY-----
+        """).format(
             algo=self.algorithm(),
             ia=self.AS.isd_as_str(),
             not_after=self.not_after,

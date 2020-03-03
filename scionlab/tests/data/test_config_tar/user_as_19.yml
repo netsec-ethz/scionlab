@@ -182,10 +182,28 @@ gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/certs/ISD20-V1.trc: |-
       }
     ]
   }
-gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/as-decrypt-v1.key: |-
-  null
-gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/as-signing-v1.key: |-
-  null
+gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 20-ffaa:1:4
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-decrypt
+  version: 1
+
+  rvknJQGVmKK0++/hhBuyx6WyNJikmvuDHESwu50rYBU=
+  -----END PRIVATE KEY-----
+gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 20-ffaa:1:4
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-signing
+  version: 1
+
+  ywkCHeRc0bh7URutc16VskCqfM/GOuwoj43T5RPH24I=
+  -----END PRIVATE KEY-----
 gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/master0.key: |-
   4er+YFhj8niCTvZo/mjQGQ==
 gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/master1.key: |-
@@ -336,10 +354,28 @@ gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/cs.toml: |
   [ps.pathDB]
   Backend = "sqlite"
   Connection = "/var/lib/scion/cs20-ffaa_1_4-1.path.db"
-gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/as-decrypt-v1.key: |-
-  null
-gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/as-signing-v1.key: |-
-  null
+gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 20-ffaa:1:4
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-decrypt
+  version: 1
+
+  rvknJQGVmKK0++/hhBuyx6WyNJikmvuDHESwu50rYBU=
+  -----END PRIVATE KEY-----
+gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 20-ffaa:1:4
+  not_after: 2019-10-02 11:07:41
+  not_before: 2020-10-01 11:07:41
+  usage: as-signing
+  version: 1
+
+  ywkCHeRc0bh7URutc16VskCqfM/GOuwoj43T5RPH24I=
+  -----END PRIVATE KEY-----
 gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/master0.key: |-
   4er+YFhj8niCTvZo/mjQGQ==
 gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/master1.key: |-

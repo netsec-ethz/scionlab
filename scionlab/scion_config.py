@@ -169,7 +169,7 @@ class _ConfigGenerator:
         self.archive.write_text((dir, MASTER_KEY_1), self.AS.master_as_key)
 
         for key in self.AS.keys.all():
-            self.archive.write_json((dir, key.filename()), key.format_keyfile())
+            self.archive.write_text((dir, key.filename()), key.format_keyfile())
 
     def _write_topo(self, dir):
         self.archive.write_json((dir, 'topology.json'), self.topo_info.topo)
