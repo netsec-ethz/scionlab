@@ -14,7 +14,6 @@
 
 import base64
 import io
-import json
 import os
 import pathlib
 import re
@@ -284,8 +283,7 @@ def _sanity_check_base64(testcase, s):
     testcase.assertTrue(base64_pattern.match(s))
 
 
-def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_version=None,
-                        prev_trc=None):
+def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_version=None):
     """
     Check the ISD's TRC and return it as a TRC object.
     Check that the current TRC can be verified with `prev_trc`.
@@ -294,91 +292,90 @@ def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_vers
     :param int isd_id:
     :param [str] expected_core_ases: ISD-AS strings for all core ases
     :param int expected_version: optional, expected version for current TRC.
-    :param TRC prev_trc: optional, previous TRC to verify current TRC.
-    :returns: TRC
-    :rtype: TRC
     """
     isd = ISD.objects.get(isd_id=isd_id)
-    trc = check_trc(testcase, isd, expected_core_ases, expected_version, prev_trc)
-    check_core_as_certs(testcase, isd)
-    check_noncore_as_certs(testcase, isd)
-    return trc
+    check_trc(testcase, isd, expected_core_ases, expected_version)
+    for as_ in isd.ases.iterator():
+        check_cert_chain(testcase, as_.certificates.latest(Certificate.CHAIN))
+        if as_.is_core:
+            check_issuer_cert(testcase, as_.certificates.latest(Certificate.ISSUER),
+                              expected_trc_version=expected_version)
 
 
-def check_trc(testcase, isd, expected_core_ases=None, expected_version=None, prev_trc=None):
+def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     """
-    Check the ISD's TRC and return it as a TRC object.
+    Check the ISD's latest TRC
     :param ISD isd:
     :param [str] expected_core_ases: optional, ISD-AS strings for all core ases
     :param int expected_version: optional, expected version for current TRC.
-    :param TRC prev_trc: optional, previous TRC to verify current TRC.
-    :returns: TRC
-    :rtype: TRC
     """
     if expected_core_ases is None:
-        expected_core_ases = set(as_.isd_as_str() for as_ in isd.ases.filter(is_core=True))
-    testcase.assertEqual(set(isd.trc['CoreASes'].keys()), set(expected_core_ases))
-    testcase.assertEqual(set(isd.trc_priv_keys.keys()), set(expected_core_ases))
+        expected_core_ases = set(as_.as_id for as_ in isd.ases.filter(is_core=True))
 
-    for isd_as in isd.trc['CoreASes'].keys():
-        check_sig_key(testcase, isd.trc['CoreASes'][isd_as]['OnlineKey'],
-                      isd.trc_priv_keys[isd_as])
-
-    json_trc = json.dumps(isd.trc)  # round trip through json, just to make sure this works
-    trc = TRC.from_raw(json_trc)
-    trc.check_active()
+    trc = isd.trcs.latest_or_none()
+    if len(expected_core_ases) > 0:
+        testcase.assertIsNotNone(trc)
     if expected_version is not None:
         testcase.assertEqual(trc.version, expected_version)
-    if prev_trc is not None:
-        trc.verify(prev_trc)
-    return trc
+    if trc is None:
+        return
+
+    trc_pld = jws.decode_payload(trc.trc)
+    testcase.assertEqual(trc_pld['trc_version'], trc.version)
+    testcase.assertEqual(set(trc_pld['primary_ases'].keys()), set(expected_core_ases))
+
+    # TODO(matzf):
+    # check that TRC update is valid? but how, without re-implementing the logic?
 
 
 def check_core_as_certs(testcase, isd):
     """
-    Check that all the core AS certificates can be verified with the current TRC.
+    Check all certificates for the core ASes.
     """
-    for as_ in isd.ases.filter(is_core=True).iterator():
-        check_core_cert(testcase, as_, isd.trc)
-        check_cert_chain(testcase, as_, isd.trc)
 
 
 def check_noncore_as_certs(testcase, isd):
     """
-    Verify certificate if created for latest version. Otherwise, we don't have latest cert
-    and AS is expected to request re-issued certificate from signing core AS.
+    Check all certificates for the non-core ASes.
     """
     for as_ in isd.ases.filter(is_core=False).iterator():
-        cert_trc_version = as_.certificate_chain['0']['TRCVersion']
-        trc_version = isd.trc['Version']
-        testcase.assertTrue(cert_trc_version <= trc_version)
-        if cert_trc_version == trc_version:
-            check_cert_chain(testcase, as_, isd.trc)
+        check_cert_chains(testcase, as_)
 
 
 def check_issuer_certs(testcase, as_):
     """
-    Check that the AS has an AS certificate (-chain) and that all existing certificate chains
-    can be verified with the issuer certificate.
+    Check that the AS's issuer certificates can be verified with a TRC.
+    Check that the latest issuer certificate was issued by the latest TRC version.
     """
     issuer_certs = as_.certificates.filter(type=Certificate.ISSUER).order_by('version')
     testcase.assertGreaterEqual(len(issuer_certs), 1)
     for i, issuer_cert in enumerate(issuer_certs):
         testcase.assertEqual(issuer_cert.version, i+1)
-        check_issuer_cert(testcase, issuer_cert)
+        if i < len(issuer_certs)-1:
+            check_issuer_cert(testcase, issuer_cert)
+        else:
+            expected_trc_version = as_.isd.trcs.latest().version
+            check_issuer_cert(testcase, issuer_cert, expected_trc_version)
 
 
-def check_issuer_cert(testcase, issuer_cert):
+def check_issuer_cert(testcase, issuer_cert, expected_trc_version=None):
     """
-    Check that the AS's core certificate can be verified with the TRC.
+    Check that the issuer certificate can be verified with a TRC.
+    Check that the certificate is issued by the expected_trc_version, if set.
     """
     testcase.assertIsNotNone(issuer_cert)
 
     cert = issuer_cert.certificate
     cert_pld = jws.decode_payload(cert)
+
+    testcase.assertEqual(cert_pld["version"], issuer_cert.version)
+    testcase.assertEqual(cert_pld["subject"], issuer_cert.AS.isd_as_str())
+
     subject_ia = cert_pld["subject"]
-    subject_as = cert_pld["subject"].split('-')[1]
+    subject_as = subject_ia.split('-')[1]
     trc_version = cert_pld["issuer"]["trc_version"]
+    if expected_trc_version is not None:
+        testcase.assertEqual(trc_version, expected_trc_version)
 
     trc = TRC.objects.get(isd=issuer_cert.AS.isd, version=trc_version)
     trc_pld = jws.decode_payload(trc.trc)
@@ -396,8 +393,10 @@ def check_cert_chains(testcase, as_):
     """
     cert_chains = as_.certificates.filter(type=Certificate.CHAIN).order_by('version')
     testcase.assertGreaterEqual(len(cert_chains), 1)
+    first_version = cert_chains[0].version
+    testcase.assertGreaterEqual(first_version, 1)  # Sequence starts at >1 when AS changed ISD
     for i, cert_chain in enumerate(cert_chains):
-        testcase.assertEqual(cert_chain.version, i+1)
+        testcase.assertEqual(cert_chain.version, first_version + i)
         check_cert_chain(testcase, cert_chain)
 
 
@@ -409,6 +408,10 @@ def check_cert_chain(testcase, cert_chain):
 
     leaf = cert_chain.certificate[1]
     leaf_pld = jws.decode_payload(leaf)
+
+    testcase.assertEqual(leaf_pld["version"], cert_chain.version)
+    testcase.assertEqual(leaf_pld["subject"], cert_chain.AS.isd_as_str())
+
     issuer = leaf_pld["issuer"]
     issuer_ia = issuer["isd_as"]
     issuer_as = issuer_ia.split('-')[1]
@@ -426,7 +429,7 @@ def check_cert_chain(testcase, cert_chain):
     sig_valid = jws.verify(leaf["payload"], leaf["protected"], leaf["signature"], issuer_pub_key)
     testcase.assertTrue(sig_valid)
 
-    # Note: not checking issuer cert with TRC, assume that we check that separately.
+    # Note: not checking issuer cert, assume that we check that separately.
 
 
 def check_tarball_user_as(testcase, response, user_as):

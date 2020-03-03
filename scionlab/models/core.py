@@ -87,12 +87,17 @@ class ISD(TimestampedModel):
         first.
         All updated objects are saved.
         """
-        TRC.objects.create(self)
+        if not self.ases.filter(is_core=True).exists():
+            return None
+
+        trc = self.trcs.create()
         for as_ in self.ases.filter(is_core=True).iterator():
             self._update_coreas_certificates(as_)
 
         for as_ in self.ases.filter(is_core=False).iterator():
             self._update_as_certificates(as_)
+
+        return trc
 
     def update_trc_and_core_certificates(self):
         """
@@ -100,9 +105,14 @@ class ISD(TimestampedModel):
 
         All updated objects are saved.
         """
-        TRC.objects.create(self)
+        if not self.ases.filter(is_core=True).exists():
+            return None
+
+        trc = self.trcs.create()
         for as_ in self.ases.filter(is_core=True):
             self._update_coreas_certificates(as_)
+
+        return trc
 
     @staticmethod
     def _update_as_certificates(as_):
@@ -303,9 +313,10 @@ class AS(TimestampedModel):
         Bumps the configuration version on all affected hosts.
         """
         isds = set()
+        valid_not_before = datetime.utcnow()
         for as_ in queryset.filter(is_core=True):
             isds.add(as_.isd)
-            as_._gen_core_keys()
+            as_._gen_core_keys(valid_not_before)
             as_.save()
 
         for isd in isds:
@@ -376,6 +387,13 @@ class AS(TimestampedModel):
 
         self.isd = isd
         self.generate_certificate_chain()
+        # Drop all previous certificates; these were created in a different ISD and would confuse.
+        # Keep versions increasing (by generating new cert before deleting old ones); in case we
+        # move back to the original ISD, we need to have a version number different from the
+        # original certificate.
+        latest = self.certificates.latest(Certificate.CHAIN)
+        self.certificates.exclude(id=latest.pk).delete()
+
         self.hosts.bump_config()
 
     def _gen_keys(self, valid_not_before):

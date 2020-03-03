@@ -141,13 +141,17 @@ class Key(models.Model):
 
     @staticmethod
     def next_version(as_, usage):
-        return as_.keys.filter(usage=usage).count() + 1 # BUG XXX
+        prev = as_.keys.filter(usage=usage).aggregate(models.Max('version'))['version__max']
+        if prev:
+            return prev + 1
+        else:
+            return 1
 
 
 class TRCManager(models.Manager):
     def create(self, isd):
 
-        prev = self.latest(isd)
+        prev = isd.trcs.latest_or_none()
 
         if prev:
             version = prev.version + 1
@@ -188,10 +192,14 @@ class TRCManager(models.Manager):
         )
         obj.voting_offline.set(voting_offline)
 
-    def latest(self, isd):
-        if not self.filter(isd=isd).exists():
+    def latest(self):
+        return super().latest('version')
+
+    def latest_or_none(self):
+        try:
+            return self.latest()
+        except TRC.DoesNotExist:
             return None
-        return self.filter(isd=isd).latest('version')
 
 
 class TRC(models.Model):
@@ -259,7 +267,7 @@ class CertificateManager(models.Manager):
     def create_issuer_cert(self, as_):
         version = Certificate.next_version(as_, Certificate.ISSUER)
 
-        trc = TRC.objects.latest(as_.isd)
+        trc = as_.isd.trcs.latest()
         issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
         issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
 
@@ -332,6 +340,9 @@ class Certificate(models.Model):
 
     objects = CertificateManager()
 
+    class Meta:
+        unique_together = ('AS', 'type', 'version')
+
     def __str__(self):
         return self.filename()
 
@@ -340,7 +351,11 @@ class Certificate(models.Model):
 
     @staticmethod
     def next_version(as_, type):
-        return as_.certificates.filter(type=type).count() + 1  # BUG XXX
+        prev = as_.certificates.filter(type=type).aggregate(models.Max('version'))['version__max']
+        if prev:
+            return prev + 1
+        else:
+            return 1
 
 
 def _validity(vs):

@@ -15,36 +15,33 @@
 import random
 from django.test import TestCase
 from scionlab.models.core import ISD, AS
+from scionlab.models.pki import Certificate
 from scionlab.tests import utils
 
 
 class TRCAndCoreASCertificateTestsSimple(TestCase):
     def test_empty_isd(self):
         isd = ISD.objects.create(isd_id=1, label='empty')
-
-        # No TRC set unless explicitly created. This ISD is invalid either way!
+        # Explicitly try to create TRC, should not fail but is just a no-op:
         isd.init_trc_and_certificates()
-        self.assertEqual(isd.trc['CoreASes'], {})
-        self.assertEqual(isd.trc['Signatures'], {})
-        self.assertEqual(isd.trc_priv_keys, {})
+        self.assertFalse(isd.trcs.exists())
 
     def test_create_delete_create(self):
         isd = ISD.objects.create(isd_id=1, label='one')
 
         as1_id = 'ffaa:0:0101'
-        as1_ia = '%i-%s' % (isd.isd_id, as1_id)
+        as2_id = 'ffaa:0:0102'
         AS.objects.create(isd, as1_id, is_core=True)
+        utils.check_trc_and_certs(self, 1, {as1_id}, expected_version=1)
 
-        trc_v1 = utils.check_trc_and_certs(self, 1, {as1_ia}, expected_version=1)
+        AS.objects.create(isd, as2_id, is_core=True)
+        utils.check_trc_and_certs(self, 1, {as1_id, as2_id}, expected_version=2)
 
         AS.objects.filter(as_id=as1_id).delete()
-        isd.refresh_from_db()
-
-        trc_v2 = utils.check_trc_and_certs(self, 1, {}, expected_version=2, prev_trc=trc_v1)
+        utils.check_trc_and_certs(self, 1, {as2_id}, expected_version=3)
 
         AS.objects.create(isd, as1_id, is_core=True)
-
-        utils.check_trc_and_certs(self, 1, {as1_ia}, expected_version=3, prev_trc=trc_v2)
+        utils.check_trc_and_certs(self, 1, {as1_id, as2_id}, expected_version=4)
 
     def test_random_mutations(self):
         NUM_MUTATIONS = 66
@@ -55,12 +52,8 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
         def make_as_id(i):
             return "ffaa:0:%.4x" % i
 
-        def ia(as_id):
-            return "%i-%s" % (isd_id, as_id)
-
         ISD.objects.create(isd_id=isd_id, label='some')
 
-        prev_trc = None
         expected_version = 1
         expected_set = set()
 
@@ -79,49 +72,38 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
                 else:
                     AS.objects.get(as_id=as_id).delete()
 
-            trc = utils.check_trc_and_certs(self,
-                                            isd_id,
-                                            {ia(as_id) for as_id in expected_set},
-                                            expected_version=expected_version,
-                                            prev_trc=prev_trc)
-            expected_version += 1
-            prev_trc = trc
+            # Skip check and version increment if expected_set is empty -- no TRCs are created
+            # if there are no core ASes.
+            if expected_set:
+                utils.check_trc_and_certs(self,
+                                          isd_id,
+                                          expected_set,
+                                          expected_version=expected_version)
+                expected_version += 1
 
 
 class TRCAndCoreASCertificateTestsISD19(TestCase):
     fixtures = ['testdata']
 
-    isd19_core_ases = ['19-ffaa:0:1301', '19-ffaa:0:1302']
+    isd19_core_ases = ['ffaa:0:1301', 'ffaa:0:1302']
 
     def test_create_initial(self):
         isd = ISD.objects.get(isd_id=19)
 
         _reset_trc_and_certificates(isd)
-        self.assertEqual(isd.trc, None)
-        self.assertEqual(isd.trc_priv_keys, None)
         isd.init_trc_and_certificates()
 
         utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=1)
 
     def test_create_update(self):
         isd = ISD.objects.get(isd_id=19)
-
-        trc_v1 = utils.check_trc(self, isd, self.isd19_core_ases, expected_version=1)
-        utils.check_core_as_certs(self, isd)
+        utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=1)
 
         isd.update_trc_and_core_certificates()
-        trc_v2 = utils.check_trc(self, isd, self.isd19_core_ases, expected_version=2)
-        trc_v2.verify(trc_v1)
-        utils.check_core_as_certs(self, isd)
+        utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=2)
 
-        # XXX: this might have to be fixed if the grace period is set up. Sleep?
         isd.update_trc_and_core_certificates()
-        trc_v3 = utils.check_trc(self, isd, self.isd19_core_ases, expected_version=3)
-        trc_v3.verify(trc_v2)
-        utils.check_core_as_certs(self, isd)
-
-        with self.assertRaises(SCIONVerificationError):
-            trc_v3.verify(trc_v1)
+        utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=3)
 
     def test_update_single_cert(self):
         isd = ISD.objects.get(isd_id=19)
@@ -129,43 +111,36 @@ class TRCAndCoreASCertificateTestsISD19(TestCase):
         as_ = isd.ases.filter(is_core=False).first()
 
         # Generate fresh cert with same keys
-        original_certificate_chain = as_.certificate_chain
+        cert_chain0 = as_.certificates.latest(type=Certificate.CHAIN)
         as_.generate_certificate_chain()
-        as_.save()
-        utils.check_cert_chain(self, as_, isd.trc)
-        self.assertEqual(as_.certificate_chain['0']['Version'],
-                         original_certificate_chain['0']['Version'] + 1)
+        cert_chain1 = as_.certificates.latest(type=Certificate.CHAIN)
+        utils.check_cert_chain(self, cert_chain1)
+        self.assertEqual(cert_chain1.version, cert_chain0.version + 1)
 
         # Update keys and generate cert
         as_.update_keys()
-        utils.check_cert_chain(self, as_, isd.trc)
-        self.assertEqual(as_.certificate_chain['0']['Version'],
-                         original_certificate_chain['0']['Version'] + 2)
+        cert_chain2 = as_.certificates.latest(type=Certificate.CHAIN)
+        utils.check_cert_chain(self, cert_chain2)
+        self.assertEqual(cert_chain2.version, cert_chain1.version + 1)
 
     def test_update_core_cert(self):
         isd = ISD.objects.get(isd_id=19)
-
-        trc_v1 = utils.check_trc(self, isd, self.isd19_core_ases, expected_version=1)
+        utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=1)
 
         AS.update_core_as_keys(isd.ases.filter(is_core=True))
+        utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=2)
 
-        trc_v2 = utils.check_trc(self, isd, self.isd19_core_ases, expected_version=2)
-        trc_v2.verify(trc_v1)
-        utils.check_core_as_certs(self, isd)
-
+        # XXX(matzf): this is probably not the behaviour we need; we don't have/want automatic cert
+        # issuance!
         # Certs for non-core ASes not updated; will be updated as new TRC is disseminated
-        for as_ in isd.ases.filter(is_core=False).iterator():
-            self.assertEqual(
-                as_.certificate_chain['0']['TRCVersion'],
-                trc_v1.version
-            )
+        # for as_ in isd.ases.filter(is_core=False).iterator():
+        #     self.assertEqual(
+        #         as_.certificate_chain['0']['TRCVersion'],
+        #         trc_v1.version
+        #     )
 
 
 def _reset_trc_and_certificates(isd):
-    isd.trc = None
-    isd.trc_priv_keys = None
-    isd.save()
+    isd.trcs.all().delete()
     for as_ in isd.ases.iterator():
-        as_.certificate_chain = None
-        as_.core_certificate = None
-        as_.save()
+        as_.certificates.all().delete()
