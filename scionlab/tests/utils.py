@@ -506,7 +506,7 @@ def _check_tarball_gen(testcase, tar, host):
 
     testcase.assertEqual([isd_str, 'dispatcher', 'ia', 'scionlab-config.json'], _tar_ls(tar, 'gen'))
     testcase.assertEqual(host.AS.isd_as_path_str(), _tar_cat(tar, 'gen/ia').decode())
-    testcase.assertEqual([as_str], _tar_ls(tar, os.path.join('gen', isd_str)))
+    testcase.assertEqual([as_str, 'trcs'], _tar_ls(tar, os.path.join('gen', isd_str)))
 
     as_gen_dir = os.path.join('gen', isd_str, as_str)
     topofiles = [f for f in tar.getnames() if
