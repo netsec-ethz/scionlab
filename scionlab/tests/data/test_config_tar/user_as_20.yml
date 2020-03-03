@@ -19,14 +19,14 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/br.toml: |
 gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD17-ASffaa_1_5-V1.crt: |-
   [
     {
-      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MDoxMTAxIiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiSXNzdWVyIGNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3R5cGUiOiAiaXNzdWVyIiwgInZhbGlkaXR5IjogeyJub3RfYmVmb3JlIjogMTU3MDAzMjQ2MSwgIm5vdF9hZnRlciI6IDE2MDE1Njg0NjF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9fQ",
+      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MDoxMTAxIiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiSXNzdWVyIGNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3R5cGUiOiAiaXNzdWVyIiwgIm9wdGlvbmFsX2Rpc3RyaWJ1dGlvbl9wb2ludHMiOiBbXSwgInZhbGlkaXR5IjogeyJub3RfYmVmb3JlIjogMTU3MDAzMjQ2MSwgIm5vdF9hZnRlciI6IDE2MDE1Njg0NjF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9fQ",
       "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0eXBlIjogInRyYyIsICJ0cmNfdmVyc2lvbiI6IDF9",
-      "signature": "zmncn9Flodn2r8B4Mzqlmrl4WiuQbXRAUyuJFZxu_jyYe9RyGuiibDXX5Qg4p1BeNscjyDZu2FRP5M1tOaorCg"
+      "signature": "mGrfx8b93JSH9qIWZ8gHMaFGFu2nTO5L7c5A4OTig8oZz7O9HkKE9DkclTEOkvVzgn3WwFqOkB76J1srCESoDg"
     },
     {
-      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MTo1IiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiQVMgY2VydGlmaWNhdGUiLCAiY2VydGlmaWNhdGVfdHlwZSI6ICJhcyIsICJ2YWxpZGl0eSI6IHsibm90X2JlZm9yZSI6IDE1NzAwMzI0NjEsICJub3RfYWZ0ZXIiOiAxNjAxNTY4NDYxfSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJFZllSZW1TUTgyaU9GME43T3RBY1N5UmN6eGdqcU4wTzBxb2psbzh5QVFnPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjNHZU9zOEdhZmJhd0crNTVqMWpmeDFmZkdLOEJQVHAvMXZ0UFJqa0NmbG89IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDF9fQ",
+      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MTo1IiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiQVMgY2VydGlmaWNhdGUiLCAiY2VydGlmaWNhdGVfdHlwZSI6ICJhcyIsICJvcHRpb25hbF9kaXN0cmlidXRpb25fcG9pbnRzIjogW10sICJ2YWxpZGl0eSI6IHsibm90X2JlZm9yZSI6IDE1NzAwMzI0NjEsICJub3RfYWZ0ZXIiOiAxNjAxNTY4NDYxfSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJFZllSZW1TUTgyaU9GME43T3RBY1N5UmN6eGdqcU4wTzBxb2psbzh5QVFnPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjNHZU9zOEdhZmJhd0crNTVqMWpmeDFmZkdLOEJQVHAvMXZ0UFJqa0NmbG89IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDF9fQ",
       "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImNlcnRpZmljYXRlX3ZlcnNpb24iLCAiaXNkX2FzIl0sICJ0eXBlIjogImNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3ZlcnNpb24iOiAxLCAiaXNkX2FzIjogIjE3LWZmYWE6MDoxMTAxIn0",
-      "signature": "BxmMIP28owMqy3mOWvgJEM5Oo6MQUXQrANZJ5DwAf5L-FlNMhGUk3SUHO1fITzbmUWfLapM6SzgtR5ioCJcLCQ"
+      "signature": "zFLoF-DCNPryyiCSQ9IKo1APHTOfgWj0KvGMi2zr4qRi4IFSY83WGDJ5DdC47Hh_IesUfHgDgbh_Q5u7GwTsBA"
     }
   ]
 gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD17-V1.trc: |-
@@ -69,6 +69,7 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/supervisord.conf: |+
 
 gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/topology.json: |-
   {
+    "Attributes": [],
     "BorderRouters": {
       "br17-ffaa_1_5-1": {
         "CtrlAddr": {
@@ -118,7 +119,6 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/topology.json: |-
         }
       }
     },
-    "Core": false,
     "ISD_AS": "17-ffaa:1:5",
     "MTU": 1472,
     "Overlay": "UDP/IPv4"
@@ -126,14 +126,14 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/topology.json: |-
 gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/certs/ISD17-ASffaa_1_5-V1.crt: |-
   [
     {
-      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MDoxMTAxIiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiSXNzdWVyIGNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3R5cGUiOiAiaXNzdWVyIiwgInZhbGlkaXR5IjogeyJub3RfYmVmb3JlIjogMTU3MDAzMjQ2MSwgIm5vdF9hZnRlciI6IDE2MDE1Njg0NjF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9fQ",
+      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MDoxMTAxIiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiSXNzdWVyIGNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3R5cGUiOiAiaXNzdWVyIiwgIm9wdGlvbmFsX2Rpc3RyaWJ1dGlvbl9wb2ludHMiOiBbXSwgInZhbGlkaXR5IjogeyJub3RfYmVmb3JlIjogMTU3MDAzMjQ2MSwgIm5vdF9hZnRlciI6IDE2MDE1Njg0NjF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9fQ",
       "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0eXBlIjogInRyYyIsICJ0cmNfdmVyc2lvbiI6IDF9",
-      "signature": "zmncn9Flodn2r8B4Mzqlmrl4WiuQbXRAUyuJFZxu_jyYe9RyGuiibDXX5Qg4p1BeNscjyDZu2FRP5M1tOaorCg"
+      "signature": "mGrfx8b93JSH9qIWZ8gHMaFGFu2nTO5L7c5A4OTig8oZz7O9HkKE9DkclTEOkvVzgn3WwFqOkB76J1srCESoDg"
     },
     {
-      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MTo1IiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiQVMgY2VydGlmaWNhdGUiLCAiY2VydGlmaWNhdGVfdHlwZSI6ICJhcyIsICJ2YWxpZGl0eSI6IHsibm90X2JlZm9yZSI6IDE1NzAwMzI0NjEsICJub3RfYWZ0ZXIiOiAxNjAxNTY4NDYxfSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJFZllSZW1TUTgyaU9GME43T3RBY1N5UmN6eGdqcU4wTzBxb2psbzh5QVFnPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjNHZU9zOEdhZmJhd0crNTVqMWpmeDFmZkdLOEJQVHAvMXZ0UFJqa0NmbG89IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDF9fQ",
+      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MTo1IiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiQVMgY2VydGlmaWNhdGUiLCAiY2VydGlmaWNhdGVfdHlwZSI6ICJhcyIsICJvcHRpb25hbF9kaXN0cmlidXRpb25fcG9pbnRzIjogW10sICJ2YWxpZGl0eSI6IHsibm90X2JlZm9yZSI6IDE1NzAwMzI0NjEsICJub3RfYWZ0ZXIiOiAxNjAxNTY4NDYxfSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJFZllSZW1TUTgyaU9GME43T3RBY1N5UmN6eGdqcU4wTzBxb2psbzh5QVFnPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjNHZU9zOEdhZmJhd0crNTVqMWpmeDFmZkdLOEJQVHAvMXZ0UFJqa0NmbG89IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDF9fQ",
       "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImNlcnRpZmljYXRlX3ZlcnNpb24iLCAiaXNkX2FzIl0sICJ0eXBlIjogImNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3ZlcnNpb24iOiAxLCAiaXNkX2FzIjogIjE3LWZmYWE6MDoxMTAxIn0",
-      "signature": "BxmMIP28owMqy3mOWvgJEM5Oo6MQUXQrANZJ5DwAf5L-FlNMhGUk3SUHO1fITzbmUWfLapM6SzgtR5ioCJcLCQ"
+      "signature": "zFLoF-DCNPryyiCSQ9IKo1APHTOfgWj0KvGMi2zr4qRi4IFSY83WGDJ5DdC47Hh_IesUfHgDgbh_Q5u7GwTsBA"
     }
   ]
 gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/certs/ISD17-V1.trc: |-
@@ -223,6 +223,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/supervisord.conf: |+
 
 gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/topology.json: |-
   {
+    "Attributes": [],
     "BorderRouters": {
       "br17-ffaa_1_5-1": {
         "CtrlAddr": {
@@ -272,7 +273,6 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/topology.json: |-
         }
       }
     },
-    "Core": false,
     "ISD_AS": "17-ffaa:1:5",
     "MTU": 1472,
     "Overlay": "UDP/IPv4"
@@ -280,14 +280,14 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/topology.json: |-
 gen/ISD17/ASffaa_1_5/endhost/certs/ISD17-ASffaa_1_5-V1.crt: |-
   [
     {
-      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MDoxMTAxIiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiSXNzdWVyIGNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3R5cGUiOiAiaXNzdWVyIiwgInZhbGlkaXR5IjogeyJub3RfYmVmb3JlIjogMTU3MDAzMjQ2MSwgIm5vdF9hZnRlciI6IDE2MDE1Njg0NjF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9fQ",
+      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MDoxMTAxIiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiSXNzdWVyIGNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3R5cGUiOiAiaXNzdWVyIiwgIm9wdGlvbmFsX2Rpc3RyaWJ1dGlvbl9wb2ludHMiOiBbXSwgInZhbGlkaXR5IjogeyJub3RfYmVmb3JlIjogMTU3MDAzMjQ2MSwgIm5vdF9hZnRlciI6IDE2MDE1Njg0NjF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9fQ",
       "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0eXBlIjogInRyYyIsICJ0cmNfdmVyc2lvbiI6IDF9",
-      "signature": "zmncn9Flodn2r8B4Mzqlmrl4WiuQbXRAUyuJFZxu_jyYe9RyGuiibDXX5Qg4p1BeNscjyDZu2FRP5M1tOaorCg"
+      "signature": "mGrfx8b93JSH9qIWZ8gHMaFGFu2nTO5L7c5A4OTig8oZz7O9HkKE9DkclTEOkvVzgn3WwFqOkB76J1srCESoDg"
     },
     {
-      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MTo1IiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiQVMgY2VydGlmaWNhdGUiLCAiY2VydGlmaWNhdGVfdHlwZSI6ICJhcyIsICJ2YWxpZGl0eSI6IHsibm90X2JlZm9yZSI6IDE1NzAwMzI0NjEsICJub3RfYWZ0ZXIiOiAxNjAxNTY4NDYxfSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJFZllSZW1TUTgyaU9GME43T3RBY1N5UmN6eGdqcU4wTzBxb2psbzh5QVFnPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjNHZU9zOEdhZmJhd0crNTVqMWpmeDFmZkdLOEJQVHAvMXZ0UFJqa0NmbG89IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDF9fQ",
+      "payload": "eyJzdWJqZWN0IjogIjE3LWZmYWE6MTo1IiwgInZlcnNpb24iOiAxLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiQVMgY2VydGlmaWNhdGUiLCAiY2VydGlmaWNhdGVfdHlwZSI6ICJhcyIsICJvcHRpb25hbF9kaXN0cmlidXRpb25fcG9pbnRzIjogW10sICJ2YWxpZGl0eSI6IHsibm90X2JlZm9yZSI6IDE1NzAwMzI0NjEsICJub3RfYWZ0ZXIiOiAxNjAxNTY4NDYxfSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJFZllSZW1TUTgyaU9GME43T3RBY1N5UmN6eGdqcU4wTzBxb2psbzh5QVFnPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjNHZU9zOEdhZmJhd0crNTVqMWpmeDFmZkdLOEJQVHAvMXZ0UFJqa0NmbG89IiwgImtleV92ZXJzaW9uIjogMX19LCAiaXNzdWVyIjogeyJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDF9fQ",
       "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgImNlcnRpZmljYXRlX3ZlcnNpb24iLCAiaXNkX2FzIl0sICJ0eXBlIjogImNlcnRpZmljYXRlIiwgImNlcnRpZmljYXRlX3ZlcnNpb24iOiAxLCAiaXNkX2FzIjogIjE3LWZmYWE6MDoxMTAxIn0",
-      "signature": "BxmMIP28owMqy3mOWvgJEM5Oo6MQUXQrANZJ5DwAf5L-FlNMhGUk3SUHO1fITzbmUWfLapM6SzgtR5ioCJcLCQ"
+      "signature": "zFLoF-DCNPryyiCSQ9IKo1APHTOfgWj0KvGMi2zr4qRi4IFSY83WGDJ5DdC47Hh_IesUfHgDgbh_Q5u7GwTsBA"
     }
   ]
 gen/ISD17/ASffaa_1_5/endhost/certs/ISD17-V1.trc: |-
@@ -353,6 +353,7 @@ gen/ISD17/ASffaa_1_5/endhost/supervisord.conf: |+
 
 gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
   {
+    "Attributes": [],
     "BorderRouters": {
       "br17-ffaa_1_5-1": {
         "CtrlAddr": {
@@ -402,7 +403,6 @@ gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
         }
       }
     },
-    "Core": false,
     "ISD_AS": "17-ffaa:1:5",
     "MTU": 1472,
     "Overlay": "UDP/IPv4"
