@@ -57,7 +57,6 @@ class ConfigTarRegressionTests(TestCase):
         generate_host_config_tar(host, archive)
         self._check_archive('host_%i' % host.id, archive)
 
-    @unittest.skip("regression testdata not yet updated / verified")  # XXX
     def test_user_as(self):
         for user_as in UserAS.objects.filter(owner=get_testuser_exbert()).iterator():
             archive = DictWriter()
