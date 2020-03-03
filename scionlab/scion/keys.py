@@ -50,7 +50,6 @@ class Base64StringEncoder:
 #     pass
 
 
-
 def generate_sign_key():
     """
     Generate Ed25519 keypair.

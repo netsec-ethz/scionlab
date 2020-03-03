@@ -26,7 +26,7 @@ from django.db.models.signals import pre_delete, post_delete
 
 
 from scionlab.models.user import User
-from scionlab.models.pki import Key, Certificate, TRC
+from scionlab.models.pki import Key, Certificate
 from scionlab.scion import as_ids
 from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap

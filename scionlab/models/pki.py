@@ -34,8 +34,9 @@ class KeyManager(models.Manager):
     def create(self, AS, usage, version=None, not_before=None, not_after=None):
         version = version or Key.next_version(AS, usage)
 
+        # TODO(matzf) different expiration for different key types (offline > online > iss > ...)?
         not_before = not_before or datetime.utcnow()
-        not_after = not_after or not_before + DEFAULT_EXPIRATION  # TODO(matzf) expiration for different key types
+        not_after = not_after or not_before + DEFAULT_EXPIRATION
 
         if usage == Key.DECRYPT:
             key = keys.generate_enc_key()
