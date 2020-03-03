@@ -25,7 +25,8 @@ VOLUME [ "/sys/fs/cgroup" ]
 RUN ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
 
 # Install SCION
-RUN bash -c 'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
+# XXX(matzf): install testing/all based on branch name???
+RUN bash -c 'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian testing main" >> /etc/apt/sources.list'
 RUN apt-get update && apt-get install --assume-yes scionlab
 
 # Add 'scionlab' user with passwordless sudo & configure authorized_keys to allow automatic deployment
