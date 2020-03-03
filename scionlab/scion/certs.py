@@ -43,6 +43,7 @@ def _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_
         "format_version": 1,
         "description": "Issuer certificate",
         "certificate_type": "issuer",
+        "optional_distribution_points": [],
         "validity": {
             "not_before": int(not_before.timestamp()),
             "not_after": int(not_after.timestamp())
@@ -78,6 +79,7 @@ def _build_as_cert_payload(subject, version, not_before, not_after, encryption_k
         "format_version": 1,
         "description": "AS certificate",
         "certificate_type": "as",
+        "optional_distribution_points": [],
         "validity": {
             "not_before": int(not_before.timestamp()),
             "not_after": int(not_after.timestamp())
