@@ -47,7 +47,7 @@ MASTER_KEY_1 = "master1.key"
 TYPE_BR = 'BR'
 TYPE_SD = 'SD'
 SERVICES_TO_SYSTEMD_NAMES = {
-    Service.CS: 'scion-control-server',
+    Service.CS: 'scion-control-service',
     Service.BW: 'scion-bwtestserver',
     TYPE_BR: 'scion-border-router',
 }

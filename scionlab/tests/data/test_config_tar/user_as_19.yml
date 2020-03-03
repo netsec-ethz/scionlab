@@ -554,6 +554,6 @@ gen/scionlab-config.json: |-
   }
 scionlab-services.txt: |-
   scion-border-router@20-ffaa_1_4-1.service
-  scion-control-server@20-ffaa_1_4-1.service
+  scion-control-service@20-ffaa_1_4-1.service
   scion-daemon@20-ffaa_1_4.service
   scion-dispatcher.service

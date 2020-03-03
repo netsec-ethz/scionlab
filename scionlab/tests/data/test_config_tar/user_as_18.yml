@@ -431,6 +431,6 @@ gen/scionlab-config.json: |-
   }
 scionlab-services.txt: |-
   scion-border-router@20-ffaa_1_3-1.service
-  scion-control-server@20-ffaa_1_3-1.service
+  scion-control-service@20-ffaa_1_3-1.service
   scion-daemon@20-ffaa_1_3.service
   scion-dispatcher.service

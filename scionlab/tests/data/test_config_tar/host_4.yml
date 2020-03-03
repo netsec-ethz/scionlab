@@ -708,7 +708,7 @@ gen/scionlab-config.json: |-
 scionlab-services.txt: |-
   scion-border-router@17-ffaa_0_1107-1.service
   scion-border-router@17-ffaa_0_1107-2.service
-  scion-control-server@17-ffaa_0_1107-1.service
+  scion-control-service@17-ffaa_0_1107-1.service
   scion-bwtestserver.service
   scion-daemon@17-ffaa_0_1107.service
   scion-dispatcher.service
