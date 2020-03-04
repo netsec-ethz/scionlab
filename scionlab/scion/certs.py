@@ -87,12 +87,12 @@ def _build_as_cert_payload(subject, version, not_before, not_after, encryption_k
         "keys": {
             "encryption": {
                 "algorithm": "curve25519",
-                "key": encryption_key.key,
+                "key": keys.public_enc_key(encryption_key.key),
                 "key_version": encryption_key.version,
             },
             "signing": {
                 "algorithm": "Ed25519",
-                "key": signing_key.key,
+                "key": keys.public_sign_key(signing_key.key),
                 "key_version": signing_key.version,
             }
         },

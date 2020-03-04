@@ -111,6 +111,11 @@ def generate_enc_key():
     return private_key.encode(encoder=Base64StringEncoder)
 
 
+def public_enc_key(private_key):
+    pk = PrivateKey(private_key, encoder=Base64StringEncoder)
+    return pk.public_key.encode(encoder=Base64StringEncoder)
+
+
 def encrypt(msg, private_key, public_key):
     """
     Encrypt message.
