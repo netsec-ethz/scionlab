@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import copy
-from datetime import datetime, timedelta
+import re
+from datetime import datetime, timedelta, timezone
 
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key
@@ -55,6 +56,26 @@ class GenerateKeyTests(TestCase):
         self.assertEqual(k.version, 1)
         self.assertEqual(k.usage, Key.SIGNING)
         self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION)
+
+    def test_key_timestamp_format(self):
+        d = datetime(2006, 1, 2, 15, 4, 5)
+        formatted = Key._format_timestamp(d)
+        self.assertEqual(formatted, "2006-01-02 15:04:05+0000")
+
+        # Ignore microseconds
+        d = datetime(2006, 1, 2, 15, 4, 5, 12345)
+        formatted = Key._format_timestamp(d)
+        self.assertEqual(formatted, "2006-01-02 15:04:05+0000")
+
+        # Convert to UTC
+        d = datetime(2006, 1, 2, 15, 4, 5, tzinfo=timezone(timedelta(hours=-7)))
+        formatted = Key._format_timestamp(d)
+        self.assertEqual(formatted, "2006-01-02 22:04:05+0000")
+
+        # Should also work on whatever utcnow returns
+        d = datetime.utcnow()
+        formatted = Key._format_timestamp(d)
+        self.assertIsNotNone(re.match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+0000", formatted))
 
 
 _ASID_1 = 'ff00:0:1'

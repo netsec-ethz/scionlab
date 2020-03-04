@@ -186,8 +186,8 @@ gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/as-decrypt-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: curve25519xsalsa20poly1305
   ia: 20-ffaa:1:4
-  not_after: 2019-10-02 11:07:41
-  not_before: 2020-10-01 11:07:41
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
   usage: as-decrypt
   version: 1
 
@@ -197,8 +197,8 @@ gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/keys/as-signing-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: ed25519
   ia: 20-ffaa:1:4
-  not_after: 2019-10-02 11:07:41
-  not_before: 2020-10-01 11:07:41
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
   usage: as-signing
   version: 1
 
@@ -358,8 +358,8 @@ gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/as-decrypt-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: curve25519xsalsa20poly1305
   ia: 20-ffaa:1:4
-  not_after: 2019-10-02 11:07:41
-  not_before: 2020-10-01 11:07:41
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
   usage: as-decrypt
   version: 1
 
@@ -369,8 +369,8 @@ gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/keys/as-signing-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: ed25519
   ia: 20-ffaa:1:4
-  not_after: 2019-10-02 11:07:41
-  not_before: 2020-10-01 11:07:41
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
   usage: as-signing
   version: 1
 

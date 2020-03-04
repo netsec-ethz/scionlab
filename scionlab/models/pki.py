@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import textwrap
-from datetime import datetime
+from datetime import datetime, timezone
 import jsonfield
 from typing import List
 
@@ -122,8 +122,8 @@ class Key(models.Model):
         """).format(
             algo=self.algorithm(),
             ia=self.AS.isd_as_str(),
-            not_after=self.not_after,
-            not_before=self.not_before,
+            not_after=self._format_timestamp(self.not_after),
+            not_before=self._format_timestamp(self.not_before),
             usage=self.usage,
             version=self.version,
             key=self.key
@@ -151,6 +151,19 @@ class Key(models.Model):
             return prev + 1
         else:
             return 1
+
+    @staticmethod
+    def _format_timestamp(t):
+        """
+        The SCION key file format expects timestamps in a specific format:
+            2006-01-02 15:04:05-0700
+        """
+        # always use UTC, servers timezone should be irrelevant
+        if t.tzinfo:
+            t_utc = t.astimezone(timezone.utc)
+        else:
+            t_utc = t.replace(tzinfo=timezone.utc)
+        return t_utc.strftime("%Y-%m-%d %H:%M:%S%z")
 
 
 class TRCManager(models.Manager):
