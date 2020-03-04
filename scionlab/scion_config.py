@@ -25,13 +25,12 @@ from scionlab.scion_topology import TopologyInfo
 from scionlab.defines import (
     PROPAGATE_TIME_CORE,
     PROPAGATE_TIME_NONCORE,
-    PROM_PORT_OFFSET,
-    PROM_PORT_DI,
-    PROM_PORT_SD,
-    CS_PORT,
+    BR_PROM_PORT_OFFSET,
+    DISPATCHER_PROM_PORT,
     CS_QUIC_PORT,
-    SD_QUIC_PORT,
+    CS_PROM_PORT,
     SD_TCP_PORT,
+    SD_PROM_PORT,
     SCION_CONFIG_DIR,
     SCION_LOG_DIR,
     SCION_VAR_DIR,
@@ -247,15 +246,19 @@ class _ConfigBuilder:
         self.var_dir = var_dir
 
     def build_disp_conf(self):
-        conf = self._build_logging_conf('dispatcher', PROM_PORT_DI)
+        logging_conf = self._build_logging_conf('dispatcher')
+        metrics_conf = self._build_metrics_conf(DISPATCHER_PROM_PORT)
+        conf = _chain_dicts(logging_conf, metrics_conf)
         conf.update({
             'dispatcher': {'ID': 'dispatcher', 'SocketFileMode': '0777'},
         })
         return conf
 
     def build_br_conf(self, router):
-        conf = self._build_base_goservice_conf(router.instance_name,
-                                               router.internal_port + PROM_PORT_OFFSET)
+        general_conf = self._build_general_conf(router.instance_name)
+        logging_conf = self._build_logging_conf(router.instance_name)
+        metrics_conf = self._build_metrics_conf(router.internal_port + BR_PROM_PORT_OFFSET)
+        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
             'br': {
                 'Profile': False,
@@ -264,12 +267,13 @@ class _ConfigBuilder:
         return conf
 
     def build_cs_conf(self, service):
-        conf = self._build_goservice_conf(service.instance_name, service.host.internal_ip,
-                                          CS_QUIC_PORT, CS_PORT + PROM_PORT_OFFSET)
-
         propagate_time = PROPAGATE_TIME_CORE if service.AS.is_core else PROPAGATE_TIME_NONCORE
         interval = '{}s'.format(propagate_time)
 
+        general_conf = self._build_general_conf(service.instance_name)
+        logging_conf = self._build_logging_conf(service.instance_name)
+        metrics_conf = self._build_metrics_conf(CS_PROM_PORT)
+        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
             'bs': {
                 'OriginationInterval': interval,
@@ -298,15 +302,23 @@ class _ConfigBuilder:
                 'Backend': 'sqlite',
                 'Connection': '%s.trust.db' % os.path.join(self.var_dir, service.instance_name),
             },
+            'quic': {
+                'KeyFile':  os.path.join(self.config_dir, 'gen-certs/tls.key'),
+                'CertFile': os.path.join(self.config_dir, 'gen-certs/tls.pem'),
+                'ResolutionFraction': 0.4,
+                'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
+            },
         })
         return conf
 
     def build_sciond_conf(self, host):
         instance_name = 'sd%s' % host.AS.isd_as_path_str()
         instance_dir = 'endhost'
-        conf = self._build_goservice_conf(instance_name, host.internal_ip, SD_QUIC_PORT,
-                                          PROM_PORT_SD, instance_dir=instance_dir)
 
+        general_conf = self._build_general_conf(instance_name, instance_dir=instance_dir)
+        logging_conf = self._build_logging_conf(instance_name)
+        metrics_conf = self._build_metrics_conf(SD_PROM_PORT)
+        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
             'sd': {
                 'address': _join_host_port('127.0.0.1', SD_TCP_PORT),
@@ -322,50 +334,37 @@ class _ConfigBuilder:
         })
         return conf
 
-    def _build_goservice_conf(self, instance_name, host_ip, quic_port, prometheus_port,
-                              instance_dir=None):
-        """ Builds the toml configuration common to SD,BS,CS and PS """
-        conf = self._build_base_goservice_conf(instance_name, prometheus_port, instance_dir)
-        conf['general']['ReconnectToDispatcher'] = True
-        conf.update({
-            'trustDB': {
-                'Backend': 'sqlite',
-                'Connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
-            },
-            'quic': {
-                'KeyFile':  os.path.join(self.config_dir, 'gen-certs/tls.key'),
-                'CertFile': os.path.join(self.config_dir, 'gen-certs/tls.pem'),
-                'ResolutionFraction': 0.4,
-                'address': _join_host_port(host_ip, quic_port)
-            },
-        })
-        return conf
-
-    def _build_base_goservice_conf(self, instance_name, prometheus_port, instance_dir=None):
-        """ Builds the toml configuration common to SD,CS and BR """
-        conf = self._build_logging_conf(instance_name, prometheus_port)
-        conf.update({
+    def _build_general_conf(self, instance_name, instance_dir=None):
+        """ Builds the 'general' configuration section common to SD,CS and BR """
+        return {
             'general': {
                 'ID': instance_name,
                 'ConfigDir': os.path.join(self.config_isd_as_dir, instance_dir or instance_name),
+                # Note: this has performance impacts (for BR, only control plane)
+                'ReconnectToDispatcher': True,
             },
-        })
-        return conf
+        }
 
-    def _build_logging_conf(self, logfile_name, prometheus_port):
-        """ Builds the metrics and logging configuration common to all services """
-        conf = {
-            'metrics': {'Prometheus': _join_host_port('127.0.0.1', prometheus_port)},
+    def _build_metrics_conf(self, prometheus_port):
+        """ Builds the 'metrics' configuration common to all services """
+        return {
+            'metrics': {
+                'Prometheus': _join_host_port('127.0.0.1', prometheus_port)
+            },
+        }
+
+    def _build_logging_conf(self, instance_name):
+        """ Builds the 'logging' configuration section common to all services """
+        return {
             'logging': {
                 'file': {
-                    'Path': '%s.log' % os.path.join(self.log_dir, logfile_name),
+                    'Path': '%s.log' % os.path.join(self.log_dir, instance_name),
                     'Level': 'debug',
                     'MaxAge': 3,
                     'MaxBackups': 1,
                 },
             },
         }
-        return conf
 
 
 def _build_supervisord_conf(program_id, cmd, envs, priority=100, startsecs=5):
@@ -415,3 +414,13 @@ def _localhost(ip):
         return "::1"
     else:
         return "127.0.0.1"
+
+
+def _chain_dicts(dict0, *dicts):
+    """
+    Combine / concatenate multiple dicts
+    """
+    r = dict(dict0.items())
+    for dict_i in dicts:
+        r.update(dict_i)
+    return r

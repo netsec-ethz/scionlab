@@ -2167,169 +2167,169 @@
   fields:
     AS: 1
     host: 1
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 2
   fields:
     AS: 3
     host: 3
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 3
   fields:
     AS: 2
     host: 2
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 4
   fields:
     AS: 4
     host: 4
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 5
   fields:
     AS: 5
     host: 5
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 6
   fields:
     AS: 6
     host: 6
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 7
   fields:
     AS: 7
     host: 7
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 8
   fields:
     AS: 8
     host: 8
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 9
   fields:
     AS: 9
     host: 9
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 10
   fields:
     AS: 10
     host: 10
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 11
   fields:
     AS: 11
     host: 11
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 12
   fields:
     AS: 12
     host: 12
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 13
   fields:
     AS: 13
     host: 13
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 14
   fields:
     AS: 14
     host: 14
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 15
   fields:
     AS: 15
     host: 15
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 16
   fields:
     AS: 16
     host: 16
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 17
   fields:
     AS: 4
     host: 4
-    internal_port: 31046
-    control_port: 30046
+    internal_port: 30043
+    control_port: 30243
 - model: scionlab.borderrouter
   pk: 18
   fields:
     AS: 17
     host: 17
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 19
   fields:
     AS: 7
     host: 7
-    internal_port: 31046
-    control_port: 30046
+    internal_port: 30043
+    control_port: 30243
 - model: scionlab.borderrouter
   pk: 20
   fields:
     AS: 18
     host: 18
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 21
   fields:
     AS: 13
     host: 13
-    internal_port: 31046
-    control_port: 30046
+    internal_port: 30043
+    control_port: 30243
 - model: scionlab.borderrouter
   pk: 22
   fields:
     AS: 19
     host: 19
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.borderrouter
   pk: 23
   fields:
     AS: 14
     host: 14
-    internal_port: 31046
-    control_port: 30046
+    internal_port: 30043
+    control_port: 30243
 - model: scionlab.borderrouter
   pk: 24
   fields:
     AS: 20
     host: 20
-    internal_port: 31045
-    control_port: 30045
+    internal_port: 30042
+    control_port: 30242
 - model: scionlab.service
   pk: 1
   fields:

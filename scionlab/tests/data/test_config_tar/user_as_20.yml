@@ -7,9 +7,10 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/br.toml: |
   [general]
   ConfigDir = "gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1"
   ID = "br17-ffaa_1_5-1"
+  ReconnectToDispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:32045"
+  Prometheus = "127.0.0.1:30442"
 
   [logging.file]
   Level = "debug"
@@ -94,7 +95,7 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30045
+              "L4Port": 30242
             }
           }
         },
@@ -119,7 +120,7 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31045
+              "OverlayPort": 30042
             }
           }
         }
@@ -131,7 +132,7 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 31042
+              "L4Port": 30254
             }
           }
         }
@@ -195,7 +196,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
   ReconnectToDispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:32042"
+  Prometheus = "127.0.0.1:30454"
 
   [ps]
   SegSync = true
@@ -266,7 +267,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30045
+              "L4Port": 30242
             }
           }
         },
@@ -291,7 +292,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31045
+              "OverlayPort": 30042
             }
           }
         }
@@ -303,7 +304,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 31042
+              "L4Port": 30254
             }
           }
         }
@@ -353,12 +354,6 @@ gen/ISD17/ASffaa_1_5/endhost/sd.toml: |
   [metrics]
   Prometheus = "127.0.0.1:30455"
 
-  [quic]
-  CertFile = "gen-certs/tls.pem"
-  KeyFile = "gen-certs/tls.key"
-  ResolutionFraction = 0.4
-  address = "127.0.0.1:0"
-
   [sd]
   address = "127.0.0.1:30255"
 
@@ -396,7 +391,7 @@ gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30045
+              "L4Port": 30242
             }
           }
         },
@@ -421,7 +416,7 @@ gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31045
+              "OverlayPort": 30042
             }
           }
         }
@@ -433,7 +428,7 @@ gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 31042
+              "L4Port": 30254
             }
           }
         }

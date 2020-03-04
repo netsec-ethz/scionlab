@@ -24,21 +24,20 @@ USER_AS_ID_BEGIN = 0xffaa00010001  # 'ffaa:1:1'
 USER_AS_ID_END = 0xffaa0001ffff  # 'ffaa:1:ffff'
 
 DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-port-ranges)
-DEFAULT_INTERNAL_PORT = 31045  # 30242-30251
-DEFAULT_CONTROL_PORT = 30045   # 30042-30051
+DEFAULT_INTERNAL_PORT = 30042  # 30042-30051
+DEFAULT_CONTROL_PORT = 30242   # 30242-30251
+BR_PROM_PORT_OFFSET = 400  # offset from BR internal (data plane) port. E.g. 30042 + 400 = 30442
 
-CS_PORT = 31042  # 30254 # XXX(matzf): update to actual port
+CS_PORT = 30254  # This is both a SCION/UDP (inter-AS) and TCP (intra-AS)
+CS_QUIC_PORT = 30354  # SCION/UDP/QUIC port for inter-AS
+CS_PROM_PORT = 30454
+SD_TCP_PORT = 30255
+SD_PROM_PORT = 30455
+DISPATCHER_PORT = 30041
+DISPATCHER_PROM_PORT = 30441
+
 BW_PORT = 40001
 PP_PORT = 40002
-DISPATCHER_PORT = 30041
-
-CS_QUIC_PORT = 30354  # QUIC port for the infrastructure's messenger
-SD_QUIC_PORT = 0
-SD_TCP_PORT = 30255
-
-PROM_PORT_OFFSET = 1000  # e.g. PS Prometheus port = PS.Public.Port + 1000 = 32043
-PROM_PORT_DI = 30441  # prometheus metrics exposed in go dispatcher
-PROM_PORT_SD = 30455  # where to expose prometheus metrics in sciond
 
 DEFAULT_HOST_INTERNAL_IP = "127.0.0.1"
 DEFAULT_LINK_MTU = 1500 - 20 - 8
