@@ -282,10 +282,7 @@ class _ConfigBuilder:
                 'RevOverlap': '5s'
             },
             'cs': {
-                'IssuerReissueLeadTime': "3d",
-                'LeafReissueLeadTime': "6h",
-                'ReissueRate': "10s",
-                'ReissueTimeout': "5s",
+                # settings for AutomaticRenewal; disabled by default, currently not available anyway
             },
             'ps': {
                 'pathDB': {
@@ -306,7 +303,7 @@ class _ConfigBuilder:
                 'KeyFile':  os.path.join(self.config_dir, 'gen-certs/tls.key'),
                 'CertFile': os.path.join(self.config_dir, 'gen-certs/tls.pem'),
                 'ResolutionFraction': 0.4,
-                'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
+                'Address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
             },
         })
         return conf
@@ -356,12 +353,12 @@ class _ConfigBuilder:
     def _build_logging_conf(self, instance_name):
         """ Builds the 'logging' configuration section common to all services """
         return {
-            'logging': {
+            'log': {
                 'file': {
-                    'Path': '%s.log' % os.path.join(self.log_dir, instance_name),
-                    'Level': 'debug',
-                    'MaxAge': 3,
-                    'MaxBackups': 1,
+                    'path': '%s.log' % os.path.join(self.log_dir, instance_name),
+                    'level': 'debug',
+                    'max_age': 3,
+                    'max_backups': 1,
                 },
             },
         }

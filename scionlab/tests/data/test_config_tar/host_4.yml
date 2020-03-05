@@ -13,11 +13,11 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/br.toml: |
   [metrics]
   Prometheus = "127.0.0.1:30442"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/br17-ffaa_0_1107-1.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/br17-ffaa_0_1107-1.log"
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
   [
     {
@@ -193,11 +193,11 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/br.toml: |
   [metrics]
   Prometheus = "127.0.0.1:30443"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/br17-ffaa_0_1107-2.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/br17-ffaa_0_1107-2.log"
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/certs/ISD17-ASffaa_0_1107-V1.crt: |-
   [
     {
@@ -404,10 +404,6 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
   RevTTL = "20s"
 
   [cs]
-  IssuerReissueLeadTime = "3d"
-  LeafReissueLeadTime = "6h"
-  ReissueRate = "10s"
-  ReissueTimeout = "5s"
 
   [general]
   ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1"
@@ -421,20 +417,20 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
   SegSync = true
 
   [quic]
+  Address = "127.0.0.1:30354"
   CertFile = "/etc/scion/gen-certs/tls.pem"
   KeyFile = "/etc/scion/gen-certs/tls.key"
   ResolutionFraction = 0.4
-  address = "127.0.0.1:30354"
 
   [trustDB]
   Backend = "sqlite"
   Connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/cs17-ffaa_0_1107-1.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/cs17-ffaa_0_1107-1.log"
 
   [ps.pathDB]
   Backend = "sqlite"
@@ -618,11 +614,11 @@ gen/ISD17/ASffaa_0_1107/endhost/sd.toml: |
   Backend = "sqlite"
   Connection = "/var/lib/scion/sd17-ffaa_0_1107.trust.db"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/sd17-ffaa_0_1107.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/sd17-ffaa_0_1107.log"
 
   [sd.pathDB]
   Backend = "sqlite"
@@ -759,11 +755,11 @@ gen/dispatcher/disp.toml: |
   [metrics]
   Prometheus = "127.0.0.1:30441"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/dispatcher.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/dispatcher.log"
 gen/ia: |-
   17-ffaa_0_1107
 gen/scionlab-config.json: |-

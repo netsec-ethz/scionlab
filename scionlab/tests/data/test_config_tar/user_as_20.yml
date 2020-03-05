@@ -12,11 +12,11 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/br.toml: |
   [metrics]
   Prometheus = "127.0.0.1:30442"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "logs/br17-ffaa_1_5-1.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "logs/br17-ffaa_1_5-1.log"
 gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD17-ASffaa_1_5-V1.crt: |-
   [
     {
@@ -185,10 +185,6 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
   RevTTL = "20s"
 
   [cs]
-  IssuerReissueLeadTime = "3d"
-  LeafReissueLeadTime = "6h"
-  ReissueRate = "10s"
-  ReissueTimeout = "5s"
 
   [general]
   ConfigDir = "gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1"
@@ -202,20 +198,20 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
   SegSync = true
 
   [quic]
+  Address = "127.0.0.1:30354"
   CertFile = "gen-certs/tls.pem"
   KeyFile = "gen-certs/tls.key"
   ResolutionFraction = 0.4
-  address = "127.0.0.1:30354"
 
   [trustDB]
   Backend = "sqlite"
   Connection = "gen-cache/cs17-ffaa_1_5-1.trust.db"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "logs/cs17-ffaa_1_5-1.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "logs/cs17-ffaa_1_5-1.log"
 
   [ps.pathDB]
   Backend = "sqlite"
@@ -361,11 +357,11 @@ gen/ISD17/ASffaa_1_5/endhost/sd.toml: |
   Backend = "sqlite"
   Connection = "gen-cache/sd17-ffaa_1_5.trust.db"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "logs/sd17-ffaa_1_5.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "logs/sd17-ffaa_1_5.log"
 
   [sd.pathDB]
   Backend = "sqlite"
@@ -468,11 +464,11 @@ gen/dispatcher/disp.toml: |
   [metrics]
   Prometheus = "127.0.0.1:30441"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "logs/dispatcher.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "logs/dispatcher.log"
 gen/dispatcher/supervisord.conf: |+
   [program:dispatcher]
   autostart = false

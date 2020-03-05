@@ -135,11 +135,11 @@ gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/br.toml: |
   [metrics]
   Prometheus = "127.0.0.1:30442"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/br20-ffaa_1_4-1.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/br20-ffaa_1_4-1.log"
 gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/certs/ISD20-ASffaa_1_4-V1.crt: |-
   [
     {
@@ -320,10 +320,6 @@ gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/cs.toml: |
   RevTTL = "20s"
 
   [cs]
-  IssuerReissueLeadTime = "3d"
-  LeafReissueLeadTime = "6h"
-  ReissueRate = "10s"
-  ReissueTimeout = "5s"
 
   [general]
   ConfigDir = "/etc/scion/gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1"
@@ -337,20 +333,20 @@ gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/cs.toml: |
   SegSync = true
 
   [quic]
+  Address = "127.0.0.1:30354"
   CertFile = "/etc/scion/gen-certs/tls.pem"
   KeyFile = "/etc/scion/gen-certs/tls.key"
   ResolutionFraction = 0.4
-  address = "127.0.0.1:30354"
 
   [trustDB]
   Backend = "sqlite"
   Connection = "/var/lib/scion/cs20-ffaa_1_4-1.trust.db"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/cs20-ffaa_1_4-1.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/cs20-ffaa_1_4-1.log"
 
   [ps.pathDB]
   Backend = "sqlite"
@@ -496,11 +492,11 @@ gen/ISD20/ASffaa_1_4/endhost/sd.toml: |
   Backend = "sqlite"
   Connection = "/var/lib/scion/sd20-ffaa_1_4.trust.db"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/sd20-ffaa_1_4.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/sd20-ffaa_1_4.log"
 
   [sd.pathDB]
   Backend = "sqlite"
@@ -599,11 +595,11 @@ gen/dispatcher/disp.toml: |
   [metrics]
   Prometheus = "127.0.0.1:30441"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/dispatcher.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/dispatcher.log"
 gen/ia: |-
   20-ffaa_1_4
 gen/scionlab-config.json: |-
