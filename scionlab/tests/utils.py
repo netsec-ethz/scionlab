@@ -324,8 +324,17 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     testcase.assertEqual(trc_pld['trc_version'], trc.version)
     testcase.assertEqual(set(trc_pld['primary_ases'].keys()), set(expected_core_ases))
 
-    # TODO(matzf):
-    # check that TRC update is valid? but how, without re-implementing the logic?
+    if trc.version > 1:
+        # Check that TRC update is valid
+        prev_trc = isd.trcs.get(version=trc.version-1)
+        prev_trc_pld = jws.decode_payload(prev_trc.trc)
+        # Minimal check:
+        voters = set(trc_pld['votes'].keys())
+        allowed_voters = set(prev_trc_pld['primary_ases'].keys())
+        testcase.assertTrue(voters.issubset(allowed_voters))
+        testcase.assertGreaterEqual(len(trc_pld['votes']), prev_trc_pld['voting_quorum'])
+        # TODO(matzf): how to verify votes & signatures without re-implementing the logic?
+        # Would be nice to use `scion-pki trcs verify` for this. But how?
 
 
 def check_core_as_certs(testcase, isd):
