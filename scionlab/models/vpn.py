@@ -77,6 +77,14 @@ class VPN(models.Model):
         self.private_key = key
         self.cert = cert
 
+    def update_key(self):
+        """
+        Generate new key/certificate and save. Bump configuration on related server Host.
+        """
+        self.init_key()
+        self.save()
+        self.server.bump_config()
+
     def create_client(self, host, active, client_ip=None):
         client_ip = client_ip or str(self._find_client_ip())
         return VPNClient.objects.create(vpn=self, host=host, ip=client_ip, active=active)

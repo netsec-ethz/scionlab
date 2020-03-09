@@ -562,6 +562,7 @@ class VPNUpdateForm(VPNCreationForm):
 
 @admin.register(VPN)
 class VPNAdmin(admin.ModelAdmin):
+    actions = ['update_key']
     list_display = ('__str__', 'server', 'subnet', 'server_vpn_ip', 'num_clients')
     list_display_links = ('__str__',)
 
@@ -574,6 +575,15 @@ class VPNAdmin(admin.ModelAdmin):
         else:
             kwargs['form'] = VPNUpdateForm
         return super().get_form(request, obj, **kwargs)
+
+    def update_key(self, request, queryset):
+        """
+        Admin action: generate new keys / certificates for the selected VPN servers.
+        """
+        for vpn in queryset.iterator():
+            vpn.update_key()
+
+    update_key.short_description = 'Generate new keys/certificates for the selected VPN servers'
 
     def num_clients(self, obj):
         return obj.clients.filter(active=True).count()
