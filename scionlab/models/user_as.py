@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+:mod:`scionlab.scion.models.vpn` --- Django models for User ASes and Attachment Points
+======================================================================================
+"""
+
 import ipaddress
 from typing import List, Set
 

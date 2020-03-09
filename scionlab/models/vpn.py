@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+:mod:`scionlab.scion.models.vpn` --- Django models for OpenVPN configurations for UserASes
+==========================================================================================
+"""
+
 import ipaddress
 from django.db import models
 from django.dispatch import receiver

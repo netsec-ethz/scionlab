@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+:mod:`scionlab.scion.models.core` --- Django models for SCION network representation
+====================================================================================
+"""
+
 from datetime import datetime
 import base64
 import os

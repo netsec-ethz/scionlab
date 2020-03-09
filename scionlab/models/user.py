@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+:mod:`scionlab.scion.models.user` --- Django models for SCIONLab users
+======================================================================
+"""
+
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
 from django.core.exceptions import ValidationError

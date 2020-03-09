@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+:mod:`scionlab.scion.models.pki` --- Django models for SCION control plane PKI objects
+======================================================================================
+"""
+
 import textwrap
 from datetime import datetime, timezone
 import jsonfield
@@ -33,6 +38,14 @@ _MAX_LEN_KEYS = 255
 
 class KeyManager(models.Manager):
     def create(self, AS, usage, version=None, not_before=None, not_after=None):
+        """
+        Create a Key for this AS, for the given usage.
+        :param AS AS:
+        :param str usage: Key usage, one of Key.USAGES
+        :param int version: optional, if not given the next natural version for AS,usage is used
+        :param datetime not_before: start of validity, optional, default is now
+        :param datetime not_after: end of validity, optional, default is not_before+DEFAULT_EXPIRAT.
+        """
         version = version or Key.next_version(AS, usage)
 
         # TODO(matzf) different expiration for different key types (offline > online > iss > ...)?
@@ -54,6 +67,9 @@ class KeyManager(models.Manager):
         )
 
     def latest(self, usage):
+        """
+        Return the latest key (highest version) for the given usage type.
+        """
         return self.filter(usage=usage).latest('version')
 
 
