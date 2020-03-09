@@ -29,8 +29,8 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
     def test_create_delete_create(self):
         isd = ISD.objects.create(isd_id=1, label='one')
 
-        as1_id = 'ffaa:0:0101'
-        as2_id = 'ffaa:0:0102'
+        as1_id = 'ffaa:0:101'
+        as2_id = 'ffaa:0:102'
         AS.objects.create(isd, as1_id, is_core=True)
         utils.check_trc_and_certs(self, 1, {as1_id}, expected_version=1)
 
@@ -50,7 +50,7 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
         isd_id = 1
 
         def make_as_id(i):
-            return "ffaa:0:%.4x" % i
+            return "ffaa:0:%x" % i
 
         ISD.objects.create(isd_id=isd_id, label='some')
 
@@ -59,8 +59,8 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
 
         for i in range(NUM_MUTATIONS):
             if not expected_set or random.getrandbits(1):
-                # add one: i has not been used yet
-                as_id = make_as_id(i)
+                # add one: i+1 has not been used yet
+                as_id = make_as_id(i+1)
                 expected_set.add(as_id)
                 AS.objects.create(ISD.objects.get(isd_id=isd_id), as_id, is_core=True)
             else:

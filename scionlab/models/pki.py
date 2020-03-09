@@ -28,12 +28,30 @@ from scionlab.defines import (
     DEFAULT_EXPIRATION,
     DEFAULT_TRC_GRACE_PERIOD,
 )
-from scionlab.scion import keys, trcs, certs
+from scionlab.scion import as_ids, keys, trcs, certs
 
 _MAX_LEN_CHOICES_DEFAULT = 16
 """ Max length value for choices fields without specific requirements to max length """
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """
+
+
+def _key_set_null_or_cascade(collector, field, sub_objs, using):
+    """
+    on_delete callback for AS relation:
+        - SET_NULL for keys with usage==TRC_VOTING_OFFLINE
+        - CASCADE for all others
+
+    This "trick" is required to be able to use voting offline keys for the creation of a new TRC
+    after an AS has been deleted.
+    """
+    voting_offline = [key for key in sub_objs if key.usage == Key.TRC_VOTING_OFFLINE]
+    others = [key for key in sub_objs if key.usage != Key.TRC_VOTING_OFFLINE]
+
+    if voting_offline:
+        models.SET_NULL(collector, field, voting_offline, using)
+    if others:
+        models.CASCADE(collector, field, others, using)
 
 
 class KeyManager(models.Manager):
@@ -59,6 +77,7 @@ class KeyManager(models.Manager):
 
         return super().create(
             AS=AS,
+            _as_id_int=AS.as_id_int,
             usage=usage,
             version=version,
             key=key,
@@ -94,8 +113,13 @@ class Key(models.Model):
     AS = models.ForeignKey(
         'AS',
         related_name='keys',
-        on_delete=models.CASCADE,
+        on_delete=_key_set_null_or_cascade,
         editable=False,
+        null=True,
+    )
+    _as_id_int = models.BigIntegerField(
+        editable=False,
+        help_text="Copy of AS.as_id_int."
     )
 
     usage = models.CharField(
@@ -116,6 +140,15 @@ class Key(models.Model):
 
     def __str__(self):
         return self.filename()
+
+    @property
+    def as_id(self) -> str:
+        """
+        Shortcut to AS.as_id.
+        Returns the ASID stored directly on this Key object, in order to keep this information
+        after deleting an AS.
+        """
+        return as_ids.format(self._as_id_int)
 
     def filename(self):
         return "%s-v%i.key" % (self.usage, self.version)
@@ -190,7 +223,7 @@ class TRCManager(models.Manager):
         if prev:
             version = prev.version + 1
             prev_trc = prev.trc
-            prev_voting_offline = {key.AS.as_id: _key_info(key)
+            prev_voting_offline = {key.as_id: _key_info(key)
                                    for key in prev.voting_offline.all()}
         else:
             version = 1
@@ -250,10 +283,9 @@ class TRC(models.Model):
 
     trc = jsonfield.JSONField(editable=False)
 
-    # TODO(matzf) o-oh, cannot delete core ASes, ever.
-    # Maybe a solution can be on_delete=models.SET() on Key, which
-    # could, for offline keys, null the AS relation and store the
-    # as_id in a separate field. Bah.
+    # Offline voting keys required to create the next TRC version for sensitive updates;
+    # These keys are never deleted to ensure it is always possible to create a new TRC version, even
+    # after removing _all_ core ASes of an ISD. (see also _key_set_null_or_cascade).
     voting_offline = models.ManyToManyField(
         Key,
     )
@@ -263,6 +295,7 @@ class TRC(models.Model):
     class Meta:
         verbose_name = 'TRC'
         verbose_name_plural = 'TRCs'
+        unique_together = ('isd', 'version')
 
     def __str__(self):
         return self.filename()

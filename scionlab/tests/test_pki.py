@@ -77,6 +77,17 @@ class GenerateKeyTests(TestCase):
         formatted = Key._format_timestamp(d)
         self.assertIsNotNone(re.match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+0000", formatted))
 
+    def test_delete_as(self):
+        ks = Key.objects.create(AS=self.AS, usage=Key.SIGNING)
+        kd = Key.objects.create(AS=self.AS, usage=Key.DECRYPT)
+        ko = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_OFFLINE)
+
+        self.AS.delete()
+
+        self.assertFalse(Key.objects.filter(pk=ks.pk).exists())  # Delete should cascade here, ...
+        self.assertFalse(Key.objects.filter(pk=kd.pk).exists())  # ... and here too.
+        self.assertTrue(Key.objects.filter(pk=ko.pk).exists())   # This one should still exist!
+
 
 _ASID_1 = 'ff00:0:1'
 _ASID_2 = 'ff00:0:2'
