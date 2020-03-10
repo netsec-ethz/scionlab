@@ -14,7 +14,7 @@
 
 import copy
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key
@@ -66,11 +66,6 @@ class GenerateKeyTests(TestCase):
         d = datetime(2006, 1, 2, 15, 4, 5, 12345)
         formatted = Key._format_timestamp(d)
         self.assertEqual(formatted, "2006-01-02 15:04:05+0000")
-
-        # Convert to UTC
-        d = datetime(2006, 1, 2, 15, 4, 5, tzinfo=timezone(timedelta(hours=-7)))
-        formatted = Key._format_timestamp(d)
-        self.assertEqual(formatted, "2006-01-02 22:04:05+0000")
 
         # Should also work on whatever utcnow returns
         d = datetime.utcnow()

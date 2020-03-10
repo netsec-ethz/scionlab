@@ -18,7 +18,7 @@
 """
 
 from collections import namedtuple
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Tuple
 
 from scionlab.scion import jws
@@ -145,8 +145,8 @@ def _build_payload(isd,
         "grace_period": int(grace_period.total_seconds()),
         "trust_reset_allowed": False,
         "validity": {
-            "not_before": int(not_before.timestamp()),
-            "not_after": int(not_after.timestamp()),
+            "not_before": _utc_timestamp(not_before),
+            "not_after": _utc_timestamp(not_after),
         },
         "primary_ases": {
             as_id: {
@@ -266,3 +266,11 @@ def verify(trc,
         return False
 
     return True
+
+
+def _utc_timestamp(dt: datetime) -> int:
+    """
+    Return the timestamp for a naive datetime representing UTC time.
+    """
+    assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
+    return int(dt.replace(tzinfo=timezone.utc).timestamp())

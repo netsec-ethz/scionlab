@@ -18,6 +18,7 @@
 """
 
 from scionlab.scion import keys, jws
+from scionlab.scion.trcs import _utc_timestamp
 
 
 def generate_issuer_certificate(as_, version: int, trc, not_before, not_after,
@@ -45,8 +46,8 @@ def _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_
         "certificate_type": "issuer",
         "optional_distribution_points": [],
         "validity": {
-            "not_before": int(not_before.timestamp()),
-            "not_after": int(not_after.timestamp())
+            "not_before": _utc_timestamp(not_before),
+            "not_after": _utc_timestamp(not_after),
         },
         "keys": {
             "issuing": {
@@ -81,8 +82,8 @@ def _build_as_cert_payload(subject, version, not_before, not_after, encryption_k
         "certificate_type": "as",
         "optional_distribution_points": [],
         "validity": {
-            "not_before": int(not_before.timestamp()),
-            "not_after": int(not_after.timestamp())
+            "not_before": _utc_timestamp(not_before),
+            "not_after": _utc_timestamp(not_after),
         },
         "keys": {
             "encryption": {

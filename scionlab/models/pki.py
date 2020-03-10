@@ -202,17 +202,13 @@ class Key(models.Model):
             return 1
 
     @staticmethod
-    def _format_timestamp(t):
+    def _format_timestamp(dt):
         """
         The SCION key file format expects timestamps in a specific format:
             2006-01-02 15:04:05-0700
         """
-        # always use UTC, servers timezone should be irrelevant
-        if t.tzinfo:
-            t_utc = t.astimezone(timezone.utc)
-        else:
-            t_utc = t.replace(tzinfo=timezone.utc)
-        return t_utc.strftime("%Y-%m-%d %H:%M:%S%z")
+        assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
+        return dt.replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S%z")
 
 
 class TRCManager(models.Manager):
