@@ -10,10 +10,6 @@ RUN apt-get update && apt-get install -y graphviz
 # docker-compose plumbing, not the application.
 RUN pip install appdeps
 
-# Clone SCION repo to get it's python modules
-RUN git clone https://github.com/netsec-ethz/scion/ -b scionlab /scion
-ENV PYTHONPATH=/scion/python:/scion
-
 RUN mkdir /scionlab
 WORKDIR /scionlab
 COPY requirements.txt /scionlab/
