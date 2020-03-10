@@ -1,16 +1,13 @@
 README.md: |-
   content_not_checked
 gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/br.toml: |
-  [br]
-  Profile = false
-
   [general]
-  ConfigDir = "gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1"
-  ID = "br17-ffaa_1_5-1"
-  ReconnectToDispatcher = true
+  config_dir = "gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1"
+  id = "br17-ffaa_1_5-1"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:30442"
+  prometheus = "127.0.0.1:30442"
 
   [log.file]
   level = "debug"
@@ -174,48 +171,43 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/certs/ISD17-V1.trc: |-
     ]
   }
 gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
-  [beaconDB]
-  Backend = "sqlite"
-  Connection = "gen-cache/cs17-ffaa_1_5-1.beacon.db"
+  [beacon_db]
+  backend = "sqlite"
+  connection = "gen-cache/cs17-ffaa_1_5-1.beacon.db"
 
   [bs]
-  OriginationInterval = "5s"
-  PropagationInterval = "5s"
-  RevOverlap = "5s"
-  RevTTL = "20s"
-
-  [cs]
+  origination_interval = "5s"
+  propagation_interval = "5s"
+  rev_overlap = "5s"
+  rev_ttl = "20s"
 
   [general]
-  ConfigDir = "gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1"
-  ID = "cs17-ffaa_1_5-1"
-  ReconnectToDispatcher = true
+  config_dir = "gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1"
+  id = "cs17-ffaa_1_5-1"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:30454"
+  prometheus = "127.0.0.1:30454"
 
-  [ps]
-  SegSync = true
+  [path_db]
+  backend = "sqlite"
+  connection = "gen-cache/cs17-ffaa_1_5-1.path.db"
 
   [quic]
-  Address = "127.0.0.1:30354"
-  CertFile = "gen-certs/tls.pem"
-  KeyFile = "gen-certs/tls.key"
-  ResolutionFraction = 0.4
+  address = "127.0.0.1:30354"
+  cert_file = "gen-certs/tls.pem"
+  key_file = "gen-certs/tls.key"
+  resolution_fraction = 0.4
 
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "gen-cache/cs17-ffaa_1_5-1.trust.db"
+  [trust_db]
+  backend = "sqlite"
+  connection = "gen-cache/cs17-ffaa_1_5-1.trust.db"
 
   [log.file]
   level = "debug"
   max_age = 3
   max_backups = 1
   path = "logs/cs17-ffaa_1_5-1.log"
-
-  [ps.pathDB]
-  Backend = "sqlite"
-  Connection = "gen-cache/cs17-ffaa_1_5-1.path.db"
 gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-decrypt-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: curve25519xsalsa20poly1305
@@ -343,29 +335,29 @@ gen/ISD17/ASffaa_1_5/endhost/certs/ISD17-V1.trc: |-
   }
 gen/ISD17/ASffaa_1_5/endhost/sd.toml: |
   [general]
-  ConfigDir = "gen/ISD17/ASffaa_1_5/endhost"
-  ID = "sd17-ffaa_1_5"
-  ReconnectToDispatcher = true
+  config_dir = "gen/ISD17/ASffaa_1_5/endhost"
+  id = "sd17-ffaa_1_5"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:30455"
+  prometheus = "127.0.0.1:30455"
+
+  [path_db]
+  backend = "sqlite"
+  connection = "gen-cache/sd17-ffaa_1_5.path.db"
 
   [sd]
   address = "127.0.0.1:30255"
 
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "gen-cache/sd17-ffaa_1_5.trust.db"
+  [trust_db]
+  backend = "sqlite"
+  connection = "gen-cache/sd17-ffaa_1_5.trust.db"
 
   [log.file]
   level = "debug"
   max_age = 3
   max_backups = 1
   path = "logs/sd17-ffaa_1_5.log"
-
-  [sd.pathDB]
-  Backend = "sqlite"
-  Connection = "gen-cache/sd17-ffaa_1_5.path.db"
 gen/ISD17/ASffaa_1_5/endhost/supervisord.conf: |+
   [program:sd17-ffaa_1_5]
   autostart = false
@@ -458,11 +450,11 @@ gen/ISD17/trcs/ISD17-V1.trc: |-
   }
 gen/dispatcher/disp.toml: |
   [dispatcher]
-  ID = "dispatcher"
-  SocketFileMode = "0777"
+  id = "dispatcher"
+  socket_file_mode = "0777"
 
   [metrics]
-  Prometheus = "127.0.0.1:30441"
+  prometheus = "127.0.0.1:30441"
 
   [log.file]
   level = "debug"

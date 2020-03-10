@@ -2,16 +2,13 @@ ccd/: null
 ccd/exbert@scionlab.org_ffaa_1_1: |-
   ifconfig-push 10.0.0.1 255.255.0.0
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/br.toml: |
-  [br]
-  Profile = false
-
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1"
-  ID = "br17-ffaa_0_1107-1"
-  ReconnectToDispatcher = true
+  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1"
+  id = "br17-ffaa_0_1107-1"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:30442"
+  prometheus = "127.0.0.1:30442"
 
   [log.file]
   level = "debug"
@@ -182,16 +179,13 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
     "Overlay": "UDP/IPv4"
   }
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/br.toml: |
-  [br]
-  Profile = false
-
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2"
-  ID = "br17-ffaa_0_1107-2"
-  ReconnectToDispatcher = true
+  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2"
+  id = "br17-ffaa_0_1107-2"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:30443"
+  prometheus = "127.0.0.1:30443"
 
   [log.file]
   level = "debug"
@@ -393,48 +387,43 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
     ]
   }
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
-  [beaconDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/cs17-ffaa_0_1107-1.beacon.db"
+  [beacon_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.beacon.db"
 
   [bs]
-  OriginationInterval = "5s"
-  PropagationInterval = "5s"
-  RevOverlap = "5s"
-  RevTTL = "20s"
-
-  [cs]
+  origination_interval = "5s"
+  propagation_interval = "5s"
+  rev_overlap = "5s"
+  rev_ttl = "20s"
 
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1"
-  ID = "cs17-ffaa_0_1107-1"
-  ReconnectToDispatcher = true
+  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1"
+  id = "cs17-ffaa_0_1107-1"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:30454"
+  prometheus = "127.0.0.1:30454"
 
-  [ps]
-  SegSync = true
+  [path_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.path.db"
 
   [quic]
-  Address = "127.0.0.1:30354"
-  CertFile = "/etc/scion/gen-certs/tls.pem"
-  KeyFile = "/etc/scion/gen-certs/tls.key"
-  ResolutionFraction = 0.4
+  address = "127.0.0.1:30354"
+  cert_file = "/etc/scion/gen-certs/tls.pem"
+  key_file = "/etc/scion/gen-certs/tls.key"
+  resolution_fraction = 0.4
 
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
+  [trust_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
 
   [log.file]
   level = "debug"
   max_age = 3
   max_backups = 1
   path = "/var/log/scion/cs17-ffaa_0_1107-1.log"
-
-  [ps.pathDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/cs17-ffaa_0_1107-1.path.db"
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-decrypt-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: curve25519xsalsa20poly1305
@@ -600,29 +589,29 @@ gen/ISD17/ASffaa_0_1107/endhost/certs/ISD17-V1.trc: |-
   }
 gen/ISD17/ASffaa_0_1107/endhost/sd.toml: |
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/endhost"
-  ID = "sd17-ffaa_0_1107"
-  ReconnectToDispatcher = true
+  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/endhost"
+  id = "sd17-ffaa_0_1107"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "127.0.0.1:30455"
+  prometheus = "127.0.0.1:30455"
+
+  [path_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/sd17-ffaa_0_1107.path.db"
 
   [sd]
   address = "127.0.0.1:30255"
 
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/sd17-ffaa_0_1107.trust.db"
+  [trust_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/sd17-ffaa_0_1107.trust.db"
 
   [log.file]
   level = "debug"
   max_age = 3
   max_backups = 1
   path = "/var/log/scion/sd17-ffaa_0_1107.log"
-
-  [sd.pathDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/sd17-ffaa_0_1107.path.db"
 gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
   {
     "Attributes": [],
@@ -749,11 +738,11 @@ gen/ISD17/trcs/ISD17-V1.trc: |-
   }
 gen/dispatcher/disp.toml: |
   [dispatcher]
-  ID = "dispatcher"
-  SocketFileMode = "0777"
+  id = "dispatcher"
+  socket_file_mode = "0777"
 
   [metrics]
-  Prometheus = "127.0.0.1:30441"
+  prometheus = "127.0.0.1:30441"
 
   [log.file]
   level = "debug"

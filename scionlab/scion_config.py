@@ -250,7 +250,10 @@ class _ConfigBuilder:
         metrics_conf = self._build_metrics_conf(DISPATCHER_PROM_PORT)
         conf = _chain_dicts(logging_conf, metrics_conf)
         conf.update({
-            'dispatcher': {'ID': 'dispatcher', 'SocketFileMode': '0777'},
+            'dispatcher': {
+                'id': 'dispatcher',
+                'socket_file_mode': '0777'
+            },
         })
         return conf
 
@@ -259,11 +262,6 @@ class _ConfigBuilder:
         logging_conf = self._build_logging_conf(router.instance_name)
         metrics_conf = self._build_metrics_conf(router.internal_port + BR_PROM_PORT_OFFSET)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
-        conf.update({
-            'br': {
-                'Profile': False,
-            }
-        })
         return conf
 
     def build_cs_conf(self, service):
@@ -276,34 +274,30 @@ class _ConfigBuilder:
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
             'bs': {
-                'OriginationInterval': interval,
-                'PropagationInterval': interval,
-                'RevTTL': '20s',
-                'RevOverlap': '5s'
+                'origination_interval': interval,
+                'propagation_interval': interval,
+                'rev_ttl': '20s',
+                'rev_overlap': '5s'
             },
-            'cs': {
-                # settings for AutomaticRenewal; disabled by default, currently not available anyway
+            # settings for AutomaticRenewal; disabled by default, currently not available anyway
+            # 'cs': { },
+            'path_db': {
+                'backend': 'sqlite',
+                'connection': '%s.path.db' % os.path.join(self.var_dir, service.instance_name),
             },
-            'ps': {
-                'pathDB': {
-                    'Backend': 'sqlite',
-                    'Connection': '%s.path.db' % os.path.join(self.var_dir, service.instance_name),
-                },
-                'SegSync': True
+            'beacon_db': {
+                'backend': 'sqlite',
+                'connection': '%s.beacon.db' % os.path.join(self.var_dir, service.instance_name),
             },
-            'beaconDB': {
-                'Backend': 'sqlite',
-                'Connection': '%s.beacon.db' % os.path.join(self.var_dir, service.instance_name),
-            },
-            'trustDB': {
-                'Backend': 'sqlite',
-                'Connection': '%s.trust.db' % os.path.join(self.var_dir, service.instance_name),
+            'trust_db': {
+                'backend': 'sqlite',
+                'connection': '%s.trust.db' % os.path.join(self.var_dir, service.instance_name),
             },
             'quic': {
-                'KeyFile':  os.path.join(self.config_dir, 'gen-certs/tls.key'),
-                'CertFile': os.path.join(self.config_dir, 'gen-certs/tls.pem'),
-                'ResolutionFraction': 0.4,
-                'Address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
+                'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
+                'key_file':  os.path.join(self.config_dir, 'gen-certs/tls.key'),
+                'cert_file': os.path.join(self.config_dir, 'gen-certs/tls.pem'),
+                'resolution_fraction': 0.4,
             },
         })
         return conf
@@ -319,14 +313,14 @@ class _ConfigBuilder:
         conf.update({
             'sd': {
                 'address': _join_host_port('127.0.0.1', SD_TCP_PORT),
-                'pathDB': {
-                    'Backend': 'sqlite',
-                    'Connection': '%s.path.db' % os.path.join(self.var_dir, instance_name),
-                },
             },
-            'trustDB': {
-                'Backend': 'sqlite',
-                'Connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
+            'path_db': {
+                'backend': 'sqlite',
+                'connection': '%s.path.db' % os.path.join(self.var_dir, instance_name),
+            },
+            'trust_db': {
+                'backend': 'sqlite',
+                'connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
             },
         })
         return conf
@@ -335,10 +329,10 @@ class _ConfigBuilder:
         """ Builds the 'general' configuration section common to SD,CS and BR """
         return {
             'general': {
-                'ID': instance_name,
-                'ConfigDir': os.path.join(self.config_isd_as_dir, instance_dir or instance_name),
+                'id': instance_name,
+                'config_dir': os.path.join(self.config_isd_as_dir, instance_dir or instance_name),
                 # Note: this has performance impacts (for BR, only control plane)
-                'ReconnectToDispatcher': True,
+                'reconnect_to_dispatcher': True,
             },
         }
 
@@ -346,7 +340,7 @@ class _ConfigBuilder:
         """ Builds the 'metrics' configuration common to all services """
         return {
             'metrics': {
-                'Prometheus': _join_host_port('127.0.0.1', prometheus_port)
+                'prometheus': _join_host_port('127.0.0.1', prometheus_port)
             },
         }
 
