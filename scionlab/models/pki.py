@@ -213,6 +213,20 @@ class Key(models.Model):
 
 class TRCManager(models.Manager):
     def create(self, isd):
+        """
+        Create a TRC for this ISD.
+
+        The version is incremented from the previous TRC. The voting offline keys related to the
+        previous TRC may be (precisely: for online key updates and sensitive updates) used to sign
+        the new TRC.
+
+        Requires at least one core AS in this ISD.
+
+        The latest keys for all core ASes are used. The validity period for the TRC is determined
+        based the validity of these keys.
+
+        :param isd ISD:
+        """
 
         prev = isd.trcs.latest_or_none()
 
@@ -339,6 +353,14 @@ class CertificateManager(models.Manager):
             self.create_as_cert(AS, *args, **kwargs)
 
     def create_issuer_cert(self, as_):
+        """
+        Create an issuer certificate for this AS.
+
+        Uses the latest TRC and TRC issuing grant key (i.e. assumes that these match) to sign an
+        issuer certificate for the latest issuer key .
+        The validity period for the certificate is defined by the validity of these inputs (TRC and
+        keys).
+        """
         version = Certificate.next_version(as_, Certificate.ISSUER)
 
         trc = as_.isd.trcs.latest()
@@ -360,6 +382,14 @@ class CertificateManager(models.Manager):
         )
 
     def create_as_cert(self, subject, issuer):
+        """
+        Create an AS certificate chain for the subject AS.
+
+        Uses the latest cert signing key and issuer certificate of the issuer AS (i.e. assumes that
+        these match) to sign a certificate for the latest encryption and signing key of the subject
+        AS.
+        The validity period is defined by the validity of these input keys.
+        """
         version = Certificate.next_version(subject, Certificate.CHAIN)
 
         encryption_key = subject.keys.latest(usage=Key.DECRYPT)
@@ -433,6 +463,10 @@ class Certificate(models.Model):
 
 
 def _validity(vs):
+    """
+    Return the intersection of the validity periods for the given inputs.
+    :param vs: iterable of objects with `not_before` and `not_after` datetime members
+    """
     not_before = max(v.not_before for v in vs)
     not_after = min(v.not_after for v in vs)
     return not_before, not_after
