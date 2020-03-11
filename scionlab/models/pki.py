@@ -326,7 +326,18 @@ def _core_key_info(keys: List[Key]) -> trcs.CoreKeys:
 
 
 class CertificateManager(models.Manager):
-    # XXX(matzf): change the create functions so they can be called on the reverse relation manager?
+    def create(self, AS, type, *args, **kwargs):
+        """
+        Create issuer certificate or AS certificate chain, depending on type.
+        When creating an AS certificate chains, an `issuer` AS with an existing issuer certificate
+        must be given.
+        """
+        if type == Certificate.ISSUER:
+            self.create_issuer_cert(AS, *args, **kwargs)
+        else:
+            assert type == Certificate.CHAIN
+            self.create_as_cert(AS, *args, **kwargs)
+
     def create_issuer_cert(self, as_):
         version = Certificate.next_version(as_, Certificate.ISSUER)
 

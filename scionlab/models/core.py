@@ -329,7 +329,7 @@ class AS(TimestampedModel):
             issuer = candidates.first()
 
         if issuer:  # Skip if failed to find a core AS as issuer
-            Certificate.objects.create_as_cert(self, issuer)
+            self.certificates.create(type=Certificate.CHAIN, issuer=issuer)
 
     def generate_core_certificate(self):
         """
@@ -337,7 +337,7 @@ class AS(TimestampedModel):
 
         Requires that the TRC in this ISD exists/is up to date.
         """
-        Certificate.objects.create_issuer_cert(self)
+        self.certificates.create(type=Certificate.ISSUER)
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """
@@ -390,7 +390,7 @@ class AS(TimestampedModel):
         Generate signing and encryption key pairs.
         """
         for usage in [Key.DECRYPT, Key.SIGNING]:
-            Key.objects.create(self, usage=usage, not_before=valid_not_before)
+            self.keys.create(usage=usage, not_before=valid_not_before)
 
     def _gen_core_keys(self, valid_not_before):
         """
@@ -400,7 +400,7 @@ class AS(TimestampedModel):
                       Key.TRC_ISSUING_GRANT,
                       Key.TRC_VOTING_ONLINE,
                       Key.TRC_VOTING_OFFLINE]:
-            Key.objects.create(self, usage=usage, not_before=valid_not_before)
+            self.keys.create(usage=usage, not_before=valid_not_before)
 
     @staticmethod
     def _make_master_as_key():
