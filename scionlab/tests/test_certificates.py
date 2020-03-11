@@ -130,15 +130,6 @@ class TRCAndCoreASCertificateTestsISD19(TestCase):
         AS.update_core_as_keys(isd.ases.filter(is_core=True))
         utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=2)
 
-        # XXX(matzf): this is probably not the behaviour we need; we don't have/want automatic cert
-        # issuance!
-        # Certs for non-core ASes not updated; will be updated as new TRC is disseminated
-        # for as_ in isd.ases.filter(is_core=False).iterator():
-        #     self.assertEqual(
-        #         as_.certificate_chain['0']['TRCVersion'],
-        #         trc_v1.version
-        #     )
-
 
 def _reset_trc_and_certificates(isd):
     isd.trcs.all().delete()
