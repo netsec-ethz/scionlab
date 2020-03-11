@@ -274,10 +274,10 @@ class AS(TimestampedModel):
 
     def init_keys(self):
         """
-        Initialise signing and encryption key pairs, the MasterASKey (used for
-        hop field Message Authentication Codes (MAC) and the Dynamically
-        Recreatable Keys (DRKeys)).
-        If this is a core AS, also initialise the core AS signing key pairs.
+        Initialise AS signing and encryption keys.
+        If this is a core AS, also initialise the core AS voting and issuing keys.
+
+        Note: does not set master_as_key.
         """
         valid_not_before = datetime.utcnow()
         self._gen_keys(valid_not_before)
@@ -286,7 +286,7 @@ class AS(TimestampedModel):
 
     def update_keys(self):
         """
-        Generate new signing and encryption key pairs. Update the certificate.
+        Generate new AS signing and encryption keys. Update the certificate.
         Bumps the configuration version on all affected hosts.
         """
         self._gen_keys(valid_not_before=datetime.utcnow())
@@ -406,6 +406,8 @@ class AS(TimestampedModel):
     def _make_master_as_key():
         """
         Generate a random MasterASKey.
+        The MasterASKey is used for hop field Message Authentication Codes (MAC) and Dynamically
+        Recreatable Keys (DRKeys).
         """
         return _base64encode(os.urandom(16))
 
