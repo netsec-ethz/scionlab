@@ -146,7 +146,6 @@ class ASManager(models.Manager):
         if init_certificates:
             if is_core:
                 isd.update_trc_and_certificates()
-                as_.refresh_from_db()  # XXX(matzf) still neeeded? guess not!?
             else:
                 as_.generate_certificate_chain()
         return as_
