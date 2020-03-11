@@ -200,12 +200,8 @@ jobs:
             docker-compose exec -T as1301 cat "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
-            # XXX: Update keys for non-core ASes force reissuing AS certs.
-            #      Otherwise we create an inconsistent gen/ folder, see
-            #      https://github.com/netsec-ethz/scionlab/issues/194.
             docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301; \
-              python .circleci/actions/update-keys.py ffaa:0:1303 ffaa:0:1305; \
+             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301;
               python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
 
             docker-compose logs huey

@@ -23,7 +23,7 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
     def test_empty_isd(self):
         isd = ISD.objects.create(isd_id=1, label='empty')
         # Explicitly try to create TRC, should not fail but is just a no-op:
-        isd.init_trc_and_certificates()
+        isd.update_trc_and_certificates()
         self.assertFalse(isd.trcs.exists())
 
     def test_create_delete_create(self):
@@ -91,7 +91,7 @@ class TRCAndCoreASCertificateTestsISD19(TestCase):
         isd = ISD.objects.get(isd_id=19)
 
         _reset_trc_and_certificates(isd)
-        isd.init_trc_and_certificates()
+        isd.update_trc_and_certificates()
 
         utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=1)
 
@@ -99,10 +99,10 @@ class TRCAndCoreASCertificateTestsISD19(TestCase):
         isd = ISD.objects.get(isd_id=19)
         utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=1)
 
-        isd.update_trc_and_core_certificates()
+        isd.update_trc_and_certificates()
         utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=2)
 
-        isd.update_trc_and_core_certificates()
+        isd.update_trc_and_certificates()
         utils.check_trc_and_certs(self, 19, self.isd19_core_ases, expected_version=3)
 
     def test_update_single_cert(self):

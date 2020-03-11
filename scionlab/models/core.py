@@ -85,7 +85,7 @@ class ISD(TimestampedModel):
         else:
             return 'ISD %d' % self.isd_id
 
-    def init_trc_and_certificates(self):
+    def update_trc_and_certificates(self):
         """
         Generate the TRC and all AS and Core AS Certificates and for all ASes in this ISD.
         Ensures that the certificates are updated in the correct order, i.e. Core AS certificates
@@ -101,21 +101,6 @@ class ISD(TimestampedModel):
 
         for as_ in self.ases.filter(is_core=False).iterator():
             self._update_as_certificates(as_)
-
-        return trc
-
-    def update_trc_and_core_certificates(self):
-        """
-        Update the TRC and the Core AS Certificates for all the core-ASes in this ISD.
-
-        All updated objects are saved.
-        """
-        if not self.ases.filter(is_core=True).exists():
-            return None
-
-        trc = self.trcs.create()
-        for as_ in self.ases.filter(is_core=True):
-            self._update_coreas_certificates(as_)
 
         return trc
 
@@ -160,7 +145,7 @@ class ASManager(models.Manager):
         as_.init_keys()
         if init_certificates:
             if is_core:
-                isd.update_trc_and_core_certificates()
+                isd.update_trc_and_certificates()
                 as_.refresh_from_db()  # XXX(matzf) still neeeded? guess not!?
             else:
                 as_.generate_certificate_chain()
@@ -262,7 +247,7 @@ class AS(TimestampedModel):
         also for bulk deletion, while this `delete()` method is not.
         """
         if self.is_core:
-            self.isd.update_trc_and_core_certificates()
+            self.isd.update_trc_and_certificates()
         self.hosts.bump_config()
 
     def is_infrastructure_AS(self):
@@ -325,7 +310,7 @@ class AS(TimestampedModel):
             as_.save()
 
         for isd in isds:
-            isd.update_trc_and_core_certificates()
+            isd.update_trc_and_certificates()
 
     def generate_certificate_chain(self):
         """
