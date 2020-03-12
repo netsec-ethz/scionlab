@@ -197,7 +197,7 @@ jobs:
 
             # Show current TRC
             TRC_version=1
-            docker-compose exec -T as1301 cat "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
             docker-compose exec -T coord /bin/bash -c \
@@ -207,9 +207,11 @@ jobs:
             docker-compose logs huey
             docker-compose logs coord
 
-            # Check that TRCs were updated
+            # Check updated TRC and check that updated TRCs were installed on all hosts
             TRC_version=$((TRC_version + 1))
-            docker-compose exec -T as1301 stat -t "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs verify -d "/etc/scion/gen/" "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+
             docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
             docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
 
