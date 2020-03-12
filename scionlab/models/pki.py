@@ -25,7 +25,8 @@ from typing import List
 from django.db import models
 
 from scionlab.defines import (
-    DEFAULT_EXPIRATION,
+    DEFAULT_EXPIRATION_CORE_KEYS,
+    DEFAULT_EXPIRATION_AS_KEYS,
     DEFAULT_TRC_GRACE_PERIOD,
 )
 from scionlab.scion import as_ids, keys, trcs, certs
@@ -66,9 +67,8 @@ class KeyManager(models.Manager):
         """
         version = version or Key.next_version(AS, usage)
 
-        # TODO(matzf) different expiration for different key types (offline > online > iss > ...)?
         not_before = not_before or datetime.utcnow()
-        not_after = not_after or not_before + DEFAULT_EXPIRATION
+        not_after = not_after or not_before + Key.default_expiration(usage)
 
         if usage == Key.DECRYPT:
             key = keys.generate_enc_key()
@@ -209,6 +209,19 @@ class Key(models.Model):
         """
         assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
         return dt.replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S%z")
+
+    @staticmethod
+    def default_expiration(usage):
+        """
+        Return the default expiration time for keys of the given usage.
+        """
+        if usage in [Key.CERT_SIGNING,
+                     Key.TRC_ISSUING_GRANT,
+                     Key.TRC_VOTING_ONLINE,
+                     Key.TRC_VOTING_OFFLINE]:
+            return DEFAULT_EXPIRATION_CORE_KEYS
+        else:
+            return DEFAULT_EXPIRATION_AS_KEYS
 
 
 class TRCManager(models.Manager):

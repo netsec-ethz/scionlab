@@ -23,7 +23,7 @@ from scionlab.scion import keys
 
 
 def encode(data: dict) -> str:
-    return _b64url(json.dumps(data).encode())
+    return _b64url(json.dumps(data, sort_keys=True).encode())
 
 
 def decode(data_enc: str) -> dict:

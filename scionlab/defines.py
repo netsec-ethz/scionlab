@@ -51,5 +51,8 @@ SCION_LOG_DIR = "/var/log/scion"
 SCION_VAR_DIR = "/var/lib/scion"
 GEN_PATH = "gen"
 
-DEFAULT_EXPIRATION = datetime.timedelta(days=365)
+# Default expiration time for keys; we currently only distinguish between core/non-core keys.
+# Note: the expiration of the core keys also defines the expiration of the TRCs.
+DEFAULT_EXPIRATION_AS_KEYS = datetime.timedelta(days=365)
+DEFAULT_EXPIRATION_CORE_KEYS = datetime.timedelta(days=2*365)
 DEFAULT_TRC_GRACE_PERIOD = datetime.timedelta(hours=6)
