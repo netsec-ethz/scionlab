@@ -444,12 +444,13 @@ def check_cert_chain(testcase, cert_chain):
 def check_tarball_user_as(testcase, response, user_as):
     """
     Check the http-response for downloading a UserAS-config tar-ball.
+    Return the tar for further inspection.
     """
     tar = _check_open_tarball(testcase, response)
 
     if user_as.installation_type == UserAS.VM:
         testcase.assertEquals(sorted(['README.md', 'Vagrantfile']),
-                              _tar_ls(tar, ''))
+                              tar_ls(tar, ''))
         # appropriate README?
         readme = tar.extractfile('README.md').read().decode()
         testcase.assertTrue(readme.startswith('# SCIONLab VM'))
@@ -460,37 +461,28 @@ def check_tarball_user_as(testcase, response, user_as):
         testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_path_str()])
     else:
         testcase.assertEquals(sorted(['README.md', 'gen']),
-                              _tar_ls(tar, ''))
+                              tar_ls(tar, ''))
         # check the full content of gen/
         _check_tarball_gen(testcase, tar, user_as.hosts.get())
         readme = tar.extractfile('README.md').read().decode()
         testcase.assertTrue(readme.startswith('# SCIONLab Dedicated'))
+    return tar
 
 
 def check_tarball_host(testcase, response, host):
     """
     Check the http-response for downloading a host-config tar-ball.
+    Return the tar for further inspection.
     """
     tar = _check_open_tarball(testcase, response)
-    testcase.assertTrue(['gen'], _tar_ls(tar, ''))
+
+    top_dir = tar_ls(tar, '')
+    testcase.assertTrue('gen' in top_dir)
     _check_tarball_gen(testcase, tar, host)
 
-
-def check_tarball_files_exist(testcase, response, files):
-    """
-    Check the tarball in the reponse for existance of files.
-    The provided file names will be matched exactly against a listing of the tarball.
-    """
-    file_set = set(files)
-    tar = _check_open_tarball(testcase, response)
-    filenames = tar.getnames()
-    for f in filenames:
-        if f in file_set:
-            file_set.remove(f)
-        if not file_set:
-            break
-    testcase.assertEqual(0, len(file_set),
-                         'Could not find all files: {}'.format(','.join(file_set)))
+    testcase.assertTrue('scionlab-services.txt' in top_dir)
+    _check_tarball_services(testcase, tar, host)
+    return tar
 
 
 def _check_open_tarball(testcase, response):
@@ -513,9 +505,8 @@ def _check_tarball_gen(testcase, tar, host):
     isd_str = 'ISD%i' % host.AS.isd.isd_id
     as_str = 'AS%s' % host.AS.as_path_str()
 
-    testcase.assertEqual([isd_str, 'dispatcher', 'ia', 'scionlab-config.json'], _tar_ls(tar, 'gen'))
-    testcase.assertEqual(host.AS.isd_as_path_str(), _tar_cat(tar, 'gen/ia').decode())
-    testcase.assertEqual([as_str, 'trcs'], _tar_ls(tar, os.path.join('gen', isd_str)))
+    testcase.assertEqual([isd_str, 'dispatcher', 'scionlab-config.json'], tar_ls(tar, 'gen'))
+    testcase.assertEqual([as_str, 'trcs'], tar_ls(tar, os.path.join('gen', isd_str)))
 
     as_gen_dir = os.path.join('gen', isd_str, as_str)
     topofiles = [f for f in tar.getnames() if
@@ -523,7 +514,25 @@ def _check_tarball_gen(testcase, tar, host):
     testcase.assertTrue(topofiles)
 
 
-def _tar_ls(tar, path):
+def _check_tarball_services(testcase, tar, host):
+    services = tar_cat(tar, 'scionlab-services.txt').decode().split('\n')
+
+    br = ["scion-border-router@%s.service" % str(br).replace('br-', '')
+          for br in host.border_routers.all()]
+    cs = ["scion-control-service@%s.service" % str(s).replace('cs-', '')
+          for s in host.services.filter(type=Service.CS)]
+    bw = ["scion-bwtestserver.service"
+          for _ in host.services.filter(type=Service.BW)]
+
+    expected_services = br + cs + bw + [
+        "scion-daemon@%s.service" % host.AS.isd_as_path_str(),
+        "scion-dispatcher.service",
+    ]
+
+    testcase.assertEqual(sorted(services), sorted(expected_services))
+
+
+def tar_ls(tar, path):
     """
     Helper function: "ls" the given path in the tar, i.e. list files/subdirectories
     contained in the given path.
@@ -542,7 +551,7 @@ def _tar_ls(tar, path):
     return list(sorted(s))
 
 
-def _tar_cat(tar, path):
+def tar_cat(tar, path):
     """
     Reads file and returns content as bytes
     """

@@ -75,7 +75,6 @@ def _add_files_user_as_dedicated(archive, host, process_control):
     """
 
     _add_config_info(host, archive, with_version=True)
-    _add_ia_file(host, archive)
     scion_config.create_gen(host, archive, process_control)
     _add_vpn_client_configs(host, archive)
     _add_vpn_server_config(host, archive)
@@ -90,7 +89,6 @@ def generate_host_config_tar(host, archive):
     :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
     _add_config_info(host, archive, with_version=True)
-    _add_ia_file(host, archive)
     _add_vpn_client_configs(host, archive)
     _add_vpn_server_config(host, archive)
     scion_config.create_gen(host, archive, scion_config.ProcessControl.SYSTEMD)
@@ -187,11 +185,6 @@ def _generate_config_info_json(host, with_version):
     if with_version:
         config_info['version'] = host.config_version
     return config_info
-
-
-def _add_ia_file(host, archive):
-    archive.write_text((GEN_PATH, 'ia'),
-                       host.AS.isd_as_path_str())
 
 
 def _hostfiles_path(filename):

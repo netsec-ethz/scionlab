@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
 from django.test import TestCase
 from scionlab.models.core import Host
 from scionlab.tests import utils
@@ -95,19 +94,15 @@ class GetHostConfigExtraServicesTests(TestCase):
     def _get_auth_headers(host):
         return basic_auth(host.uid, host.secret)
 
-    @unittest.skip('Extra services need to be re-implemented for systemd units')
     def test_get(self):
         # in the fixture, the host for 17-ffaa:0:1107 has extra services
         hosts = Host.objects.filter(AS__as_id='ffaa:0:1107')
         host = hosts[0]
         resp = self.client.get(self._get_url(host), {}, **self._get_auth_headers(host))
         self.assertEqual(resp.status_code, 200)
-        utils.check_tarball_host(self, resp, host)
-        # XXX: will fail
-        utils.check_tarball_files_exist(self, resp, [
-            'gen/ISD17/ASffaa_0_1107/bw17-ffaa_0_1107-1/supervisord.conf',
-            'gen/ISD17/ASffaa_0_1107/pp17-ffaa_0_1107-1/supervisord.conf'
-        ])
+        tar = utils.check_tarball_host(self, resp, host)
+        services = utils.tar_cat(tar, 'scionlab-services.txt').decode().split('\n')
+        self.assertTrue('scion-bwtestserver.service' in services)
 
 
 class PostHostConfigVersionTests(TestCase):
