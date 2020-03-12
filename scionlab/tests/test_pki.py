@@ -19,7 +19,8 @@ from datetime import datetime, timedelta
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key
 from scionlab.defines import (
-    DEFAULT_EXPIRATION,
+    DEFAULT_EXPIRATION_AS_KEYS,
+    DEFAULT_EXPIRATION_CORE_KEYS,
     DEFAULT_TRC_GRACE_PERIOD,
 )
 
@@ -47,7 +48,7 @@ class GenerateKeyTests(TestCase):
         self.assertEqual(k.AS_id, self.AS.pk)
         self.assertEqual(k.version, 1)
         self.assertEqual(k.usage, Key.DECRYPT)
-        self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION)
+        self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION_AS_KEYS)
 
     def test_generate_sign_key(self):
         k = Key.objects.create(AS=self.AS, usage=Key.SIGNING)
@@ -55,7 +56,7 @@ class GenerateKeyTests(TestCase):
         self.assertEqual(k.AS_id, self.AS.pk)
         self.assertEqual(k.version, 1)
         self.assertEqual(k.usage, Key.SIGNING)
-        self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION)
+        self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION_AS_KEYS)
 
     def test_key_timestamp_format(self):
         d = datetime(2006, 1, 2, 15, 4, 5)
@@ -117,7 +118,7 @@ class GenerateTRCTests(TestCase):
         voting_offline = {as_id: keys.voting_offline for as_id, keys in primary_ases.items()}
 
         not_before = datetime(2020, 2, 20)
-        not_after = not_before + DEFAULT_EXPIRATION
+        not_after = not_before + DEFAULT_EXPIRATION_CORE_KEYS
 
         trc = trcs.generate_trc(self.isd1, 1, DEFAULT_TRC_GRACE_PERIOD, not_before, not_after,
                                 primary_ases, None, None)
@@ -138,10 +139,12 @@ class GenerateTRCTests(TestCase):
         version = prev_version + 1
 
         # define validity time with arbitrary time offset from previous validity start.
+        # key lifetime is not extended, so validty end is the same
         # Just for "fun", not really relevant.
-        prev_not_before = datetime.fromtimestamp(prev['validity']['not_before'])
+        prev_not_before = datetime.utcfromtimestamp(prev['validity']['not_before'])
+        prev_not_after = datetime.utcfromtimestamp(prev['validity']['not_after'])
         not_before = prev_not_before + timedelta(days=31)
-        not_after = not_before + DEFAULT_EXPIRATION
+        not_after = prev_not_after
 
         trc = trcs.generate_trc(self.isd1, version, DEFAULT_TRC_GRACE_PERIOD, not_before, not_after,
                                 primary_ases, prev_trc, prev_voting_offline)
