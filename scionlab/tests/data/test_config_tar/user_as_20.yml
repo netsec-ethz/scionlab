@@ -473,8 +473,6 @@ gen/dispatcher/supervisord.conf: |+
   priority = 50
   command = bin/godispatcher -config gen/dispatcher/disp.toml
 
-gen/ia: |-
-  17-ffaa_1_5
 gen/scionlab-config.json: |-
   {
     "host_id": "f2f482ed5717434e926c39bd5ef661dc",

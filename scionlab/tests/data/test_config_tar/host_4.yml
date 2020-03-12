@@ -749,8 +749,6 @@ gen/dispatcher/disp.toml: |
   max_age = 3
   max_backups = 1
   path = "/var/log/scion/dispatcher.log"
-gen/ia: |-
-  17-ffaa_0_1107
 gen/scionlab-config.json: |-
   {
     "host_id": "9e090a4529264b958a5c65fd8c214b1d",
