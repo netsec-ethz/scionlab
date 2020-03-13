@@ -335,9 +335,9 @@ jobs:
             set -x
             # Simulate command that is executed on hosts with upgrade cronjob (VMs), upgrade package
             for c in as1301 as1303 as1305; do
-              docker-compose exec -T as1303 /bin/bash -c \
-                'echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian testing main" | sudo tee /etc/apt/sources.list.d/scionlab.list; \
-                 apt-get update; apt-get install -y --only-upgrade -t testing scionlab'
+              docker-compose exec -T $c /bin/bash -c \
+                'echo "deb [trusted=yes] https://packages-test.netsec.inf.ethz.ch/debian all main" | sudo tee /etc/apt/sources.list.d/scionlab.list; \
+                 apt-get update; apt-get install -y --only-upgrade -t all scionlab'
             done
 
       - run:
