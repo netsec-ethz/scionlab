@@ -135,6 +135,10 @@ def _build_payload(isd,
                    primary_ases,
                    votes,
                    proof_of_possession):
+    """
+    Build a TRC payload as a dict. See
+    https://github.com/scionproto/scion/blob/master/doc/ControlPlanePKI.md#trc-format
+    """
     return {
         "isd": isd.isd_id,
         "trc_version": version,
