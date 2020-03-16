@@ -30,6 +30,7 @@ from scionlab.defines import (
     DEFAULT_TRC_GRACE_PERIOD,
 )
 from scionlab.scion import as_ids, keys, trcs, certs
+from scionlab.util import flatten
 
 _MAX_LEN_CHOICES_DEFAULT = 16
 """ Max length value for choices fields without specific requirements to max length """
@@ -254,7 +255,7 @@ class TRCManager(models.Manager):
             prev_voting_offline = None
 
         keys = {as_.as_id: _latest_core_keys(as_) for as_ in isd.ases.filter(is_core=True)}
-        all_keys = sum(keys.values(), [])
+        all_keys = flatten(keys.values())
 
         not_before, not_after = _validity(all_keys)
 
