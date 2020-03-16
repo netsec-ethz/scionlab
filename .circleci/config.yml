@@ -35,9 +35,9 @@ check_scion_connections: &check_scion_connections
 
     # Wait for beacons
     docker-compose exec -T as1303 /bin/bash -c \
-      'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
+      'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 3 ]; do sleep 0.1; done;'
     docker-compose exec -T as1305 /bin/bash -c \
-      'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done;'
+      'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 3 ]; do sleep 0.1; done;'
 
     # Check that we can SCMP
     docker-compose exec -T as1301 /bin/bash -c \
@@ -322,6 +322,8 @@ jobs:
           command: |
             sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
             docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/
+            sudo chown circleci:circleci -R ~/previous_version/run/
+            cp -r ~/previous_version/run ~/project/
             docker-compose up -d --force-recreate --build coord
 
       - run:
@@ -343,7 +345,7 @@ jobs:
 
       - run:
           name: Check SCION connections after update
-          working_directory: ~/project/previous_version/.circleci
+          working_directory: ~/project/.circleci
           no_output_time: "3m0s"
           <<: *check_scion_connections
 
