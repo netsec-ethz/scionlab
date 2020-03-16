@@ -53,7 +53,7 @@ def generate_trc(isd, version, grace_period, not_before, not_after, primary_ases
         votes = _regular_voting_keys(primary_ases, changed)
     else:
         votes = _sensitive_voting_keys(prev_voting_offline)
-    pops = changed
+    proof_of_possession = changed
 
     payload = _build_payload(
         isd,
@@ -63,10 +63,10 @@ def generate_trc(isd, version, grace_period, not_before, not_after, primary_ases
         not_after,
         primary_ases,
         votes,
-        pops
+        proof_of_possession,
     )
 
-    return _build_signed_trc(payload, votes, pops)
+    return _build_signed_trc(payload, votes, proof_of_possession,)
 
 
 def _is_regular_update(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> bool:
@@ -224,9 +224,9 @@ def _decode_primary_ases(trc):
             for as_id, as_entry in payload['primary_ases'].items()}
 
 
-def verify(trc,
-           expected_votes: List[Tuple[str, str, Key]],
-           expected_pops: List[Tuple[str, str, Key]]) -> bool:
+def test_verify(trc,
+                expected_votes: List[Tuple[str, str, Key]],
+                expected_pops: List[Tuple[str, str, Key]]) -> bool:
     """
     Verify that the TRC was signed with (exactly) the given signing keys.
 

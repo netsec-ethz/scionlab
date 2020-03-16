@@ -161,12 +161,12 @@ class GenerateTRCTests(TestCase):
             for as_id, keys in primary_ases.items()
             for usage, key in keys._asdict().items()
         ]
-        self.assertTrue(trcs.verify(trc, votes, pops))
+        self.assertTrue(trcs.test_verify(trc, votes, pops))
 
         # sanity check: if we mess with one of the signatures, it will not verify:
         trc_bad = copy.deepcopy(trc)
         trc_bad['signatures'][0]['signature'] = 'forged'
-        self.assertFalse(trcs.verify(trc_bad, votes, pops))
+        self.assertFalse(trcs.test_verify(trc_bad, votes, pops))
 
     def test_update_offline(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
@@ -185,7 +185,7 @@ class GenerateTRCTests(TestCase):
         pops = [
             (_ASID_1, 'voting_offline', k_asid1_v2.voting_offline),
         ]
-        self.assertTrue(trcs.verify(trc_v2, votes, pops))
+        self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
     def test_remove_as(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
@@ -202,7 +202,7 @@ class GenerateTRCTests(TestCase):
             (as_id, 'voting_offline', k.voting_offline) for as_id, k in primary_ases_v1.items()
         ]
         pops = []
-        self.assertTrue(trcs.verify(trc_v2, votes, pops))
+        self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
     def test_add_as(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
@@ -224,7 +224,7 @@ class GenerateTRCTests(TestCase):
         pops = [
             (_ASID_3, usage, key) for usage, key in primary_ases_v2[_ASID_3]._asdict().items()
         ]
-        self.assertTrue(trcs.verify(trc_v2, votes, pops))
+        self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
     def test_update_online(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
@@ -246,7 +246,7 @@ class GenerateTRCTests(TestCase):
         pops = [
             (_ASID_1, 'voting_online', k_asid1_v2.voting_online),
         ]
-        self.assertTrue(trcs.verify(trc_v2, votes, pops))
+        self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
     def test_update_issuing(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
@@ -266,7 +266,7 @@ class GenerateTRCTests(TestCase):
         pops = [
             (_ASID_1, 'issuing_grant', k_asid1_v2.issuing_grant),
         ]
-        self.assertTrue(trcs.verify(trc_v2, votes, pops))
+        self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
 
 def _gen_key(version):
