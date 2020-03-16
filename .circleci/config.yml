@@ -271,35 +271,35 @@ jobs:
       # Start old version of coordinator
       - run:
           name: Checkout previous version
-          working_directory: ~/project
+          working_directory: ~/
           command: |
-            mkdir ./previous_version && cd ./previous_version
+            mkdir ~/previous_version && cd ~/previous_version
             git clone https://github.com/netsec-ethz/scionlab.git -b master ./
 
       - run:
           name: Extract host configuration info from testdata.yaml fixture
-          working_directory: ~/project/previous_version
+          working_directory: ~/previous_version
           command: |
             pip install pyyaml
             python .circleci/setup/generate-host-envs.py
 
       - run:
           name: Build container images
-          working_directory: ~/project/previous_version/.circleci
+          working_directory: ~/previous_version/.circleci
           command: |
             #docker build --file ~/project/previous_version/deploy/Dockerfile-django --tag scionlab_django ~/project/ # We are only extending the production image
-            sed -i '/.circleci/d' ~/project/previous_version/.dockerignore  # The .dockerignore is for production, we'll need this
+            sed -i '/.circleci/d' ~/previous_version/.dockerignore  # The .dockerignore is for production, we'll need this
             docker-compose build
 
 
       - run:
           name: Start old coordinator
-          working_directory: ~/project/previous_version/.circleci
+          working_directory: ~/previous_version/.circleci
           <<: *start_coordinator
 
       - run:
           name: Start ASes running old version in containers
-          working_directory: ~/project/previous_version/.circleci
+          working_directory: ~/previous_version/.circleci
           command: |
             set -x
             docker-compose up -d as1301 as1303 as1305
@@ -314,7 +314,7 @@ jobs:
 
       - run:
           name: Check AS services status running old config
-          working_directory: ~/project/previous_version/.circleci
+          working_directory: ~/previous_version/.circleci
           <<: *check_services_status
 
       # Starting upgrade integration tests
@@ -324,7 +324,6 @@ jobs:
           working_directory: ~/project/.circleci
           command: |
             sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
-            echo "previous_version" >> ~/project/.dockerignore  # ignore previous version
             docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/
             # Hum, previous docker-compose.yml was not mounting properly
             docker cp `docker ps --filter id=$(docker-compose ps -q coord) --format '{{.Names}}'`:/scionlab/run ~/project/
@@ -332,7 +331,7 @@ jobs:
 
       - run:
           name: Run client cronjob
-          working_directory: ~/project/previous_version/.circleci
+          working_directory: ~/previous_version/.circleci
           command: |
             set -x
             # Simulate command that is executed on hosts with upgrade cronjob (VMs), upgrade package
@@ -344,7 +343,7 @@ jobs:
 
       - run:
           name: Check updated AS services status
-          working_directory: ~/project/previous_version/.circleci
+          working_directory: ~/project/.circleci
           <<: *check_services_status
 
       #- run:
