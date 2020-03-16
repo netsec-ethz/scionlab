@@ -11,16 +11,9 @@ COPY . /scionlab/
 # Fixup django settings for the integration tests:
 RUN sed -i 's/^SCIONLAB_SITE = .*/SCIONLAB_SITE = "http:\/\/coord:8000"/' scionlab/settings/development.py
 
-# Fixup entrypoint for the integration tests:
-# Not using Postgres in dev, not waiting for it
-RUN sed -i 's/appdeps\.py/#appdeps\.py/' /scionlab/deploy/django-entrypoint.sh
-# Don't run using gunicorn
-RUN sed -i 's/gunicorn/#gunicorn/' /scionlab/deploy/django-entrypoint.sh
-# Run using django development server
-RUN sed -i 's/#\/scionlab\/manage.py/\/scionlab\/manage.py/' /scionlab/deploy/django-entrypoint.sh
-
 # Add /scionlab/ to PYTHONPATH to simplify running the scripts in .circleci/actions/
 ENV PYTHONPATH /scionlab/
 
 ENV DJANGO_SETTINGS_MODULE=scionlab.settings.development
-CMD /scionlab/deploy/django-entrypoint.sh
+# Use CI entrypoint, should be similar to deploy/django-entrypoint.sh
+CMD /scionlab/.circleci/django-ci-entrypoint.sh
