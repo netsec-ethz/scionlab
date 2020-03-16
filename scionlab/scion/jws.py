@@ -49,10 +49,18 @@ def verify(payload_enc, protected_enc, signature, verifying_key):
 
 
 def _b64url(input: bytes) -> str:
+    """
+    Encode data as base64 urlsafe with stripped padding (as specified in the JWS RFC7515).
+    """
     return base64.urlsafe_b64encode(input).decode().rstrip('=')
 
 
 def _b64urldec(input: str) -> bytes:
-    # We stripped the (redundant) padding '=', but the decoder checks for them.
-    # Appending three = is the easiest way to ensure it won't choke on too little padding.
-    return base64.urlsafe_b64decode(input + '===')
+    """
+    Deocde data from base64 urlsafe with stripped padding (as specified in the JWS RFC7515).
+    """
+    # The input is stripped of padding '='. These are redundant when decoding (only relevant
+    # for concatenated sequences of base64 encoded data) but the decoder checks for them.
+    # Appending two (the maximum number) of padding '=' is the easiest way to ensure it won't choke
+    # on too little padding.
+    return base64.urlsafe_b64decode(input + '==')
