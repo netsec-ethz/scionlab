@@ -66,7 +66,7 @@ def sign(msg, signing_key):
     :returns: ed25519 signature.
     :rtype: bytes
     """
-    return SigningKey(signing_key, encoder=Base64StringEncoder).sign(msg)[:64]
+    return SigningKey(signing_key, encoder=Base64StringEncoder).sign(msg).signature
 
 
 def verify(msg, sig, verifying_key):
