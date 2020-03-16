@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """
-:mod:`scionlab.scion.models.vpn` --- Django models for OpenVPN configurations for UserASes
-==========================================================================================
+:mod:`scionlab.models.vpn` --- Django models for OpenVPN configurations for UserASes
+====================================================================================
 """
 
 import ipaddress

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """
-:mod:`scionlab.scion.models.pki` --- Django models for SCION control plane PKI objects
-======================================================================================
+:mod:`scionlab.models.pki` --- Django models for SCION control plane PKI objects
+================================================================================
 """
 
 import textwrap

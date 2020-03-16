@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """
-:mod:`scionlab.scion.models.core` --- Django models for SCION network representation
-====================================================================================
+:mod:`scionlab.models.core` --- Django models for SCION network representation
+==============================================================================
 """
 
 from datetime import datetime

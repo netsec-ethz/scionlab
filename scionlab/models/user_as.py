@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """
-:mod:`scionlab.scion.models.vpn` --- Django models for User ASes and Attachment Points
-======================================================================================
+:mod:`scionlab.models.user_as` --- Django models for User ASes and Attachment Points
+====================================================================================
 """
 
 import ipaddress

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """
-:mod:`scionlab.scion.models.user` --- Django models for SCIONLab users
-======================================================================
+:mod:`scionlab.models.user` --- Django models for SCIONLab users
+================================================================
 """
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
