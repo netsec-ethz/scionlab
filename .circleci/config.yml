@@ -133,9 +133,6 @@ jobs:
             sleep 10  # Give the services enough time to start (or fail)
 
             for c in as1301 as1303 as1305; do
-              # XXX(matzf) DEBUG
-              docker-compose exec $c /bin/bash -c \
-                'cat /var/log/scion/*'
               docker-compose exec $c /bin/bash -c \
                 '! systemctl is-failed scion-*'
             done
