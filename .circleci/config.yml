@@ -29,9 +29,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v3-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
+          - v4-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
           # fallback to using the latest cache if no exact match is found
-          - v3-dependencies-
+          - v4-dependencies-
 
       - run:
           name: Install dependencies
@@ -39,16 +39,10 @@ jobs:
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
-
-            [ -d /tmp/scion ] || git clone https://github.com/netsec-ethz/scion.git /tmp/scion
-            cd /tmp/scion
-            git fetch && git checkout scionlab && git reset --hard origin/scionlab
-
       - save_cache:
           paths:
             - /tmp/venv
-            - /tmp/scion
-          key: v3-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
+          key: v4-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
 
       # run flake8
       - run:
@@ -64,7 +58,7 @@ jobs:
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/django/
-            PYTHONPATH=/tmp/scion/python python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
+            python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
 
       - store_test_results:
@@ -200,25 +194,23 @@ jobs:
 
             # Show current TRC
             TRC_version=1
-            docker-compose exec -T as1301 cat "/etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
-            # XXX: Update keys for non-core ASes force reissuing AS certs.
-            #      Otherwise we create an inconsistent gen/ folder, see
-            #      https://github.com/netsec-ethz/scionlab/issues/194.
             docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301; \
-              python .circleci/actions/update-keys.py ffaa:0:1303 ffaa:0:1305; \
+             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301;
               python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
 
             docker-compose logs huey
             docker-compose logs coord
 
-            # Check that TRCs were updated
+            # Check updated TRC and check that updated TRCs were installed on all hosts
             TRC_version=$((TRC_version + 1))
-            docker-compose exec -T as1301 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1301/bs19-ffaa_0_1301-1/certs/ISD19-V${TRC_version}.trc"
-            docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1303/bs19-ffaa_0_1303-1/certs/ISD19-V${TRC_version}.trc"
-            docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1305/bs19-ffaa_0_1305-1/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs verify -d "/etc/scion/gen/" "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+
+            docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
 
             # Check that infra still works
             sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait

@@ -1,9 +1,6 @@
 FROM python:3.6
 ENV PYTHONUNBUFFERED 1
 
-# Get scion dependency
-RUN git clone https://github.com/netsec-ethz/scion.git -b scionlab --depth 1 /tmp/scion
-
 RUN pip install --upgrade pip
 COPY requirements.txt dev-requirements.txt /scionlab/
 WORKDIR /scionlab/
@@ -14,8 +11,7 @@ COPY . /scionlab/
 # Fixup django settings for the integration tests:
 RUN sed -i 's/^SCIONLAB_SITE = .*/SCIONLAB_SITE = "http:\/\/coord:8000"/' scionlab/settings/development.py
 
-# Add scion to PYTHONPATH
 # Add /scionlab/ to PYTHONPATH to simplify running the scripts in .circleci/actions/
-ENV PYTHONPATH /tmp/scion/python:/scionlab/
+ENV PYTHONPATH /scionlab/
 
 CMD ["python", "manage.py","runserver","0.0.0.0:8000"]

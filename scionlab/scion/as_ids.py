@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+:mod:`scionlab.scion.as_ids` --- Parsing/string formatting for SCION AS IDs
+===========================================================================
+"""
+
 import re
 
 REGEX = re.compile(r"^([0-9a-fA-F]{1,4}):([0-9a-fA-F]{1,4}):([0-9a-fA-F]{1,4})$")

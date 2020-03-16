@@ -14,22 +14,20 @@
 
 import base64
 import io
-import json
 import os
 import pathlib
 import re
 import tarfile
 
-import lib.crypto.asymcrypto
 import logging
-from lib.crypto.trc import TRC
-from lib.crypto.certificate import Certificate
-from lib.crypto.certificate_chain import CertificateChain
 
 from collections import namedtuple, Counter, OrderedDict
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
+from scionlab.models.pki import Key, Certificate, TRC
 from scionlab.models.user_as import UserAS
+
+from scionlab.scion import keys, jws
 
 
 def check_topology(testcase):
@@ -56,14 +54,10 @@ def check_as(testcase, as_):
 
     check_as_services(testcase, as_)
     check_as_keys(testcase, as_)
-    check_cert_chain(testcase, as_, as_.isd.trc)
+    check_cert_chains(testcase, as_)
     if as_.is_core:
         check_as_core_keys(testcase, as_)
-        check_core_cert(testcase, as_, as_.isd.trc)
-
-    testcase.assertIsNotNone(as_.certificate_chain)
-    if as_.is_core:
-        testcase.assertIsNotNone(as_.core_certificate)
+        check_issuer_certs(testcase, as_)
 
     for host in as_.hosts.iterator():
         check_host_ports(testcase, host)
@@ -74,9 +68,7 @@ def check_as_services(testcase, as_):
     Check that all the AS has all required services configured.
     """
     counter = Counter(service.type for service in as_.services.iterator())
-    testcase.assertGreaterEqual(counter[Service.BS], 1)
-    testcase.assertGreaterEqual(counter[Service.PS], 1)
-    testcase.assertGreaterEqual(counter[Service.CS], 1)
+    testcase.assertEqual(counter[Service.CS], 1)
 
 
 def check_host_ports(testcase, host):
@@ -248,8 +240,10 @@ def check_as_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    check_sig_keypair(testcase, as_.sig_pub_key, as_.sig_priv_key)
-    check_enc_keypair(testcase, as_.enc_pub_key, as_.enc_priv_key)
+
+    _check_keys_for_usage(testcase, as_, Key.SIGNING)
+    _check_keys_for_usage(testcase, as_, Key.DECRYPT)
+
     testcase.assertIsNotNone(as_.master_as_key)
     _sanity_check_base64(testcase, as_.master_as_key)
 
@@ -261,46 +255,22 @@ def check_as_core_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    check_sig_keypair(testcase, as_.core_sig_pub_key, as_.core_sig_priv_key)
-    check_sig_keypair(testcase, as_.core_online_pub_key, as_.core_online_priv_key)
-    check_sig_keypair(testcase, as_.core_offline_pub_key, as_.core_offline_priv_key)
+    _check_keys_for_usage(testcase, as_, Key.CERT_SIGNING)
+    _check_keys_for_usage(testcase, as_, Key.TRC_ISSUING_GRANT)
+    _check_keys_for_usage(testcase, as_, Key.TRC_VOTING_ONLINE)
+    _check_keys_for_usage(testcase, as_, Key.TRC_VOTING_OFFLINE)
 
 
-def check_sig_keypair(testcase, sig_pub_key_b64, sig_priv_key_b64):
+def _check_keys_for_usage(testcase, as_, key_usage):
     """
-    Check that this signing keypair was correctly created
+    Helper: check that key exists and versions are numbered 1...N
     """
-    testcase.assertIsNotNone(sig_pub_key_b64)
-    testcase.assertIsNotNone(sig_priv_key_b64)
-    _sanity_check_base64(testcase, sig_pub_key_b64)
-    _sanity_check_base64(testcase, sig_priv_key_b64)
-
-    m = "message".encode()
-
-    # Sign a message and verify
-    sig_pub_key = base64.b64decode(sig_pub_key_b64.encode())
-    sig_priv_key = base64.b64decode(sig_priv_key_b64.encode())
-    s = lib.crypto.asymcrypto.sign(m, sig_priv_key)
-    testcase.assertTrue(lib.crypto.asymcrypto.verify(m, s, sig_pub_key))
-
-
-def check_enc_keypair(testcase, enc_pub_key_b64, enc_priv_key_b64):
-    """
-    Check that this encryption keypair was correctly created
-    """
-    testcase.assertIsNotNone(enc_pub_key_b64)
-    testcase.assertIsNotNone(enc_priv_key_b64)
-    _sanity_check_base64(testcase, enc_pub_key_b64)
-    _sanity_check_base64(testcase, enc_priv_key_b64)
-
-    m = "message".encode()
-
-    # Encode and decode a message for myself
-    enc_pub_key = base64.b64decode(enc_pub_key_b64.encode())
-    enc_priv_key = base64.b64decode(enc_priv_key_b64.encode())
-    c = lib.crypto.asymcrypto.encrypt(m, enc_priv_key, enc_pub_key)
-    d = lib.crypto.asymcrypto.decrypt(c, enc_priv_key, enc_pub_key)
-    testcase.assertEqual(m, d)
+    ks = as_.keys.filter(usage=key_usage).order_by('version')
+    testcase.assertGreaterEqual(len(ks), 1)
+    for i, key in enumerate(ks):
+        testcase.assertEqual(key.version, i+1)
+        testcase.assertGreater(len(key.key), 0)
+        testcase.assertIsNotNone(keys.Base64StringEncoder.decode(key.key))
 
 
 def _sanity_check_base64(testcase, s):
@@ -313,8 +283,7 @@ def _sanity_check_base64(testcase, s):
     testcase.assertTrue(base64_pattern.match(s))
 
 
-def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_version=None,
-                        prev_trc=None):
+def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_version=None):
     """
     Check the ISD's TRC and return it as a TRC object.
     Check that the current TRC can be verified with `prev_trc`.
@@ -323,97 +292,165 @@ def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_vers
     :param int isd_id:
     :param [str] expected_core_ases: ISD-AS strings for all core ases
     :param int expected_version: optional, expected version for current TRC.
-    :param TRC prev_trc: optional, previous TRC to verify current TRC.
-    :returns: TRC
-    :rtype: TRC
     """
     isd = ISD.objects.get(isd_id=isd_id)
-    trc = check_trc(testcase, isd, expected_core_ases, expected_version, prev_trc)
-    check_core_as_certs(testcase, isd)
-    check_noncore_as_certs(testcase, isd)
-    return trc
+    check_trc(testcase, isd, expected_core_ases, expected_version)
+    for as_ in isd.ases.iterator():
+        check_cert_chain(testcase, as_.certificates.latest(Certificate.CHAIN))
+        if as_.is_core:
+            check_issuer_cert(testcase, as_.certificates.latest(Certificate.ISSUER),
+                              expected_trc_version=expected_version)
 
 
-def check_trc(testcase, isd, expected_core_ases=None, expected_version=None, prev_trc=None):
+def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     """
-    Check the ISD's TRC and return it as a TRC object.
+    Check the ISD's latest TRC
     :param ISD isd:
     :param [str] expected_core_ases: optional, ISD-AS strings for all core ases
     :param int expected_version: optional, expected version for current TRC.
-    :param TRC prev_trc: optional, previous TRC to verify current TRC.
-    :returns: TRC
-    :rtype: TRC
     """
     if expected_core_ases is None:
-        expected_core_ases = set(as_.isd_as_str() for as_ in isd.ases.filter(is_core=True))
-    testcase.assertEqual(set(isd.trc['CoreASes'].keys()), set(expected_core_ases))
-    testcase.assertEqual(set(isd.trc_priv_keys.keys()), set(expected_core_ases))
+        expected_core_ases = set(as_.as_id for as_ in isd.ases.filter(is_core=True))
 
-    for isd_as in isd.trc['CoreASes'].keys():
-        check_sig_keypair(testcase, isd.trc['CoreASes'][isd_as]['OnlineKey'],
-                          isd.trc_priv_keys[isd_as])
-
-    json_trc = json.dumps(isd.trc)  # round trip through json, just to make sure this works
-    trc = TRC.from_raw(json_trc)
-    trc.check_active()
+    trc = isd.trcs.latest_or_none()
+    if len(expected_core_ases) > 0:
+        testcase.assertIsNotNone(trc)
     if expected_version is not None:
         testcase.assertEqual(trc.version, expected_version)
-    if prev_trc is not None:
-        trc.verify(prev_trc)
-    return trc
+    if trc is None:
+        return
+
+    trc_pld = jws.decode_payload(trc.trc)
+    testcase.assertEqual(trc_pld['trc_version'], trc.version)
+    testcase.assertEqual(set(trc_pld['primary_ases'].keys()), set(expected_core_ases))
+
+    if trc.version > 1:
+        # Check that TRC update is valid
+        prev_trc = isd.trcs.get(version=trc.version-1)
+        prev_trc_pld = jws.decode_payload(prev_trc.trc)
+        # Minimal check:
+        voters = set(trc_pld['votes'].keys())
+        allowed_voters = set(prev_trc_pld['primary_ases'].keys())
+        testcase.assertTrue(voters.issubset(allowed_voters))
+        testcase.assertGreaterEqual(len(trc_pld['votes']), prev_trc_pld['voting_quorum'])
+        # TODO(matzf): how to verify votes & signatures without re-implementing the logic?
+        # Would be nice to use `scion-pki trcs verify` for this. But how?
 
 
 def check_core_as_certs(testcase, isd):
     """
-    Check that all the core AS certificates can be verified with the current TRC.
+    Check all certificates for the core ASes.
     """
-    for as_ in isd.ases.filter(is_core=True).iterator():
-        check_core_cert(testcase, as_, isd.trc)
-        check_cert_chain(testcase, as_, isd.trc)
 
 
 def check_noncore_as_certs(testcase, isd):
     """
-    Verify certificate if created for latest version. Otherwise, we don't have latest cert
-    and AS is expected to request re-issued certificate from signing core AS.
+    Check all certificates for the non-core ASes.
     """
     for as_ in isd.ases.filter(is_core=False).iterator():
-        cert_trc_version = as_.certificate_chain['0']['TRCVersion']
-        trc_version = isd.trc['Version']
-        testcase.assertTrue(cert_trc_version <= trc_version)
-        if cert_trc_version == trc_version:
-            check_cert_chain(testcase, as_, isd.trc)
+        check_cert_chains(testcase, as_)
 
 
-def check_core_cert(testcase, as_, trc):
+def check_issuer_certs(testcase, as_):
     """
-    Check that the AS's core certificate can be verified with the TRC.
+    Check that the AS's issuer certificates can be verified with a TRC.
+    Check that the latest issuer certificate was issued by the latest TRC version.
     """
-    testcase.assertIsNotNone(as_.core_certificate)
-    cert = Certificate(as_.core_certificate)
-    isd_as = as_.isd_as_str()
-    cert.verify(isd_as, TRC(trc).core_ases[isd_as]['OnlineKey'])
+    issuer_certs = as_.certificates.filter(type=Certificate.ISSUER).order_by('version')
+    testcase.assertGreaterEqual(len(issuer_certs), 1)
+    for i, issuer_cert in enumerate(issuer_certs):
+        testcase.assertEqual(issuer_cert.version, i+1)
+        if i < len(issuer_certs)-1:
+            check_issuer_cert(testcase, issuer_cert)
+        else:
+            expected_trc_version = as_.isd.trcs.latest().version
+            check_issuer_cert(testcase, issuer_cert, expected_trc_version)
 
 
-def check_cert_chain(testcase, as_, trc):
+def check_issuer_cert(testcase, issuer_cert, expected_trc_version=None):
     """
-    Check that the AS's certificate chain can be verified with the TRC.
+    Check that the issuer certificate can be verified with a TRC.
+    Check that the certificate is issued by the expected_trc_version, if set.
     """
-    testcase.assertIsNotNone(as_.certificate_chain)
-    json_cert_chain = json.dumps(as_.certificate_chain)
-    cert_chain = CertificateChain.from_raw(json_cert_chain)
-    cert_chain.verify(as_.isd_as_str(), TRC(trc))
+    testcase.assertIsNotNone(issuer_cert)
+
+    cert = issuer_cert.certificate
+    cert_pld = jws.decode_payload(cert)
+
+    testcase.assertEqual(cert_pld["version"], issuer_cert.version)
+    testcase.assertEqual(cert_pld["subject"], issuer_cert.AS.isd_as_str())
+
+    subject_ia = cert_pld["subject"]
+    subject_as = subject_ia.split('-')[1]
+    trc_version = cert_pld["issuer"]["trc_version"]
+    if expected_trc_version is not None:
+        testcase.assertEqual(trc_version, expected_trc_version)
+
+    trc = TRC.objects.get(isd=issuer_cert.AS.isd, version=trc_version)
+    trc_pld = jws.decode_payload(trc.trc)
+    issuing_grant_pub_key = trc_pld["primary_ases"][subject_as]["keys"]["issuing_grant"]["key"]
+    sig_valid = jws.verify(cert["payload"], cert["protected"], cert["signature"],
+                           issuing_grant_pub_key)
+
+    testcase.assertTrue(sig_valid)
+
+
+def check_cert_chains(testcase, as_):
+    """
+    Check that the AS has an AS certificate (-chain) and that all existing certificate chains
+    can be verified with the issuer certificate.
+    """
+    cert_chains = as_.certificates.filter(type=Certificate.CHAIN).order_by('version')
+    testcase.assertGreaterEqual(len(cert_chains), 1)
+    first_version = cert_chains[0].version
+    testcase.assertGreaterEqual(first_version, 1)  # Sequence starts at >1 when AS changed ISD
+    for i, cert_chain in enumerate(cert_chains):
+        testcase.assertEqual(cert_chain.version, first_version + i)
+        check_cert_chain(testcase, cert_chain)
+
+
+def check_cert_chain(testcase, cert_chain):
+    """
+    Check that the AS's certificate chain can be verified with the issuer certificate.
+    """
+    testcase.assertIsNotNone(cert_chain)
+
+    leaf = cert_chain.certificate[1]
+    leaf_pld = jws.decode_payload(leaf)
+
+    testcase.assertEqual(leaf_pld["version"], cert_chain.version)
+    testcase.assertEqual(leaf_pld["subject"], cert_chain.AS.isd_as_str())
+
+    issuer = leaf_pld["issuer"]
+    issuer_ia = issuer["isd_as"]
+    issuer_as = issuer_ia.split('-')[1]
+    issuer_ver = issuer["certificate_version"]
+
+    # Check that the issuer certificate in the chain is identical to the issuer cert in the DB:
+    issuer_cert = Certificate.objects.get(type=Certificate.ISSUER,
+                                          AS__as_id=issuer_as,
+                                          version=issuer_ver)
+    testcase.assertEqual(issuer_cert.certificate, cert_chain.certificate[0])
+
+    # Verify the signature
+    issuer_pld = jws.decode_payload(issuer_cert.certificate)
+    issuer_pub_key = issuer_pld["keys"]["issuing"]["key"]
+    sig_valid = jws.verify(leaf["payload"], leaf["protected"], leaf["signature"], issuer_pub_key)
+    testcase.assertTrue(sig_valid)
+
+    # Note: not checking issuer cert, assume that we check that separately.
 
 
 def check_tarball_user_as(testcase, response, user_as):
     """
     Check the http-response for downloading a UserAS-config tar-ball.
+    Return the tar for further inspection.
     """
     tar = _check_open_tarball(testcase, response)
 
     if user_as.installation_type == UserAS.VM:
         testcase.assertEquals(sorted(['README.md', 'Vagrantfile']),
-                              _tar_ls(tar, ''))
+                              tar_ls(tar, ''))
         # appropriate README?
         readme = tar.extractfile('README.md').read().decode()
         testcase.assertTrue(readme.startswith('# SCIONLab VM'))
@@ -424,37 +461,28 @@ def check_tarball_user_as(testcase, response, user_as):
         testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_path_str()])
     else:
         testcase.assertEquals(sorted(['README.md', 'gen']),
-                              _tar_ls(tar, ''))
+                              tar_ls(tar, ''))
         # check the full content of gen/
         _check_tarball_gen(testcase, tar, user_as.hosts.get())
         readme = tar.extractfile('README.md').read().decode()
         testcase.assertTrue(readme.startswith('# SCIONLab Dedicated'))
+    return tar
 
 
 def check_tarball_host(testcase, response, host):
     """
     Check the http-response for downloading a host-config tar-ball.
+    Return the tar for further inspection.
     """
     tar = _check_open_tarball(testcase, response)
-    testcase.assertTrue(['gen'], _tar_ls(tar, ''))
+
+    top_dir = tar_ls(tar, '')
+    testcase.assertTrue('gen' in top_dir)
     _check_tarball_gen(testcase, tar, host)
 
-
-def check_tarball_files_exist(testcase, response, files):
-    """
-    Check the tarball in the reponse for existance of files.
-    The provided file names will be matched exactly against a listing of the tarball.
-    """
-    file_set = set(files)
-    tar = _check_open_tarball(testcase, response)
-    filenames = tar.getnames()
-    for f in filenames:
-        if f in file_set:
-            file_set.remove(f)
-        if not file_set:
-            break
-    testcase.assertEqual(0, len(file_set),
-                         'Could not find all files: {}'.format(','.join(file_set)))
+    testcase.assertTrue('scionlab-services.txt' in top_dir)
+    _check_tarball_services(testcase, tar, host)
+    return tar
 
 
 def _check_open_tarball(testcase, response):
@@ -477,9 +505,8 @@ def _check_tarball_gen(testcase, tar, host):
     isd_str = 'ISD%i' % host.AS.isd.isd_id
     as_str = 'AS%s' % host.AS.as_path_str()
 
-    testcase.assertEqual([isd_str, 'dispatcher', 'ia', 'scionlab-config.json'], _tar_ls(tar, 'gen'))
-    testcase.assertEqual(host.AS.isd_as_path_str(), _tar_cat(tar, 'gen/ia').decode())
-    testcase.assertEqual([as_str], _tar_ls(tar, os.path.join('gen', isd_str)))
+    testcase.assertEqual([isd_str, 'dispatcher', 'scionlab-config.json'], tar_ls(tar, 'gen'))
+    testcase.assertEqual([as_str, 'trcs'], tar_ls(tar, os.path.join('gen', isd_str)))
 
     as_gen_dir = os.path.join('gen', isd_str, as_str)
     topofiles = [f for f in tar.getnames() if
@@ -487,7 +514,25 @@ def _check_tarball_gen(testcase, tar, host):
     testcase.assertTrue(topofiles)
 
 
-def _tar_ls(tar, path):
+def _check_tarball_services(testcase, tar, host):
+    services = tar_cat(tar, 'scionlab-services.txt').decode().split('\n')
+
+    br = ["scion-border-router@%s.service" % str(br).replace('br-', '')
+          for br in host.border_routers.all()]
+    cs = ["scion-control-service@%s.service" % str(s).replace('cs-', '')
+          for s in host.services.filter(type=Service.CS)]
+    bw = ["scion-bwtestserver.service"
+          for _ in host.services.filter(type=Service.BW)]
+
+    expected_services = br + cs + bw + [
+        "scion-daemon@%s.service" % host.AS.isd_as_path_str(),
+        "scion-dispatcher.service",
+    ]
+
+    testcase.assertEqual(sorted(services), sorted(expected_services))
+
+
+def tar_ls(tar, path):
     """
     Helper function: "ls" the given path in the tar, i.e. list files/subdirectories
     contained in the given path.
@@ -506,7 +551,7 @@ def _tar_ls(tar, path):
     return list(sorted(s))
 
 
-def _tar_cat(tar, path):
+def tar_cat(tar, path):
     """
     Reads file and returns content as bytes
     """

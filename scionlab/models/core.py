@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+:mod:`scionlab.models.core` --- Django models for SCION network representation
+==============================================================================
+"""
+
+from datetime import datetime
 import base64
-import jsonfield
 import os
 import uuid
 
@@ -24,15 +29,10 @@ from django.db import models
 from django.db.models import F, Q, Count
 from django.db.models.signals import pre_delete, post_delete
 
-import lib.crypto.asymcrypto
 
 from scionlab.models.user import User
-from scionlab.certificates import (
-    generate_trc,
-    generate_core_certificate,
-    generate_as_certificate_chain,
-)
-from scionlab.util import as_ids
+from scionlab.models.pki import Key, Certificate
+from scionlab.scion import as_ids
 from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.defines import (
@@ -40,8 +40,6 @@ from scionlab.defines import (
     DEFAULT_PUBLIC_PORT,
     DEFAULT_INTERNAL_PORT,
     DEFAULT_CONTROL_PORT,
-    BS_PORT,
-    PS_PORT,
     CS_PORT,
     BW_PORT,
     PP_PORT,
@@ -77,19 +75,6 @@ class ISD(TimestampedModel):
     isd_id = models.PositiveIntegerField()
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
-    trc = jsonfield.JSONField(
-        null=True,
-        blank=True,
-        verbose_name="Trust Root Configuration (TRC)")
-    trc_priv_keys = jsonfield.JSONField(
-        null=True,
-        blank=True,
-        verbose_name="TRC private keys",
-        help_text="""The private keys corresponding to the Core-AS keys in
-            the current TRC. These keys will be used to sign the next version
-            of the TRC."""
-    )
-
     class Meta:
         verbose_name = 'ISD'
         verbose_name_plural = 'ISDs'
@@ -100,33 +85,24 @@ class ISD(TimestampedModel):
         else:
             return 'ISD %d' % self.isd_id
 
-    def init_trc_and_certificates(self):
+    def update_trc_and_certificates(self):
         """
         Generate the TRC and all AS and Core AS Certificates and for all ASes in this ISD.
         Ensures that the certificates are updated in the correct order, i.e. Core AS certificates
         first.
         All updated objects are saved.
         """
-        self._update_trc()
+        if not self.ases.filter(is_core=True).exists():
+            return None
+
+        trc = self.trcs.create()
         for as_ in self.ases.filter(is_core=True).iterator():
             self._update_coreas_certificates(as_)
 
         for as_ in self.ases.filter(is_core=False).iterator():
             self._update_as_certificates(as_)
 
-    def update_trc_and_core_certificates(self):
-        """
-        Update the TRC and the Core AS Certificates for all the core-ASes in this ISD.
-
-        All updated objects are saved.
-        """
-        self._update_trc()
-        for as_ in self.ases.filter(is_core=True):
-            self._update_coreas_certificates(as_)
-
-    def _update_trc(self):
-        self.trc, self.trc_priv_keys = generate_trc(self)
-        self.save()
+        return trc
 
     @staticmethod
     def _update_as_certificates(as_):
@@ -155,7 +131,7 @@ class ASManager(models.Manager):
         :returns: AS
         """
         as_id_int = as_ids.parse(as_id)
-        as_ = AS(
+        as_ = super().create(
             isd=isd,
             as_id=as_id,
             as_id_int=as_id_int,
@@ -163,15 +139,15 @@ class ASManager(models.Manager):
             label=label,
             mtu=mtu or DEFAULT_LINK_MTU,
             owner=owner,
+            master_as_key=AS._make_master_as_key()
         )
-        as_.init_keys()
-        if init_certificates and not is_core:
-            as_.generate_certificate_chain()
-        as_.save()
 
-        if init_certificates and is_core:
-            isd.update_trc_and_core_certificates()
-            as_.refresh_from_db()
+        as_.init_keys()
+        if init_certificates:
+            if is_core:
+                isd.update_trc_and_certificates()
+            else:
+                as_.generate_certificate_chain()
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
@@ -246,23 +222,9 @@ class AS(TimestampedModel):
         blank=True
     )
 
-    sig_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    sig_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    enc_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    enc_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-
     master_as_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
 
     is_core = models.BooleanField(default=False)
-    core_sig_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_sig_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_online_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_online_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_offline_priv_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-    core_offline_pub_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
-
-    certificate_chain = jsonfield.JSONField(null=True, blank=True)
-    core_certificate = jsonfield.JSONField(null=True, blank=True)
 
     objects = ASManager()
 
@@ -284,7 +246,7 @@ class AS(TimestampedModel):
         also for bulk deletion, while this `delete()` method is not.
         """
         if self.is_core:
-            self.isd.update_trc_and_core_certificates()
+            self.isd.update_trc_and_certificates()
         self.hosts.bump_config()
 
     def is_infrastructure_AS(self):
@@ -312,23 +274,22 @@ class AS(TimestampedModel):
 
     def init_keys(self):
         """
-        Initialise signing and encryption key pairs, the MasterASKey (used for
-        hop field Message Authentication Codes (MAC) and the Dynamically
-        Recreatable Keys (DRKeys)).
-        If this is a core AS, also initialise the core AS signing key pairs.
+        Initialise AS signing and encryption keys.
+        If this is a core AS, also initialise the core AS voting and issuing keys.
+
+        Note: does not set master_as_key.
         """
-        self._gen_keys()
-        self._gen_master_as_key()
+        valid_not_before = datetime.utcnow()
+        self._gen_keys(valid_not_before)
         if self.is_core:
-            self._gen_core_keys()
+            self._gen_core_keys(valid_not_before)
 
     def update_keys(self):
         """
-        Generate new signing and encryption key pairs. Update the certificate.
+        Generate new AS signing and encryption keys. Update the certificate.
         Bumps the configuration version on all affected hosts.
         """
-        # TODO(matzf): in coming scion versions, the master key can be updated too.
-        self._gen_keys()
+        self._gen_keys(valid_not_before=datetime.utcnow())
         self.generate_certificate_chain()
         self.hosts.bump_config()
         self.save()
@@ -341,13 +302,14 @@ class AS(TimestampedModel):
         Bumps the configuration version on all affected hosts.
         """
         isds = set()
+        valid_not_before = datetime.utcnow()
         for as_ in queryset.filter(is_core=True):
             isds.add(as_.isd)
-            as_._gen_core_keys()
+            as_._gen_core_keys(valid_not_before)
             as_.save()
 
         for isd in isds:
-            isd.update_trc_and_core_certificates()
+            isd.update_trc_and_certificates()
 
     def generate_certificate_chain(self):
         """
@@ -367,7 +329,7 @@ class AS(TimestampedModel):
             issuer = candidates.first()
 
         if issuer:  # Skip if failed to find a core AS as issuer
-            self.certificate_chain = generate_as_certificate_chain(self, issuer)
+            self.certificates.create(type=Certificate.CHAIN, issuer=issuer)
 
     def generate_core_certificate(self):
         """
@@ -375,7 +337,7 @@ class AS(TimestampedModel):
 
         Requires that the TRC in this ISD exists/is up to date.
         """
-        self.core_certificate = generate_core_certificate(self)
+        self.certificates.create(type=Certificate.ISSUER)
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """
@@ -388,7 +350,7 @@ class AS(TimestampedModel):
             internal_ip=internal_ip or DEFAULT_HOST_INTERNAL_IP
         )
 
-        default_services = (Service.BS, Service.PS, Service.CS)
+        default_services = (Service.CS, )
         for service_type in default_services:
             Service.objects.create(host=host, type=service_type)
 
@@ -414,28 +376,40 @@ class AS(TimestampedModel):
 
         self.isd = isd
         self.generate_certificate_chain()
+        # Drop all previous certificates; these were created in a different ISD and would confuse.
+        # Keep versions increasing (by generating new cert before deleting old ones); in case we
+        # move back to the original ISD, we need to have a version number different from the
+        # original certificate.
+        latest = self.certificates.latest(Certificate.CHAIN)
+        self.certificates.exclude(id=latest.pk).delete()
+
         self.hosts.bump_config()
 
-    def _gen_keys(self):
+    def _gen_keys(self, valid_not_before):
         """
         Generate signing and encryption key pairs.
         """
-        self.sig_pub_key, self.sig_priv_key = _gen_sig_keypair()
-        self.enc_pub_key, self.enc_priv_key = _gen_enc_keypair()
+        for usage in [Key.DECRYPT, Key.SIGNING]:
+            self.keys.create(usage=usage, not_before=valid_not_before)
 
-    def _gen_master_as_key(self):
-        """
-        Generate the MasterASKey.
-        """
-        self.master_as_key = _base64encode(os.urandom(16))
-
-    def _gen_core_keys(self):
+    def _gen_core_keys(self, valid_not_before):
         """
         Generate core AS signing key pairs.
         """
-        self.core_sig_pub_key, self.core_sig_priv_key = _gen_sig_keypair()
-        self.core_online_pub_key, self.core_online_priv_key = _gen_sig_keypair()
-        self.core_offline_pub_key, self.core_offline_priv_key = _gen_sig_keypair()
+        for usage in [Key.CERT_SIGNING,
+                      Key.TRC_ISSUING_GRANT,
+                      Key.TRC_VOTING_ONLINE,
+                      Key.TRC_VOTING_OFFLINE]:
+            self.keys.create(usage=usage, not_before=valid_not_before)
+
+    @staticmethod
+    def _make_master_as_key():
+        """
+        Generate a random MasterASKey.
+        The MasterASKey is used for hop field Message Authentication Codes (MAC) and Dynamically
+        Recreatable Keys (DRKeys).
+        """
+        return _base64encode(os.urandom(16))
 
 
 class HostManager(models.Manager):
@@ -1185,7 +1159,7 @@ class ServiceManager(models.Manager):
         """
         Create a Service object.
         :param Host host: the host, defines the AS
-        :param str type: Service type (Service.BS, PS, CS, BW, or PP)
+        :param str type: Service type (Service.CS, BW, or PP)
         :returns: Service
         """
         host.AS.hosts.bump_config()
@@ -1201,25 +1175,22 @@ class Service(models.Model):
     A SCION service, both for the control plane services (beacon, path, ...)
     and for any other service that communicates using SCION.
     """
-    BS = 'BS'
-    PS = 'PS'
     CS = 'CS'
     BW = 'BW'
     PP = 'PP'
     SERVICE_TYPES = (
-        (BS, 'Beacon Server'),
-        (PS, 'Path Server'),
-        (CS, 'Certificate Server'),
+        (CS, 'Control Service'),  # monolithic control plane service
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
+    )
+    CONTROL_SERVICE_TYPES = (
+        CS,
     )
     EXTRA_SERVICE_TYPES = (
         BW,
         PP,
     )
     SERVICE_PORTS = {
-        BS: BS_PORT,
-        PS: PS_PORT,
         CS: CS_PORT,
         BW: BW_PORT,
         PP: PP_PORT,
@@ -1292,7 +1263,7 @@ class Service(models.Model):
         :param str type: Service type
         :param Host prev_host:
         """
-        if type in [Service.BS, Service.PS, Service.CS]:
+        if type == Service.CS:
             host.AS.hosts.bump_config()
         else:
             host.bump_config()
@@ -1320,15 +1291,3 @@ def _service_pre_delete(sender, instance, using, **kwargs):
 
 def _base64encode(key):
     return base64.b64encode(key).decode()
-
-
-def _base64encode_tuple(keys):
-    return (_base64encode(k) for k in keys)
-
-
-def _gen_sig_keypair():
-    return _base64encode_tuple(lib.crypto.asymcrypto.generate_sign_keypair())
-
-
-def _gen_enc_keypair():
-    return _base64encode_tuple(lib.crypto.asymcrypto.generate_enc_keypair())

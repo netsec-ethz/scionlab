@@ -15,6 +15,7 @@
 from unittest.mock import patch
 from django.test import TestCase
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
+from scionlab.models.pki import Certificate
 from scionlab.fixtures import testtopo
 from scionlab.tests import utils
 
@@ -64,12 +65,15 @@ class InitASTests(TestCase):
         as_ = AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
         utils.check_as_keys(self, as_)
         utils.check_as_core_keys(self, as_)
+        utils.check_issuer_certs(self, as_)
+        utils.check_cert_chains(self, as_)
 
     def test_create_as_with_default_services(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
+        AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
         as_ = AS.objects.create_with_default_services(
             isd=isd,
-            as_id='ff00:1:1',
+            as_id='ff00:1:2',
             public_ip='192.0.2.11'
         )
 
@@ -80,8 +84,9 @@ class InitASTests(TestCase):
         self.assertTrue(host.needs_config_deployment())
 
         self.assertTrue(hasattr(host, 'services'))
-        self.assertEqual(sorted(s.type for s in host.services.iterator()),
-                         ['BS', 'CS', 'PS'])
+        self.assertEqual(sorted(s.type for s in host.services.iterator()), ['CS'])
+
+        utils.check_as(self, as_)
 
 
 class UpdateASKeysTests(TestCase):
@@ -92,18 +97,17 @@ class UpdateASKeysTests(TestCase):
 
         as_ = AS.objects.first()
 
-        prev_certificate_chain = as_.certificate_chain
+        prev_certificate_chain = as_.certificates.latest(type=Certificate.CHAIN)
 
         as_.update_keys()
+
+        new_certificate_chain = as_.certificates.latest(type=Certificate.CHAIN)
 
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
             list(as_.hosts.all())
         )
-        self.assertEqual(
-            as_.certificate_chain['0']['Version'],
-            prev_certificate_chain['0']['Version'] + 1
-        )
+        self.assertEqual(new_certificate_chain.version, prev_certificate_chain.version + 1)
 
 
 class LinkModificationTests(TestCase):

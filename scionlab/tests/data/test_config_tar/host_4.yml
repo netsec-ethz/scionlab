@@ -1,123 +1,87 @@
 ccd/: null
 ccd/exbert@scionlab.org_ffaa_1_1: |-
   ifconfig-push 10.0.0.1 255.255.0.0
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/as.yml: |
-  CertChainVersion: 0
-  PathSegmentTTL: 21600
-  PropagateTime: 5
-  RegisterPath: true
-  RegisterTime: 5
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/br.toml: |
-  [br]
-  Profile = false
-
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1"
-  ID = "br17-ffaa_0_1107-1"
+  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1"
+  id = "br17-ffaa_0_1107-1"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "[127.0.0.1]:32045"
+  prometheus = "127.0.0.1:30442"
 
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
-
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/br17-ffaa_0_1107-1.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/br17-ffaa_0_1107-1.log"
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  {
-    "0": {
-      "CanIssue": false,
-      "Comment": "AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538790,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "7hc0egquSIvthVKqRxfJtO4Iap5w06Xppg0Q3zw+IxRJGDQny3aWvJB1wX/Urt+B6T644rRSzwhHDe31KY3LAA==",
-      "Subject": "17-ffaa:0:1107",
-      "SubjectEncKey": "cgTQkIR0MKoA9iPfnWd35oOIxcqN8eCc8P4aI9LABEQ=",
-      "SubjectSignKey": "ERIYaoECQMOX1iUQ485DxbyeDubtAwjBWXb1k83NgZc=",
-      "TRCVersion": 1,
-      "Version": 1
+  [
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
+      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
     },
-    "1": {
-      "CanIssue": true,
-      "Comment": "Core AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538791,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "uOYRNIVOlUYfwSaWFzLuAheXoozzW+6oyx1DOUZyGYYDgb7mmIcRbDwKI7lpzrVRou7N4m9HFBxUZQRMVq4yCQ==",
-      "Subject": "17-ffaa:0:1101",
-      "SubjectEncKey": "",
-      "SubjectSignKey": "Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=",
-      "TRCVersion": 1,
-      "Version": 1
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
+      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
     }
-  }
+  ]
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
   {
-    "CertLogs": {},
-    "CoreASes": {
-      "17-ffaa:0:1101": {
-        "OfflineKey": "b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=",
-        "OfflineKeyAlg": "ed25519",
-        "OnlineKey": "XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=",
-        "OnlineKeyAlg": "ed25519"
+    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
       }
-    },
-    "CreationTime": 1570002792,
-    "Description": "ISD 17 (Switzerland)",
-    "ExpirationTime": 1601538792,
-    "GracePeriod": 0,
-    "ISD": 17,
-    "Quarantine": false,
-    "QuorumCAs": 0,
-    "QuorumTRC": 1,
-    "RAINS": {},
-    "RootCAs": {},
-    "Signatures": {
-      "17-ffaa:0:1101": "a2y3LNNpEGPeMcKUaGwsZafEeDLcyNce9FvuaciQE4jm2DJwTDN+iS4H9P8IX/sBSc+9Qgj7L7YsQwIZFIH7AA=="
-    },
-    "ThresholdEEPKI": 0,
-    "Version": 1
+    ]
   }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/as-decrypt.key: |-
-  R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/as-sig.seed: |-
-  ovoV1rkh/ANm861qUAA2A7fBAPrSrIecGTAem6Yy300=
+gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 17-ffaa:0:1107
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
+  usage: as-decrypt
+  version: 1
+
+  yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=
+  -----END PRIVATE KEY-----
+gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 17-ffaa:0:1107
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
+  usage: as-signing
+  version: 1
+
+  v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=
+  -----END PRIVATE KEY-----
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/master0.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
+  R7D6Lhl52uxloBQFRulzzA==
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/master1.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
+  R7D6Lhl52uxloBQFRulzzA==
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
   {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
+    "Attributes": [],
     "BorderRouters": {
       "br17-ffaa_0_1107-1": {
         "CtrlAddr": {
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30045
+              "L4Port": 30242
             }
           }
         },
@@ -142,7 +106,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31045
+              "OverlayPort": 30042
             }
           }
         }
@@ -152,7 +116,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30046
+              "L4Port": 30243
             }
           }
         },
@@ -192,159 +156,109 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31046
+              "OverlayPort": 30043
             }
           }
         }
       }
     },
-    "CertificateService": {
+    "ControlService": {
       "cs17-ffaa_0_1107-1": {
         "Addrs": {
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 31042
+              "L4Port": 30254
             }
           }
         }
       }
     },
-    "Core": false,
-    "Discovery": {},
     "ISD_AS": "17-ffaa:0:1107",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    "Overlay": "UDP/IPv4"
   }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/as.yml: |
-  CertChainVersion: 0
-  PathSegmentTTL: 21600
-  PropagateTime: 5
-  RegisterPath: true
-  RegisterTime: 5
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/br.toml: |
-  [br]
-  Profile = false
-
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2"
-  ID = "br17-ffaa_0_1107-2"
+  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2"
+  id = "br17-ffaa_0_1107-2"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "[127.0.0.1]:32046"
+  prometheus = "127.0.0.1:30443"
 
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
-
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/br17-ffaa_0_1107-2.log"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/br17-ffaa_0_1107-2.log"
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  {
-    "0": {
-      "CanIssue": false,
-      "Comment": "AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538790,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "7hc0egquSIvthVKqRxfJtO4Iap5w06Xppg0Q3zw+IxRJGDQny3aWvJB1wX/Urt+B6T644rRSzwhHDe31KY3LAA==",
-      "Subject": "17-ffaa:0:1107",
-      "SubjectEncKey": "cgTQkIR0MKoA9iPfnWd35oOIxcqN8eCc8P4aI9LABEQ=",
-      "SubjectSignKey": "ERIYaoECQMOX1iUQ485DxbyeDubtAwjBWXb1k83NgZc=",
-      "TRCVersion": 1,
-      "Version": 1
+  [
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
+      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
     },
-    "1": {
-      "CanIssue": true,
-      "Comment": "Core AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538791,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "uOYRNIVOlUYfwSaWFzLuAheXoozzW+6oyx1DOUZyGYYDgb7mmIcRbDwKI7lpzrVRou7N4m9HFBxUZQRMVq4yCQ==",
-      "Subject": "17-ffaa:0:1101",
-      "SubjectEncKey": "",
-      "SubjectSignKey": "Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=",
-      "TRCVersion": 1,
-      "Version": 1
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
+      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
     }
-  }
+  ]
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/certs/ISD17-V1.trc: |-
   {
-    "CertLogs": {},
-    "CoreASes": {
-      "17-ffaa:0:1101": {
-        "OfflineKey": "b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=",
-        "OfflineKeyAlg": "ed25519",
-        "OnlineKey": "XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=",
-        "OnlineKeyAlg": "ed25519"
+    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
       }
-    },
-    "CreationTime": 1570002792,
-    "Description": "ISD 17 (Switzerland)",
-    "ExpirationTime": 1601538792,
-    "GracePeriod": 0,
-    "ISD": 17,
-    "Quarantine": false,
-    "QuorumCAs": 0,
-    "QuorumTRC": 1,
-    "RAINS": {},
-    "RootCAs": {},
-    "Signatures": {
-      "17-ffaa:0:1101": "a2y3LNNpEGPeMcKUaGwsZafEeDLcyNce9FvuaciQE4jm2DJwTDN+iS4H9P8IX/sBSc+9Qgj7L7YsQwIZFIH7AA=="
-    },
-    "ThresholdEEPKI": 0,
-    "Version": 1
+    ]
   }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/as-decrypt.key: |-
-  R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/as-sig.seed: |-
-  ovoV1rkh/ANm861qUAA2A7fBAPrSrIecGTAem6Yy300=
+gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 17-ffaa:0:1107
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
+  usage: as-decrypt
+  version: 1
+
+  yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=
+  -----END PRIVATE KEY-----
+gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 17-ffaa:0:1107
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
+  usage: as-signing
+  version: 1
+
+  v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=
+  -----END PRIVATE KEY-----
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/master0.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
+  R7D6Lhl52uxloBQFRulzzA==
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/master1.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
+  R7D6Lhl52uxloBQFRulzzA==
 gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
   {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
+    "Attributes": [],
     "BorderRouters": {
       "br17-ffaa_0_1107-1": {
         "CtrlAddr": {
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30045
+              "L4Port": 30242
             }
           }
         },
@@ -369,7 +283,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31045
+              "OverlayPort": 30042
             }
           }
         }
@@ -379,7 +293,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30046
+              "L4Port": 30243
             }
           }
         },
@@ -419,421 +333,133 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31046
+              "OverlayPort": 30043
             }
           }
         }
       }
     },
-    "CertificateService": {
+    "ControlService": {
       "cs17-ffaa_0_1107-1": {
         "Addrs": {
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 31042
+              "L4Port": 30254
             }
           }
         }
       }
     },
-    "Core": false,
-    "Discovery": {},
     "ISD_AS": "17-ffaa:0:1107",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    "Overlay": "UDP/IPv4"
   }
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/as.yml: |
-  CertChainVersion: 0
-  PathSegmentTTL: 21600
-  PropagateTime: 5
-  RegisterPath: true
-  RegisterTime: 5
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/bs.toml: |
-  [BS]
-  OriginationInterval = "5s"
-  PropagationInterval = "5s"
-  RevOverlap = "5s"
-  RevTTL = "20s"
-
-  [beaconDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/bs17-ffaa_0_1107-1.beacon.db"
-
-  [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1"
-  ID = "bs17-ffaa_0_1107-1"
-  ReconnectToDispatcher = true
-
-  [metrics]
-  Prometheus = "[127.0.0.1]:32041"
-
-  [quic]
-  Address = "[127.0.0.1]:30352"
-  CertFile = "/etc/scion/gen-certs/tls.pem"
-  KeyFile = "/etc/scion/gen-certs/tls.key"
-  ResolutionFraction = 0.4
-
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/bs17-ffaa_0_1107-1.trust.db"
-
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
-
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/bs17-ffaa_0_1107-1.log"
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  {
-    "0": {
-      "CanIssue": false,
-      "Comment": "AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538790,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "7hc0egquSIvthVKqRxfJtO4Iap5w06Xppg0Q3zw+IxRJGDQny3aWvJB1wX/Urt+B6T644rRSzwhHDe31KY3LAA==",
-      "Subject": "17-ffaa:0:1107",
-      "SubjectEncKey": "cgTQkIR0MKoA9iPfnWd35oOIxcqN8eCc8P4aI9LABEQ=",
-      "SubjectSignKey": "ERIYaoECQMOX1iUQ485DxbyeDubtAwjBWXb1k83NgZc=",
-      "TRCVersion": 1,
-      "Version": 1
-    },
-    "1": {
-      "CanIssue": true,
-      "Comment": "Core AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538791,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "uOYRNIVOlUYfwSaWFzLuAheXoozzW+6oyx1DOUZyGYYDgb7mmIcRbDwKI7lpzrVRou7N4m9HFBxUZQRMVq4yCQ==",
-      "Subject": "17-ffaa:0:1101",
-      "SubjectEncKey": "",
-      "SubjectSignKey": "Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=",
-      "TRCVersion": 1,
-      "Version": 1
-    }
-  }
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
-  {
-    "CertLogs": {},
-    "CoreASes": {
-      "17-ffaa:0:1101": {
-        "OfflineKey": "b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=",
-        "OfflineKeyAlg": "ed25519",
-        "OnlineKey": "XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=",
-        "OnlineKeyAlg": "ed25519"
-      }
-    },
-    "CreationTime": 1570002792,
-    "Description": "ISD 17 (Switzerland)",
-    "ExpirationTime": 1601538792,
-    "GracePeriod": 0,
-    "ISD": 17,
-    "Quarantine": false,
-    "QuorumCAs": 0,
-    "QuorumTRC": 1,
-    "RAINS": {},
-    "RootCAs": {},
-    "Signatures": {
-      "17-ffaa:0:1101": "a2y3LNNpEGPeMcKUaGwsZafEeDLcyNce9FvuaciQE4jm2DJwTDN+iS4H9P8IX/sBSc+9Qgj7L7YsQwIZFIH7AA=="
-    },
-    "ThresholdEEPKI": 0,
-    "Version": 1
-  }
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/keys/as-decrypt.key: |-
-  R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/keys/as-sig.seed: |-
-  ovoV1rkh/ANm861qUAA2A7fBAPrSrIecGTAem6Yy300=
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/keys/master0.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/keys/master1.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
-gen/ISD17/ASffaa_0_1107/bs17-ffaa_0_1107-1/topology.json: |-
-  {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
-    "BorderRouters": {
-      "br17-ffaa_0_1107-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30045
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 31045
-            }
-          }
-        }
-      },
-      "br17-ffaa_0_1107-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30046
-            }
-          }
-        },
-        "Interfaces": {
-          "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
-            }
-          },
-          "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 31046
-            }
-          }
-        }
-      }
-    },
-    "CertificateService": {
-      "cs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31042
-            }
-          }
-        }
-      }
-    },
-    "Core": false,
-    "Discovery": {},
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
-  }
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/as.yml: |
-  CertChainVersion: 0
-  PathSegmentTTL: 21600
-  PropagateTime: 5
-  RegisterPath: true
-  RegisterTime: 5
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  {
-    "0": {
-      "CanIssue": false,
-      "Comment": "AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538790,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "7hc0egquSIvthVKqRxfJtO4Iap5w06Xppg0Q3zw+IxRJGDQny3aWvJB1wX/Urt+B6T644rRSzwhHDe31KY3LAA==",
-      "Subject": "17-ffaa:0:1107",
-      "SubjectEncKey": "cgTQkIR0MKoA9iPfnWd35oOIxcqN8eCc8P4aI9LABEQ=",
-      "SubjectSignKey": "ERIYaoECQMOX1iUQ485DxbyeDubtAwjBWXb1k83NgZc=",
-      "TRCVersion": 1,
-      "Version": 1
+  [
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
+      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
     },
-    "1": {
-      "CanIssue": true,
-      "Comment": "Core AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538791,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "uOYRNIVOlUYfwSaWFzLuAheXoozzW+6oyx1DOUZyGYYDgb7mmIcRbDwKI7lpzrVRou7N4m9HFBxUZQRMVq4yCQ==",
-      "Subject": "17-ffaa:0:1101",
-      "SubjectEncKey": "",
-      "SubjectSignKey": "Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=",
-      "TRCVersion": 1,
-      "Version": 1
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
+      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
     }
-  }
+  ]
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
   {
-    "CertLogs": {},
-    "CoreASes": {
-      "17-ffaa:0:1101": {
-        "OfflineKey": "b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=",
-        "OfflineKeyAlg": "ed25519",
-        "OnlineKey": "XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=",
-        "OnlineKeyAlg": "ed25519"
+    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
       }
-    },
-    "CreationTime": 1570002792,
-    "Description": "ISD 17 (Switzerland)",
-    "ExpirationTime": 1601538792,
-    "GracePeriod": 0,
-    "ISD": 17,
-    "Quarantine": false,
-    "QuorumCAs": 0,
-    "QuorumTRC": 1,
-    "RAINS": {},
-    "RootCAs": {},
-    "Signatures": {
-      "17-ffaa:0:1101": "a2y3LNNpEGPeMcKUaGwsZafEeDLcyNce9FvuaciQE4jm2DJwTDN+iS4H9P8IX/sBSc+9Qgj7L7YsQwIZFIH7AA=="
-    },
-    "ThresholdEEPKI": 0,
-    "Version": 1
+    ]
   }
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
-  [cs]
-  IssuerReissueTime = "3d"
-  LeafReissueTime = "6h"
-  ReissueRate = "10s"
-  ReissueTimeout = "5s"
+  [beacon_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.beacon.db"
+
+  [bs]
+  origination_interval = "5s"
+  propagation_interval = "5s"
+  rev_overlap = "5s"
+  rev_ttl = "20s"
 
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1"
-  ID = "cs17-ffaa_0_1107-1"
-  ReconnectToDispatcher = true
+  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1"
+  id = "cs17-ffaa_0_1107-1"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "[127.0.0.1]:32042"
+  prometheus = "127.0.0.1:30454"
+
+  [path_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.path.db"
 
   [quic]
-  Address = "[127.0.0.1]:30354"
-  CertFile = "/etc/scion/gen-certs/tls.pem"
-  KeyFile = "/etc/scion/gen-certs/tls.key"
-  ResolutionFraction = 0.4
+  address = "127.0.0.1:30354"
+  cert_file = "/etc/scion/gen-certs/tls.pem"
+  key_file = "/etc/scion/gen-certs/tls.key"
+  resolution_fraction = 0.4
 
-  [sd_client]
-  Path = "/run/shm/sciond/default.sock"
+  [trust_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
 
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/cs17-ffaa_0_1107-1.log"
+gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 17-ffaa:0:1107
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
+  usage: as-decrypt
+  version: 1
 
-  [discovery.dynamic]
-  Enable = false
+  yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=
+  -----END PRIVATE KEY-----
+gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 17-ffaa:0:1107
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
+  usage: as-signing
+  version: 1
 
-  [discovery.static]
-  Enable = false
-
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/cs17-ffaa_0_1107-1.log"
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-decrypt.key: |-
-  R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-sig.seed: |-
-  ovoV1rkh/ANm861qUAA2A7fBAPrSrIecGTAem6Yy300=
+  v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=
+  -----END PRIVATE KEY-----
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/master0.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
+  R7D6Lhl52uxloBQFRulzzA==
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/master1.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
+  R7D6Lhl52uxloBQFRulzzA==
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/topology.json: |-
   {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
+    "Attributes": [],
     "BorderRouters": {
       "br17-ffaa_0_1107-1": {
         "CtrlAddr": {
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30045
+              "L4Port": 30242
             }
           }
         },
@@ -858,7 +484,7 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31045
+              "OverlayPort": 30042
             }
           }
         }
@@ -868,7 +494,7 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30046
+              "L4Port": 30243
             }
           }
         },
@@ -908,168 +534,94 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31046
+              "OverlayPort": 30043
             }
           }
         }
       }
     },
-    "CertificateService": {
+    "ControlService": {
       "cs17-ffaa_0_1107-1": {
         "Addrs": {
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 31042
+              "L4Port": 30254
             }
           }
         }
       }
     },
-    "Core": false,
-    "Discovery": {},
     "ISD_AS": "17-ffaa:0:1107",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    "Overlay": "UDP/IPv4"
   }
-gen/ISD17/ASffaa_0_1107/endhost/as.yml: |
-  CertChainVersion: 0
-  PathSegmentTTL: 21600
-  PropagateTime: 5
-  RegisterPath: true
-  RegisterTime: 5
 gen/ISD17/ASffaa_0_1107/endhost/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  {
-    "0": {
-      "CanIssue": false,
-      "Comment": "AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538790,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "7hc0egquSIvthVKqRxfJtO4Iap5w06Xppg0Q3zw+IxRJGDQny3aWvJB1wX/Urt+B6T644rRSzwhHDe31KY3LAA==",
-      "Subject": "17-ffaa:0:1107",
-      "SubjectEncKey": "cgTQkIR0MKoA9iPfnWd35oOIxcqN8eCc8P4aI9LABEQ=",
-      "SubjectSignKey": "ERIYaoECQMOX1iUQ485DxbyeDubtAwjBWXb1k83NgZc=",
-      "TRCVersion": 1,
-      "Version": 1
+  [
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
+      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
     },
-    "1": {
-      "CanIssue": true,
-      "Comment": "Core AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538791,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "uOYRNIVOlUYfwSaWFzLuAheXoozzW+6oyx1DOUZyGYYDgb7mmIcRbDwKI7lpzrVRou7N4m9HFBxUZQRMVq4yCQ==",
-      "Subject": "17-ffaa:0:1101",
-      "SubjectEncKey": "",
-      "SubjectSignKey": "Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=",
-      "TRCVersion": 1,
-      "Version": 1
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
+      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
     }
-  }
+  ]
 gen/ISD17/ASffaa_0_1107/endhost/certs/ISD17-V1.trc: |-
   {
-    "CertLogs": {},
-    "CoreASes": {
-      "17-ffaa:0:1101": {
-        "OfflineKey": "b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=",
-        "OfflineKeyAlg": "ed25519",
-        "OnlineKey": "XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=",
-        "OnlineKeyAlg": "ed25519"
+    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
       }
-    },
-    "CreationTime": 1570002792,
-    "Description": "ISD 17 (Switzerland)",
-    "ExpirationTime": 1601538792,
-    "GracePeriod": 0,
-    "ISD": 17,
-    "Quarantine": false,
-    "QuorumCAs": 0,
-    "QuorumTRC": 1,
-    "RAINS": {},
-    "RootCAs": {},
-    "Signatures": {
-      "17-ffaa:0:1101": "a2y3LNNpEGPeMcKUaGwsZafEeDLcyNce9FvuaciQE4jm2DJwTDN+iS4H9P8IX/sBSc+9Qgj7L7YsQwIZFIH7AA=="
-    },
-    "ThresholdEEPKI": 0,
-    "Version": 1
+    ]
   }
 gen/ISD17/ASffaa_0_1107/endhost/sd.toml: |
   [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/endhost"
-  ID = "sd17-ffaa_0_1107"
-  ReconnectToDispatcher = true
+  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/endhost"
+  id = "sd17-ffaa_0_1107"
+  reconnect_to_dispatcher = true
 
   [metrics]
-  Prometheus = "[127.0.0.1]:30455"
+  prometheus = "127.0.0.1:30455"
 
-  [quic]
-  Address = "[127.0.0.1]:0"
-  CertFile = "/etc/scion/gen-certs/tls.pem"
-  KeyFile = "/etc/scion/gen-certs/tls.key"
-  ResolutionFraction = 0.4
+  [path_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/sd17-ffaa_0_1107.path.db"
 
   [sd]
-  Public = "17-ffaa:0:1107,[127.0.0.1]:0"
-  Reliable = "/run/shm/sciond/default.sock"
-  SocketFileMode = "0777"
-  Unix = "/run/shm/sciond/default.unix"
+  address = "127.0.0.1:30255"
 
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/sd17-ffaa_0_1107.trust.db"
+  [trust_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/sd17-ffaa_0_1107.trust.db"
 
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
-
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/sd17-ffaa_0_1107.log"
-
-  [sd.PathDB]
-  Connection = "/var/lib/scion/sd17-ffaa_0_1107.path.db"
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/sd17-ffaa_0_1107.log"
 gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
   {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
+    "Attributes": [],
     "BorderRouters": {
       "br17-ffaa_0_1107-1": {
         "CtrlAddr": {
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30045
+              "L4Port": 30242
             }
           }
         },
@@ -1094,7 +646,7 @@ gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31045
+              "OverlayPort": 30042
             }
           }
         }
@@ -1104,7 +656,7 @@ gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 30046
+              "L4Port": 30243
             }
           }
         },
@@ -1144,312 +696,70 @@ gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
           "IPv4": {
             "PublicOverlay": {
               "Addr": "127.0.0.1",
-              "OverlayPort": 31046
+              "OverlayPort": 30043
             }
           }
         }
       }
     },
-    "CertificateService": {
+    "ControlService": {
       "cs17-ffaa_0_1107-1": {
         "Addrs": {
           "IPv4": {
             "Public": {
               "Addr": "127.0.0.1",
-              "L4Port": 31042
+              "L4Port": 30254
             }
           }
         }
       }
     },
-    "Core": false,
-    "Discovery": {},
     "ISD_AS": "17-ffaa:0:1107",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    "Overlay": "UDP/IPv4"
   }
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/as.yml: |
-  CertChainVersion: 0
-  PathSegmentTTL: 21600
-  PropagateTime: 5
-  RegisterPath: true
-  RegisterTime: 5
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
+gen/ISD17/trcs/ISD17-V1.trc: |-
   {
-    "0": {
-      "CanIssue": false,
-      "Comment": "AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538790,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "7hc0egquSIvthVKqRxfJtO4Iap5w06Xppg0Q3zw+IxRJGDQny3aWvJB1wX/Urt+B6T644rRSzwhHDe31KY3LAA==",
-      "Subject": "17-ffaa:0:1107",
-      "SubjectEncKey": "cgTQkIR0MKoA9iPfnWd35oOIxcqN8eCc8P4aI9LABEQ=",
-      "SubjectSignKey": "ERIYaoECQMOX1iUQ485DxbyeDubtAwjBWXb1k83NgZc=",
-      "TRCVersion": 1,
-      "Version": 1
-    },
-    "1": {
-      "CanIssue": true,
-      "Comment": "Core AS Certificate",
-      "EncAlgorithm": "curve25519xsalsa20poly1305",
-      "ExpirationTime": 1601538791,
-      "Issuer": "17-ffaa:0:1101",
-      "IssuingTime": 1570002792,
-      "SignAlgorithm": "ed25519",
-      "Signature": "uOYRNIVOlUYfwSaWFzLuAheXoozzW+6oyx1DOUZyGYYDgb7mmIcRbDwKI7lpzrVRou7N4m9HFBxUZQRMVq4yCQ==",
-      "Subject": "17-ffaa:0:1101",
-      "SubjectEncKey": "",
-      "SubjectSignKey": "Il8djludEq2k4G4lqch0YFbni6fqu2YHwJuae3NbG7I=",
-      "TRCVersion": 1,
-      "Version": 1
-    }
-  }
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
-  {
-    "CertLogs": {},
-    "CoreASes": {
-      "17-ffaa:0:1101": {
-        "OfflineKey": "b1o+/tLNfC0+249PjjiRoHugFFtg7Hpnb0C8t3oGEDc=",
-        "OfflineKeyAlg": "ed25519",
-        "OnlineKey": "XzHRQwXrj2nI73IfHjFQOxHZvSM7SwTm97Vn7Ni+VHw=",
-        "OnlineKeyAlg": "ed25519"
-      }
-    },
-    "CreationTime": 1570002792,
-    "Description": "ISD 17 (Switzerland)",
-    "ExpirationTime": 1601538792,
-    "GracePeriod": 0,
-    "ISD": 17,
-    "Quarantine": false,
-    "QuorumCAs": 0,
-    "QuorumTRC": 1,
-    "RAINS": {},
-    "RootCAs": {},
-    "Signatures": {
-      "17-ffaa:0:1101": "a2y3LNNpEGPeMcKUaGwsZafEeDLcyNce9FvuaciQE4jm2DJwTDN+iS4H9P8IX/sBSc+9Qgj7L7YsQwIZFIH7AA=="
-    },
-    "ThresholdEEPKI": 0,
-    "Version": 1
-  }
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/keys/as-decrypt.key: |-
-  R7D6Lhl52uxloBQFRulzzMod3EEip4XRpqVYHd8nR9k=
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/keys/as-sig.seed: |-
-  ovoV1rkh/ANm861qUAA2A7fBAPrSrIecGTAem6Yy300=
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/keys/master0.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/keys/master1.key: |-
-  BAoKNK5CjlDyXfCR6NkK2A==
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/ps.toml: |
-  [general]
-  ConfigDir = "/etc/scion/gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1"
-  ID = "ps17-ffaa_0_1107-1"
-  ReconnectToDispatcher = true
-
-  [metrics]
-  Prometheus = "[127.0.0.1]:32043"
-
-  [ps]
-  SegSync = true
-
-  [quic]
-  Address = "[127.0.0.1]:30353"
-  CertFile = "/etc/scion/gen-certs/tls.pem"
-  KeyFile = "/etc/scion/gen-certs/tls.key"
-  ResolutionFraction = 0.4
-
-  [trustDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/ps17-ffaa_0_1107-1.trust.db"
-
-  [discovery.dynamic]
-  Enable = false
-
-  [discovery.static]
-  Enable = false
-
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/ps17-ffaa_0_1107-1.log"
-
-  [ps.PathDB]
-  Backend = "sqlite"
-  Connection = "/var/lib/scion/ps17-ffaa_0_1107-1.path.db"
-gen/ISD17/ASffaa_0_1107/ps17-ffaa_0_1107-1/topology.json: |-
-  {
-    "BeaconService": {
-      "bs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31041
-            }
-          }
-        }
-      }
-    },
-    "BorderRouters": {
-      "br17-ffaa_0_1107-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30045
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 31045
-            }
-          }
-        }
+    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
       },
-      "br17-ffaa_0_1107-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30046
-            }
-          }
-        },
-        "Interfaces": {
-          "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
-            }
-          },
-          "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 31046
-            }
-          }
-        }
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
       }
-    },
-    "CertificateService": {
-      "cs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31042
-            }
-          }
-        }
-      }
-    },
-    "Core": false,
-    "Discovery": {},
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "PathService": {
-      "ps17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31043
-            }
-          }
-        }
-      }
-    }
+    ]
   }
 gen/dispatcher/disp.toml: |
   [dispatcher]
-  ID = "dispatcher"
-  SocketFileMode = "0777"
+  id = "dispatcher"
+  socket_file_mode = "0777"
 
   [metrics]
-  Prometheus = "[127.0.0.1]:30441"
+  prometheus = "127.0.0.1:30441"
 
-  [logging.file]
-  Level = "debug"
-  MaxAge = 3
-  MaxBackups = 1
-  Path = "/var/log/scion/dispatcher.log"
-gen/ia: |-
-  17-ffaa_0_1107
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/dispatcher.log"
 gen/scionlab-config.json: |-
   {
-    "host_id": "bff6b39ba77e46a4a775a36f5fdf892d",
-    "host_secret": "3560964a022346459556ca5eb71756c7",
+    "host_id": "9e090a4529264b958a5c65fd8c214b1d",
+    "host_secret": "7abb3def0c4e4ddb85ba124d67d5544c",
     "url": "http://localhost:8000",
-    "version": 12
+    "version": 10
   }
 scionlab-services.txt: |-
   scion-border-router@17-ffaa_0_1107-1.service
   scion-border-router@17-ffaa_0_1107-2.service
-  scion-beacon-server@17-ffaa_0_1107-1.service
-  scion-path-server@17-ffaa_0_1107-1.service
-  scion-certificate-server@17-ffaa_0_1107-1.service
+  scion-control-service@17-ffaa_0_1107-1.service
   scion-bwtestserver.service
   scion-daemon@17-ffaa_0_1107.service
   scion-dispatcher.service
@@ -1530,7 +840,7 @@ server.conf: |
   </ca>
   <cert>
   -----BEGIN CERTIFICATE-----
-  MIIE5zCCAs+gAwIBAgIUMdlw6QTKu61qSJBIWqOp6QMyvPUwDQYJKoZIhvcNAQEL
+  MIIE5zCCAs+gAwIBAgIUNs2tSLmq6rBBrn5r7lEPESj2ApcwDQYJKoZIhvcNAQEL
   BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
   MQwwCgYDVQQKDANFVEgxDzANBgNVBAsMBk5ldFNlYzEPMA0GA1UEAwwGRVRIIENB
   MREwDwYDVQQpDAhTQ0lPTlZQTjEmMCQGCSqGSIb3DQEJARYXc2Npb25AbGlzdHMu
@@ -1545,18 +855,18 @@ server.conf: |
   A1UdEQQbMBmCF2ZmYWFfMF8xMTA3X18xOTIuMC4yLjE3MB8GA1UdIwQYMBaAFE4J
   Ec3/hi5PNjOAmVv5WHAM3E4AMB0GA1UdDgQWBBRqsNSS11w2U5fEoFFb7RWjsqiU
   STAOBgNVHQ8BAf8EBAMCBaAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwEwDAYDVR0T
-  AQH/BAIwADANBgkqhkiG9w0BAQsFAAOCAgEACDwAHWMA708dKWbLzPJBDqbDAeOf
-  d7/1ACdXWXZ40Cj7mPcBvPxQgmJ9K0eb0M/pfJzZO7gqNIR4V33ODESHqmdEr+Kc
-  46xEcgCoU9y58MvJBptgcqn5wO6YpZdXyPbIyN6CNZ4aeWYOAkA/ml0mrFGtzScW
-  pbl4vVqds+CYLa0yss4RDVFA/uUrsHnWnonPNQKSdlKER/yfRLjulLfI5gVd+tNy
-  5co3D1GcEiGXlMZeGejzg3JfEFuD39bIUMp0+P64khMYKo6GbdE5HcRQuV9bogbb
-  zglzgVvtukApvjDRqLHic27MA1zSueosaytoWLpxoRonfHiOxLhSrONO5wHuXP56
-  PnBqkABBXrl04dITvmdeP26YeLKIB3SM90nRRVrLiiV/GzwzyOZlyid1lmb+wlVv
-  1t6nfz6jgLtIdkuTsiijlWMa49MMbsFH+u3t4pzRy45Gik/jEW8pFxC3XKhIAASn
-  tWrFUbPykjYOZKRXzHeSAY2iJL8cxa6bvdq2oJGzCOwvzwTxP9UwVRU5Kp1bOM+7
-  Mx0JMtUZ6ayyxQHlRTZ5kZIBxRVVmfpe5fnacQ5ciw97Cs3JzyBbN/J/kx1AWPLI
-  N+L6L5G+djY5T+GKmHebWdQMh771RowQ+n8EU9v0++6NpcGCBKgSyWLfGu5rKws1
-  nZ2lKH25cobi3Dk=
+  AQH/BAIwADANBgkqhkiG9w0BAQsFAAOCAgEAAtDnyDzjrghgpDGKVAWXOadDarwx
+  G3S4J2wDjH8HEtQJo/zHneyHLEp6ef07Zl8+QDQV+YodItqzw+CnoKH3DRSeofu7
+  MHsU96pqrAJgDF/2Ck+6nxdLewmsOFA21AipMZgVcaXVx0PUE29oO/JHIv2r4dLw
+  PgI78dnSrXxZWHZUBlQgl02ZXqccKAF5AfSN+5oLj96d5BFruImDNLr1OB3/TMIU
+  Z00Vut6Zz0FWujwyUReyAjL57SRrQMh9p5FgmlsFyZCVqWkthuMYTliHzW3wC4tn
+  /LlAeHIr6BcSeorewPtiZVOrbCVYmxvn7dWgDYahXpXeh+N2BsOhSJqbsZhOWZkI
+  1xaMDJH6MqfXAbvfcHNZDgwTvsB9Be9+/wq2RNf5hN/dsNGY5oiRU9a/Y/zPi2pe
+  +sX/mZez+AMr0DUb9ZgzRQLzmzLA0vZ5XUndSfM8cs0ttNb7QCV4e4+V+BO134Gf
+  JK5KKZAN8pN6DjLcl7OCQ0kC5VZC2Qqn8DQcTG+kxaDhnR1bpBw8UJdxwpdyLsNr
+  KQEjx7lGA33sOIGxFCMjwAoAGJEISLCR7x0dCC9dIdrfWQBQdVjkQrbdXQaTruJU
+  O8ODIerXI3oUxsjbkGg2ozGTn3U71FYC/z28ceKspXDd/PZOmUOq6wGUR8jv+3Nl
+  f+uNqaU1lL6hVMw=
   -----END CERTIFICATE-----
 
   </cert>

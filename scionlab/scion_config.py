@@ -14,8 +14,10 @@
 
 import configparser
 import enum
+import ipaddress
 import os
 from collections import OrderedDict
+from datetime import datetime
 
 from scionlab.models.core import Service
 from scionlab.scion_topology import TopologyInfo
@@ -23,46 +25,29 @@ from scionlab.scion_topology import TopologyInfo
 from scionlab.defines import (
     PROPAGATE_TIME_CORE,
     PROPAGATE_TIME_NONCORE,
-    PROM_PORT_OFFSET,
-    PROM_PORT_DI,
-    PROM_PORT_SD,
-    BS_PORT,
-    PS_PORT,
-    CS_PORT,
-    BS_QUIC_PORT,
-    PS_QUIC_PORT,
+    BR_PROM_PORT_OFFSET,
+    DISPATCHER_PROM_PORT,
     CS_QUIC_PORT,
-    SD_QUIC_PORT,
+    CS_PROM_PORT,
+    SD_TCP_PORT,
+    SD_PROM_PORT,
     SCION_CONFIG_DIR,
     SCION_LOG_DIR,
     SCION_VAR_DIR,
     GEN_PATH,
 )
 
-from lib.crypto.asymcrypto import (
-    get_core_sig_key_file_path,
-    get_enc_key_file_path,
-    get_sig_key_file_path,
-)
-from lib.crypto.util import (
-    CERT_DIR,
-    get_offline_key_file_path,
-    get_online_key_file_path,
-    get_master_key_file_path,
-    MASTER_KEY_0,
-    MASTER_KEY_1,
-)
-from lib.defines import (
-    AS_CONF_FILE,
-    SCIOND_API_SOCKDIR,
-)
+CERT_DIR = "certs"
+KEY_DIR = "keys"
+TRC_DIR = "trcs"
+MASTER_KEY_0 = "master0.key"
+MASTER_KEY_1 = "master1.key"
+
 
 TYPE_BR = 'BR'
 TYPE_SD = 'SD'
 SERVICES_TO_SYSTEMD_NAMES = {
-    Service.BS: 'scion-beacon-server',
-    Service.CS: 'scion-certificate-server',
-    Service.PS: 'scion-path-server',
+    Service.CS: 'scion-control-service',
     Service.BW: 'scion-bwtestserver',
     TYPE_BR: 'scion-border-router',
 }
@@ -71,9 +56,7 @@ DEFAULT_ENV = ['TZ=UTC']
 BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 
 CMDS = {
-    Service.BS: 'beacon_srv',
-    Service.CS: 'cert_srv',
-    Service.PS: 'path_srv',
+    Service.CS: 'cs',
     TYPE_BR: 'border',
     TYPE_SD: 'sciond',
 }
@@ -131,20 +114,19 @@ class _ConfigGenerator:
         self._write_supervisord_files()
 
     def _gen_configs(self, cb):
+        self.archive.write_toml((GEN_PATH, 'dispatcher', 'disp.toml'), cb.build_disp_conf())
+
+        self._write_trcs(os.path.join(_isd_dir(self.AS.isd), TRC_DIR))
+
         for router in self._routers():
             self._write_elem_dir(router.instance_name, 'br.toml', cb.build_br_conf(router))
 
-        for service in self._services():
-            if service.type == Service.BS:
-                self._write_elem_dir(service.instance_name, 'bs.toml', cb.build_bs_conf(service))
-            elif service.type == Service.PS:
-                self._write_elem_dir(service.instance_name, 'ps.toml', cb.build_ps_conf(service))
-            elif service.type == Service.CS:
+        for service in self._control_services():
+            if service.type == Service.CS:
                 self._write_elem_dir(service.instance_name, 'cs.toml', cb.build_cs_conf(service))
 
         self._write_elem_dir('endhost', 'sd.toml', cb.build_sciond_conf(self.host),
                              with_keys=False)
-        self.archive.write_toml((GEN_PATH, 'dispatcher', 'disp.toml'), cb.build_disp_conf())
 
     def _write_elem_dir(self, elem_id, toml_filename, conf, with_keys=True):
         """
@@ -161,51 +143,43 @@ class _ConfigGenerator:
         self.archive.write_toml((elem_dir, toml_filename), conf)
 
         self._write_topo(elem_dir)
-        self._write_as_conf(elem_dir)
-        self._write_certs_trc(elem_dir)
+        self._write_trcs(os.path.join(elem_dir, CERT_DIR))
+        self._write_certs(os.path.join(elem_dir, CERT_DIR))
         if with_keys:
-            self._write_keys(elem_dir)
+            self._write_keys(os.path.join(elem_dir, KEY_DIR))
 
-    def _write_certs_trc(self, elem_dir):
-        trc_version = self.AS.isd.trc['Version']
-        self.archive.write_json((elem_dir, CERT_DIR, _trc_filename(self.AS.isd, trc_version)),
-                                self.AS.isd.trc)
+    def _write_trcs(self, dir):
+        if self.AS.is_core:
+            # keep _all_ TRCs
+            relevant_trcs = self.AS.isd.trcs.all()
+        else:
+            # only active TRCs required; simplify, include all non-expired.
+            # XXX(matzf): this will lead to issues for tests as testdata has fixed date...
+            relevant_trcs = self.AS.isd.trcs.filter(not_after__gt=datetime.utcnow())
+        for trc in relevant_trcs:
+            self.archive.write_json((dir, trc.filename()), trc.trc)
 
-        cert_version = self.AS.certificate_chain['0']['Version']
-        self.archive.write_json((elem_dir, CERT_DIR, _cert_chain_filename(self.AS, cert_version)),
-                                self.AS.certificate_chain)
+    def _write_certs(self, dir):
+        for cert in self.AS.certificates.all():
+            self.archive.write_json((dir, cert.filename()), cert.certificate)
 
-    def _write_keys(self, elem_dir):
-        as_ = self.AS
-        archive = self.archive
-        archive.write_text(get_sig_key_file_path(elem_dir), as_.sig_priv_key)
-        archive.write_text(get_enc_key_file_path(elem_dir), as_.enc_priv_key)
-        archive.write_text(get_master_key_file_path(elem_dir, MASTER_KEY_0), as_.master_as_key)
-        archive.write_text(get_master_key_file_path(elem_dir, MASTER_KEY_1), as_.master_as_key)
-        if as_.is_core:
-            archive.write_text(get_core_sig_key_file_path(elem_dir), as_.core_sig_priv_key)
-            archive.write_text(get_online_key_file_path(elem_dir), as_.core_online_priv_key)
-            archive.write_text(get_offline_key_file_path(elem_dir), as_.core_offline_priv_key)
+    def _write_keys(self, dir):
+        self.archive.write_text((dir, MASTER_KEY_0), self.AS.master_as_key)
+        self.archive.write_text((dir, MASTER_KEY_1), self.AS.master_as_key)
 
-    def _write_topo(self, elem_dir):
-        self.archive.write_json((elem_dir, 'topology.json'), self.topo_info.topo)
+        for key in self.AS.keys.all():
+            self.archive.write_text((dir, key.filename()), key.format_keyfile())
 
-    def _write_as_conf(self, elem_dir):
-        conf = {
-            'RegisterTime': 5,
-            'PropagateTime': 5,
-            'CertChainVersion': 0,
-            'RegisterPath': True,
-            'PathSegmentTTL': 21600,
-        }
-        self.archive.write_yaml((elem_dir, AS_CONF_FILE), conf)
+    def _write_topo(self, dir):
+        self.archive.write_json((dir, 'topology.json'), self.topo_info.topo)
 
     def _write_systemd_services_file(self):
         ia = self.AS.isd_as_path_str()
         unit_names = ["scion-border-router@%s-%i.service" % (ia, router.instance_id)
                       for router in self._routers()]
         unit_names += ["%s@%s-%i.service" % (SERVICES_TO_SYSTEMD_NAMES[service.type], ia,
-                                             service.instance_id) for service in self._services()]
+                                             service.instance_id)
+                       for service in self._control_services()]
         unit_names += ["%s.service" % SERVICES_TO_SYSTEMD_NAMES[service.type]
                        for service in self._extra_services()]
         unit_names.append('scion-daemon@%s.service' % self.AS.isd_as_path_str())
@@ -216,7 +190,7 @@ class _ConfigGenerator:
     def _write_supervisord_files(self):
         for r in self._routers():
             self._write_supervisord_conf(r.instance_name, CMDS[TYPE_BR], 'br.toml', env=BORDER_ENV)
-        for s in self._services():
+        for s in self._control_services():
             self._write_supervisord_conf(s.instance_name, CMDS[s.type], '%s.toml' % s.type.lower())
 
         sd_prog_id = "sd%s" % self.AS.isd_as_path_str()
@@ -224,7 +198,7 @@ class _ConfigGenerator:
         self._write_disp_supervisord_conf()
 
         prog_ids = [r.instance_name for r in self._routers()] + \
-                   [s.instance_name for s in self._services()] + \
+                   [s.instance_name for s in self._control_services()] + \
                    [sd_prog_id, 'dispatcher']
         self._write_supervisord_group_config(prog_ids)
 
@@ -248,11 +222,13 @@ class _ConfigGenerator:
     def _routers(self):
         return (r for r in self.topo_info.routers if r.host == self.host)
 
-    def _services(self):
-        return (s for s in self.topo_info.services if s.host == self.host)
+    def _control_services(self):
+        return (s for s in self.topo_info.services
+                if s.type in Service.CONTROL_SERVICE_TYPES and s.host == self.host)
 
     def _extra_services(self):
-        return list(self.host.services.filter(type__in=Service.EXTRA_SERVICE_TYPES))
+        return (s for s in self.topo_info.services
+                if s.type in Service.EXTRA_SERVICE_TYPES and s.host == self.host)
 
     def _elem_dir(self, elem_id):
         return os.path.join(_isd_as_dir(self.AS), elem_id)
@@ -270,69 +246,58 @@ class _ConfigBuilder:
         self.var_dir = var_dir
 
     def build_disp_conf(self):
-        conf = self._build_common_conf('dispatcher', PROM_PORT_DI)
+        logging_conf = self._build_logging_conf('dispatcher')
+        metrics_conf = self._build_metrics_conf(DISPATCHER_PROM_PORT)
+        conf = _chain_dicts(logging_conf, metrics_conf)
         conf.update({
-            'dispatcher': {'ID': 'dispatcher', 'SocketFileMode': '0777'},
+            'dispatcher': {
+                'id': 'dispatcher',
+                'socket_file_mode': '0777'
+            },
         })
         return conf
 
     def build_br_conf(self, router):
-        conf = self._build_base_goservice_conf(router.instance_name,
-                                               router.internal_port + PROM_PORT_OFFSET)
-        conf.update({
-            'br': {
-                'Profile': False,
-            }
-        })
-        return conf
-
-    def build_bs_conf(self, service):
-        conf = self._build_goservice_conf(service.instance_name, service.host.internal_ip,
-                                          BS_QUIC_PORT, BS_PORT + PROM_PORT_OFFSET)
-
-        propagate_time = PROPAGATE_TIME_CORE if service.AS.is_core else PROPAGATE_TIME_NONCORE
-        interval = '{}s'.format(propagate_time)
-
-        conf.update({
-            'beaconDB': {
-                'Backend': 'sqlite',
-                'Connection': '%s.beacon.db' % os.path.join(self.var_dir, service.instance_name),
-            },
-            'BS': {
-                'OriginationInterval': interval,
-                'PropagationInterval': interval,
-                'RevTTL': '20s',
-                'RevOverlap': '5s'
-            },
-        })
-        return conf
-
-    def build_ps_conf(self, service):
-        conf = self._build_goservice_conf(service.instance_name, service.host.internal_ip,
-                                          PS_QUIC_PORT, PS_PORT + PROM_PORT_OFFSET)
-        conf.update({
-            'ps': {
-                'PathDB': {
-                    'Backend': 'sqlite',
-                    'Connection': '%s.path.db' % os.path.join(self.var_dir, service.instance_name),
-                },
-                'SegSync': True,
-            },
-        })
+        general_conf = self._build_general_conf(router.instance_name)
+        logging_conf = self._build_logging_conf(router.instance_name)
+        metrics_conf = self._build_metrics_conf(router.internal_port + BR_PROM_PORT_OFFSET)
+        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         return conf
 
     def build_cs_conf(self, service):
-        conf = self._build_goservice_conf(service.instance_name, service.host.internal_ip,
-                                          CS_QUIC_PORT, CS_PORT + PROM_PORT_OFFSET)
+        propagate_time = PROPAGATE_TIME_CORE if service.AS.is_core else PROPAGATE_TIME_NONCORE
+        interval = '{}s'.format(propagate_time)
+
+        general_conf = self._build_general_conf(service.instance_name)
+        logging_conf = self._build_logging_conf(service.instance_name)
+        metrics_conf = self._build_metrics_conf(CS_PROM_PORT)
+        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
-            'sd_client': {
-                'Path': os.path.join(SCIOND_API_SOCKDIR, 'default.sock')
+            'bs': {
+                'origination_interval': interval,
+                'propagation_interval': interval,
+                'rev_ttl': '20s',
+                'rev_overlap': '5s'
             },
-            'cs': {
-                'LeafReissueTime': "6h",
-                'IssuerReissueTime': "3d",
-                'ReissueRate': "10s",
-                'ReissueTimeout': "5s",
+            # settings for AutomaticRenewal; disabled by default, currently not available anyway
+            # 'cs': { },
+            'path_db': {
+                'backend': 'sqlite',
+                'connection': '%s.path.db' % os.path.join(self.var_dir, service.instance_name),
+            },
+            'beacon_db': {
+                'backend': 'sqlite',
+                'connection': '%s.beacon.db' % os.path.join(self.var_dir, service.instance_name),
+            },
+            'trust_db': {
+                'backend': 'sqlite',
+                'connection': '%s.trust.db' % os.path.join(self.var_dir, service.instance_name),
+            },
+            'quic': {
+                'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
+                'key_file':  os.path.join(self.config_dir, 'gen-certs/tls.key'),
+                'cert_file': os.path.join(self.config_dir, 'gen-certs/tls.pem'),
+                'resolution_fraction': 0.4,
             },
         })
         return conf
@@ -340,69 +305,57 @@ class _ConfigBuilder:
     def build_sciond_conf(self, host):
         instance_name = 'sd%s' % host.AS.isd_as_path_str()
         instance_dir = 'endhost'
-        conf = self._build_goservice_conf(instance_name, host.internal_ip, SD_QUIC_PORT,
-                                          PROM_PORT_SD, instance_dir=instance_dir)
+
+        general_conf = self._build_general_conf(instance_name, instance_dir=instance_dir)
+        logging_conf = self._build_logging_conf(instance_name)
+        metrics_conf = self._build_metrics_conf(SD_PROM_PORT)
+        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
             'sd': {
-                'Reliable': os.path.join(SCIOND_API_SOCKDIR, "default.sock"),
-                'Unix': os.path.join(SCIOND_API_SOCKDIR, "default.unix"),
-                'SocketFileMode': '0777',
-                'Public': '{IA},[{ip}]:0'.format(IA=host.AS.isd_as_str(), ip=host.internal_ip),
-                'PathDB': {
-                    'Connection': '%s.path.db' % os.path.join(self.var_dir, instance_name),
-                },
+                'address': _join_host_port('127.0.0.1', SD_TCP_PORT),
+            },
+            'path_db': {
+                'backend': 'sqlite',
+                'connection': '%s.path.db' % os.path.join(self.var_dir, instance_name),
+            },
+            'trust_db': {
+                'backend': 'sqlite',
+                'connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
             },
         })
         return conf
 
-    def _build_goservice_conf(self, instance_name, host_ip, quic_port, prometheus_port,
-                              instance_dir=None):
-        """ Builds the toml configuration common to SD,BS,CS and PS """
-        conf = self._build_base_goservice_conf(instance_name, prometheus_port, instance_dir)
-        conf['general']['ReconnectToDispatcher'] = True
-        conf.update({
-            'trustDB': {
-                'Backend': 'sqlite',
-                'Connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
-            },
-            'quic': {
-                'KeyFile':  os.path.join(self.config_dir, 'gen-certs/tls.key'),
-                'CertFile': os.path.join(self.config_dir, 'gen-certs/tls.pem'),
-                'ResolutionFraction': 0.4,
-                'Address': '[{host}]:{port}'.format(host=host_ip, port=quic_port)
-            },
-        })
-        return conf
-
-    def _build_base_goservice_conf(self, instance_name, prometheus_port, instance_dir=None):
-        """ Builds the toml configuration common to SD,BS,CS,PS and BR """
-        conf = self._build_common_conf(instance_name, prometheus_port)
-        conf.update({
+    def _build_general_conf(self, instance_name, instance_dir=None):
+        """ Builds the 'general' configuration section common to SD,CS and BR """
+        return {
             'general': {
-                'ID': instance_name,
-                'ConfigDir': os.path.join(self.config_isd_as_dir, instance_dir or instance_name),
+                'id': instance_name,
+                'config_dir': os.path.join(self.config_isd_as_dir, instance_dir or instance_name),
+                # Note: this has performance impacts (for BR, only control plane)
+                'reconnect_to_dispatcher': True,
             },
-            'discovery': {
-                'static': {'Enable': False},
-                'dynamic': {'Enable': False},
-            },
-        })
-        return conf
+        }
 
-    def _build_common_conf(self, logfile_name, prometheus_port):
-        """ Builds the toml configuration common to all services (disp,SD,BS,CS,PS and BR) """
-        conf = {
-            'metrics': {'Prometheus': '[127.0.0.1]:%s' % prometheus_port},
-            'logging': {
+    def _build_metrics_conf(self, prometheus_port):
+        """ Builds the 'metrics' configuration common to all services """
+        return {
+            'metrics': {
+                'prometheus': _join_host_port('127.0.0.1', prometheus_port)
+            },
+        }
+
+    def _build_logging_conf(self, instance_name):
+        """ Builds the 'logging' configuration section common to all services """
+        return {
+            'log': {
                 'file': {
-                    'Path': '%s.log' % os.path.join(self.log_dir, logfile_name),
-                    'Level': 'debug',
-                    'MaxAge': 3,
-                    'MaxBackups': 1,
+                    'path': '%s.log' % os.path.join(self.log_dir, instance_name),
+                    'level': 'debug',
+                    'max_age': 3,
+                    'max_backups': 1,
                 },
             },
         }
-        return conf
 
 
 def _build_supervisord_conf(program_id, cmd, envs, priority=100, startsecs=5):
@@ -421,19 +374,44 @@ def _build_supervisord_conf(program_id, cmd, envs, priority=100, startsecs=5):
     return config
 
 
-def _cert_chain_filename(as_, version):
-    """
-    Return the certificate chain file path for a given ISD.
-    """
-    return 'ISD%s-AS%s-V%s.crt' % (as_.isd.isd_id, as_.as_path_str(), version)
-
-
-def _trc_filename(isd, version):
-    """
-    Return the TRC file path for a given ISD.
-    """
-    return 'ISD%s-V%s.trc' % (isd.isd_id, version)
+def _isd_dir(isd):
+    return os.path.join(GEN_PATH, "ISD%s" % isd.isd_id)
 
 
 def _isd_as_dir(as_):
-    return os.path.join(GEN_PATH, "ISD%s" % as_.isd.isd_id, "AS%s" % as_.as_path_str())
+    return os.path.join(_isd_dir(as_.isd), "AS%s" % as_.as_path_str())
+
+
+def _join_host_port(host, port):
+    """
+    Returns joined host:port, wrapping host in brackets if it looks like an IPv6 address
+    :param str host:
+    :param int port:
+        :return str:
+    """
+    if ':' in host:
+        return '[%s]:%s' % (host, port)
+    else:
+        return '%s:%s' % (host, port)
+
+
+def _localhost(ip):
+    """
+    Returns a/the loopback address for an address of the same type as host_ip
+    :param str host_ip: IP address
+    :return str: loopback address
+    """
+    if isinstance(ipaddress.ip_address(ip), ipaddress.IPv6Address):
+        return "::1"
+    else:
+        return "127.0.0.1"
+
+
+def _chain_dicts(dict0, *dicts):
+    """
+    Combine / concatenate multiple dicts
+    """
+    r = dict(dict0.items())
+    for dict_i in dicts:
+        r.update(dict_i)
+    return r

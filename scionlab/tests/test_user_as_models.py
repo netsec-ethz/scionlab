@@ -21,6 +21,7 @@ from unittest.mock import patch
 from parameterized import parameterized
 from django.test import TestCase
 from scionlab.models.core import Host, Link
+from scionlab.models.pki import Certificate
 from scionlab.models.user_as import (
     AttachmentPoint,
     AttachmentConf,
@@ -33,12 +34,12 @@ from scionlab.defines import (
     DEFAULT_HOST_INTERNAL_IP,
     DEFAULT_PUBLIC_PORT,
 )
-
+from scionlab.scion import as_ids as as_ids_utils
 from scionlab.fixtures import testtopo
 from scionlab.fixtures.testtopo import ASdef
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
-from scionlab.util import as_ids as as_ids_utils, flatten
+from scionlab.util import flatten
 
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 testtopo_vpns_as_ids = [vpn.as_id for vpn in testtopo.vpns]
@@ -255,7 +256,7 @@ def update_useras(testcase,
     Update a `UserAS` and the configuration of its attachments
     """
     prev_aps_isd = user_as.isd
-    prev_certificate_chain = user_as.certificate_chain
+    prev_cert_chain = user_as.certificates.latest(Certificate.CHAIN)
     hosts_pending_before = set(Host.objects.needs_config_deployment())
 
     with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
@@ -287,17 +288,17 @@ def update_useras(testcase,
 
     # Check certificates reset if ISD changed
     curr_aps_isd = user_as.isd
+    cert_chain = user_as.certificates.latest(Certificate.CHAIN)
     if prev_aps_isd != curr_aps_isd:
-        prev_version = prev_certificate_chain['0']['Version']
-        curr_version = user_as.certificate_chain['0']['Version']
         testcase.assertEqual(
-            curr_version,
-            prev_version + 1,
+            cert_chain.version,
+            prev_cert_chain.version + 1,
             ("Certificate needs to be recreated on ISD change: "
              "ISD before: %s, ISD after:%s" % (prev_aps_isd, curr_aps_isd))
         )
+        testcase.assertEqual(user_as.certificates.filter(type=Certificate.CHAIN).count(), 1)
     else:
-        testcase.assertEqual(prev_certificate_chain, user_as.certificate_chain)
+        testcase.assertEqual(prev_cert_chain, cert_chain)
 
     utils.check_topology(testcase)
 

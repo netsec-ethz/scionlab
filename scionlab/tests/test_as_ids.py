@@ -14,7 +14,7 @@
 
 from unittest import TestCase
 from parameterized import parameterized
-from scionlab.util import as_ids
+from scionlab.scion import as_ids
 
 
 class ASIDTests(TestCase):

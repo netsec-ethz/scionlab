@@ -15,6 +15,7 @@
 import os
 import random
 import datetime
+from contextlib import ExitStack
 from unittest.mock import patch
 from scionlab.fixtures import testtopo, testuser, testuseras
 from scionlab.openvpn_config import _generate_private_key
@@ -59,7 +60,17 @@ def patch_datetime():
         def utcnow(cls):
             return val
 
-    return patch('scionlab.openvpn_config.datetime', new=mydatetime)  # cannot patch globally
+    # Note: cannot patch globally as datetime is immutable built-in
+    # Patch all imports
+    patched_imports = [
+        'scionlab.openvpn_config.datetime',
+        'scionlab.models.core.datetime',
+        'scionlab.models.pki.datetime',
+    ]
+    stack = ExitStack()
+    for pi in patched_imports:
+        stack.enter_context(patch(pi, new=mydatetime))
+    return stack
 
 
 def patch_generate_private_key():
