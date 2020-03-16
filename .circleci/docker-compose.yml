@@ -19,7 +19,7 @@ services:
     ports:
       - "8432:8000"
     volumes:
-      - ./run/:/scionlab/run/
+      - ../run/:/scionlab/run/:z
 
   huey:
     build:
@@ -30,7 +30,7 @@ services:
       as_net:
         ipv4_address: 172.31.0.11
     volumes:
-      - ./run/:/scionlab/run/
+      - ../run/:/scionlab/run/
 
   as1301:
     build:
