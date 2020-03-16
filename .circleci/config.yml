@@ -164,18 +164,17 @@ jobs:
           working_directory: ~/project/.circleci
           <<: *check_services_status
 
-      #- run:
-      #    name: Check SCION connections
-      #    working_directory: ~/project/.circleci
-      #    no_output_time: "3m0s"
-      #    <<: *check_scion_connections
+      - run:
+          name: Check SCION connections
+          working_directory: ~/project/.circleci
+          no_output_time: "3m0s"
+          <<: *check_scion_connections
 
       - run:
           name: "Push changes to AS ffaa:0:1303"
           working_directory: ~/project/.circleci
           no_output_time: "1m0s"
           command: |
-            circleci-agent step halt
             set -x
 
             prev_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
@@ -203,7 +202,6 @@ jobs:
           name: Test TRC update and push changes
           working_directory: ~/project/.circleci
           command: |
-            circleci-agent step halt
             set -x
 
             # Show current TRC
@@ -239,7 +237,6 @@ jobs:
           name: Start VPN containers and verify the connection over VPN works
           working_directory: ~/project/.circleci
           command: |
-            circleci-agent step halt
             set -x
             echo "Start containers required for VPN AP and verify they are working"
             docker-compose up -d as1401 as1405
@@ -325,8 +322,6 @@ jobs:
           command: |
             sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
             docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/
-            # Hum, previous docker-compose.yml was not mounting properly
-            docker cp `docker ps --filter id=$(docker-compose ps -q coord) --format '{{.Names}}'`:/scionlab/run ~/project/
             docker-compose up -d --force-recreate --build coord
 
       - run:
@@ -346,11 +341,11 @@ jobs:
           working_directory: ~/project/.circleci
           <<: *check_services_status
 
-      #- run:
-      #    name: Check SCION connections after update
-      #    working_directory: ~/project/previous_version/.circleci
-      #    no_output_time: "3m0s"
-      #    <<: *check_scion_connections
+      - run:
+          name: Check SCION connections after update
+          working_directory: ~/project/previous_version/.circleci
+          no_output_time: "3m0s"
+          <<: *check_scion_connections
 
 workflows:
   version: 2
