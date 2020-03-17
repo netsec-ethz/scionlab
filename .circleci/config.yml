@@ -33,11 +33,13 @@ check_scion_connections: &check_scion_connections
   command: |
     set -x
 
-    # Wait for beacons
+    # Wait for 3 beacons received from now on
     docker-compose exec -T as1303 /bin/bash -c \
-      'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 3 ]; do sleep 0.1; done;'
+      'echo -e "\n\n\n\n\n\n\n\n\n\n" | tee --append /var/log/scion/*;
+       until [ `tail -f /var/log/scion/* | '"awk '/Registered beacons/ {print NR; fflush()}'"' | head -n 1` -ge 3 ]; do sleep 0.1; done;'
     docker-compose exec -T as1305 /bin/bash -c \
-      'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 3 ]; do sleep 0.1; done;'
+      'echo -e "\n\n\n\n\n\n\n\n\n\n" | tee --append /var/log/scion/*;
+       until [ `tail -f /var/log/scion/* | '"awk '/Registered beacons/ {print NR; fflush()}'"' | head -n 1` -ge 3 ]; do sleep 0.1; done;'
 
     # Check that we can SCMP
     docker-compose exec -T as1301 /bin/bash -c \
