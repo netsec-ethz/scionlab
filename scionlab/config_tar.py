@@ -115,13 +115,8 @@ def _add_vpn_client_configs(host, archive):
         name = client.vpn.server.AS.isd_as_path_str()
         configs[name] = generate_vpn_client_config(client)
 
-    if len(configs) == 1:
-        # Keep old file name if only one client configured:
-        # TODO(matzf): backwards compatibility, remove this with next set of breaking changes
-        archive.write_text("client.conf", next(iter(configs.values())))
-    else:
-        for name, config in configs.items():
-            archive.write_text("client-scionlab-{}.conf".format(name), config)
+    for name, config in configs.items():
+        archive.write_text("client-scionlab-{}.conf".format(name), config)
 
 
 def _add_vpn_server_config(host, archive):
