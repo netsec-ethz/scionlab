@@ -180,7 +180,7 @@ def fetch_config(config_info):
         - tarfile.tar the configuration archive
     """
 
-    url = '{coordinator_url}/api/host/{host_id}/config'.format(
+    url = '{coordinator_url}/api/v2/host/{host_id}/config'.format(
         coordinator_url=config_info.url.rstrip('/'),
         host_id=config_info.host_id
     )
@@ -222,7 +222,7 @@ def confirm_deployed(args):
     if args.url:
         config_info = config_info._replace(url=args.url)
 
-    url = '{coordinator_url}/api/host/{host_id}/deployed_config_version'.format(
+    url = '{coordinator_url}/api/v2/host/{host_id}/deployed_config_version'.format(
         coordinator_url=config_info.url.rstrip('/'),
         host_id=config_info.host_id
     )

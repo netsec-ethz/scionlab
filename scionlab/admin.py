@@ -749,7 +749,7 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     def get_config(self, request, object_id):
         """
         View to retrieve configuration tar ball for a host.
-        Returns same content as api/host/<int:pk>/config, but authentication is by user (admin), not
+        Returns same content as api_get_config, but authentication is by user (admin), not
         host/secret.
         """
         host = get_object_or_404(Host, pk=object_id)

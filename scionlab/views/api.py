@@ -23,6 +23,7 @@ from django.utils.decorators import method_decorator
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
+    HttpResponseGone,
     HttpResponseNotModified
 )
 
@@ -138,3 +139,10 @@ def _get_version_param(request_params):
         else:
             return _BAD_VERSION
     return None
+
+
+def gone(request):
+    """
+    View for removed versions of the API. Responds with 410 Gone.
+    """
+    return HttpResponseGone()
