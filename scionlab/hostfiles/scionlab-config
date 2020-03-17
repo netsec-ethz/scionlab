@@ -105,6 +105,8 @@ def parse_command_line_args(argv):
 
     parser.add_argument('--tar')
 
+    parser.add_argument('--version', action='version', version='%(prog)s 2.0, api/v2, March 2020')
+
     return parser.parse_args(argv[1:])
 
 
