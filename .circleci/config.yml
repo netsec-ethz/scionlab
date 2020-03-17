@@ -26,7 +26,7 @@ check_services_status: &check_services_status
 
     for c in as1301 as1303 as1305; do
       docker-compose exec $c /bin/bash -c \
-        '! systemctl is-failed scion-*'
+        '! systemctl is-failed scion-* || (systemctl status scion-* && false)'
     done
 
 check_scion_connections: &check_scion_connections
@@ -270,8 +270,7 @@ jobs:
           name: Checkout previous version
           working_directory: ~/
           command: |
-            mkdir ~/previous_version && cd ~/previous_version
-            git clone https://github.com/netsec-ethz/scionlab.git -b master ./
+            git clone https://github.com/netsec-ethz/scionlab.git -b master ~/previous_version
 
       - run:
           name: Extract host configuration info from testdata.yaml fixture
