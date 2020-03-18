@@ -41,6 +41,9 @@ check_scion_connections: &check_scion_connections
       'echo -e "\n\n\n\n\n\n\n\n\n\n" | tee --append /var/log/scion/*;
        until [ `tail -f /var/log/scion/* | '"awk '/Registered beacons/ {print NR; fflush()}'"' | head -n 1` -ge 3 ]; do sleep 0.1; done;'
 
+    docker-compose exec -T as1301 /bin/bash -c \
+      'showpaths -srcIA 19-ffaa:0:1301 -dstIA 19-ffaa:0:1303 || true'
+
     # Check that we can SCMP
     docker-compose exec -T as1301 /bin/bash -c \
       'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
@@ -325,7 +328,7 @@ jobs:
             docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/
             sudo chown circleci:circleci -R ~/previous_version/run/
             cp -r ~/previous_version/run ~/project/
-            docker-compose up -d --force-recreate --build coord
+            docker-compose up -d --force-recreate --build coord huey
 
       - run:
           name: Run client cronjob
