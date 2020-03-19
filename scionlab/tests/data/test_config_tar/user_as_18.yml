@@ -139,6 +139,9 @@ gen/ISD20/ASffaa_1_3/br20-ffaa_1_3-1/topology.json: |-
     "MTU": 1472,
     "Overlay": "UDP/IPv4"
   }
+gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/beacon_policy.yaml: |
+  Filter:
+    AllowISDLoop: false
 gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/certs/ISD20-ASffaa_1_3-V1.crt: |-
   [
     {
@@ -214,6 +217,9 @@ gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/cs.toml: |
   [trust_db]
   backend = "sqlite"
   connection = "/var/lib/scion/cs20-ffaa_1_3-1.trust.db"
+
+  [bs.policies]
+  Propagation = "/etc/scion/gen/ISD20/ASffaa_1_3/cs20-ffaa_1_3-1/beacon_policy.yaml"
 
   [log.file]
   level = "debug"
