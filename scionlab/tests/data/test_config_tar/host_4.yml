@@ -355,6 +355,9 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
     "MTU": 1472,
     "Overlay": "UDP/IPv4"
   }
+gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/beacon_policy.yaml: |
+  Filter:
+    AllowISDLoop: false
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
   [
     {
@@ -418,6 +421,9 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
   [trust_db]
   backend = "sqlite"
   connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
+
+  [bs.policies]
+  Propagation = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/beacon_policy.yaml"
 
   [log.file]
   level = "debug"
