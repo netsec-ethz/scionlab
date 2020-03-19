@@ -24,7 +24,7 @@ class GetHostConfigTests(TestCase):
     def setUp(self):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
-        self.url = '/api/host/%s/config' % self.host.uid
+        self.url = '/api/v2/host/%s/config' % self.host.uid
         self.auth_headers = basic_auth(self.host.uid, self.host.secret)
 
     def test_aaa(self):
@@ -88,7 +88,7 @@ class GetHostConfigExtraServicesTests(TestCase):
 
     @staticmethod
     def _get_url(host):
-        return '/api/host/%s/config' % host.uid
+        return '/api/v2/host/%s/config' % host.uid
 
     @staticmethod
     def _get_auth_headers(host):
@@ -111,7 +111,7 @@ class PostHostConfigVersionTests(TestCase):
     def setUp(self):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
-        self.url = '/api/host/%s/deployed_config_version' % self.host.uid
+        self.url = '/api/v2/host/%s/deployed_config_version' % self.host.uid
         self.auth_headers = basic_auth(self.host.uid, self.host.secret)
 
     def test_bad_auth(self):
@@ -156,3 +156,24 @@ class PostHostConfigVersionTests(TestCase):
 
         self.host.refresh_from_db()
         self.assertEqual(self.host.config_version_deployed, self.host.config_version)
+
+
+class OldVersionTests(TestCase):
+    fixtures = ['testdata']
+
+    def test_get_config(self):
+        # Note: using an existing host and correct auth headers, but this will not matter.
+        host = Host.objects.last()
+        url = '/api/host/%s/config' % host.uid
+        auth_headers = basic_auth(host.uid, host.secret)
+
+        ret = self.client.get(url, **auth_headers)
+        self.assertEqual(ret.status_code, 410)
+
+    def test_post_(self):
+        host = Host.objects.last()
+        url = '/api/host/%s/deployed_config_version' % host.uid
+        auth_headers = basic_auth(host.uid, host.secret)
+
+        ret = self.client.post(url, {'version': 1}, **auth_headers)
+        self.assertEqual(ret.status_code, 410)

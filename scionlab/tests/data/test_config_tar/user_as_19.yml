@@ -1,6 +1,6 @@
 README.md: |-
   content_not_checked
-client.conf: |
+client-scionlab-20-ffaa_0_1405.conf: |
   # Specify that we are a client
   client
 
