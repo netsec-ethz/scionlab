@@ -123,9 +123,7 @@ class _ConfigGenerator:
 
         for service in self._control_services():
             if service.type == Service.CS:
-                if service.AS.is_infrastructure_AS():
-                    self._write_beacon_policy(service.instance_name,
-                                              cb.build_beacon_policy(service))
+                self._write_beacon_policy(service.instance_name, cb.build_beacon_policy(service))
                 self._write_elem_dir(service.instance_name, 'cs.toml', cb.build_cs_conf(service))
 
         self._write_elem_dir('endhost', 'sd.toml', cb.build_sciond_conf(self.host),
@@ -284,7 +282,11 @@ class _ConfigBuilder:
                 'origination_interval': interval,
                 'propagation_interval': interval,
                 'rev_ttl': '20s',
-                'rev_overlap': '5s'
+                'rev_overlap': '5s',
+                'policies': {
+                    'Propagation': os.path.join(
+                        self.config_isd_as_dir, service.instance_name, 'beacon_policy.yaml')
+                }
             },
             # settings for AutomaticRenewal; disabled by default, currently not available anyway
             # 'cs': { },
@@ -307,13 +309,6 @@ class _ConfigBuilder:
                 'resolution_fraction': 0.4,
             },
         })
-        if service.AS.is_infrastructure_AS():
-            conf['bs'].update({
-                'policies': {
-                    'Propagation': os.path.join(
-                        self.config_isd_as_dir, service.instance_name, 'beacon_policy.yaml')
-                }
-            })
         return conf
 
     def build_sciond_conf(self, host):
