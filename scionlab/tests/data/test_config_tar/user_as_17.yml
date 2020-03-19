@@ -46,7 +46,7 @@ Vagrantfile: |
       echo "SCIONLab VM ready"
     SCRIPT
 
-    config.vm.box = "ubuntu/xenial64"
+    config.vm.box = "ubuntu/bionic64"
     # forward border router port (unless using OpenVPN):
     config.vm.network "forwarded_port", guest: 54321, host: 54321, protocol: "udp"
     # forward scion dispatcher port, for running SCION endhosts connected to the AS in this VM:
