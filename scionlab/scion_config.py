@@ -123,6 +123,9 @@ class _ConfigGenerator:
 
         for service in self._control_services():
             if service.type == Service.CS:
+                if service.AS.is_infrastructure_AS():
+                    self._write_beacon_policy(service.instance_name,
+                                              cb.build_beacon_policy(service))
                 self._write_elem_dir(service.instance_name, 'cs.toml', cb.build_cs_conf(service))
 
         self._write_elem_dir('endhost', 'sd.toml', cb.build_sciond_conf(self.host),
@@ -219,6 +222,10 @@ class _ConfigGenerator:
         config['group:' + "as%s" % self.AS.isd_as_path_str()] = {'programs': ",".join(prog_ids)}
         self.archive.write_config((_isd_as_dir(self.AS), 'supervisord.conf'), config)
 
+    def _write_beacon_policy(self, elem_id, policy):
+        dir = self._elem_dir(elem_id)
+        self.archive.write_yaml((dir, 'beacon_policy.yaml'), policy)
+
     def _routers(self):
         return (r for r in self.topo_info.routers if r.host == self.host)
 
@@ -300,6 +307,13 @@ class _ConfigBuilder:
                 'resolution_fraction': 0.4,
             },
         })
+        if service.AS.is_infrastructure_AS():
+            conf['bs'].update({
+                'policies': {
+                    'Propagation': os.path.join(
+                        self.config_isd_as_dir, service.instance_name, 'beacon_policy.yaml')
+                }
+            })
         return conf
 
     def build_sciond_conf(self, host):
@@ -324,6 +338,12 @@ class _ConfigBuilder:
             },
         })
         return conf
+
+    def build_beacon_policy(self, service):
+        """ Returns a beacon policy, in which ISD loops are not allowed """
+        return {'Filter': {
+            'AllowISDLoop': False
+        }}
 
     def _build_general_conf(self, instance_name, instance_dir=None):
         """ Builds the 'general' configuration section common to SD,CS and BR """
