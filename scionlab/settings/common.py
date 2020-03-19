@@ -122,7 +122,7 @@ class VPNKeygenConf:
     KEY_SIZE = 4096
 
     # In how many days should the root CA key expire?
-    CA_EXPIRE = 1000
+    CA_EXPIRE = 3650
 
     # In how many days should certificates expire?
     KEY_EXPIRE = 730
