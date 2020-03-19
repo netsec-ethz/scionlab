@@ -35,11 +35,9 @@ check_scion_connections: &check_scion_connections
 
     # Wait for 3 beacons received from now on
     docker-compose exec -T as1303 /bin/bash -c \
-      'echo -e "\n\n\n\n\n\n\n\n\n\n" | tee --append /var/log/scion/*;
-       until [ `tail -f /var/log/scion/* | '"awk '/Registered beacons/ {print NR; fflush()}'"' | head -n 1` -ge 3 ]; do sleep 0.1; done;'
+      "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
     docker-compose exec -T as1305 /bin/bash -c \
-      'echo -e "\n\n\n\n\n\n\n\n\n\n" | tee --append /var/log/scion/*;
-       until [ `tail -f /var/log/scion/* | '"awk '/Registered beacons/ {print NR; fflush()}'"' | head -n 1` -ge 3 ]; do sleep 0.1; done;'
+      "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
 
     docker-compose exec -T as1301 /bin/bash -c \
       'showpaths -srcIA 19-ffaa:0:1301 -dstIA 19-ffaa:0:1303 || true'
@@ -268,24 +266,22 @@ jobs:
       image: ubuntu-1604:201903-01
 
     steps:
-      - checkout
-
       # Start old version of coordinator
       - run:
-          name: Checkout previous version
+          name: OLD -- Checkout
           working_directory: ~/
           command: |
             git clone https://github.com/netsec-ethz/scionlab.git -b master ~/previous_version
 
       - run:
-          name: Extract host configuration info from testdata.yaml fixture
+          name: OLD -- Extract host configuration info from testdata.yaml fixture
           working_directory: ~/previous_version
           command: |
             pip install pyyaml
             python .circleci/setup/generate-host-envs.py
 
       - run:
-          name: Build container images
+          name: OLD -- Build container images
           working_directory: ~/previous_version/.circleci
           command: |
             #docker build --file ~/project/previous_version/deploy/Dockerfile-django --tag scionlab_django ~/project/ # We are only extending the production image
@@ -294,12 +290,12 @@ jobs:
 
 
       - run:
-          name: Start old coordinator
+          name: OLD -- Start coordinator
           working_directory: ~/previous_version/.circleci
           <<: *start_coordinator
 
       - run:
-          name: Start ASes running old version in containers
+          name: OLD -- Start ASes
           working_directory: ~/previous_version/.circleci
           command: |
             set -x
@@ -307,21 +303,23 @@ jobs:
 
             for c in as1301 as1303 as1305; do
               docker-compose exec $c /bin/bash -c \
-                'apt-get install --assume-yes -t all scionlab; \
+                'apt-get install --assume-yes scionlab; \
                  scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             done
 
             docker-compose logs
 
       - run:
-          name: Check AS services status running old config
+          name: OLD -- Check AS services status
           working_directory: ~/previous_version/.circleci
           <<: *check_services_status
 
       # Starting upgrade integration tests
 
+      - checkout
+
       - run:
-          name: Rebuild and start coordinator from current branch
+          name: NEW -- Rebuild and start coordinator from current branch
           working_directory: ~/project/.circleci
           command: |
             sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
@@ -331,7 +329,7 @@ jobs:
             docker-compose up -d --force-recreate --build coord huey
 
       - run:
-          name: Run client cronjob
+          name: OLD -- Run client cronjob
           working_directory: ~/previous_version/.circleci
           command: |
             set -x
@@ -346,12 +344,12 @@ jobs:
             done
 
       - run:
-          name: Check updated AS services status
+          name: NEW -- Check updated AS services status
           working_directory: ~/project/.circleci
           <<: *check_services_status
 
       - run:
-          name: Check SCION connections after update
+          name: NEW -- Check SCION connections
           working_directory: ~/project/.circleci
           no_output_time: "3m0s"
           <<: *check_scion_connections
