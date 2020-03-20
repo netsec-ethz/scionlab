@@ -67,6 +67,8 @@ start_coordinator: &start_coordinator
 
     docker-compose up -d coord
 
+check_coordinator_ready: &check_coordinator_ready
+  command: |
     # We start another container in the same network as `coord` to check `coord` is ready.
     # All exposed ports from `coord` are available on `localhost` in this new container.
     # NOTE: uses python:3.6 to re-use already fetched image from `coord`; contains more tools than ubuntu:xenial
@@ -151,6 +153,11 @@ jobs:
           name: Start coordinator
           working_directory: ~/project/.circleci
           <<: *start_coordinator
+
+      - run:
+          name: Check coordinator ready
+          working_directory: ~/project/.circleci
+          <<: *check_coordinator_ready
 
       # Start integration tests
       - run:
@@ -300,6 +307,11 @@ jobs:
           <<: *start_coordinator
 
       - run:
+          name: OLD -- Check coordinator ready
+          working_directory: ~/previous_version/.circleci
+          <<: *check_coordinator_ready
+
+      - run:
           name: OLD -- Start ASes
           working_directory: ~/previous_version/.circleci
           command: |
@@ -332,6 +344,11 @@ jobs:
             sudo chown circleci:circleci -R ~/previous_version/run/
             cp -r ~/previous_version/run ~/project/
             docker-compose up -d --force-recreate --build coord huey
+
+      - run:
+          name: NEW -- Check coordinator ready
+          working_directory: ~/project/.circleci
+          <<: *check_coordinator_ready
 
       - run:
           name: OLD -- Run client cronjob
