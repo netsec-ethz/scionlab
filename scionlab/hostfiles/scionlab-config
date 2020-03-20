@@ -298,8 +298,17 @@ def install_scionlab_service(tmpdir):
     scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
     if not os.path.exists(scionlab_services):
         _error_exit("Could not find the scionlab-services.txt file in %s", tmpdir)
+    with open(scionlab_services, 'r') as f:
+        services = [service.strip() for service in f.readlines()]
 
-    # 1. remove existing links to scionlab.target
+    # 1. Disable services no longer in the service list
+    res = subprocess.run(['systemctl', 'show', 'scion-*@*.service', '--property=Id'], stdout=subprocess.PIPE)
+    previous_services = [service.split("=")[-1].strip() for service in res.stdout.decode('utf-8').split("\n\n")]
+    to_disable = [service for service in previous_services if service not in services]
+    for srv in to_disable:
+        subprocess.run(['systemctl', 'disable', '--now', srv])
+
+    # 2. remove existing links to scionlab.target
     wants = '/etc/systemd/system/scionlab.target.wants/'
     if os.path.exists(wants):
         for f in os.listdir(wants):
@@ -307,11 +316,8 @@ def install_scionlab_service(tmpdir):
             os.remove(f)
         subprocess.run(['systemctl', 'daemon-reload'], check=True)
 
-    # 2. add links to scionlab.target
-    with open(scionlab_services, 'r') as f:
-        services = f.readlines()
+    # 3. add links to scionlab.target
     for srv in services:
-        srv = srv.strip()
         subprocess.run(['systemctl', 'enable', srv])
 
 
