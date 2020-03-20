@@ -115,3 +115,6 @@ tags
 .idea/
 # UML
 uml.pdf
+
+# VS Code
+.vscode
