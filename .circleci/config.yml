@@ -39,8 +39,13 @@ check_scion_connections: &check_scion_connections
     docker-compose exec -T as1305 /bin/bash -c \
       "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
 
+    # Show paths used by SCMP
     docker-compose exec -T as1301 /bin/bash -c \
       'showpaths -srcIA 19-ffaa:0:1301 -dstIA 19-ffaa:0:1303 || true'
+    docker-compose exec -T as1303 /bin/bash -c \
+      'showpaths -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301 || true'
+    docker-compose exec -T as1305 /bin/bash -c \
+      'showpaths -srcIA 19-ffaa:0:1305 -dstIA 19-ffaa:0:1301 || true'
 
     # Check that we can SCMP
     docker-compose exec -T as1301 /bin/bash -c \
