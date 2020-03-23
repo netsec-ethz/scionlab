@@ -304,7 +304,7 @@ def install_scionlab_service(tmpdir):
     # 1. Disable services no longer in the service list
     res = subprocess.run(['systemctl', 'show', 'scion-*@*.service', '--property=Id'], stdout=subprocess.PIPE)
     previous_services = [service.split("=")[-1].strip() for service in res.stdout.decode('utf-8').split("\n\n")]
-    to_disable = [service for service in previous_services if service not in services]
+    to_disable = [service for service in previous_services if service not in services and service != '']
     for srv in to_disable:
         subprocess.run(['systemctl', 'disable', '--now', srv], check=True)
 
