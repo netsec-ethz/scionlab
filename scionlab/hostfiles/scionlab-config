@@ -309,15 +309,7 @@ def install_scionlab_service(tmpdir):
     for srv in to_disable:
         subprocess.run(['systemctl', 'disable', '--now', srv], check=True)
 
-    # 2. remove existing links to scionlab.target
-    wants = '/etc/systemd/system/scionlab.target.wants/'
-    if os.path.exists(wants):
-        for f in os.listdir(wants):
-            f = os.path.join(wants, f)
-            os.remove(f)
-        subprocess.run(['systemctl', 'daemon-reload'], check=True)
-
-    # 3. add links to scionlab.target
+    # 2. add links to scionlab.target
     for srv in services:
         subprocess.run(['systemctl', 'enable', srv])
 
