@@ -306,7 +306,7 @@ def install_scionlab_service(tmpdir):
     previous_services = [service.split("=")[-1].strip() for service in res.stdout.decode('utf-8').split("\n\n")]
     to_disable = [service for service in previous_services if service not in services]
     for srv in to_disable:
-        subprocess.run(['systemctl', 'disable', '--now', srv])
+        subprocess.run(['systemctl', 'disable', '--now', srv], check=True)
 
     # 2. remove existing links to scionlab.target
     wants = '/etc/systemd/system/scionlab.target.wants/'
