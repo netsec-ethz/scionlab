@@ -398,7 +398,7 @@ jobs:
                  apt-get update; \
                  rm /var/lib/scion/*; sudo mv /.dockerenv /.dockerenv.bk; \
                  DEBIAN_FRONTEND=noninteractive apt-get install -y --only-upgrade scionlab; \
-                 sudo mv /.dockerenv.bk /.dockerenv; '
+                 sudo mv /.dockerenv.bk /.dockerenv;'
             done
 
       - run:
