@@ -438,11 +438,11 @@ jobs:
               "awk '/^<cert>$/,/^<\/cert>$/' /etc/openvpn/server.conf | \
                openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 1 )) -in - | tail -n 1 | grep 'will not expire'"
             # Check that the CA certificate on the user AS expires later than two years from now
-            docker-compose exec -T as1405 /bin/bash -c \
+            docker-compose exec -T useras4 /bin/bash -c \
               "awk '/^<ca>$/,/^<\/ca>$/' /etc/openvpn/client-scionlab-20-ffaa_0_1405.conf | \
                openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 2 )) -in - | tail -n 1 | grep 'will not expire'"
             # Check that the server certificate on the user AS expires later than a year from now
-            docker-compose exec -T as1405 /bin/bash -c \
+            docker-compose exec -T useras4 /bin/bash -c \
               "awk '/^<cert>$/,/^<\/cert>$/' /etc/openvpn/client-scionlab-20-ffaa_0_1405.conf | \
                openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 1 )) -in - | tail -n 1 | grep 'will not expire'"
 
