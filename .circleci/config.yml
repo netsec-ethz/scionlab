@@ -413,18 +413,17 @@ jobs:
           <<: *check_scion_connections
 
       - run:
-          name: NEW -- Check SCION connections over VPN works
+          name: NEW -- Check updated configuration matches VPN setup
           working_directory: ~/project/.circleci
           command: |
-            # Add a "retry", restart the scionlab target if the tun interface did not come up in time
+            # Check configuration on AP
+            echo "Client AP 1405 new VPN configuration"
+            docker-compose exec -T as1405 /bin/bash -c \
+              "apt-get install -y jq > /dev/null 2>&1; jq '"'.BorderRouters."br20-ffaa_0_1405-2".Interfaces'"' /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json; ip address show tun0"
+            # Check configuration on client
+            echo "Client AS4 new VPN configuration"
             docker-compose exec -T useras4 /bin/bash -c \
-              "bash -c 'sleep 300 && systemctl restart scionlab.target' &"
-            # Wait for client to be setup
-            echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec -T useras4 /bin/bash -c \
-              "touch /var/log/scion/keepme; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-            docker-compose exec useras4 /bin/bash -c \
-             'scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
+              "apt-get install -y jq > /dev/null 2>&1; jq '"'.BorderRouters."br20-ffaa_1_4-1".Interfaces'"' /etc/scion/gen/ISD20/ASffaa_1_4/endhost/topology.json; ip address show tun0"
 
       - run:
           name: NEW -- Check CA and server VPN certificates on server and client
@@ -440,12 +439,26 @@ jobs:
                openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 1 )) -in - | tail -n 1 | grep 'will not expire'"
             # Check that the CA certificate on the user AS expires later than two years from now
             docker-compose exec -T as1405 /bin/bash -c \
-              "awk '/^<ca>$/,/^<\/ca>$/' /etc/openvpn/client.conf | \
+              "awk '/^<ca>$/,/^<\/ca>$/' /etc/openvpn/client-scionlab-20-ffaa_0_1405.conf | \
                openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 2 )) -in - | tail -n 1 | grep 'will not expire'"
             # Check that the server certificate on the user AS expires later than a year from now
             docker-compose exec -T as1405 /bin/bash -c \
-              "awk '/^<cert>$/,/^<\/cert>$/' /etc/openvpn/client.conf | \
+              "awk '/^<cert>$/,/^<\/cert>$/' /etc/openvpn/client-scionlab-20-ffaa_0_1405.conf | \
                openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 1 )) -in - | tail -n 1 | grep 'will not expire'"
+
+      - run:
+          name: NEW -- Check SCION connections over VPN works
+          working_directory: ~/project/.circleci
+          command: |
+            # Add a "retry", restart the scionlab target if the tun interface did not come up in time
+            docker-compose exec -T useras4 /bin/bash -c \
+              "bash -c 'sleep 300 && systemctl restart scionlab.target' &"
+            # Wait for client to be setup
+            echo "Waiting for beaconing before starting VPN client SCMPs"
+            docker-compose exec -T useras4 /bin/bash -c \
+              "touch /var/log/scion/keepme; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
+            docker-compose exec useras4 /bin/bash -c \
+             'scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
 
 workflows:
   version: 2
