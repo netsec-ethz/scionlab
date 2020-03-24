@@ -1,10 +1,10 @@
-FROM python:3.6
-ENV PYTHONUNBUFFERED 1
+FROM scionlab_django AS circleci_coord
 
+# Add dev requirements
 RUN pip install --upgrade pip
-COPY requirements.txt dev-requirements.txt /scionlab/
-WORKDIR /scionlab/
-RUN pip install -r requirements.txt -r dev-requirements.txt
+COPY dev-requirements.txt /scionlab/
+
+RUN pip install -r dev-requirements.txt
 
 COPY . /scionlab/
 
@@ -14,4 +14,6 @@ RUN sed -i 's/^SCIONLAB_SITE = .*/SCIONLAB_SITE = "http:\/\/coord:8000"/' scionl
 # Add /scionlab/ to PYTHONPATH to simplify running the scripts in .circleci/actions/
 ENV PYTHONPATH /scionlab/
 
-CMD ["python", "manage.py","runserver","0.0.0.0:8000"]
+ENV DJANGO_SETTINGS_MODULE=scionlab.settings.development
+# Use CI entrypoint, should be similar to deploy/django-entrypoint.sh
+CMD /scionlab/.circleci/django-ci-entrypoint.sh
