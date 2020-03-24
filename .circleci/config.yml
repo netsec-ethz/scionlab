@@ -331,6 +331,32 @@ jobs:
           working_directory: ~/previous_version/.circleci
           <<: *check_services_status
 
+      - run:
+          name: OLD -- Start VPN containers and verify the connection over VPN works
+          working_directory: ~/previous_version/.circleci
+          command: |
+            set -x
+            echo "Start containers required for VPN AP and verify they are working"
+            docker-compose up -d as1401 as1405
+
+            for c in as1401 as1405; do
+              docker-compose exec $c /bin/bash -c \
+                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+              docker-compose logs $c
+            done
+
+            docker-compose up -d useras4
+            docker-compose exec useras4 /bin/bash -c \
+              'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+            docker-compose logs useras4
+
+            # Wait for client to be setup
+            echo "Waiting for beaconing before starting VPN client SCMPs"
+            docker-compose exec -T useras4 /bin/bash -c \
+              "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
+            docker-compose exec useras4 /bin/bash -c \
+             'scmp echo -c 10 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+
       # Starting upgrade integration tests
 
       - checkout
@@ -356,7 +382,7 @@ jobs:
           command: |
             set -x
             # Simulate command that is executed on hosts with upgrade cronjob (VMs), upgrade package
-            for c in as1301 as1303 as1305; do
+            for c in as1301 as1303 as1305 as1401 as1405 useras4; do
               # We have to hide the /.dockerenv file, since the scionlab packages assume that they cannot use systemd, run systemctl when run in docker
               # TODO: remove purging db file, rm /var/lib/scion/*, needs to be done as part of the upgrade itself
               docker-compose exec -T $c /bin/bash -c \
@@ -377,6 +403,20 @@ jobs:
           working_directory: ~/project/.circleci
           no_output_time: "3m0s"
           <<: *check_scion_connections
+
+      - run:
+          name: NEW -- Check SCION connections over VPN works
+          working_directory: ~/project/.circleci
+          command: |
+            # Add a "retry", restart the scionlab target if the tun interface did not come up in time
+            docker-compose exec -T useras4 /bin/bash -c \
+              "bash -c 'sleep 300 && systemctl restart scionlab.target' &"
+            # Wait for client to be setup
+            echo "Waiting for beaconing before starting VPN client SCMPs"
+            docker-compose exec -T useras4 /bin/bash -c \
+              "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
+            docker-compose exec useras4 /bin/bash -c \
+             'scmp echo -c 10 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
 
 workflows:
   version: 2
