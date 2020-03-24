@@ -408,6 +408,9 @@ jobs:
           name: NEW -- Check SCION connections over VPN works
           working_directory: ~/project/.circleci
           command: |
+            # Add a "retry", restart the scionlab target if the tun interface did not come up in time
+            docker-compose exec -T useras4 /bin/bash -c \
+              "bash -c 'sleep 300 && systemctl restart scionlab.target' &"
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
             docker-compose exec -T useras4 /bin/bash -c \
