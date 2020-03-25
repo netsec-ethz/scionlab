@@ -355,7 +355,7 @@ jobs:
             docker-compose exec -T useras4 /bin/bash -c \
               "sleep 10; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
             docker-compose exec useras4 /bin/bash -c \
-             'scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
+              'scmp echo -c 5 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
 
       # Starting upgrade integration tests
 
