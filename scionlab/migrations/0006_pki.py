@@ -40,6 +40,11 @@ def reset_pki(apps, schema_editor):
         isd.update_trc_and_certificates()
 
 
+def bump_config(apps, schema_editor):
+    Host = apps.get_model('scionlab', 'Host')
+    Host.objects.bump_config()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -153,4 +158,5 @@ class Migration(migrations.Migration):
         ),
 
         migrations.RunPython(reset_pki),
+        migrations.RunPython(bump_config),
     ]
