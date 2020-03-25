@@ -41,19 +41,19 @@ check_scion_connections: &check_scion_connections
 
     # Show paths used by SCMP
     docker-compose exec -T as1301 /bin/bash -c \
-      'showpaths -srcIA 19-ffaa:0:1301 -dstIA 19-ffaa:0:1303 || true'
+      'showpaths -dstIA 19-ffaa:0:1303 || true'
     docker-compose exec -T as1303 /bin/bash -c \
-      'showpaths -srcIA 19-ffaa:0:1303 -dstIA 19-ffaa:0:1301 || true'
+      'showpaths -dstIA 19-ffaa:0:1301 || true'
     docker-compose exec -T as1305 /bin/bash -c \
-      'showpaths -srcIA 19-ffaa:0:1305 -dstIA 19-ffaa:0:1301 || true'
+      'showpaths -dstIA 19-ffaa:0:1301 || true'
 
     # Check that we can SCMP
     docker-compose exec -T as1301 /bin/bash -c \
-      'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
+      'scmp echo -c 5 -remote 19-ffaa:0:1303,[127.0.0.1]'
     docker-compose exec -T as1303 /bin/bash -c \
-      'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+      'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
     docker-compose exec -T as1305 /bin/bash -c \
-      'scmp echo -c 5 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+      'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
 
 start_coordinator: &start_coordinator
   command: |
@@ -211,7 +211,7 @@ jobs:
             [ "$prev_version" -lt "$new_version" ]
             # ii) connection still works
             docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
           name: Test TRC update and push changes
@@ -242,11 +242,11 @@ jobs:
             # Check that infra still works
             sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
             docker-compose exec -T as1301 /bin/bash -c \
-              'scmp echo -c 5 -local 19-ffaa:0:1301,[127.0.0.1] -remote 19-ffaa:0:1303,[127.0.0.1]'
+              'scmp echo -c 5 -remote 19-ffaa:0:1303,[127.0.0.1]'
             docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 5 -local 19-ffaa:0:1303,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
             docker-compose exec -T as1305 /bin/bash -c \
-              'scmp echo -c 5 -local 19-ffaa:0:1305,[127.0.0.1] -remote 19-ffaa:0:1301,[127.0.0.1]'
+              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
 
       - run:
           name: Start VPN containers and verify the connection over VPN works
@@ -271,7 +271,7 @@ jobs:
             echo "Waiting for beaconing before starting VPN client SCMPs"
             docker-compose exec useras4 /bin/bash -c \
              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; \
-              scmp echo -c 10 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+              scmp echo -c 10 -remote 20-ffaa:0:1405,[127.0.0.1]'
 
   upgrade_integration:
     machine:
@@ -355,7 +355,7 @@ jobs:
             docker-compose exec -T useras4 /bin/bash -c \
               "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
             docker-compose exec useras4 /bin/bash -c \
-             'scmp echo -c 10 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+             'scmp echo -c 10 -remote 20-ffaa:0:1405,[127.0.0.1]'
 
       # Starting upgrade integration tests
 
@@ -416,7 +416,7 @@ jobs:
             docker-compose exec -T useras4 /bin/bash -c \
               "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
             docker-compose exec useras4 /bin/bash -c \
-             'scmp echo -c 10 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+             'scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
 
 workflows:
   version: 2
