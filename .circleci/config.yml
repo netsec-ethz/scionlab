@@ -410,13 +410,17 @@ jobs:
           command: |
             # Check configuration on AP
             echo "Server AP 1405 new VPN configuration"
+            docker cp ./setup/check_tun0_in_topo.py $(docker-compose ps -q as1405):/home/scionlab/
             docker-compose exec -T as1405 /bin/bash -c \
+              "apt-get install -y jq > /dev/null 2>&1; "\
               "jq .BorderRouters[].Interfaces /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json; "\
               "ip address show tun0; "\
               "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json"
             # Check configuration on client
             echo "Client AS4 new VPN configuration"
+            docker cp ./setup/check_tun0_in_topo.py $(docker-compose ps -q useras4):/home/scionlab/
             docker-compose exec -T useras4 /bin/bash -c \
+              "apt-get install -y jq > /dev/null 2>&1; "\
               "jq .BorderRouters[].Interfaces /etc/scion/gen/ISD20/ASffaa_1_4/endhost/topology.json; "\
               "ip address show tun0; "\
               "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/gen/ISD20/ASffaa_1_4/endhost/topology.json"
