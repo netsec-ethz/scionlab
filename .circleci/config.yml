@@ -377,14 +377,6 @@ jobs:
           <<: *check_coordinator_ready
 
       - run:
-          name: NEW -- Run VPN cleanup / reassignment script
-          working_directory: ~/project/.circleci
-          command: |
-            set -x
-            docker-compose exec -T coord /bin/bash -c \
-              'python manage.py runscript vpn_cleanup'
-
-      - run:
           name: OLD -- Run client cronjob
           working_directory: ~/previous_version/.circleci
           command: |
