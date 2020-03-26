@@ -36,7 +36,7 @@ RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
 COPY --chown=scionlab:scionlab .circleci/setup/deploy_authorized_keys /home/scionlab/.ssh/authorized_keys
 
 # Add VPN tun0 ip check script
-COPY --chown=scionlab:scionlab .circleci/scripts/check_tun0_in_topo.py /home/scionlab/
+COPY --chown=scionlab:scionlab .circleci/setup/check_tun0_in_topo.py /home/scionlab/
 
 # Overwrite scionlab-config script with version from repo
 COPY scionlab/hostfiles/scionlab-config /usr/bin/

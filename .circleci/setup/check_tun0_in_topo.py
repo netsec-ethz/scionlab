@@ -14,9 +14,9 @@
 # limitations under the License.
 
 import json
-import os
 import subprocess
 import sys
+
 
 def check_tun0_ip_configured(topo):
     ip_show = subprocess.run(['ip', 'address', 'show', 'tun0'],
