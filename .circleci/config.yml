@@ -411,7 +411,7 @@ jobs:
             # Check configuration on AP
             echo "Client AP 1405 new VPN configuration"
             docker-compose exec -T as1405 /bin/bash -c \
-              "apt-get install -y jq > /dev/null 2>&1; "\ 
+              "apt-get install -y jq > /dev/null 2>&1; "\
               "jq '"'.BorderRouters."br20-ffaa_0_1405-2".Interfaces'"' /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json; "\
               "ip address show tun0; "\
               "ip address show tun0 | "'grep $(jq '"'"'.BorderRouters."br20-ffaa_0_1405-2".Interfaces["3"].PublicOverlay.Addr'"'"' /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json --raw-output)/'
