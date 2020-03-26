@@ -5,7 +5,8 @@ RUN apt-get update && apt-get install --assume-yes \
   systemd \
   sudo \
   apt-transport-https \
-  openssh-server
+  openssh-server \
+  jq
 
 # systemd
 # Based on: https://developers.redhat.com/blog/2014/05/05/running-systemd-within-docker-container/
@@ -33,6 +34,9 @@ RUN apt-get update && apt-get install --assume-yes scionlab
 RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
 RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
 COPY --chown=scionlab:scionlab .circleci/setup/deploy_authorized_keys /home/scionlab/.ssh/authorized_keys
+
+# Add VPN tun0 ip check script
+COPY --chown=scionlab:scionlab .circleci/setup/check_tun0_in_topo.py /home/scionlab/
 
 # Overwrite scionlab-config script with version from repo
 COPY scionlab/hostfiles/scionlab-config /usr/bin/
