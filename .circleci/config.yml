@@ -384,11 +384,10 @@ jobs:
             # Simulate command that is executed on hosts with upgrade cronjob (VMs), upgrade package
             for c in as1301 as1303 as1305 as1401 as1405 useras4; do
               # We have to hide the /.dockerenv file, since the scionlab packages assume that they cannot use systemd, run systemctl when run in docker
-              # TODO: remove purging db file, rm /var/lib/scion/*, needs to be done as part of the upgrade itself
               docker-compose exec -T $c /bin/bash -c \
                 'echo "deb [trusted=yes] https://packages-test.netsec.inf.ethz.ch/debian all main" | sudo tee /etc/apt/sources.list.d/scionlab.list; \
                  apt-get update; \
-                 rm /var/lib/scion/*; sudo mv /.dockerenv /.dockerenv.bk; \
+                 sudo mv /.dockerenv /.dockerenv.bk; \
                  DEBIAN_FRONTEND=noninteractive apt-get install -y --only-upgrade scionlab; \
                  sudo mv /.dockerenv.bk /.dockerenv;'
             done
