@@ -296,7 +296,7 @@ jobs:
           name: OLD -- Build container images
           working_directory: ~/previous_version/.circleci
           command: |
-            docker build --file ~/project/previous_version/deploy/Dockerfile-django --tag scionlab_django ~/project/ # We are only extending the production image
+            docker build --file ~/previous_version/deploy/Dockerfile-django --tag scionlab_django ~/previous_version/ # We are only extending the production image
             sed -i '/.circleci/d' ~/previous_version/.dockerignore  # The .dockerignore is for production, we'll need this
             docker-compose build
 
