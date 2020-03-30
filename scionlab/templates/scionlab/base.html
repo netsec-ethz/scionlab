@@ -19,8 +19,10 @@
 <body>
   <header class="navbar navbar-expand navbar-dark" style="background-color: #00539F;" >
 
-    {# Ribbon to indicate dev/testing instances #}
-    {% if 'debug' in instance_indicator %}
+    {# Ribbon to indicate maintenance mode/dev/testing instances #}
+    {% if maintenance_mode %}
+    <div class="ribbon"><span class="ribbon-yellow">Maintenance</span></div>
+    {% elif 'debug' in instance_indicator %}
     <div class="ribbon"><span class="ribbon-red">{{ instance_indicator }}</span></div>
     {% elif instance_indicator %}
     <div class="ribbon"><span class="ribbon-blue">{{ instance_indicator }}</span></div>

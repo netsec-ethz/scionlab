@@ -132,6 +132,9 @@ pre {
   box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
 }
 
+.ribbon-yellow {
+  background: linear-gradient(#F79E05 0%, #8F5408 100%);
+}
 .ribbon-red {
   background: linear-gradient(#F70505 0%, #8F0808 100%);
 }
