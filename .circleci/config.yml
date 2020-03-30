@@ -221,7 +221,7 @@ jobs:
 
             # Show current TRC
             TRC_version=1
-            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/ASffaa_0_1301/endhost/certs/ISD19-V${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
             docker-compose exec -T coord /bin/bash -c \
@@ -232,12 +232,16 @@ jobs:
             docker-compose logs coord
 
             # Check updated TRC and check that updated TRCs were installed on all hosts
+            # Copy TRCs to temporary directory tree with structure understood by the scion-pki tool
             TRC_version=$((TRC_version + 1))
-            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
-            docker-compose exec -T as1301 scion-pki trcs verify -d "/etc/scion/gen/" "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 /bin/bash -c \
+             "mkdir -p /tmp/pki/ISD19/trcs/;
+              cp /etc/scion/gen/ISD19/ASffaa_0_1301/endhost/certs/ISD19*.trc /tmp/pki/ISD19/trcs/;
+              scion-pki trcs human /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc;
+              scion-pki trcs verify -d /tmp/pki/ /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc"
 
-            docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
-            docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/trcs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1303/endhost/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1305/endhost/certs/ISD19-V${TRC_version}.trc"
 
             # Check that infra still works
             sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
