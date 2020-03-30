@@ -32,7 +32,7 @@ from scionlab.defines import (
 from scionlab.scion import as_ids, keys, trcs, certs
 from scionlab.util import flatten
 
-_MAX_LEN_CHOICES_DEFAULT = 16
+_MAX_LEN_CHOICES_DEFAULT = 32
 """ Max length value for choices fields without specific requirements to max length """
 _MAX_LEN_KEYS = 255
 """ Max length value for base64 encoded AS keys """

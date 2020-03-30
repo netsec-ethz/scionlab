@@ -113,7 +113,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('_as_id_int', models.BigIntegerField(editable=False, help_text='Copy of AS.as_id_int.')),
-                ('usage', models.CharField(choices=[('as-decrypt', 'as-decrypt'), ('as-signing', 'as-signing'), ('as-cert-signing', 'as-cert-signing'), ('trc-issuing-grant', 'trc-issuing-grant'), ('trc-voting-online', 'trc-voting-online'), ('trc-voting-offline', 'trc-voting-offline')], editable=False, max_length=16)),
+                ('usage', models.CharField(choices=[('as-decrypt', 'as-decrypt'), ('as-signing', 'as-signing'), ('as-cert-signing', 'as-cert-signing'), ('trc-issuing-grant', 'trc-issuing-grant'), ('trc-voting-online', 'trc-voting-online'), ('trc-voting-offline', 'trc-voting-offline')], editable=False, max_length=32)),
                 ('version', models.PositiveIntegerField(editable=False)),
                 ('not_before', models.DateTimeField()),
                 ('not_after', models.DateTimeField()),
@@ -145,7 +145,7 @@ class Migration(migrations.Migration):
             name='Certificate',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('issuer', 'issuer'), ('chain', 'chain')], editable=False, max_length=16)),
+                ('type', models.CharField(choices=[('issuer', 'issuer'), ('chain', 'chain')], editable=False, max_length=32)),
                 ('version', models.PositiveIntegerField()),
                 ('not_before', models.DateTimeField()),
                 ('not_after', models.DateTimeField()),
