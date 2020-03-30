@@ -18,9 +18,15 @@ from django.urls import reverse
 
 @override_settings(MAINTENANCE_MODE=True)
 class MaintenanceModeTests(TestCase):
+
     def test_get(self):
-        response = self.client.get('/')
+        response = self.client.get('/user/')
         self.check_response_maintenance(response)
+
+    def test_get_exceptions(self):
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(b'<span class="ribbon-yellow">Maintenance</span>' in response.content)
 
     def test_post(self):
         response = self.client.post(
