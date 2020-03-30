@@ -17,9 +17,9 @@ import enum
 import ipaddress
 import os
 from collections import OrderedDict
-from datetime import datetime
 
 from scionlab.models.core import Service
+from scionlab.models.pki import TRC
 from scionlab.scion_topology import TopologyInfo
 
 from scionlab.defines import (
@@ -116,8 +116,6 @@ class _ConfigGenerator:
     def _gen_configs(self, cb):
         self.archive.write_toml((GEN_PATH, 'dispatcher', 'disp.toml'), cb.build_disp_conf())
 
-        self._write_trcs(os.path.join(_isd_dir(self.AS.isd), TRC_DIR))
-
         for router in self._routers():
             self._write_elem_dir(router.instance_name, 'br.toml', cb.build_br_conf(router))
 
@@ -150,14 +148,16 @@ class _ConfigGenerator:
             self._write_keys(os.path.join(elem_dir, KEY_DIR))
 
     def _write_trcs(self, dir):
-        if self.AS.is_core:
-            # keep _all_ TRCs
-            relevant_trcs = self.AS.isd.trcs.all()
-        else:
-            # only active TRCs required; simplify, include all non-expired.
-            # XXX(matzf): this will lead to issues for tests as testdata has fixed date...
-            relevant_trcs = self.AS.isd.trcs.filter(not_after__gt=datetime.utcnow())
-        for trc in relevant_trcs:
+
+        # Note: we are in "Manual Mode" as described in the ControlPlanePKI.md; this means
+        # that for each ISD, we need to include at least the base TRC version.
+        # - For core ASes, we of course need to include all local TRC versions.
+        # - For all other ASes, We _could probably_ only include the base TRC version, and newer
+        #   versions will be fetched over the network. Right now, it's not completely clear to me,
+        #   however, whether that is really enough.
+        #   As there are no big disadvantages in always including all versions, that's what we do
+        #   for now.
+        for trc in TRC.objects.all():
             self.archive.write_json((dir, trc.filename()), trc.trc)
 
     def _write_certs(self, dir):
