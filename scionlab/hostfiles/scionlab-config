@@ -368,13 +368,16 @@ def wait_for_tun(num):
 
     :param num: number of expected tunnel interfaces
     """
+    if num == 0:
+        return
+
     # ensure the interface is up; give up after 5 tries
     for i in range(5):
         logging.debug('Waiting for VPN ...')
         time.sleep(1)
 
         tuns = list_tun_interfaces()
-        if len(tuns) == num:
+        if len(tuns) >= num:
             logging.debug("VPN up: {}".format(", ".join(tuns)))
             return True
     logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
