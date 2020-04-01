@@ -477,7 +477,7 @@ gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
   }
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/beacon_policy.yaml: |
   Filter:
-    AllowISDLoop: false
+    AllowIsdLoop: false
 gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
   [
     {
