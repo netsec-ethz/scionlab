@@ -337,7 +337,7 @@ class _ConfigBuilder:
     def build_beacon_policy(self, service):
         """ Returns a beacon policy, in which ISD loops are not allowed """
         return {'Filter': {
-            'AllowISDLoop': False
+            'AllowIsdLoop': False
         }}
 
     def _build_general_conf(self, instance_name, instance_dir=None):
