@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'huey.contrib.djhuey',
     'maintenance_mode',
+    'django_extensions',  # used for runscript and graph_models commands
 ]
 
 MIDDLEWARE = [

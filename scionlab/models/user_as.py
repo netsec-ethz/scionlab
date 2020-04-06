@@ -237,7 +237,7 @@ class UserAS(AS):
         ap_border_router = ap.get_border_router_for_useras_interface()
 
         if att_conf.use_vpn:
-            iface_ap.update(ap_border_router, public_ip=ap.vpn.server_vpn_ip)
+            iface_ap.update(ap_border_router, public_ip=ap.vpn.server_vpn_ip, public_port=None)
             vpn_client = self._create_or_activate_vpn_client(att_conf)
             att_conf.public_ip = vpn_client.ip
             att_conf.bind_ip = att_conf.bind_port = None
