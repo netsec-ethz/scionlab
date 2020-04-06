@@ -42,7 +42,6 @@ HUEY = huey.SqliteHuey('scionlab-huey',
 
 # ##### APPLICATION CONFIGURATION #########################
 INSTALLED_APPS += [
-    'django_extensions',  # used for graph_models command during develop
     'django_nose',
 ]
 
