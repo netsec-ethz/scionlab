@@ -298,7 +298,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
   backend = "sqlite"
   connection = "gen-cache/cs17-ffaa_1_5-1.beacon.db"
 
-  [bs]
+  [beaconing]
   origination_interval = "5s"
   propagation_interval = "5s"
   rev_overlap = "5s"
@@ -326,7 +326,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
   backend = "sqlite"
   connection = "gen-cache/cs17-ffaa_1_5-1.trust.db"
 
-  [bs.policies]
+  [beaconing.policies]
   Propagation = "gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/beacon_policy.yaml"
 
   [log.file]
