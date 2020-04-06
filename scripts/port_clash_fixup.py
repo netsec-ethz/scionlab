@@ -28,7 +28,7 @@ Run with python manage.py runscript port_clash_fixup
 
 
 from collections import defaultdict
-from scionlab.models.core import Host, Interface, LazyPortMap
+from scionlab.models.core import Host, Interface
 from scionlab.defines import DEFAULT_PUBLIC_PORT
 
 
@@ -78,7 +78,7 @@ def fix_clash(iface_ids):
     # don't modify the AS that obtained that port the first
     ifaces = ifaces[:len(ifaces)-1]
     for iface in ifaces:
-        portmap = LazyPortMap(iface.host.get_port_map)
+        portmap = iface.host.get_port_map()
         iface.public_port = portmap.get_port(iface.get_public_ip(), DEFAULT_PUBLIC_PORT)
         iface.save()
         iface.host.bump_config()
