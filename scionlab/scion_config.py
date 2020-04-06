@@ -278,7 +278,7 @@ class _ConfigBuilder:
         metrics_conf = self._build_metrics_conf(CS_PROM_PORT)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
-            'bs': {
+            'beaconing': {
                 'origination_interval': interval,
                 'propagation_interval': interval,
                 'rev_ttl': '20s',
@@ -288,8 +288,6 @@ class _ConfigBuilder:
                         self.config_isd_as_dir, service.instance_name, 'beacon_policy.yaml')
                 }
             },
-            # settings for AutomaticRenewal; disabled by default, currently not available anyway
-            # 'cs': { },
             'path_db': {
                 'backend': 'sqlite',
                 'connection': '%s.path.db' % os.path.join(self.var_dir, service.instance_name),

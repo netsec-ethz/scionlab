@@ -574,7 +574,7 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
   backend = "sqlite"
   connection = "/var/lib/scion/cs17-ffaa_0_1107-1.beacon.db"
 
-  [bs]
+  [beaconing]
   origination_interval = "5s"
   propagation_interval = "5s"
   rev_overlap = "5s"
@@ -602,7 +602,7 @@ gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
   backend = "sqlite"
   connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
 
-  [bs.policies]
+  [beaconing.policies]
   Propagation = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/beacon_policy.yaml"
 
   [log.file]
