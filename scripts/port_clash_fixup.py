@@ -28,6 +28,7 @@ Run with python manage.py runscript port_clash_fixup
 
 
 from collections import defaultdict
+from django.db import transaction
 from scionlab.models.core import Host, Interface
 from scionlab.defines import DEFAULT_PUBLIC_PORT
 
@@ -66,6 +67,7 @@ def get_clashes(host):
     return clashes
 
 
+@transaction.atomic
 def fix_clash(iface_ids):
     """
     sorts the interfaces by modification data of the user AS,
