@@ -73,8 +73,7 @@ def main(argv):
         config_info = get_config_info(args)
         config = fetch_config(config_info)
         if config is _CONFIG_EMPTY:
-            # stop_scion()
-            pass
+            stop_scion()
         elif config is _CONFIG_UNCHANGED:
             logging.info('Configuration unchanged (version %s). Nothing to do.',
                          config_info.version)
@@ -193,21 +192,25 @@ def fetch_config(config_info):
     if config_info.version:
         data['version'] = config_info.version
 
+    error_msg = "Failed to fetch configuration from SCIONLab coordinator at %s: %s"
+
     try:
         conn = _http_get(url, data, username=config_info.host_id, password=config_info.host_secret)
-        response_data = conn.read()
+        code = conn.getcode()
+        if code == 200:
+            response_data = conn.read()
+            return tarfile.open(mode='r:gz', fileobj=io.BytesIO(response_data))
+        elif code == 204:
+            return _CONFIG_EMPTY
+        else:
+            _error_exit(error_msg, config_info.url, code)
     except urllib.error.HTTPError as e:
         if e.code == 304:
             return _CONFIG_UNCHANGED
-        elif e.code == 204:
-            return _CONFIG_EMPTY
         else:
-            _error_exit("Failed to fetch configuration from SCIONLab coordinator at %s: %s",
-                        config_info.url, e)
+            _error_exit(error_msg, config_info.url, e)
     except Exception as e:
-        _error_exit("Failed to fetch configuration from SCIONLab coordinator at %s: %s",
-                    config_info.url, e)
-    return tarfile.open(mode='r:gz', fileobj=io.BytesIO(response_data))
+        _error_exit(error_msg, config_info.url, e)
 
 
 def confirm_deployed(args):
@@ -276,8 +279,12 @@ def install_config(tar):
         tar.extractall(path=tmpdir)
         install_vpn_client_configs(tmpdir)
         install_vpn_server_config(tmpdir)
+        # TODO quick reload: only restart if set of processes changed, otherwise trigger config
+        # reloading
+        stop_scion()
         install_scionlab_service(tmpdir)
         install_scion_config(tmpdir)
+        restart_scion()
     finally:
         shutil.rmtree(tmpdir)
 
@@ -289,7 +296,6 @@ def install_scion_config(tmpdir):
         _error_exit('No SCION configuration directory found at %s', sc)
     _mv_dir(tmpdir, 'gen', sc)
     subprocess.run(['chown', '-R', 'scion:scion', os.path.join(SCION_CONFIG_PATH, 'gen')])
-    restart_scion()
 
 
 def install_scionlab_service(tmpdir):
@@ -299,8 +305,7 @@ def install_scionlab_service(tmpdir):
     if not os.path.exists(scionlab_services):
         _error_exit("Could not find the scionlab-services.txt file in %s", tmpdir)
 
-    # 1. stop target remove existing links to scionlab.target
-    subprocess.run(['systemctl', 'stop', 'scionlab.target'], check=True)
+    # 1. remove existing links to scionlab.target
     wants = '/etc/systemd/system/scionlab.target.wants/'
     if os.path.exists(wants):
         for f in os.listdir(wants):
@@ -316,9 +321,11 @@ def install_scionlab_service(tmpdir):
         subprocess.run(['systemctl', 'enable', srv])
 
 
+def stop_scion():
+    subprocess.run(['systemctl', 'stop', 'scionlab.target'], check=True)
+
+
 def restart_scion():
-    # TODO quick reload: only restart if set of processes changed, otherwise trigger config
-    # reloading
     subprocess.run(['systemctl', 'restart', 'scionlab.target'], check=True)
 
 

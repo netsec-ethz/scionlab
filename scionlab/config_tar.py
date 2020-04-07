@@ -98,10 +98,7 @@ def is_empty_config(host):
     """
     Check if any services should to be configured to run on the given host.
     """
-    return (not host.services.exists()
-            and not host.interfaces.exists()
-            and not host.vpn_clients.filter(active=True).exists()
-            and not host.vpn_servers.exists())
+    return host.AS is None
 
 
 def _add_vpn_client_configs(host, archive):
