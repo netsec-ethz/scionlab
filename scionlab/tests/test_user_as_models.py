@@ -763,6 +763,21 @@ class UpdateUserASTests(TestCase):
             else:
                 vpn_client_ips_per_ap[att_confs[0].attachment_point.pk] = vpn_client.ip
 
+    def test_cycle_ap_vpn_no_clash(self):
+        """ attaches a user AS with VPN from one AP to another AP, checks port clashes """
+        seed = 6
+        ap1_id = testtopo_vpns_as_ids[0]
+        ap2_id = testtopo_vpns_as_ids[1]
+        user_as, att_confs = create_and_check_random_useras(self, seed, [ap1_id], VPNChoice.ALL)
+        # attach other user ASes to AP2 until AP2 uses the same port as AP1 is using
+        prev_port = att_confs[0].link.interfaceA.public_port
+        while not ap_from_id(ap2_id).vpn.server.interfaces.exclude(
+                public_ip=None).filter(public_port=prev_port).exists():
+            create_and_check_random_useras(self, seed, [ap2_id], VPNChoice.ALL)
+        # attach to AP2 and check correctness of topology
+        att_confs[0].attachment_point = ap_from_id(ap2_id)
+        update_useras(self, user_as, att_confs)
+
     def test_cycle_ap_vpn_delete(self):
         seed = 6
         vpn_choice = VPNChoice.ALL
