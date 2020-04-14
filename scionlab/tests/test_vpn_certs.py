@@ -25,7 +25,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa
 from django.core.management import CommandError
 from django.core.management import call_command
-from django.test import TestCase, override_settings
+from django.test import TestCase, SimpleTestCase, override_settings
 from django.conf import settings
 
 from scionlab.fixtures.testuser import get_testuser
@@ -33,7 +33,7 @@ from scionlab.models.user_as import AttachmentPoint, UserAS, AttachmentConf
 from scionlab.models.vpn import VPN
 from scionlab.openvpn_config import write_vpn_ca_config, generate_vpn_client_config, \
     load_ca_cert, _generate_private_key, load_ca_key, _generate_root_ca_cert, \
-    generate_vpn_server_config, ccd_config
+    generate_vpn_server_config, ccd_config, _truncated_unique_name
 
 test_public_port = 54321
 
@@ -268,3 +268,30 @@ class VPNCertsMissingCATests(TestCase):
         with self.assertRaises(RuntimeError) as rcm:
             create_user_as(attachment_point, 'Some label3')
         self.assertIn('Missing CA root configuration.', str(rcm.exception))
+
+
+class TruncatedNameTests(SimpleTestCase):
+    def test_pass_through(self):
+        cases = ['short', 'a'*63, 'b'*64]
+        for name in cases:
+            self.assertLessEqual(len(name), 64, "Sanity check for test input")
+            expected = name
+            actual = _truncated_unique_name(name)
+            self.assertEqual(expected, actual)
+
+    def test_shorten(self):
+        cases = [
+            'spam_ham_eggs_foo_bar_boo_raboof_fubar_fnord_lorem_ipsum_dolor_sit',
+            'a'*65,
+        ]
+
+        for name in cases:
+            self.assertGreater(len(name), 64, "Sanity check for test input")
+            results = []
+            for _ in range(20):
+                shortened = _truncated_unique_name(name)
+                self.assertEqual(len(shortened), 64)
+                self.assertEqual(shortened[:32], name[:32])
+                results.append(shortened)
+
+            self.assertEqual(len(results), len(set(results)), "Expected unique names")
