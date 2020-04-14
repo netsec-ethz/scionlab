@@ -16,6 +16,7 @@ import os
 import string
 import pathlib
 from datetime import datetime, timedelta
+import uuid
 
 from django.conf import settings
 
@@ -154,12 +155,11 @@ def generate_vpn_client_key_material(host):
     # and therefore needs to be unique per VPN-server.
     as_ = host.AS
     if as_.is_infrastructure_AS():
-        subject = "{email}_{AS}_{host}".format(email=settings.VPN_KEYGEN_CONFIG.KEY_EMAIL,
-                                               AS=as_.as_path_str(),
-                                               host=host.uid)
+        subject = "{AS}_{host}".format(AS=as_.as_path_str(), host=host.uid)
     else:
         # User-AS will only have one client, so per AS is unique (also: compatible with old certs)
         subject = "{email}_{AS}".format(email=as_.owner.email, AS=as_.as_path_str())
+
     client_cert = _make_cert(subject, client_key, ca_cert.issuer, ca_key,
                              x509.ExtendedKeyUsageOID.CLIENT_AUTH)
 
@@ -252,6 +252,9 @@ def _make_name(common_name):
 
 def _make_cert(subject_name, subject_key, issuer_name, issuer_key,
                extended_key_usage_oid):
+
+    subject_name = _truncated_unique_name(subject_name)
+
     return x509.CertificateBuilder().subject_name(
         _make_name(subject_name)
     ).issuer_name(
@@ -294,3 +297,17 @@ def _generate_private_key():
         key_size=settings.VPN_KEYGEN_CONFIG.KEY_SIZE,
         backend=default_backend()
     )
+
+
+def _truncated_unique_name(name):
+    """
+    Enforce 64 character length limit on subject name.
+    If the name is too long, truncate and add a random character sequence to ensure uniqueness.
+    """
+    limit = 64
+    uuid_len = 32
+    if len(name) <= limit:
+        return name
+
+    shortened = name[:limit-uuid_len]
+    return shortened + uuid.uuid4().hex
