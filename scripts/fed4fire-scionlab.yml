@@ -1,0 +1,110 @@
+#GTS
+ases:
+  19-ffaa:0:1302:
+    core: true
+    label: GTS
+    hosts:
+      ams0: 10.42.42.1
+      ams1: 10.42.42.2
+      ams2: 10.42.42.3
+      ams3: 10.42.42.4
+      ams4: 10.42.42.5
+      ams5: 10.42.42.6
+      par0: 10.42.42.7
+      par1: 10.42.42.8
+      par2: 10.42.42.9
+      ham0: 10.42.42.10
+      ham1: 10.42.42.11
+      ham2: 10.42.42.12
+      prg0: 10.42.42.13
+      prg1: 10.42.42.14
+
+  19-ffaa:0:130b:
+    label: VirtualWall
+    hosts:
+      vw0: 10.44.44.1
+      vw1: 10.44.44.2
+  
+  19-ffaa:0:130c:
+    label: DFN
+    hosts:
+      dfn0: 10.43.43.1
+      dfn1: 10.43.43.2
+      dfn2: 10.43.43.3
+      dfn3: 10.43.43.4
+
+  19-ffaa:0:130d:
+    label: Grid5000
+    hosts:
+      g5k0: 1.2.3.4 # XXX
+  
+  19-ffaa:0:130e:
+    label: ExoGeny
+    hosts:
+      exo0: 1.2.3.4 # XXX
+
+links:
+  vw0--g5k0:
+    src: 10.1.15.2 # XXX
+    dst: 10.1.15.7
+  vw0--exo0:
+    src: 10.1.16.2 # XXX
+    dst: 10.1.16.3
+  vw1--g5k0:
+    src: 10.1.17.2 # XXX
+    dst: 10.1.17.7
+  vw1--exo0:
+    src: 10.1.18.2 # XXX
+    dst: 10.1.18.3
+  vw0--ams0:
+    src: 10.1.1.2
+    dst: 10.1.1.1
+  vw1--par0:
+    src: 10.1.7.2
+    dst: 10.1.7.1
+  1305-hopper--ams1:
+    src: 10.1.2.5
+    dst: 10.1.2.1
+  1305-hopper--ams2:
+    src: 10.1.3.5
+    dst: 10.1.3.1
+  # KREONET-ams3:
+  #   src: 10.1.4.8
+  #   dst: 10.1.4.1
+  # KREONET-ams4:
+  #   src: 10.1.5.8
+  #   dst: 10.1.5.1
+  curie--ams5:
+    type: CORE
+    src: 10.1.6.6
+    dst: 10.1.6.1
+  curie--ham2:
+    type: CORE
+    src: 10.1.12.6
+    dst: 10.1.12.1
+  dfn0--ham0:
+    src: 10.1.10.4
+    dst: 10.1.10.1
+  dfn1--ham1:
+    src: 10.1.11.4
+    dst: 10.1.11.1
+  g5k0--par1:
+     src: 10.1.8.7 # XXX
+     dst: 10.1.8.1
+  g5k0--par2:
+     src: 10.1.9.7 # XXX
+     dst: 10.1.9.1
+  prg0--1101-turing:
+    type: CORE
+    src: 10.1.13.1
+    dst: 10.1.13.9
+  prg0--1303-gauss:
+    src: 10.1.19.1
+    dst: 10.1.19.10
+  prg1--1307-ptolemy:
+    src: 10.1.14.1
+    dst: 10.1.14.11
+  prg1--1301-banach:
+    type: CORE
+    src: 10.1.20.1
+    dst: 10.1.20.12
