@@ -81,15 +81,17 @@ def create_as(ia, data):
 
 
 def create_hosts(as_, hosts):
-    for name, ip in hosts.items():
+    for name, data in hosts.items():
         as_short_id = as_.as_id.split(':')[-1]
         ssh_host = 'scionlab-%s-%s' % (as_short_id, name)
 
+        internal_ip = data['address']
+        public_ip = data.get('public', None)
         Host.objects.create(
             AS=as_,
-            public_ip=ip,
+            public_ip=public_ip,
             bind_ip=None,
-            internal_ip=ip,
+            internal_ip=internal_ip,
             ssh_host=ssh_host,
         )
 
@@ -100,16 +102,25 @@ def create_hosts(as_, hosts):
 def create_links(links):
     for link, data in links.items():
         a, b = link.split('--')
-        host_a = Host.objects.filter(ssh_host__endswith=a).get()
-        host_b = Host.objects.filter(ssh_host__endswith=b).get()
+        try:
+            host_a = Host.objects.filter(ssh_host__endswith=a).get()
+            host_b = Host.objects.filter(ssh_host__endswith=b).get()
+        except Host.DoesNotExist as e:
+            print("Skipping link", a, b, ":", e)
+            continue
 
         create_link(host_a, host_b, data)
 
 
 def create_link(host_a, host_b, data):
-    public_a = data['src']
-    public_b = data['dst']
-    type = data.get('type', 'PROVIDER')
+    public_a = data['src'].get('address', None) or None
+    public_b = data['dst'].get('address', None) or None
+    type = data.get('type', None)
+    if type is None:
+        if host_a.AS.is_core and host_b.AS.is_core:
+            type = 'CORE'
+        else:
+            type = 'PROVIDER'
 
     # XXX(matzf): crappy input; fix obviously wrong link order
     if host_b.AS.is_core:
