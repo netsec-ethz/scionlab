@@ -1,4 +1,3 @@
-#GTS
 ases:
   19-ffaa:0:1302:
     core: true
@@ -32,7 +31,16 @@ ases:
         address: 10.42.42.13
       prg1:
         address: 10.42.42.14
-  
+
+  19-ffaa:0:1305:
+    replace: false
+    label: SIDN
+    hosts:
+      rossum:
+        address: 94.198.159.72
+        public: 94.198.159.72
+    # hopper:  (existing)
+
   19-ffaa:0:130b:
     core: true
     label: DFN
@@ -56,7 +64,7 @@ ases:
   #       address: 10.44.44.1
   #     vw1:
   #       address: 10.44.44.2
-  
+
   # 19-ffaa:0:130d:
   #   label: Grid5000
   #   hosts:
@@ -64,11 +72,11 @@ ases:
   #       address: 1.2.3.4
   #     g5k1:
   #       address: 1.2.3.5
-  
+
   # 19-ffaa:0:130e:
   #   label: ExoGeni
   #   hosts:
-  #     exo0: 
+  #     exo0:
   #       address: 1.2.3.4
 
 links:
@@ -88,7 +96,7 @@ links:
     dst:
       address: 10.1.1.2
       vlan: VLAN 1176 / ?untagged
-  ams2--1305-hopper:
+  ams2--1305-rossum:
     src:
       address: 10.1.3.1
       interface: ens20 / p15
@@ -96,7 +104,7 @@ links:
     dst:
       address: 10.1.3.5
       vlan: VLAN 34 / tagged
-  ams3--1305-hopper:
+  ams3--1305-rossum:
     src:
       address: 10.1.2.1
       interface: ens20 / p15
@@ -104,13 +112,13 @@ links:
     dst:
       address: 10.1.2.5
       vlan: VLAN 40 / tagged
-  ams4--KREONET: #XXX 
+  ams4--KREONET: #XXX
     src:
       address: 10.1.4.1
       interface: ens20 / p15
     dst:
       address: 10.1.4.8
-  ams5--KREONET: #XXX 
+  ams5--KREONET: #XXX
     src:
       address: 10.1.5.1
       interface: ens20 / p15

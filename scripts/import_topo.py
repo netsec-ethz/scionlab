@@ -17,8 +17,13 @@
 :mod: scripts.import_topo
 =========================
 
-
 Run with python manage.py runscript import_topo --script-args <topo.yml>
+
+
+Apply topology modifications in batch instead of clicking through the admin panel.
+Only has the features I need to import (many) additional ASes, hosts and links for the GTS/DFN
+"Fed4Fire" setup.
+
 """
 
 import yaml
@@ -66,14 +71,20 @@ def create_as(ia, data):
 
     is_core = data.get('core', False)
     label = data['label']
+    replace = data.get('replace', True)
+
     as_ = AS.objects.filter(as_id=as_id).first()
     if as_:
         as_.label = label
         as_.save()
         if as_.is_core != is_core:
             raise NotImplementedError("Cannot change AS is_core")
-        as_.hosts.all().delete()
-        print("Reset existing internal topology of AS", as_)
+
+        if replace:
+            as_.hosts.all().delete()
+            print("Replacing existing internal topology of AS", as_)
+        else:
+            print("Appending to existing internal topology of AS", as_)
     else:
         as_ = AS.objects.create(isd=isd, as_id=as_id, label=label, is_core=is_core)
         print("Created AS", as_)
@@ -122,10 +133,6 @@ def create_link(host_a, host_b, data):
         else:
             type = 'PROVIDER'
 
-    # XXX(matzf): crappy input; fix obviously wrong link order
-    if host_b.AS.is_core:
-        host_a, host_b = host_b, host_a
-        public_a, public_b = public_b, public_a
     Link.objects._check_link(type, host_a.AS, host_b.AS)
 
     br_a = BorderRouter.objects.first_or_create(host_a)
