@@ -155,7 +155,7 @@ class ASManager(models.Manager):
                                      bind_ip=None, internal_ip=None,
                                      init_certificates=True):
         """
-        Create the AS, initialise the required keys and create a default sel object
+        Create the AS, initialise the required keys and create a default Host object
         with default services.
         Create the AS and initialise the required keys
         :param ISD isd:
@@ -944,10 +944,14 @@ class LinkManager(models.Manager):
         # TODO(matzf): validation (should be reusable for forms and for global system checks)
         # - no provider loops
         # - core links only for core ases
-        # - no providers links for core ases
-        # - no cross ISD provider links
         if as_a == as_b:
-            raise ValueError("Loop AS-link (from AS to itself) not allowed")
+            raise ValidationError("Loop AS-link (from AS to itself) not allowed")
+        if (type == Link.CORE) != (as_a.is_core and as_b.is_core):
+            raise ValidationError("CORE links only between core ASes")
+        if as_b.is_core and type == Link.PROVIDER:
+            raise ValidationError("No providers for core ASes")
+        if as_a.isd_id != as_b.isd_id and type == Link.PROVIDER:
+            raise ValidationError("No provider links between ISDs")
 
 
 class Link(models.Model):
