@@ -19,7 +19,7 @@ import os
 from collections import OrderedDict
 
 from scionlab.models.core import Service
-from scionlab.models.pki import TRC
+from scionlab.models.pki import TRC, Certificate
 from scionlab.scion_topology import TopologyInfo
 
 from scionlab.defines import (
@@ -161,7 +161,7 @@ class _ConfigGenerator:
             self.archive.write_json((dir, trc.filename()), trc.trc)
 
     def _write_certs(self, dir):
-        for cert in self.AS.certificates.all():
+        for cert in self.AS.certificates.filter(type=Certificate.CHAIN):
             self.archive.write_json((dir, cert.filename()), cert.certificate)
 
     def _write_keys(self, dir):
