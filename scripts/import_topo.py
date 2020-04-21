@@ -71,7 +71,7 @@ def create_as(ia, data):
 
     is_core = data.get('core', False)
     label = data['label']
-    replace = data.get('replace', True)
+    replace = data.get('replace', False)
 
     as_ = AS.objects.filter(as_id=as_id).first()
     if as_:

@@ -2,6 +2,7 @@ ases:
   19-ffaa:0:1302:
     core: true
     label: GEANT
+    replace: true
     hosts:
       ams0:
         address: 10.42.42.1
