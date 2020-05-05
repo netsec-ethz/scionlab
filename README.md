@@ -31,8 +31,8 @@ Steps to start up the django webserver for development and local testing.
 
 ```bash
 # Make a venv for scionlab
-python3 -m venv /tmp/scionlab
-source /tmp/scionlab/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 
 # NOTE: on debian/ubuntu python venv requires:
 #         apt install python3-venv
@@ -45,12 +45,6 @@ pip install --require-hashes -r requirements.txt -r dev-requirements.txt
 # NOTE: the 'scrypt' package may fail to build if libssl is not installed
 #       on your machine; install and try again.
 #         apt install libssl1.0
-
-# Make sure the scion libraries are in the PYTHONPATH:
-export PYTHONPATH=/path/to/scionproto/scion/python
-
-# Initialise development sqlite-DB with some an admin, a testuser and some ASes.
-scripts/init-test-db.sh
 ```
 
 To render the topology graph, `graphviz` needs to be installed additionally to the python dependencies. On ubuntu:
@@ -59,6 +53,26 @@ apt install graphviz
 ```
 If this is missing, the topology graph will fail to render (with a 500 error code).
 
+### Running
+
+The commands below assume an environment as installed above.
+
+Initialise development sqlite-DB with some an admin, a testuser and some ASes.
+The usernames and passwords for the test users can be found in [scionlab/fixtures/testuser.py](scionlab/fixtures/testuser.py).
+```bash
+scripts/init-test-db.sh
+```
+
+Start the django development server:
+```bash
+python manage.py runserver
+```
+
+If required, additionally start the huey task queue (used for asynchronous
+tasks, currently only push deployment triggers).
+```bash
+python manage.py run_huey
+```
 
 ### Managing Dependencies
 There are two requirements-files for pip; `requirements.txt` contains the
