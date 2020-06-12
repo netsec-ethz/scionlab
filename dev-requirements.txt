@@ -13,9 +13,9 @@ django-nose==1.4.6 \
     --hash=sha256:58934a06a6932696e54c9e8af3fab49bf67ca9e9c840ad668cb7f51219808a07 \
     --hash=sha256:f515d903cfaeda52c7a9198e0c8ed51563e82802b62a4e5fbd056fd830095318 \
     # via -r dev-requirements.in
-django-webtest==1.9.4 \
-    --hash=sha256:7b683d87cd9be13599af44b81bd44f97b49978b4e69cf4b92059c393f64307c1 \
-    --hash=sha256:f3cd35d06ec01610e1a5ec8917679ad9a53f815d85d1e41e385746f1e823869d \
+django-webtest==1.9.7 \
+    --hash=sha256:b9b4b94670c0ce533efc456d02dd55a0d0a7a8f7912eb30728dca2d59d7948b4 \
+    --hash=sha256:c5a1e486a3d8d3623aa615b6db2f27de848aa7079303a84721e9a685f839796c \
     # via -r dev-requirements.in
 entrypoints==0.3 \
     --hash=sha256:589f874b313739ad35be6e0cd7efde2a4e9b6fea91edcc34e58ecbb8dbe56d19 \
