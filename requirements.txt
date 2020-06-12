@@ -75,25 +75,25 @@ cryptography==2.6.1 \
     --hash=sha256:d9ed28030797c00f4bc43c86bf819266c76a5ea61d006cd4078a93ebf7da6bfd \
     --hash=sha256:e603aa7bb52e4e8ed4119a58a03b60323918467ef209e6ff9db3ac382e5cf2c6 \
     # via -r requirements.in
-django-crispy-forms==1.7.2 \
-    --hash=sha256:5952bab971110d0b86c278132dae0aa095beee8f723e625c3d3fa28888f1675f \
-    --hash=sha256:705ededc554ad8736157c666681165fe22ead2dec0d5446d65fc9dd976a5a876 \
+django-crispy-forms==1.9.1 \
+    --hash=sha256:ad943285508f0ed0e271d00399b9399c22b8795a4f969029bce0fd29522a8e2d \
+    --hash=sha256:fbe9c2c9698b6590afe37940cb08194d1e722015f6bc5bee83f679362406ea30 \
     # via -r requirements.in
 django-extensions==2.1.6 \
     --hash=sha256:109004f80b6f45ad1f56addaa59debca91d94aa0dc1cb19678b9364b4fe9b6f4 \
     --hash=sha256:307766e5e6c1caffe76c5d99239d8115d14ae3f7cab2cd991fcffd763dad904b \
     # via -r requirements.in
-django-maintenance-mode==0.13.3 \
-    --hash=sha256:0afcfa6ff4a87348e40c44f58f8a8c4cd3e8eca40ddcdbeb620b68ca78ecbf9c \
-    --hash=sha256:473850f80e7762ae586f8347129e73e0d23b89a36b98a70e0c06f1778cacff7c \
+django-maintenance-mode==0.14.0 \
+    --hash=sha256:b4cc24a469ed10897826a28f05d64e6166a58d130e4940ac124ce198cd4cc778 \
+    --hash=sha256:f3fef1760fdcda5e0bf6c2966aadc77eea6f328580a9c751920daba927281a68 \
     # via -r requirements.in
 django-recaptcha2==1.4.1 \
     --hash=sha256:9ea90db0cec502741be1066c09ec1b8e02a73162a319a042e78e67c4605087af \
     --hash=sha256:c0b43851b05c6bf6ebb5ecc890c13ccedacd9bb33d64b4291c74dd6fcbc89366 \
     # via -r requirements.in
-django-registration==3.0 \
-    --hash=sha256:0527be82f3f62233c7b7a4fe6b0217832cbde2c6d8ea5008e8233a764f9a2543 \
-    --hash=sha256:8f1960d1780804b67afb6b202c98cdfaca030a202bc7a263bf80e32f9c8a6984 \
+django-registration==3.1 \
+    --hash=sha256:071dce4f4348ff1da338a0a09bda8e34d44c001ab569777e4c88ee21ce5c499e \
+    --hash=sha256:2437a098e6e06983e4b4b442680b1c49a2e979f1a0ef3a504beb3a84ff36131d \
     # via -r requirements.in
 django==3.0 \
     --hash=sha256:6f857bd4e574442ba35a7172f1397b303167dae964cf18e53db5e85fe248d000 \

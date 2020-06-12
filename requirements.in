@@ -1,10 +1,10 @@
 Django>=3
 cryptography
-django-crispy-forms
+django-crispy-forms>=1.9.0
 django-extensions
-django-maintenance-mode
+django-maintenance-mode>=0.14.0
 django-recaptcha2
-django-registration
+django-registration>=3.1
 graphviz
 gunicorn
 huey
