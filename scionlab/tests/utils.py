@@ -136,7 +136,7 @@ def check_links(testcase, link_descriptions):
     """
     for link in Link.objects.iterator():
         check_link(testcase, link)
-    actual_link_descs = [_describe_link(testcase, l) for l in Link.objects.iterator()]
+    actual_link_descs = [_describe_link(testcase, link) for link in Link.objects.iterator()]
     testcase.assertEqual(sorted(actual_link_descs), sorted(link_descriptions))
 
 
@@ -456,8 +456,8 @@ def check_tarball_user_as(testcase, response, user_as):
         testcase.assertTrue(readme.startswith('# SCIONLab VM'))
         # Vagrantfile template expanded correctly?
         vagrantfile = tar.extractfile('Vagrantfile')
-        lines = [l.decode() for l in vagrantfile]
-        name_lines = [l.strip() for l in lines if l.strip().startswith('vb.name')]
+        lines = [line.decode() for line in vagrantfile]
+        name_lines = [line.strip() for line in lines if line.strip().startswith('vb.name')]
         testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_path_str()])
     else:
         testcase.assertEquals(sorted(['README.md', 'gen']),

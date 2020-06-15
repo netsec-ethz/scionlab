@@ -13,10 +13,10 @@
 # limitations under the License.
 
 
-def flatten(l):
+def flatten(lst):
     """
     Transform a list of lists into a 1D list
-    :param List[List[Any]] l: the list to flatten
+    :param List[List[Any]] lst: the list to flatten
     :return List[Any]:
     """
-    return [y for x in l for y in x]
+    return [y for x in lst for y in x]
