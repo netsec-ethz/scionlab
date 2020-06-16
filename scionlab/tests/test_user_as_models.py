@@ -163,7 +163,8 @@ def check_useras(testcase,
 
     # Check that the AttachmentPoints in `att_confs` are now AttachmentPoints of the user_as
     aps_ases = [c.attachment_point.AS for c in att_confs]
-    user_as_aps_ases = [l.interfaceA.AS for l in Link.objects.filter(interfaceB__AS=user_as).all()]
+    user_as_aps_ases = [link.interfaceA.AS for link in
+                        Link.objects.filter(interfaceB__AS=user_as).all()]
     testcase.assertEqual(sorted(user_as_aps_ases, key=lambda _as: _as.id),
                          sorted(aps_ases, key=lambda _as: _as.id))
     # Check attachment points configuration
@@ -270,12 +271,12 @@ def update_useras(testcase,
     testcase.assertEqual(
         len([args[0] for args, kwargs in mock_deploy.call_args_list]),
         len(set(args[0] for args, kwargs in mock_deploy.call_args_list))
-            )
+    )
     # Check that deployment was triggered for all the attachment points
     testcase.assertEqual(
         set(args[0] for args, kwargs in mock_deploy.call_args_list),
         set(AttachmentConf.attachment_points(att_confs)) |
-        set([l.interfaceA.AS.attachment_point_info for l in deleted_links])
+        set([link.interfaceA.AS.attachment_point_info for link in deleted_links])
     )
 
     # Check needs_config_deployment: hosts of UserAS and both APs
@@ -366,7 +367,7 @@ def _get_random_useras_params(seed, vpn_choice, **kwargs):
 
     kwargs.setdefault('owner', get_testuser())
     kwargs.setdefault('installation_type', r.choice((UserAS.VM, UserAS.PKG, UserAS.SRC)))
-    randstr = r.getrandbits(1024).to_bytes(1024//8, 'little').decode('utf8', 'ignore')
+    randstr = r.getrandbits(1024).to_bytes(1024 // 8, 'little').decode('utf8', 'ignore')
     kwargs.setdefault('label', randstr)
 
     return kwargs

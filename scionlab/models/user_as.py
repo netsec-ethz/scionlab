@@ -159,7 +159,7 @@ class UserAS(AS):
         """
         aps_set = set(c.attachment_point for c in att_confs)
         # Attachment points of deleted connections
-        aps_set |= set(l.interfaceA.AS.attachment_point_info for l in deleted_links)
+        aps_set |= set(link.interfaceA.AS.attachment_point_info for link in deleted_links)
         # ISDs of active attachment points
         isds = set(c.attachment_point.AS.isd for c in att_confs if c.active)
         assert len(isds) <= 1, "ISD consistency infringed"

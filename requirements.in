@@ -1,14 +1,14 @@
-Django<3
+Django>=3
 cryptography
-django-crispy-forms
+django-crispy-forms>=1.9.0
 django-extensions
-django-maintenance-mode
+django-maintenance-mode>=0.14.0
 django-recaptcha2
-django-registration
+django-registration>=3.1
 graphviz
 gunicorn
 huey
-jsonfield2
+jsonfield
 psycopg2-binary  # PostgreSQL backend
 pynacl
 pyyaml>=4.2b1  # for fixtures and config generation; high severity vulnerability before 4.1 (CVE-2017-18342)
