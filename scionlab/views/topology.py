@@ -15,6 +15,7 @@
 from django.http import HttpResponse
 from django.views.decorators.cache import cache_page, cache_control
 from graphviz import Graph
+from textwrap import fill
 
 from scionlab.models.core import ISD, Link
 
@@ -82,7 +83,7 @@ def _isd_label(isd):
 
 
 def _as_label(as_):
-    return "%s\n%s" % (as_.as_id, as_.label)
+    return "%s\n%s" % (as_.as_id, fill(as_.label, 10))
 
 
 def _as_color(as_):
