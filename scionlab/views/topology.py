@@ -15,6 +15,7 @@
 from django.http import HttpResponse
 from django.views.decorators.cache import cache_page, cache_control
 from graphviz import Graph
+from textwrap import fill
 
 from scionlab.models.core import ISD, Link
 
@@ -34,12 +35,30 @@ def topology_png(request):
 
 
 def _topology_graph():
-    g = Graph(engine='dot', graph_attr={'ratio': '0.41'})
+    g = Graph(engine='dot', graph_attr={'ratio': '0.41', 'pad': '0.7 ', 'newrank': 'false',
+                                        'splines': 'compound'})
+
     for isd in ISD.objects.iterator():
         g_isd = _make_isd_graph(isd)
-        for as_ in isd.ases.filter(owner=None):
-            _add_as_node(g_isd, as_)
+
+        # hard-coding backbone ISDs to be at the top
+        if isd.isd_id in [16, 26]:
+            g_isd.attr(rank='source')
+
+        # putting core ASes into a subgraph, laid out at the top
+        with g_isd.subgraph() as s:
+            s.attr(rank='min')
+            for as_ in isd.ases.filter(owner=None, is_core=True):
+                _add_as_node(s, as_)
+
+        # putting non-core ASes into a subgraph, without rank
+        with g_isd.subgraph() as s:
+            s.attr(rank='none')
+            for as_ in isd.ases.filter(owner=None, is_core=False):
+                _add_as_node(s, as_)
+
         g.subgraph(g_isd)
+
     for link in Link.objects.filter(interfaceA__AS__owner=None, interfaceB__AS__owner=None):
         _add_link(g, link)
 
@@ -48,9 +67,13 @@ def _topology_graph():
 
 def _make_isd_graph(isd):
     return Graph("cluster_ISD_%i" % isd.isd_id,
-                 graph_attr={'color': 'blue',
+                 graph_attr={'color': 'gray33',
                              'label': _isd_label(isd),
-                             'style': 'rounded'})
+                             'fontname': 'roboto',
+                             'fontsize': '16pt',
+                             'penwidth': '1.8pt',
+                             'style': 'rounded,filled',
+                             'fillcolor': 'gray93'})
 
 
 def _add_link(g, link):
@@ -60,11 +83,6 @@ def _add_link(g, link):
     if link.type == Link.PEER:
         attrs = {'style': 'dashed',
                  'constraint': 'false'}  # Don't rank peers
-    elif link.type == Link.CORE:
-        if as_a.isd == as_b.isd:
-            attrs = {'constraint': 'false'}  # Don't rank core ASes of one ISD
-        elif as_a.isd.isd_id > as_b.isd.isd_id:  # Keep min ISD (i.e. 16) on top
-            as_a, as_b = as_b, as_a
     g.edge(str(as_a.pk), str(as_b.pk), _attributes=attrs)
 
 
@@ -74,7 +92,11 @@ def _add_as_node(g, as_):
            _attributes={'width': '1.33',
                         'fixedsize': 'true',
                         'shape': 'circle',
-                        'color': _as_color(as_)})
+                        'penwidth': '1.5pt',
+                        'color': _as_color(as_),
+                        'style': 'filled',
+                        'fontname': 'roboto',
+                        'fillcolor': _as_fill_color(as_)})
 
 
 def _isd_label(isd):
@@ -82,12 +104,20 @@ def _isd_label(isd):
 
 
 def _as_label(as_):
-    return "%s\n%s" % (as_.as_id, as_.label)
+    return "%s\n%s" % (as_.as_id, fill(as_.label, 10))
 
 
 def _as_color(as_):
     if as_.is_core:
-        return 'red'
+        return 'orangered'
     if hasattr(as_, 'attachment_point_info'):
         return 'darkgreen'
     return 'black'
+
+
+def _as_fill_color(as_):
+    if as_.is_core:
+        return 'seashell1'
+    if hasattr(as_, 'attachment_point_info'):
+        return 'darkseagreen1'
+    return 'gray99'
