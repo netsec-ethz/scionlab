@@ -35,7 +35,8 @@ def topology_png(request):
 
 
 def _topology_graph():
-    g = Graph(engine='dot', graph_attr={'ratio': '0.41', 'pad': '0.7 ', 'newrank': 'false', 'splines': 'compound'})
+    g = Graph(engine='dot', graph_attr={'ratio': '0.41', 'pad': '0.7 ', 'newrank': 'false',
+                                        'splines': 'compound'})
 
     for isd in ISD.objects.iterator():
         g_isd = _make_isd_graph(isd)
@@ -47,13 +48,13 @@ def _topology_graph():
         # putting core ASes into a subgraph, laid out at the top
         with g_isd.subgraph() as s:
             s.attr(rank='min')
-            for as_ in isd.ases.filter(owner=None,is_core=True):
+            for as_ in isd.ases.filter(owner=None, is_core=True):
                 _add_as_node(s, as_)
 
         # putting non-core ASes into a subgraph, without rank
         with g_isd.subgraph() as s:
             s.attr(rank='none')
-            for as_ in isd.ases.filter(owner=None,is_core=False):
+            for as_ in isd.ases.filter(owner=None, is_core=False):
                 _add_as_node(s, as_)
 
         g.subgraph(g_isd)
