@@ -49,9 +49,13 @@ def _topology_graph():
 
 def _make_isd_graph(isd):
     return Graph("cluster_ISD_%i" % isd.isd_id,
-                 graph_attr={'color': 'blue',
+                 graph_attr={'color': 'gray33',
                              'label': _isd_label(isd),
-                             'style': 'rounded'})
+                             'fontname': 'roboto',
+                             'fontsize': '16pt',
+                             'penwidth': '1.8pt',
+                             'style': 'rounded,filled',
+                             'fillcolor': 'gray93'})
 
 
 def _add_link(g, link):
@@ -75,7 +79,11 @@ def _add_as_node(g, as_):
            _attributes={'width': '1.33',
                         'fixedsize': 'true',
                         'shape': 'circle',
-                        'color': _as_color(as_)})
+                        'penwidth': '1.5pt',
+                        'color': _as_color(as_),
+                        'style': 'filled',
+                        'fontname': 'roboto',
+                        'fillcolor': _as_fill_color(as_)})
 
 
 def _isd_label(isd):
@@ -88,7 +96,15 @@ def _as_label(as_):
 
 def _as_color(as_):
     if as_.is_core:
-        return 'red'
+        return 'orangered'
     if hasattr(as_, 'attachment_point_info'):
         return 'darkgreen'
     return 'black'
+
+
+def _as_fill_color(as_):
+    if as_.is_core:
+        return 'seashell1'
+    if hasattr(as_, 'attachment_point_info'):
+        return 'darkseagreen1'
+    return 'gray99'
