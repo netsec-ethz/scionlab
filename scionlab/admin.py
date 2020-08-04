@@ -51,7 +51,7 @@ class UserAdmin(auth_UserAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'organisation')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
@@ -60,7 +60,8 @@ class UserAdmin(auth_UserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name', 'organisation', 'is_staff', 'is_superuser')
+    list_display = ('email', 'first_name', 'last_name', 'organisation', 'date_joined', 'last_login',
+                    'is_staff', 'is_superuser')
     search_fields = ('email', 'first_name', 'last_name')
     ordering = ('email',)
 
@@ -411,10 +412,11 @@ class ASAdmin(admin.ModelAdmin):
 
     inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
     actions = ['update_keys', 'update_core_keys', 'trigger_config_deployment']
-    list_display = ('isd', 'as_id', 'label', 'is_core', 'is_ap', 'is_userAS')
+    list_display = ('isd', 'as_id', 'owner', 'label', 'is_core', 'is_ap', 'is_userAS')
     list_display_links = ('as_id', 'label')
     list_filter = ('isd', 'is_core', InfrastructureASFilter)
     ordering = ('isd', 'as_id')
+    search_fields = ('label', 'owner__email', 'owner__first_name', 'owner__last_name')
 
     def get_fieldsets(self, request, obj=None):
         """
