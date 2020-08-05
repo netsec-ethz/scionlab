@@ -15,10 +15,11 @@
 import ipaddress
 from django import urls
 from django.utils.html import format_html
-from django.core.exceptions import ValidationError
-from django.contrib import admin
-from django.shortcuts import get_object_or_404
 from django import forms
+from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
 from django.urls import resolve, path
 
 from scionlab.defines import (
@@ -49,6 +50,27 @@ from django.contrib.auth.admin import UserAdmin as auth_UserAdmin
 class UserAdmin(auth_UserAdmin):
     """Define admin model for custom User model with no email field."""
 
+    class NumASesFilter(admin.SimpleListFilter):
+        title = "Number of ASes"
+        parameter_name = 'num_ases'
+
+        def lookups(self, request, model_admin):
+            return (
+                ('0', '0'),
+                ('1', '1'),
+                ('>0', '> 0'),
+                ('>1', '> 1'),
+            )
+
+        def queryset(self, request, queryset):
+            if self.value():
+                if self.value().startswith('>'):
+                    v = self.value()[1:]
+                    queryset = queryset.filter(_num_ases__gt=v)
+                else:
+                    queryset = queryset.filter(_num_ases=self.value())
+            return queryset
+
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'organisation')}),
@@ -61,9 +83,22 @@ class UserAdmin(auth_UserAdmin):
         }),
     )
     list_display = ('email', 'first_name', 'last_name', 'organisation', 'date_joined', 'last_login',
-                    'is_staff', 'is_superuser')
+                    'is_staff', 'is_superuser', 'is_active', 'num_ases')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', NumASesFilter)
     search_fields = ('email', 'first_name', 'last_name')
     ordering = ('email',)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(
+            _num_ases=Count('ases'),
+        )
+        return queryset
+
+    def num_ases(self, obj):
+        return obj._num_ases
+
+    num_ases.admin_order_field = '_num_ases'
 
 
 class _AlwaysChangedModelForm(forms.ModelForm):
