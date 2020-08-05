@@ -130,7 +130,7 @@ class AttachmentConfFormHelper(FormHelper):
     conf_body = Div(
             Row(
                 Column(AppendedText('public_ip', '<span class="fa fa-external-link"/>'),
-                       css_class='col-md-6'),
+                       css_class='col-md-6 hidable'),
                 Column(AppendedText('public_port', '<span class="fa fa-share-square-o"/>'),
                        css_class='col-md-6')
                 ),
@@ -144,9 +144,9 @@ class AttachmentConfFormHelper(FormHelper):
                 ),
             Row(
                 Column(AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
-                       css_class='col-md-6'),
+                       css_class='col-md-6 hidable'),
                 Column(AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
-                       css_class='col-md-6'),
+                       css_class='col-md-6 hidable'),
                 css_class="bind-row"
                 ),
             css_class="card-body"
