@@ -26,7 +26,7 @@ from scionlab.views.user_as_views import (
     UserASGetConfigView)
 from scionlab.views.registration_view import UserRegistrationView, UserRegistrationResendView
 from scionlab.views.api import GetHostConfig, PostHostDeployedConfigVersion, gone
-from scionlab.views.topology import topology_png
+from scionlab.views.topology import topology_png, topology_json
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='scionlab/home.html'), name='home'),
@@ -79,6 +79,9 @@ urlpatterns = [
     path('api/v2/host/<slug:uid>/deployed_config_version',
          PostHostDeployedConfigVersion.as_view(),
          name='api_post_deployed_version'),
+    path('api/v2/topology/topology.json',
+         topology_json,
+         name='topology.json'),
     # no longer supported versions of the API
     re_path(r'^api/host/', gone)
 ]
