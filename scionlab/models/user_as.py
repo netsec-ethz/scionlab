@@ -338,8 +338,8 @@ class UserAS(AS):
         """
         Does the user have any active `Interface`?
         """
-        return any(self.interfaces
-                       .values_list('link_as_interfaceB__active', flat=True)
+        return any(self.attachment_links()
+                       .values_list('active', flat=True)
                        .all())
 
     def _activate(self) -> Set['AttachmentPoint']:
@@ -347,17 +347,19 @@ class UserAS(AS):
         Activate the first attachment point
         :return: attachment points that shall be updated
         """
-        link = self.host.interfaces.first().link_as_interfaceB
-        link.update_active(True)
-        return {link.interfaceA.AS.attachment_point_info}
+        link = self.attachment_links().first()
+        if link:
+            link.update_active(True)
+            return {link.interfaceA.AS.attachment_point_info}
+        return set()
 
     def _deactivate(self) -> Set['AttachmentPoint']:
         """
-        Deactivate all the links with the attachment points
+        Deactivate all links with the attachment points
         :return: attachment points that shall be updated
         """
         attachment_points = set()
-        for link in map(lambda iface: iface.link(), self.interfaces.all()):
+        for link in self.attachment_links():
             link.update_active(False)
             attachment_points.add(link.interfaceA.AS.attachment_point_info)
         return attachment_points
@@ -375,21 +377,11 @@ class UserAS(AS):
         for ap in attachment_points:
             attachment_points = ap.trigger_deployment()
 
-    def public_addresses(self, active=True):
-        """
-        :active: consider public addresses used only by active connections
-        :return: a list of public addresses used by the `UserAS`
-        """
-        ifaces = self.host.interfaces
-        if active:
-            ifaces = ifaces.filter(link_as_interfaceB__active=True)
-        return [iface.public_ip for iface in ifaces if not UserAS.is_link_over_vpn(iface)]
-
     @property
     def ip_port_labels(self):
-        ifaces = self.host.interfaces.filter(link_as_interfaceB__active=True)
         public_labels, vpn_labels = [], []
-        for iface in ifaces:
+        for link in self.attachment_links().filter(active=True):
+            iface = link.interfaceB
             if UserAS.is_link_over_vpn(iface):
                 vpn_labels.append('VPN:{}'.format(iface.public_port))
             else:
@@ -401,19 +393,41 @@ class UserAS(AS):
         :active: consider attachment points with which the user has an active connection only
         :returns: a list of attachments points to which the user is attached to
         """
-        def _ap_of_iface(iface: Interface) -> AttachmentPoint:
-            return iface.link_as_interfaceB.interfaceA.AS.attachment_point_info
-
-        ifaces = self.host.interfaces
-        # Select related to hit the databes less often
-        query = ifaces.select_related('link_as_interfaceB__interfaceA__AS__attachment_point_info')
+        query = self.attachment_links()
         if active:
-            query = query.filter(link_as_interfaceB__active=True)
-        return [_ap_of_iface(iface) for iface in query]
+            query = query.filter(active=True)
+        query = query.select_related('interfaceA__AS__attachment_point_info').order_by('pk')
+        return [link.interfaceA.AS.attachment_point_info for link in query]
 
     @property
     def attachment_points_labels(self):
         return [ap.AS.label for ap in self.attachment_points()]
+
+    def attachment_links(self, active: bool = True):
+        """
+        :returns: queryset for links to attachment points
+        """
+        return Link.objects.filter(
+            interfaceB__AS=self
+         ).exclude(
+            interfaceA__AS__attachment_point_info=None
+         )
+
+    def fixed_links(self):
+        """
+        :returns: queryset for "fixed" links to non-AP ASes (created through the admin panel)
+        that cannot be modified by the user
+        """
+        return (
+            Link.objects.filter(interfaceB__AS=self, interfaceA__AS__attachment_point_info=None) |
+            Link.objects.filter(interfaceA__AS=self)
+        )
+
+    def isd_fixed(self) -> bool:
+        """
+        :returns: whether the ISD is defined by the fixed links that cannot be modifed by the user.
+        """
+        return self.fixed_links().filter(type=Link.PROVIDER).exists()
 
 
 class AttachmentPoint(models.Model):
