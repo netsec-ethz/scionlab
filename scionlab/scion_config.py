@@ -67,7 +67,7 @@ class ProcessControl(enum.Enum):
     SUPERVISORD = 1
 
 
-def create_gen(host, archive, process_control):
+def create_gen(host, archive, process_control, with_sig_dummy_entry=False):
     """
     Generate the gen/ folder for the :host: in the given archive-writer
     :param host: Host object
@@ -75,7 +75,7 @@ def create_gen(host, archive, process_control):
     :param ProcessControl process_control: configuration generated for installation with
                                            supervisord/systemd
     """
-    generator = _ConfigGenerator(host, archive)
+    generator = _ConfigGenerator(host, archive, with_sig_dummy_entry)
     if process_control == ProcessControl.SUPERVISORD:
         generator.generate_for_supervisord()
     else:
@@ -89,11 +89,11 @@ class _ConfigGenerator:
     This class exists mainly to avoid passing the same information (host, AS, topology information
     and archive writer) to all the helper functions.
     """
-    def __init__(self, host, archive):
+    def __init__(self, host, archive, with_sig_dummy_entry=False):
         self.host = host
         self.archive = archive
         self.AS = host.AS
-        self.topo_info = TopologyInfo(self.AS)
+        self.topo_info = TopologyInfo(self.AS, with_sig_dummy_entry)
 
     def generate_for_systemd(self):
         config_builder = _ConfigBuilder(config_dir=SCION_CONFIG_DIR,

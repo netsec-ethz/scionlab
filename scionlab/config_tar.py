@@ -75,7 +75,7 @@ def _add_files_user_as_dedicated(archive, host, process_control):
     """
 
     _add_config_info(host, archive, with_version=True)
-    scion_config.create_gen(host, archive, process_control)
+    scion_config.create_gen(host, archive, process_control, with_sig_dummy_entry=True)
     _add_vpn_client_configs(host, archive)
     _add_vpn_server_config(host, archive)
     archive.add("README.md", _hostfiles_path("README_dedicated.md"))

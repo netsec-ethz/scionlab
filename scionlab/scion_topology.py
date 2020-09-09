@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from scionlab.models.core import Service, Link
 import ipaddress
+
+from scionlab.defines import SIG_PORT
+from scionlab.models.core import Service, Link
 
 KEY_BR = 'BorderRouters'
 KEY_CS = 'ControlService'
@@ -41,11 +43,11 @@ class TopologyInfo:
 
     """
 
-    def __init__(self, as_):
+    def __init__(self, as_, with_sig_dummy_entry=False):
         self.AS = as_
-        self._make_topo()
+        self._make_topo(with_sig_dummy_entry)
 
-    def _make_topo(self):
+    def _make_topo(self, with_sig_dummy_entry):
         self.routers = _fetch_routers(self.AS)
         self.services = _fetch_services(self.AS)
 
@@ -62,6 +64,9 @@ class TopologyInfo:
 
         _topo_add_routers(self.topo, self.routers, address_type)
         _topo_add_control_services(self.topo, self.services, address_type)
+
+        if with_sig_dummy_entry:
+            _topo_add_sig_dummy_entry(self.topo, self.AS.hosts.first(), address_type)
 
 
 def _fetch_routers(as_):
@@ -183,6 +188,30 @@ def _topo_add_control_services(topo_dict, services, as_address_type):
                 as_address_type: addrs
             }
         }
+
+
+def _topo_add_sig_dummy_entry(topo_dict, host, as_address_type):
+    """
+    Add a "dummy" entry for the SIG in the topology.json, with localhost address and default
+    port.
+    Note that we do not actually include any configuration for the SIG (out of scope).
+    This is added to reduce the number of files that a scionlab user needs to modify when
+    configuring the SIG.
+    Note: this entry allows the border router to resolve SIG service address; this changes the
+    error behaviour slighly when receiving packets addressed to the SIG without the SIG running.
+    """
+    topo_dict["SIG"] = {
+        "sig%s-1" % host.AS.isd_as_path_str(): {  # id is irrelevant, not used for anything
+            "Addrs": {
+                as_address_type: {
+                    "Public": {
+                        "Addr": host.internal_ip,
+                        "L4Port": SIG_PORT,
+                    }
+                }
+            }
+        }
+    }
 
 
 def _get_ip_type_str(ip):
