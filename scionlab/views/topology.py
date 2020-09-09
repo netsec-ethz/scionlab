@@ -132,9 +132,12 @@ def topology_json(request):
     """
 
     def service_metrics_port(service_type, s):
-        if service_type == 'CS': return CS_PROM_PORT
-        if service_type == 'BW': return None  # does not expose
-        if service_type == 'BR': return s.internal_port + BR_PROM_PORT_OFFSET
+        if service_type == 'CS':
+            return CS_PROM_PORT
+        if service_type == 'BW':
+            return None  # does not expose
+        if service_type == 'BR':
+            return s.internal_port + BR_PROM_PORT_OFFSET
 
     def json_service(s):
         service_type = 'BR' if isinstance(s, BorderRouter) else s.type
@@ -146,7 +149,8 @@ def topology_json(request):
 
     def json_as(as_):
         services = as_.services.all()
-        brs = [r for r in as_.border_routers.all() if r.interfaces.active().exists()]  # only non-empty BRs
+        # we want only non-empty BRs
+        brs = [r for r in as_.border_routers.all() if r.interfaces.active().exists()]
         return {
             'as': as_.as_id,
             'label': as_.label,
@@ -158,8 +162,9 @@ def topology_json(request):
         return {
             'isd': isd.isd_id,
             'label':  isd.label,
-            'ases':   [json_as(as_) for as_ in isd.ases.filter(owner=None)],  # infrastructure ASes only
+            # we want only infrastructure ASes
+            'ases':   [json_as(as_) for as_ in isd.ases.filter(owner=None)],
         }
 
-    data = { 'isds': [json_isd(isd) for isd in ISD.objects.iterator()] }
+    data = {'isds': [json_isd(isd) for isd in ISD.objects.iterator()]}
     return JsonResponse(data)
