@@ -18,6 +18,7 @@ from graphviz import Graph
 from textwrap import fill
 
 from scionlab.models.core import ISD, Link, BorderRouter
+from scionlab.defines import BR_PROM_PORT_OFFSET, CS_PROM_PORT
 
 
 @cache_page(1 * 60 * 60)
@@ -123,18 +124,17 @@ def _as_fill_color(as_):
     return 'gray99'
 
 
-@cache_page(1 * 60 * 60)
-@cache_control(public=True, max_age=24 * 60 * 60)
+@cache_page(5)
+@cache_control(public=True, max_age=5)
 def topology_json(request):
     """
     Create JSON with information about infrastructure ASes.
     """
 
     def service_metrics_port(service_type, s):
-        # hardcoded data about this week's defaults for metrics ports
-        if service_type == 'CS': return s.port()+200
+        if service_type == 'CS': return CS_PROM_PORT
         if service_type == 'BW': return None  # does not expose
-        if service_type == 'BR': return s.internal_port+400
+        if service_type == 'BR': return s.internal_port + BR_PROM_PORT_OFFSET
 
     def json_service(s):
         service_type = 'BR' if isinstance(s, BorderRouter) else s.type

@@ -79,9 +79,9 @@ urlpatterns = [
     path('api/v2/host/<slug:uid>/deployed_config_version',
          PostHostDeployedConfigVersion.as_view(),
          name='api_post_deployed_version'),
-    path('api/v2/topology/topology.json',
+    path('api/v2/topology/topology',
          topology_json,
-         name='topology.json'),
+         name='api_topology'),
     # no longer supported versions of the API
     re_path(r'^api/host/', gone)
 ]
