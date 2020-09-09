@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.cache import cache_page, cache_control
 from graphviz import Graph
 from textwrap import fill
 
-from scionlab.models.core import ISD, Link
+from scionlab.models.core import ISD, Link, BorderRouter
+from scionlab.defines import BR_PROM_PORT_OFFSET, CS_PROM_PORT
 
 
 @cache_page(1 * 60 * 60)
@@ -121,3 +122,49 @@ def _as_fill_color(as_):
     if hasattr(as_, 'attachment_point_info'):
         return 'darkseagreen1'
     return 'gray99'
+
+
+@cache_page(5)
+@cache_control(public=True, max_age=5)
+def topology_json(request):
+    """
+    Create JSON with information about infrastructure ASes.
+    """
+
+    def service_metrics_port(service_type, s):
+        if service_type == 'CS':
+            return CS_PROM_PORT
+        if service_type == 'BW':
+            return None  # does not expose
+        if service_type == 'BR':
+            return s.internal_port + BR_PROM_PORT_OFFSET
+
+    def json_service(s):
+        service_type = 'BR' if isinstance(s, BorderRouter) else s.type
+        return {
+            'type': service_type,
+            'metrics_port': service_metrics_port(service_type, s),
+            'ssh_host': s.host.ssh_host,
+        }
+
+    def json_as(as_):
+        services = as_.services.all()
+        # we want only non-empty BRs
+        brs = [r for r in as_.border_routers.all() if r.interfaces.active().exists()]
+        return {
+            'as': as_.as_id,
+            'label': as_.label,
+            'is_core': as_.is_core,
+            'services': [json_service(s) for s in list(services)+list(brs)],
+        }
+
+    def json_isd(isd):
+        return {
+            'isd': isd.isd_id,
+            'label':  isd.label,
+            # we want only infrastructure ASes
+            'ases':   [json_as(as_) for as_ in isd.ases.filter(owner=None)],
+        }
+
+    data = {'isds': [json_isd(isd) for isd in ISD.objects.iterator()]}
+    return JsonResponse(data)
