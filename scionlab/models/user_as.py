@@ -403,7 +403,7 @@ class UserAS(AS):
     def attachment_points_labels(self):
         return [ap.AS.label for ap in self.attachment_points()]
 
-    def attachment_links(self, active: bool = True):
+    def attachment_links(self):
         """
         :returns: queryset for links to attachment points
         """
