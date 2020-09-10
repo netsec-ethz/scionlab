@@ -31,10 +31,9 @@ _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
 def generate_user_as_config_tar(user_as, archive):
     """
-    Create the configuration tar-gz-ball for the given UserAS and write to the given writable
-    file-like object.
+    Write the configuration for the given UserAS to the archive.
 
-    The difference to `generate_host_config` is that additionally, an appropriate README file and
+    The difference to `generate_host_config` is that an appropriate README file and
     optionally the configuration for the VM are included.
 
     :param Host host: the Host for which config should be generated
@@ -44,10 +43,10 @@ def generate_user_as_config_tar(user_as, archive):
     if user_as.installation_type == UserAS.VM:
         _add_files_user_as_vm(archive, host)
     elif user_as.installation_type == UserAS.PKG:
-        _add_files_user_as_dedicated(archive, host, scion_config.ProcessControl.SYSTEMD)
+        _add_files_user_as_pkg(archive, host)
     else:
         assert user_as.installation_type == UserAS.SRC
-        _add_files_user_as_dedicated(archive, host, scion_config.ProcessControl.SUPERVISORD)
+        _add_files_user_as_src(archive, host)
 
 
 def _add_files_user_as_vm(archive, host):
@@ -63,35 +62,55 @@ def _add_files_user_as_vm(archive, host):
     archive.add("README.md", _hostfiles_path("README_vm.md"))
 
 
-def _add_files_user_as_dedicated(archive, host, process_control):
+def _add_files_user_as_pkg(archive, host):
     """
-    The configuration tar for a SRC or PKG user AS contains:
+    The configuration tar for a PKG user AS contains:
     - README
-    - if PKG: scionlab-services.txt file listing the services running in the host
+    - scionlab-services.txt file listing the services running in the host
     - config_info file (scionlab-config.json) inside the gen directory
-    - full gen directory:
-        - if SRC: including supervisord files
+    - full gen directory
     - VPN file client-scionlab-.conf (if using VPN)
     """
+    _add_host_config(host, archive, scion_config.ProcessControl.SYSTEMD)
+    archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
-    _add_config_info(host, archive, with_version=True)
-    scion_config.create_gen(host, archive, process_control)
-    _add_vpn_client_configs(host, archive)
-    _add_vpn_server_config(host, archive)
+
+def _add_files_user_as_src(archive, host):
+    """
+    The configuration tar for a SRC user AS contains:
+    - README
+    - config_info file (scionlab-config.json) inside the gen directory
+    - full gen directory, including supervisord files
+    - VPN file client-scionlab-.conf (if using VPN)
+    """
+    _add_host_config(host, archive, scion_config.ProcessControl.SUPERVISORD)
     archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
 
 def generate_host_config_tar(host, archive):
     """
-    Create the configuration tar-gz-ball for the given host and write to the given writable
-    file-like object.
+    Write the configuration for the given host to the archive.
+
     :param Host host: the Host for which config should be generated
     :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
-    _add_config_info(host, archive, with_version=True)
+    _add_host_config(host, archive, scion_config.ProcessControl.SYSTEMD)
+
+
+def _add_host_config(host, archive, process_control):
+    """
+    Write the configuration for the given host to the archive.
+
+    :param Host host: the Host for which config should be generated
+    :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
+    :param ProcessControl process_control: configuration generated for installation with
+                                           supervisord/systemd
+    """
+    _add_config_info(host, archive)
     _add_vpn_client_configs(host, archive)
     _add_vpn_server_config(host, archive)
-    scion_config.create_gen(host, archive, scion_config.ProcessControl.SYSTEMD)
+    scion_config.create_gen(host, archive, process_control,
+                            with_sig_dummy_entry=hasattr(host.AS, 'useras'))
 
 
 def is_empty_config(host):
@@ -157,12 +176,11 @@ def _expand_vagrantfile_template(host):
     )
 
 
-def _add_config_info(host, archive, with_version):
-    archive.write_json((GEN_PATH, 'scionlab-config.json'),
-                       _generate_config_info_json(host, with_version))
+def _add_config_info(host, archive):
+    archive.write_json((GEN_PATH, 'scionlab-config.json'), _generate_config_info_json(host))
 
 
-def _generate_config_info_json(host, with_version):
+def _generate_config_info_json(host):
     """
     Return a JSON-formatted string; a dict containing the authentication parameters for the host
     and the current configuration version number.
@@ -174,8 +192,7 @@ def _generate_config_info_json(host, with_version):
         'host_secret': host.secret,
         'url': settings.SCIONLAB_SITE
     }
-    if with_version:
-        config_info['version'] = host.config_version
+    config_info['version'] = host.config_version
     return config_info
 
 

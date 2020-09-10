@@ -308,7 +308,19 @@ gen/ISD20/ASffaa_1_4/br20-ffaa_1_4-1/topology.json: |-
     },
     "ISD_AS": "20-ffaa:1:4",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4"
+    "Overlay": "UDP/IPv4",
+    "SIG": {
+      "sig20-ffaa_1_4-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31056
+            }
+          }
+        }
+      }
+    }
   }
 gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/beacon_policy.yaml: |
   Filter:
@@ -525,7 +537,19 @@ gen/ISD20/ASffaa_1_4/cs20-ffaa_1_4-1/topology.json: |-
     },
     "ISD_AS": "20-ffaa:1:4",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4"
+    "Overlay": "UDP/IPv4",
+    "SIG": {
+      "sig20-ffaa_1_4-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31056
+            }
+          }
+        }
+      }
+    }
   }
 gen/ISD20/ASffaa_1_4/endhost/certs/ISD17-V1.trc: |-
   {
@@ -697,7 +721,19 @@ gen/ISD20/ASffaa_1_4/endhost/topology.json: |-
     },
     "ISD_AS": "20-ffaa:1:4",
     "MTU": 1472,
-    "Overlay": "UDP/IPv4"
+    "Overlay": "UDP/IPv4",
+    "SIG": {
+      "sig20-ffaa_1_4-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 31056
+            }
+          }
+        }
+      }
+    }
   }
 gen/dispatcher/disp.toml: |
   [dispatcher]
