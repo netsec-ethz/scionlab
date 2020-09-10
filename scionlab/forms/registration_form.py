@@ -57,4 +57,12 @@ class RegistrationFormWithCaptcha(RegistrationForm):
 
 
 class RegistrationResendForm(Form):
+    # quirk: to access the `send_activation_email` functionality, we need a RegistrationView (design
+    # bug) in which we use this form. The RegistrationView does some magic checking to ensure
+    # that the User model is configured properly, for which it accesses the Meta.
+    # So this Meta just serves to make this check happy and is otherwise useless.
+    class Meta:
+        model = User
+    _meta = Meta()
+
     email = EmailField()
