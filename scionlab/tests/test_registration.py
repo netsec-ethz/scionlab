@@ -18,8 +18,8 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 
+from scionlab.models.user import User
 from scionlab.settings.common import BASE_DIR
-
 from scionlab.fixtures.testuser import (
     TESTUSER_EMAIL,
     TESTUSER_PWD
@@ -33,34 +33,118 @@ class ActivationRequiredTest(TestCase):
     def tearDown(selfself):
         del os.environ['RECAPTCHA_DISABLE']  # Reenable captcha
 
+    def test_render_activation_form(self):
+        response = self.client.get(reverse('registration_form'))
+        self.assertTemplateUsed(
+            response,
+            'django_registration/registration_form.html',
+        )
+
+    def test_render_resend_form(self):
+        response = self.client.get(reverse('registration_resend'))
+        self.assertTemplateUsed(
+            response,
+            'django_registration/registration_resend.html',
+        )
+
+    def test_activation_email(self):
+        self._register()
+        self._check_activation_email_sent()
+
+    def test_resend_activation_email(self):
+        self._register()
+        self._check_activation_email_sent()
+
+        response = self.client.post(
+            reverse('registration_resend'),
+            {
+                'email': TESTUSER_EMAIL,
+            },
+            follow=True
+        )
+        self.assertTemplateUsed(
+            response,
+            'django_registration/registration_confirm.html',
+        )
+
+        self._check_activation_email_sent()
+
     def test_account_not_activated(self):
         """
         Check that an account which has not been activated cannot login
         """
+        self._register()
 
-        login_url = reverse('login')
-
-        response = self.client.get(login_url, follow=True)
-
-        registration_url = reverse('registration_form')
-        response = self.client.get(
-            registration_url,
+        # Attempt log in:
+        response = self.client.post(
+            reverse('login'),
+            {'username': TESTUSER_EMAIL, 'password': TESTUSER_PWD},
             follow=True
         )
 
+        # We should still be on the login page
+        self.assertEqual(len(response.redirect_chain), 0)
+
+    def test_activate_account(self):
+        self._register()
+        activation_link = self._check_activation_email_sent()
+
+        # Use the activation link
+        response = self.client.get(
+            activation_link,
+            follow=True
+        )
+        self.assertTemplateUsed(
+            response,
+            'django_registration/activation_complete.html',
+            "Expected account activation complete template."
+        )
+
+        user = User.objects.filter(email=TESTUSER_EMAIL).first()
+        self.assertIsNotNone(user)
+        self.assertTrue(user.is_active)
+
+        # Attempt log in:
+        response = self.client.post(
+            reverse('login'),
+            {'username': TESTUSER_EMAIL, 'password': TESTUSER_PWD},
+            follow=True
+        )
+        # Check success
+        self.assertTemplateUsed(
+            response,
+            'scionlab/user.html',
+            "Expected user page template."
+        )
+
+    def _register(self):
         # Post registration:
         response = self.client.post(
-            registration_url,
-            {'email': TESTUSER_EMAIL,
-             'first_name': 'Test',
-             'last_name': 'User',
-             'organisation': 'SCIONLab',
-             'password1': TESTUSER_PWD,
-             'password2': TESTUSER_PWD, },
+            reverse('registration_form'),
+            {
+                'email': TESTUSER_EMAIL,
+                'first_name': 'Test',
+                'last_name': 'User',
+                'organisation': 'SCIONLab',
+                'password1': TESTUSER_PWD,
+                'password2': TESTUSER_PWD,
+            },
             follow=True
         )
 
-        # Check the correct activation email is created
+        self.assertTemplateUsed(
+            response,
+            'django_registration/registration_confirm.html',
+        )
+
+        user = User.objects.filter(email=TESTUSER_EMAIL).first()
+        self.assertIsNotNone(user)
+        self.assertFalse(user.is_active)
+
+    def _check_activation_email_sent(self):
+        """
+        Check for activation mail in mail.outbox and return contained activation link.
+        """
         self.assertEqual(len(mail.outbox), 1)
         activation_mail = mail.outbox[0]
         self.assertEqual(activation_mail.recipients(), [TESTUSER_EMAIL])
@@ -70,55 +154,12 @@ class ActivationRequiredTest(TestCase):
             activation_subject = f.read()
         self.assertEqual(activation_mail.subject, activation_subject)
 
-        # Attempt log in:
-        response = self.client.post(
-            login_url,
-            {'username': TESTUSER_EMAIL, 'password': TESTUSER_PWD},
-            follow=True
-        )
+        # Extract the link contained in the email
+        msg = str(activation_mail.message().get_payload())
+        links = re.findall(r'http://testserver(/registration/activate/\S*)', msg, re.MULTILINE)
+        self.assertEqual(len(links), 1)
+        link = links[0]
 
-        # We should still be on the login page
-        self.assertEqual(len(response.redirect_chain), 0)
+        mail.outbox.clear()
 
-        # Now we activate the account by using the link sent by email
-        activation_mail_message = str(activation_mail.message().get_payload())
-        links = re.findall(r'http://testserver(/\S*)', activation_mail_message, re.MULTILINE)
-
-        dummy_activation_key = 'XXX'
-        activation_url = reverse('django_registration_activate',
-                                 kwargs={'activation_key': dummy_activation_key}).split(
-            dummy_activation_key)[0]
-
-        activation_link = ''
-        for link in links:
-            if activation_url in link:
-                activation_link = link
-                break
-
-        self.assertNotEqual(activation_link, '')
-
-        # Use the activation link
-        response = self.client.get(
-            activation_link,
-            follow=True
-        )
-
-        self.assertTemplateUsed(
-            response,
-            'django_registration/activation_complete.html',
-            "Expected account activation complete template."
-        )
-
-        # Attempt log in:
-        response = self.client.post(
-            login_url,
-            {'username': TESTUSER_EMAIL, 'password': TESTUSER_PWD},
-            follow=True
-        )
-
-        # Check success
-        self.assertTemplateUsed(
-            response,
-            'scionlab/user.html',
-            "Expected user page template."
-        )
+        return link

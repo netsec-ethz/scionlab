@@ -43,16 +43,24 @@ class AttachmentConfFormSet(BaseModelFormSet):
         """
         Check the consistency of the ISD
         """
+        instance = self.userASForm.instance
         isd_set = {form.cleaned_data['attachment_point'].AS.isd for form in forms}
-        # Check isd integrity and various ports clash
-        if len(isd_set) > 1:
-            raise ValidationError("All attachment points must belong to the "
-                                  "same ISD")
-        elif len(isd_set) == 1:
-            self.isd = list(isd_set)[0]
-        elif not self.userASForm.instance:
-            # One attachment point must be selected at creation time
-            raise ValidationError("Select at least one attachment point")
+        if instance and instance.isd_fixed():
+            # If ISD is fixed, say which ISD the AS is restricted to
+            isd_set.add(instance.isd)
+            if len(isd_set) > 1:
+                raise ValidationError("All attachment points must belong to %s. "
+                                      "See \"Fixed links\" below." % instance.isd)
+        else:
+            if len(isd_set) > 1:
+                raise ValidationError("All attachment points must belong to the same ISD")
+
+        if not instance:
+            if len(isd_set) == 1:
+                self.isd = isd_set.pop()
+            else:
+                # One attachment point must be selected at creation time
+                raise ValidationError("Select at least one attachment point")
 
     def _check_ip_ports(self, forms):
         """

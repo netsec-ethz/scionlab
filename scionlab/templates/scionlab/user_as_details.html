@@ -10,13 +10,40 @@
         {% csrf_token %}
         {% crispy form %}
 
-        <h4 class="mt-4" >Provider links</h4>
+        <h4 class="mt-4">Provider links</h4>
         {{ form.attachment_conf_form_set.management_form|crispy }}
         {{ form.attachment_conf_form_set|as_crispy_errors }}
         {% for form in form.attachment_conf_form_set %}
           {% crispy form %}
         {% endfor %}
     </form>
+
+    {% if object.fixed_links %}
+      <h4 class="mt-4">Fixed links<sup style="font-size: small" class="fa fa-info-circle" title="These links were created by the SCIONLab admins. Please reach out to us if you believe this was in error or if you require modifications."/></h4>
+
+      <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">Type</th>
+          <th scope="col">AS A</th>
+          <th scope="col">IP/Port A</th>
+          <th scope="col">AS B</th>
+          <th scope="col">IP/Port B</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in object.fixed_links %}
+        <tr>
+          <td>{{ l.type }}<sup style="font-size: small" class="fa fa-info-circle" title="{{ l.get_type_display }}"/></td>
+          <td>{{ l.interfaceA.AS }}</td>
+          <td>{{ l.interfaceA.get_public_ip }}:{{l.interfaceA.public_port}}</td>
+          <td>{{ l.interfaceB.AS }}</td>
+          <td>{{ l.interfaceB.get_public_ip }}:{{l.interfaceB.public_port}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      </table>
+    {% endif %}
 
     <hr>
     <button type="submit" class="btn btn-primary savebtn mt-2" form="id_user_as_form">Save Changes</button>
