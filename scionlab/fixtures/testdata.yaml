@@ -3032,18 +3032,22 @@
   fields:
     AS: 4
     vpn: 1
+    updated_at: 2020-08-01 00:00
 - model: scionlab.attachmentpoint
   pk: 2
   fields:
     AS: 7
     vpn: null
+    updated_at: 2020-08-01 00:00
 - model: scionlab.attachmentpoint
   pk: 3
   fields:
     AS: 13
     vpn: 2
+    updated_at: 2020-08-01 00:00
 - model: scionlab.attachmentpoint
   pk: 4
   fields:
     AS: 14
     vpn: 3
+    updated_at: 2020-08-01 00:00
