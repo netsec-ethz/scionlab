@@ -391,9 +391,9 @@ class UserAS(AS):
 
     @property
     def ip_port_labels(self):
-        ifaces = self.host.interfaces.filter(link_as_interfaceB__active=True)
         public_labels, vpn_labels = [], []
-        for iface in ifaces:
+        for link in self.attachment_links().filter(active=True):
+            iface = link.interfaceB
             if UserAS.is_link_over_vpn(iface):
                 vpn_labels.append('VPN:{}'.format(iface.public_port))
             else:
@@ -405,15 +405,12 @@ class UserAS(AS):
         :active: consider attachment points with which the user has an active connection only
         :returns: a list of attachments points to which the user is attached to
         """
-        def _ap_of_iface(iface: Interface) -> AttachmentPoint:
-            return iface.link_as_interfaceB.interfaceA.AS.attachment_point_info
-
-        ifaces = self.host.interfaces
-        # Select related to hit the databes less often
-        query = ifaces.select_related('link_as_interfaceB__interfaceA__AS__attachment_point_info')
+        query = self.attachment_links()
         if active:
-            query = query.filter(link_as_interfaceB__active=True)
-        return [_ap_of_iface(iface) for iface in query]
+            query = query.filter(active=True)
+        query = query.select_related('interfaceA__AS__attachment_point_info').order_by('pk')
+        return [link.interfaceA.AS.attachment_point_info for link in query]
+
 
     @property
     def attachment_points_labels(self):
