@@ -339,8 +339,8 @@ class UserAS(AS):
         """
         Does the user have any active `Interface`?
         """
-        return any(self.interfaces
-                       .values_list('link_as_interfaceB__active', flat=True)
+        return any(self.attachment_links()
+                       .values_list('active', flat=True)
                        .all())
 
     def _activate(self) -> Set['AttachmentPoint']:
@@ -348,9 +348,12 @@ class UserAS(AS):
         Activate the first attachment point
         :return: attachment points that shall be updated
         """
-        link = self.host.interfaces.first().link_as_interfaceB
-        link.update_active(True)
-        return {link.interfaceA.AS.attachment_point_info}
+        link = self.attachment_links().first()
+        if link:
+            link.update_active(True)
+            return {link.interfaceA.AS.attachment_point_info}
+        return set()
+
 
     def _deactivate(self) -> Set['AttachmentPoint']:
         """
@@ -358,7 +361,7 @@ class UserAS(AS):
         :return: attachment points that shall be updated
         """
         attachment_points = set()
-        for link in map(lambda iface: iface.link(), self.interfaces.all()):
+        for link in self.attachment_links():
             link.update_active(False)
             attachment_points.add(link.interfaceA.AS.attachment_point_info)
         return attachment_points
