@@ -16,6 +16,20 @@ $(document).ready(function() {
   $(".savebtn ").click(function(){
     window.onbeforeunload = null;
   });
+  if($('#id_user-as-become_user_ap').prop('checked')) {
+    $('#div_id_user-as-public_ip').show();
+    $('#div_id_user-as-provide_vpn').show();
+    // something when checked
+  } else {
+  $('#div_id_user-as-public_ip').hide();
+  $('#div_id_user-as-provide_vpn').hide();
+    // something else when not
+  }  
+  $('#id_user-as-become_user_ap' ).on('click', function(){
+    $('#div_id_user-as-public_ip').toggle();
+    $('#div_id_user-as-provide_vpn').toggle();
+    
+  });
 
   function enable_savebtn() {
     $(".savebtn").removeAttr('disabled');
@@ -115,9 +129,9 @@ function update_use_vpn_enable(sel) {
 function update_ip_fields_show(toggle) {
   // Traverse the DOM to get the container of this attachment point
   let attachment = toggle.closest('.attachment');
-  let public_ip_container = attachment.find("input[id*='public_ip']").closest('.hidable')
-  let bind_ip_container = attachment.find("input[id*='bind_ip']").closest('.hidable')
-  let bind_port_container = attachment.find("input[id*='bind_port']").closest('.hidable')
+  let public_ip_container = attachment.find("input[id*='public_ip']").closest('.formColumn')
+  let bind_ip_container = attachment.find("input[id*='bind_ip']").closest('.formColumn')
+  let bind_port_container = attachment.find("input[id*='bind_port']").closest('.formColumn')
   let bind_options_collapser = attachment.find('.bind-row-collapser')
   if(toggle.prop("checked")) {
     public_ip_container.hide();

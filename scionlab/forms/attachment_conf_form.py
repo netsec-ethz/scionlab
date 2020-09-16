@@ -267,6 +267,8 @@ class AttachmentConfForm(forms.ModelForm):
         help_text="Activate or deactivate this connection without deleting it"
     )
     attachment_point = forms.ModelChoiceField(queryset=AttachmentPoint.objects)
+    #will be filtered with this     
+    #attachment_point = forms.ModelChoiceField(queryset=AttachmentPoint.is_active_ap.all())
 
     class Meta:
         model = Link

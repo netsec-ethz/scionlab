@@ -23,6 +23,7 @@ from django.views.generic.detail import SingleObjectMixin
 from scionlab import config_tar
 from scionlab.util.http import HttpResponseAttachment
 from scionlab.models.user_as import UserAS, AttachmentPoint
+from scionlab.models.core import Host
 from scionlab.forms.user_as_form import UserASForm
 from scionlab.util.archive import TarWriter
 
@@ -60,6 +61,18 @@ class UserASCreateView(_AttachmentPointsContextData, CreateView):
             return HttpResponseForbidden()
 
         return super(UserASCreateView, self).post(request, *args, **kwargs)
+
+# if User clicks checkbox the objects are created
+    def form_valid(self, form):
+        self.object = form.save()
+        data = form.cleaned_data
+        wants_user_ap = data['become_user_ap']
+        if wants_user_ap:
+            AttachmentPoint.objects.create(AS = self.object)
+            host = self.object.hosts.first()
+            host.public_ip=data['public_ip']
+            host.save()
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse('user_as_detail', kwargs={'pk': self.object.pk})
