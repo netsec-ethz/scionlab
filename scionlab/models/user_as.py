@@ -16,7 +16,7 @@
 :mod:`scionlab.models.user_as` --- Django models for User ASes and Attachment Points
 ====================================================================================
 """
-
+import datetime
 import ipaddress
 from typing import List, Set
 
@@ -25,6 +25,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils.html import format_html
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 import scionlab.tasks
 from scionlab.models.core import (
@@ -338,8 +339,8 @@ class UserAS(AS):
         """
         Does the user have any active `Interface`?
         """
-        return any(self.attachment_links()
-                       .values_list('active', flat=True)
+        return any(self.interfaces
+                       .values_list('link_as_interfaceB__active', flat=True)
                        .all())
 
     def _activate(self) -> Set['AttachmentPoint']:
@@ -347,19 +348,17 @@ class UserAS(AS):
         Activate the first attachment point
         :return: attachment points that shall be updated
         """
-        link = self.attachment_links().first()
-        if link:
-            link.update_active(True)
-            return {link.interfaceA.AS.attachment_point_info}
-        return set()
+        link = self.host.interfaces.first().link_as_interfaceB
+        link.update_active(True)
+        return {link.interfaceA.AS.attachment_point_info}
 
     def _deactivate(self) -> Set['AttachmentPoint']:
         """
-        Deactivate all links with the attachment points
+        Deactivate all the links with the attachment points
         :return: attachment points that shall be updated
         """
         attachment_points = set()
-        for link in self.attachment_links():
+        for link in map(lambda iface: iface.link(), self.interfaces.all()):
             link.update_active(False)
             attachment_points.add(link.interfaceA.AS.attachment_point_info)
         return attachment_points
@@ -377,11 +376,21 @@ class UserAS(AS):
         for ap in attachment_points:
             attachment_points = ap.trigger_deployment()
 
+    def public_addresses(self, active=True):
+        """
+        :active: consider public addresses used only by active connections
+        :return: a list of public addresses used by the `UserAS`
+        """
+        ifaces = self.host.interfaces
+        if active:
+            ifaces = ifaces.filter(link_as_interfaceB__active=True)
+        return [iface.public_ip for iface in ifaces if not UserAS.is_link_over_vpn(iface)]
+
     @property
     def ip_port_labels(self):
+        ifaces = self.host.interfaces.filter(link_as_interfaceB__active=True)
         public_labels, vpn_labels = [], []
-        for link in self.attachment_links().filter(active=True):
-            iface = link.interfaceB
+        for iface in ifaces:
             if UserAS.is_link_over_vpn(iface):
                 vpn_labels.append('VPN:{}'.format(iface.public_port))
             else:
@@ -393,42 +402,25 @@ class UserAS(AS):
         :active: consider attachment points with which the user has an active connection only
         :returns: a list of attachments points to which the user is attached to
         """
-        query = self.attachment_links()
+        def _ap_of_iface(iface: Interface) -> AttachmentPoint:
+            return iface.link_as_interfaceB.interfaceA.AS.attachment_point_info
+
+        ifaces = self.host.interfaces
+        # Select related to hit the databes less often
+        query = ifaces.select_related('link_as_interfaceB__interfaceA__AS__attachment_point_info')
         if active:
-            query = query.filter(active=True)
-        query = query.select_related('interfaceA__AS__attachment_point_info').order_by('pk')
-        return [link.interfaceA.AS.attachment_point_info for link in query]
+            query = query.filter(link_as_interfaceB__active=True)
+        return [_ap_of_iface(iface) for iface in query]
 
     @property
     def attachment_points_labels(self):
         return [ap.AS.label for ap in self.attachment_points()]
 
-    def attachment_links(self):
-        """
-        :returns: queryset for links to attachment points
-        """
-        return Link.objects.filter(
-            interfaceB__AS=self
-         ).exclude(
-            interfaceA__AS__attachment_point_info=None
-         )
+class AttachmentPointManager(models.Manager):
 
-    def fixed_links(self):
-        """
-        :returns: queryset for "fixed" links to non-AP ASes (created through the admin panel)
-        that cannot be modified by the user
-        """
-        return (
-            Link.objects.filter(interfaceB__AS=self, interfaceA__AS__attachment_point_info=None) |
-            Link.objects.filter(interfaceA__AS=self)
-        )
-
-    def isd_fixed(self) -> bool:
-        """
-        :returns: whether the ISD is defined by the fixed links that cannot be modifed by the user.
-        """
-        return self.fixed_links().filter(type=Link.PROVIDER).exists()
-
+    def get_queryset(self):
+        threshold = timezone.now() - datetime.timedelta(minutes=1)
+        return super(AttachmentPointManager, self).get_queryset().filter(updated_at__range=(threshold, timezone.now() ) ) 
 
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
@@ -443,8 +435,14 @@ class AttachmentPoint(models.Model):
         related_name='+',
         on_delete=models.SET_NULL
     )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = models.Manager()
+    is_active_ap = AttachmentPointManager()
 
     def __str__(self):
+        if self.AS.owner != None:
+            return 'User AP: %s' %(str(self.AS))
         return str(self.AS)
 
     def get_border_router_for_useras_interface(self) -> BorderRouter:
@@ -474,8 +472,8 @@ class AttachmentPoint(models.Model):
         The deployment is rate limited, max rate controlled by
         settings.DEPLOYMENT_PERIOD.
         """
-        for host in self.AS.hosts.iterator():
-            transaction.on_commit(lambda: scionlab.tasks.deploy_host_config(host))
+        #for host in self.AS.hosts.iterator():
+        #   transaction.on_commit(lambda: scionlab.tasks.deploy_host_config(host))
 
     def supported_ip_versions(self) -> Set[int]:
         """
