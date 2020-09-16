@@ -66,23 +66,26 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.WARNING)
 def main(argv):
     sys.tracebacklimit = -1
     args = parse_command_line_args(argv)
-
     if os.geteuid() != 0:
         _error_exit("The script must be run as root")
-    if not args.tar:
-        config_info = get_config_info(args)
-        config = fetch_config(config_info)
-        if config is _CONFIG_EMPTY:
-            stop_scion()
-        elif config is _CONFIG_UNCHANGED:
-            logging.info('Configuration unchanged (version %s). Nothing to do.',
-                         config_info.version)
+    while True:
+        if not args.tar:
+            config_info = get_config_info(args)
+            config = fetch_config(config_info)
+            if config is _CONFIG_EMPTY:
+                stop_scion()
+            elif config is _CONFIG_UNCHANGED:
+                logging.info('Configuration unchanged (version %s). Nothing to do.',
+                             config_info.version)
+            else:
+                install_config(config)
+                confirm_deployed(args)
         else:
-            install_config(config)
-            confirm_deployed(args)
-    else:
-        tar = tarfile.open(args.tar, mode='r')
-        install_config(tar)
+            tar = tarfile.open(args.tar, mode='r')
+            install_config(tar)
+        if not args.daemon:
+            break
+        time.sleep(20)
 
 
 def parse_command_line_args(argv):
@@ -105,6 +108,8 @@ def parse_command_line_args(argv):
     parser.add_argument('--tar')
 
     parser.add_argument('--version', action='version', version='%(prog)s 2.0, api/v2, March 2020')
+    
+    parser.add_argument('--daemon', action='store_true')
 
     return parser.parse_args(argv[1:])
 
