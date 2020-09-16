@@ -415,6 +415,32 @@ class UserAS(AS):
     @property
     def attachment_points_labels(self):
         return [ap.AS.label for ap in self.attachment_points()]
+        
+    def attachment_links(self):
+        """
+        :returns: queryset for links to attachment points
+        """
+        return Link.objects.filter(
+            interfaceB__AS=self
+         ).exclude(
+            interfaceA__AS__attachment_point_info=None
+         )
+
+    def fixed_links(self):
+        """
+        :returns: queryset for "fixed" links to non-AP ASes (created through the admin panel)
+        that cannot be modified by the user
+        """
+        return (
+            Link.objects.filter(interfaceB__AS=self, interfaceA__AS__attachment_point_info=None) |
+            Link.objects.filter(interfaceA__AS=self)
+        )
+
+    def isd_fixed(self) -> bool:
+        """
+        :returns: whether the ISD is defined by the fixed links that cannot be modifed by the user.
+        """
+        return self.fixed_links().filter(type=Link.PROVIDER).exists()
 
 class AttachmentPointManager(models.Manager):
 
