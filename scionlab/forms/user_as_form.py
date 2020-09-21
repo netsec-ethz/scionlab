@@ -43,7 +43,6 @@ def _crispy_helper(instance):
                 Column('public_ip', css_class='col-md-5'),
                 Column('provide_vpn', css_class='col-md-5'),
                 ),
-            #template='scionlab/partials/become_ap_collapsetwo.html'
         ),
         
     )
@@ -141,7 +140,7 @@ class UserASForm(forms.Form):
         if self.instance is None:
             self.user.check_as_quota()
 
-        if cleaned_data['become_user_ap'] and not cleaned_data['public_ip']:
+        if cleaned_data['become_user_ap'] and not cleaned_data.get('public_ip'):
             self.add_error(
                 'public_ip',
                 ValidationError("Please enter a public IP address to become User AP")
