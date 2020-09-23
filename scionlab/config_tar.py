@@ -25,6 +25,7 @@ from scionlab.openvpn_config import (
     generate_vpn_server_config,
     ccd_config,
 )
+from scionlab.util.archive import HashedArchiveWriter
 
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
@@ -106,11 +107,12 @@ def _add_host_config(host, archive, process_control):
     :param ProcessControl process_control: configuration generated for installation with
                                            supervisord/systemd
     """
-    _add_config_info(host, archive)
-    _add_vpn_client_configs(host, archive)
-    _add_vpn_server_config(host, archive)
-    scion_config.create_gen(host, archive, process_control,
+    hashed = HashedArchiveWriter(archive)
+    _add_vpn_client_configs(host, hashed)
+    _add_vpn_server_config(host, hashed)
+    scion_config.create_gen(host, hashed, process_control,
                             with_sig_dummy_entry=hasattr(host.AS, 'useras'))
+    _add_config_info(host, hashed.hashes, archive)
 
 
 def is_empty_config(host):
@@ -176,23 +178,26 @@ def _expand_vagrantfile_template(host):
     )
 
 
-def _add_config_info(host, archive):
-    archive.write_json((GEN_PATH, 'scionlab-config.json'), _generate_config_info_json(host))
+def _add_config_info(host, hashes, archive):
+    archive.write_json((GEN_PATH, 'scionlab-config.json'),
+                       _generate_config_info_json(host, hashes))
 
 
-def _generate_config_info_json(host):
+def _generate_config_info_json(host, hashes):
     """
-    Return a JSON-formatted string; a dict containing the authentication parameters for the host
+    Return a dict containing the authentication parameters for the host
     and the current configuration version number.
     :param Host host:
-    :returns: json string
+    :param hashes: dict filename -> hash
+    :returns: dict
     """
     config_info = {
         'host_id': host.uid,
         'host_secret': host.secret,
-        'url': settings.SCIONLAB_SITE
+        'url': settings.SCIONLAB_SITE,
+        'version': host.config_version,
+        'files': hashes,
     }
-    config_info['version'] = host.config_version
     return config_info
 
 
