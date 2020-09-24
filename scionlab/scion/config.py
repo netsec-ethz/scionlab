@@ -156,7 +156,6 @@ class _ConfigGeneratorBase:
                 if s.type in Service.CONTROL_SERVICE_TYPES and s.host == self.host)
 
     def _extra_services(self):
-        # XXX(matzf) drop this!
         return (s for s in self.topo_info.services
                 if s.type in Service.EXTRA_SERVICE_TYPES and s.host == self.host)
 
@@ -178,7 +177,10 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
                  for router in self._routers()]
         units += ["%s@%s.service" % (SERVICES_TO_SYSTEMD_NAMES[service.type], service.instance_name)
                   for service in self._control_services()]
-        units.append('scion-daemon.service')
+        # XXX(matzf) drop this!
+        units += ["%s.service" % SERVICES_TO_SYSTEMD_NAMES[service.type]
+                  for service in self._extra_services()]
+        units.append('scion-daemon@sd.service')
         units.append('scion-dispatcher.service')
         return units
 

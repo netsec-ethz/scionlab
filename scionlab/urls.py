@@ -16,6 +16,7 @@ from django.views.generic.base import TemplateView
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path, re_path
+from django.views.generic.base import RedirectView
 
 from scionlab.views.user_as_views import (
     UserASesView,
@@ -73,15 +74,18 @@ urlpatterns = [
     path('topology.png', topology_png, name='topology.png'),
 
     # API:
-    path('api/v2/host/<slug:uid>/config',
+    path('api/v3/host/<slug:uid>/config',
          GetHostConfig.as_view(),
          name='api_get_config'),
-    path('api/v2/host/<slug:uid>/deployed_config_version',
+    path('api/v3/host/<slug:uid>/deployed_config_version',
          PostHostDeployedConfigVersion.as_view(),
          name='api_post_deployed_version'),
-    path('api/v2/topology/topology',
+    path('api/v3/topology/topology',
          topology_json,
          name='api_topology'),
     # no longer supported versions of the API
-    re_path(r'^api/host/', gone)
+    re_path(r'^api/host/', gone),
+    re_path(r'^api/v2/host/', gone),
+    path('api/v2/topology/topology',
+         RedirectView.as_view(url='/api/v3/topology/topology', permanent=True)),
 ]

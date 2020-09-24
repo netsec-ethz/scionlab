@@ -192,7 +192,7 @@ jobs:
           command: |
             set -x
 
-            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
+            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
 
             # Start the huey worker
             docker-compose up -d huey
@@ -207,7 +207,7 @@ jobs:
 
             # Check that
             # i) configuration was deployed
-            new_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
+            new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
             [ "$prev_version" -lt "$new_version" ]
             # ii) connection still works
             docker-compose exec -T as1303 /bin/bash -c \
@@ -221,7 +221,7 @@ jobs:
 
             # Show current TRC
             TRC_version=1
-            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/ASffaa_0_1301/endhost/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/certs/ISD19-V${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
             docker-compose exec -T coord /bin/bash -c \
@@ -236,12 +236,12 @@ jobs:
             TRC_version=$((TRC_version + 1))
             docker-compose exec -T as1301 /bin/bash -c \
              "mkdir -p /tmp/pki/ISD19/trcs/;
-              cp /etc/scion/gen/ISD19/ASffaa_0_1301/endhost/certs/ISD19*.trc /tmp/pki/ISD19/trcs/;
+              cp /etc/scion/certs/ISD19*.trc /tmp/pki/ISD19/trcs/;
               scion-pki trcs human /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc;
               scion-pki trcs verify -d /tmp/pki/ /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc"
 
-            docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1303/endhost/certs/ISD19-V${TRC_version}.trc"
-            docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1305/endhost/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1303 stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1305 stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
 
             # Check that infra still works
             sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
@@ -416,17 +416,17 @@ jobs:
             docker cp ./setup/check_tun0_in_topo.py $(docker-compose ps -q as1405):/home/scionlab/
             docker-compose exec -T as1405 /bin/bash -c \
               "apt-get install -y jq > /dev/null 2>&1; "\
-              "jq .BorderRouters[].Interfaces /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json; "\
+              "jq .BorderRouters[].Interfaces /etc/scion/topology.json; "\
               "ip address show tun0; "\
-              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json"
+              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/topology.json"
             # Check configuration on client
             echo "Client AS4 new VPN configuration"
             docker cp ./setup/check_tun0_in_topo.py $(docker-compose ps -q useras4):/home/scionlab/
             docker-compose exec -T useras4 /bin/bash -c \
               "apt-get install -y jq > /dev/null 2>&1; "\
-              "jq .BorderRouters[].Interfaces /etc/scion/gen/ISD20/ASffaa_1_4/endhost/topology.json; "\
+              "jq .BorderRouters[].Interfaces /etc/scion/topology.json; "\
               "ip address show tun0; "\
-              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/gen/ISD20/ASffaa_1_4/endhost/topology.json"
+              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/topology.json"
 
       - run:
           name: NEW -- Check CA and server VPN certificates on server and client

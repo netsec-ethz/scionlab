@@ -22,7 +22,7 @@ from scionlab.config_tar import generate_host_config_tar, generate_user_as_confi
 from scionlab.fixtures.testuser import get_testuser_exbert
 from scionlab.models.core import Service
 from scionlab.models.user_as import UserAS
-from scionlab.util.archive import DictWriter, FileArchiveWriter
+from scionlab.util.archive import DictWriter
 
 
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -62,6 +62,7 @@ class ConfigTarRegressionTests(TestCase):
         user_as = UserAS.objects.filter(owner=get_testuser_exbert()).order_by('pk')[user_as_id]
         archive = DictWriter()
         generate_user_as_config_tar(user_as, archive)
+        self._check_archive('user_as_%i' % user_as.id, archive)
 
     def _check_archive(self, test_id, archive):
 

@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import enum
 import os
 import pathlib
 import string
 
 from django.conf import settings
+from scionlab.defines import OPENVPN_CONFIG_DIR
 from scionlab.scion.config import generate_scion_config_systemd, generate_scion_config_supervisord
 from scionlab.models.user_as import UserAS
 from scionlab.openvpn_config import (
@@ -95,11 +95,11 @@ def generate_host_config_tar(host, archive):
     :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
     hashed_archive = HashedArchiveWriter(archive)
-    _add_vpn_client_configs(host, hashed_archive)
-    _add_vpn_server_config(host, hashed_archive)
     units = generate_scion_config_systemd(host,
                                           hashed_archive,
                                           with_sig_dummy_entry=hasattr(host.AS, 'useras'))
+    _add_vpn_client_configs(host, hashed_archive)  # note: not adding these to the file list
+    _add_vpn_server_config(host, hashed_archive)
     _add_config_info(host, hashed_archive.hashes, units, archive)
 
 
@@ -114,6 +114,7 @@ def _add_vpn_client_configs(host, archive):
     """
     Generate the VPN config files and add them to the tar.
     """
+    vpn_dir = OPENVPN_CONFIG_DIR.lstrip("/")
     # Each host can run at most one VPN-Client per VPN
     clients = host.vpn_clients.filter(active=True).select_related('vpn__server__AS').all()
     configs = dict()
@@ -122,17 +123,18 @@ def _add_vpn_client_configs(host, archive):
         configs[name] = generate_vpn_client_config(client)
 
     for name, config in configs.items():
-        archive.write_text("client-scionlab-{}.conf".format(name), config)
+        archive.write_text(vpn_dir + "/client-scionlab-{}.conf".format(name), config)
 
 
 def _add_vpn_server_config(host, archive):
+    vpn_dir = OPENVPN_CONFIG_DIR.lstrip("/")
     server = host.vpn_servers.first()  # only one server per host supported for now
     if server:
-        archive.write_text("server.conf", generate_vpn_server_config(server))
-        archive.add_dir("ccd")
+        archive.write_text(vpn_dir + "/server.conf", generate_vpn_server_config(server))
+        archive.add_dir(vpn_dir + "/ccd")
         for client in server.clients.iterator():
             common_name, config_string = ccd_config(client)
-            archive.write_text("ccd/" + common_name, config_string)
+            archive.write_text(vpn_dir + "/ccd/" + common_name, config_string)
 
 
 def _add_vagrantfiles(host, archive):
