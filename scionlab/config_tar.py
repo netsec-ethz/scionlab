@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import enum
 import os
-import string
 import pathlib
+import string
 
 from django.conf import settings
-from scionlab import scion_config
-from scionlab.defines import GEN_PATH
+from scionlab.scion.config import generate_scion_config_systemd, generate_scion_config_supervisord
 from scionlab.models.user_as import UserAS
 from scionlab.openvpn_config import (
     generate_vpn_client_config,
@@ -67,12 +67,11 @@ def _add_files_user_as_pkg(archive, host):
     """
     The configuration tar for a PKG user AS contains:
     - README
-    - scionlab-services.txt file listing the services running in the host
-    - config_info file (scionlab-config.json) inside the gen directory
-    - full gen directory
-    - VPN file client-scionlab-.conf (if using VPN)
+    - scionlab-config.json metadata file
+    - scion config /etc/scion/*
+    - VPN config /etc/openvpn/client-scionlab-*.conf (if using VPN)
     """
-    _add_host_config(host, archive, scion_config.ProcessControl.SYSTEMD)
+    generate_host_config_tar(host, archive)
     archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
 
@@ -80,11 +79,11 @@ def _add_files_user_as_src(archive, host):
     """
     The configuration tar for a SRC user AS contains:
     - README
-    - config_info file (scionlab-config.json) inside the gen directory
     - full gen directory, including supervisord files
-    - VPN file client-scionlab-.conf (if using VPN)
+    - VPN config /etc/openvpn/client-scionlab-*.conf (if using VPN)
     """
-    _add_host_config(host, archive, scion_config.ProcessControl.SUPERVISORD)
+    _add_vpn_client_configs(host, archive)
+    generate_scion_config_supervisord(host, archive, with_sig_dummy_entry=True)
     archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
 
@@ -95,24 +94,13 @@ def generate_host_config_tar(host, archive):
     :param Host host: the Host for which config should be generated
     :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
-    _add_host_config(host, archive, scion_config.ProcessControl.SYSTEMD)
-
-
-def _add_host_config(host, archive, process_control):
-    """
-    Write the configuration for the given host to the archive.
-
-    :param Host host: the Host for which config should be generated
-    :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
-    :param ProcessControl process_control: configuration generated for installation with
-                                           supervisord/systemd
-    """
-    hashed = HashedArchiveWriter(archive)
-    _add_vpn_client_configs(host, hashed)
-    _add_vpn_server_config(host, hashed)
-    scion_config.create_gen(host, hashed, process_control,
-                            with_sig_dummy_entry=hasattr(host.AS, 'useras'))
-    _add_config_info(host, hashed.hashes, archive)
+    hashed_archive = HashedArchiveWriter(archive)
+    _add_vpn_client_configs(host, hashed_archive)
+    _add_vpn_server_config(host, hashed_archive)
+    units = generate_scion_config_systemd(host,
+                                          hashed_archive,
+                                          with_sig_dummy_entry=hasattr(host.AS, 'useras'))
+    _add_config_info(host, hashed_archive.hashes, units, archive)
 
 
 def is_empty_config(host):
@@ -178,17 +166,18 @@ def _expand_vagrantfile_template(host):
     )
 
 
-def _add_config_info(host, hashes, archive):
-    archive.write_json((GEN_PATH, 'scionlab-config.json'),
-                       _generate_config_info_json(host, hashes))
+def _add_config_info(host, hashes, systemd_units, archive):
+    archive.write_json('scionlab-config.json',
+                       _generate_config_info_json(host, hashes, systemd_units))
 
 
-def _generate_config_info_json(host, hashes):
+def _generate_config_info_json(host, hashes, systemd_units):
     """
     Return a dict containing the authentication parameters for the host
     and the current configuration version number.
     :param Host host:
     :param hashes: dict filename -> hash
+    :param List[str] systemd_units:
     :returns: dict
     """
     config_info = {
@@ -197,6 +186,7 @@ def _generate_config_info_json(host, hashes):
         'url': settings.SCIONLAB_SITE,
         'version': host.config_version,
         'files': hashes,
+        'systemd_units': systemd_units,
     }
     return config_info
 
