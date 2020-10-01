@@ -12,11 +12,8 @@ gen/ASffaa_1_5/br-1.toml: |
   [metrics]
   prometheus = "127.0.0.1:30442"
 
-  [log.file]
+  [log.console]
   level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "logs/br-1.log"
 gen/ASffaa_1_5/certs/ISD17-ASffaa_1_5-V1.crt: |-
   [
     {
@@ -110,7 +107,6 @@ gen/ASffaa_1_5/certs/ISD20-V1.trc: |-
   }
 gen/ASffaa_1_5/cs-1.toml: |
   [beacon_db]
-  backend = "sqlite"
   connection = "gen-cache/cs-1.beacon.db"
 
   [beaconing]
@@ -128,7 +124,6 @@ gen/ASffaa_1_5/cs-1.toml: |
   prometheus = "127.0.0.1:30454"
 
   [path_db]
-  backend = "sqlite"
   connection = "gen-cache/cs-1.path.db"
 
   [quic]
@@ -138,17 +133,13 @@ gen/ASffaa_1_5/cs-1.toml: |
   resolution_fraction = 0.4
 
   [trust_db]
-  backend = "sqlite"
   connection = "gen-cache/cs-1.trust.db"
 
   [beaconing.policies]
-  Propagation = "gen/ASffaa_1_5/beacon_policy.yaml"
+  propagation = "gen/ASffaa_1_5/beacon_policy.yaml"
 
-  [log.file]
+  [log.console]
   level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "logs/cs-1.log"
 gen/ASffaa_1_5/keys/as-decrypt-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: curve25519xsalsa20poly1305
@@ -185,86 +176,47 @@ gen/ASffaa_1_5/sd.toml: |
   prometheus = "127.0.0.1:30455"
 
   [path_db]
-  backend = "sqlite"
   connection = "gen-cache/sd.path.db"
 
   [sd]
   address = "127.0.0.1:30255"
 
   [trust_db]
-  backend = "sqlite"
   connection = "gen-cache/sd.trust.db"
 
-  [log.file]
+  [log.console]
   level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "logs/sd.log"
 gen/ASffaa_1_5/topology.json: |-
   {
-    "Attributes": [],
-    "BorderRouters": {
+    "attributes": [],
+    "border_routers": {
       "br-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30242
-            }
-          }
-        },
-        "Interfaces": {
+        "ctrl_addr": "127.0.0.1:30242",
+        "interfaces": {
           "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1107",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
+            "bandwidth": 1000,
+            "isd_as": "17-ffaa:0:1107",
+            "link_to": "PARENT",
+            "mtu": 1472,
+            "underlay": {
+              "public": "172.31.0.200:54321",
+              "remote": "192.0.2.17:50001"
             }
           }
         },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30042
-            }
-          }
-        }
+        "internal_addr": "127.0.0.1:30042"
       }
     },
-    "ControlService": {
+    "control_service": {
       "cs-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30254
-            }
-          }
-        }
+        "addr": "127.0.0.1:30254"
       }
     },
-    "ISD_AS": "17-ffaa:1:5",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "SIG": {
+    "isd_as": "17-ffaa:1:5",
+    "mtu": 1472,
+    "sigs": {
       "sig-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31056
-            }
-          }
-        }
+        "addr": "127.0.0.1:31056"
       }
     }
   }
@@ -276,11 +228,8 @@ gen/dispatcher/disp.toml: |
   [metrics]
   prometheus = "127.0.0.1:30441"
 
-  [log.file]
+  [log.console]
   level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "logs/dispatcher.log"
 gen/supervisord.conf: |+
   [program:br-1]
   autostart = false
@@ -291,7 +240,7 @@ gen/supervisord.conf: |+
   startretries = 0
   startsecs = 5
   priority = 100
-  command = bin/border -config gen/ASffaa_1_5/br-1.toml
+  command = bin/border --config gen/ASffaa_1_5/br-1.toml
 
   [program:cs-1]
   autostart = false
@@ -302,7 +251,7 @@ gen/supervisord.conf: |+
   startretries = 0
   startsecs = 5
   priority = 100
-  command = bin/cs -config gen/ASffaa_1_5/cs-1.toml
+  command = bin/cs --config gen/ASffaa_1_5/cs-1.toml
 
   [program:sd]
   autostart = false
@@ -313,7 +262,7 @@ gen/supervisord.conf: |+
   startretries = 0
   startsecs = 5
   priority = 100
-  command = bin/sciond -config gen/ASffaa_1_5/sd.toml
+  command = bin/sciond --config gen/ASffaa_1_5/sd.toml
 
   [group:as17-ffaa_1_5]
   programs = br-1,cs-1,sd
@@ -327,6 +276,6 @@ gen/supervisord.conf: |+
   startretries = 0
   startsecs = 1
   priority = 50
-  command = bin/godispatcher -config gen/dispatcher/disp.toml
+  command = bin/godispatcher --config gen/dispatcher/disp.toml
 
 ...
