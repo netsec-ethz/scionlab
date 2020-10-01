@@ -435,8 +435,6 @@ class UserAS(AS):
 class AttachmentPointManager(models.Manager):
 
     def active(self):
-        #not working correctly
-        #looks like it's not updating the threshold to me
         threshold = timezone.now() - datetime.timedelta(minutes=1)
         return self.filter(updated_at__gt = threshold)
 
