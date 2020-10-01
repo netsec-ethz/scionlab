@@ -30,7 +30,6 @@ from scionlab.defines import (
     SD_TCP_PORT,
     SD_PROM_PORT,
     SCION_CONFIG_DIR,
-    SCION_LOG_DIR,
     SCION_VAR_DIR,
 )
 
@@ -165,7 +164,6 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
 
     def generate(self):
         config_builder = _ConfigBuilder(config_dir=SCION_CONFIG_DIR,
-                                        log_dir=SCION_LOG_DIR,
                                         var_dir=SCION_VAR_DIR,
                                         tls_certs_dir=os.path.join(SCION_CONFIG_DIR, GEN_CERTS))
         self._write_as_config(config_builder)
@@ -191,7 +189,6 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
     def generate(self):
         # build AS service config into gen/AS<AS_ID>
         config_builder = _ConfigBuilder(config_dir=self._as_dir(),
-                                        log_dir='logs',
                                         var_dir=GEN_CACHE,
                                         tls_certs_dir=GEN_CERTS)
         self._write_as_config(config_builder)
@@ -205,7 +202,7 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
     def _write_supervisord_file(self):
         def _cmd(binary_name, config_dir, config_file):
             """ helper to create the command string for BR, CS, sciond and dispatcher """
-            return f'bin/{binary_name} -config {config_dir}/{config_file}'
+            return f'bin/{binary_name} --config {config_dir}/{config_file}'
 
         as_dir = self._as_dir()
         config = configparser.ConfigParser()
@@ -261,9 +258,8 @@ class _ConfigBuilder:
     Helper object for `_ConfigGenerator`
     Builds the *.toml-configuration for the SCION services.
     """
-    def __init__(self, config_dir, log_dir, var_dir, tls_certs_dir):
+    def __init__(self, config_dir, var_dir, tls_certs_dir):
         self.config_dir = config_dir
-        self.log_dir = log_dir
         self.var_dir = var_dir
         self.tls_certs_dir = tls_certs_dir
 
@@ -301,19 +297,16 @@ class _ConfigBuilder:
                 'rev_ttl': '20s',
                 'rev_overlap': '5s',
                 'policies': {
-                    'Propagation': os.path.join(self.config_dir, 'beacon_policy.yaml')
+                    'propagation': os.path.join(self.config_dir, 'beacon_policy.yaml')
                 }
             },
             'path_db': {
-                'backend': 'sqlite',
                 'connection': '%s.path.db' % os.path.join(self.var_dir, service.instance_name),
             },
             'beacon_db': {
-                'backend': 'sqlite',
                 'connection': '%s.beacon.db' % os.path.join(self.var_dir, service.instance_name),
             },
             'trust_db': {
-                'backend': 'sqlite',
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, service.instance_name),
             },
             'quic': {
@@ -323,6 +316,14 @@ class _ConfigBuilder:
                 'resolution_fraction': 0.4,
             },
         })
+        if service.AS.is_core:
+            conf.update({
+                'renewal_db': {
+                    'connection': '%s.renewal.db' % os.path.join(self.var_dir,
+                                                                 service.instance_name),
+                },
+            })
+
         return conf
 
     def build_sciond_conf(self, host):
@@ -337,11 +338,9 @@ class _ConfigBuilder:
                 'address': _join_host_port('127.0.0.1', SD_TCP_PORT),
             },
             'path_db': {
-                'backend': 'sqlite',
                 'connection': '%s.path.db' % os.path.join(self.var_dir, instance_name),
             },
             'trust_db': {
-                'backend': 'sqlite',
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
             },
         })
@@ -362,6 +361,7 @@ class _ConfigBuilder:
                 # Note: this has performance impacts (for BR, only control plane)
                 'reconnect_to_dispatcher': True,
             },
+            # XXX: enable header v2 in features? or better flip the default in our builds?
         }
 
     def _build_metrics_conf(self, prometheus_port):
@@ -377,11 +377,8 @@ class _ConfigBuilder:
         """ Builds the 'logging' configuration section common to all services """
         return {
             'log': {
-                'file': {
-                    'path': '%s.log' % os.path.join(self.log_dir, instance_name),
+                'console': {
                     'level': 'debug',
-                    'max_age': 3,
-                    'max_backups': 1,
                 },
             },
         }
