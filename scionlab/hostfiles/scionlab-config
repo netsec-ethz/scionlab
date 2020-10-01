@@ -68,8 +68,8 @@ def main(argv):
     args = parse_command_line_args(argv)
     if os.geteuid() != 0:
         _error_exit("The script must be run as root")
-    while True:
-        if not args.tar:
+    if not args.tar:
+        while True:
             config_info = get_config_info(args)
             config = fetch_config(config_info)
             if config is _CONFIG_EMPTY:
@@ -80,12 +80,12 @@ def main(argv):
             else:
                 install_config(config)
                 confirm_deployed(args)
-        else:
-            tar = tarfile.open(args.tar, mode='r')
-            install_config(tar)
-        if not args.daemon:
-            break
-        time.sleep(20)
+            if not args.daemon:
+                break
+            time.sleep(20)
+    else:
+        tar = tarfile.open(args.tar, mode='r')
+        install_config(tar)
 
 
 def parse_command_line_args(argv):

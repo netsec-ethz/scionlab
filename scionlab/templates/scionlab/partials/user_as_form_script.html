@@ -129,9 +129,9 @@ function update_use_vpn_enable(sel) {
 function update_ip_fields_show(toggle) {
   // Traverse the DOM to get the container of this attachment point
   let attachment = toggle.closest('.attachment');
-  let public_ip_container = attachment.find("input[id*='public_ip']").closest('.formColumn')
-  let bind_ip_container = attachment.find("input[id*='bind_ip']").closest('.formColumn')
-  let bind_port_container = attachment.find("input[id*='bind_port']").closest('.formColumn')
+  let public_ip_container = attachment.find("input[id*='public_ip']").closest('.hidable')
+  let bind_ip_container = attachment.find("input[id*='bind_ip']").closest('.hidable')
+  let bind_port_container = attachment.find("input[id*='bind_port']").closest('.hidable')
   let bind_options_collapser = attachment.find('.bind-row-collapser')
   if(toggle.prop("checked")) {
     public_ip_container.hide();

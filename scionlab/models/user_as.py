@@ -377,17 +377,7 @@ class UserAS(AS):
         else:
             attachment_points = self._deactivate()
         for ap in attachment_points:
-            attachment_points = ap.trigger_deployment()
-
-    def public_addresses(self, active=True):
-        """
-        :active: consider public addresses used only by active connections
-        :return: a list of public addresses used by the `UserAS`
-        """
-        ifaces = self.host.interfaces
-        if active:
-            ifaces = ifaces.filter(link_as_interfaceB__active=True)
-        return [iface.public_ip for iface in ifaces if not UserAS.is_link_over_vpn(iface)]
+            attachment_points = ap.trigger_deployment()  
 
     @property
     def ip_port_labels(self):
@@ -444,9 +434,11 @@ class UserAS(AS):
 
 class AttachmentPointManager(models.Manager):
 
-    def get_queryset(self):
+    def active(self):
+        #not working correctly
+        #looks like it's not updating the threshold to me
         threshold = timezone.now() - datetime.timedelta(minutes=1)
-        return super(AttachmentPointManager, self).get_queryset().filter(updated_at__range=(threshold, timezone.now() ) ) 
+        return self.filter(updated_at__gt = threshold)
 
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
@@ -461,10 +453,10 @@ class AttachmentPoint(models.Model):
         related_name='+',
         on_delete=models.SET_NULL
     )
+    #auto_now will cause an issue where an AP that was just created will automatically be active (make it editable ASAP)
     updated_at = models.DateTimeField(auto_now=True)
-
-    objects = models.Manager()
-    is_active_ap = AttachmentPointManager()
+    
+    objects = AttachmentPointManager()
 
     def __str__(self):
         if self.AS.owner != None:

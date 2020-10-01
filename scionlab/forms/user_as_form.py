@@ -167,6 +167,7 @@ class UserASForm(forms.Form):
         return super().is_valid() and self.attachment_conf_form_set.is_valid()
 
     def save(self, commit=True):
+        wants_user_ap = self.cleaned_data['become_user_ap']
         if not self.instance:
             user_as = UserAS.objects.create(
                 owner=self.user,
@@ -175,6 +176,10 @@ class UserASForm(forms.Form):
                 label=self.cleaned_data['label'],
             )
             self.attachment_conf_form_set.save(user_as)
+            if wants_user_ap:
+                AttachmentPoint.objects.create(AS = user_as)
+                host = user_as.hosts.first()
+                host.update(public_ip = self.cleaned_data['public_ip'])
             return user_as
         else:
             self.instance.update(
@@ -182,14 +187,12 @@ class UserASForm(forms.Form):
                 label=self.cleaned_data['label']
             )
             # 2 cases: User wants to become a new AP or User wants to stop being AP
-            wants_user_ap = self.cleaned_data['become_user_ap']
-            is_ap = AttachmentPoint.objects.filter(AS=self.instance).first()!=None
-            if wants_user_ap and not is_ap:
+            if wants_user_ap and not self.instance.is_attachment_point():
                 AttachmentPoint.objects.create(AS = self.instance)
-                host = self.instance.hosts.first()
-                host.public_ip=self.cleaned_data['public_ip']
-                host.save()
-            elif not wants_user_ap and is_ap:
-                AttachmentPoint.objects.filter(AS=self.instance).delete()
+            elif not wants_user_ap and self.instance.is_attachment_point():
+            # this part will be reworked ASAP
+                AttachmentPoint.objects.filter(AS=self.instance).delete(),
+            host = self.instance.hosts.first()
+            host.update(public_ip = self.cleaned_data['public_ip'])   
             self.attachment_conf_form_set.save(self.instance)
             return self.instance

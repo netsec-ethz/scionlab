@@ -62,18 +62,6 @@ class UserASCreateView(_AttachmentPointsContextData, CreateView):
 
         return super(UserASCreateView, self).post(request, *args, **kwargs)
 
-# if User clicks checkbox the objects are created
-    def form_valid(self, form):
-        self.object = form.save()
-        data = form.cleaned_data
-        wants_user_ap = data['become_user_ap']
-        if wants_user_ap:
-            AttachmentPoint.objects.create(AS = self.object)
-            host = self.object.hosts.first()
-            host.public_ip=data['public_ip']
-            host.save()
-        return HttpResponseRedirect(self.get_success_url())
-
     def get_success_url(self):
         return reverse('user_as_detail', kwargs={'pk': self.object.pk})
 
