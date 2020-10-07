@@ -175,8 +175,13 @@ def _add_config_info(host, hashes, systemd_units, archive):
 
 def _generate_config_info_json(host, hashes, systemd_units):
     """
-    Return a dict containing the authentication parameters for the host
-    and the current configuration version number.
+    Return a dict containing
+    - authentication parameters for the host
+    - current configuration version number
+    - hashes of all installed config files; used in scionlab-config to determine
+      whether a file has local changes
+    - list of systemd units to be started
+
     :param Host host:
     :param hashes: dict filename -> hash
     :param List[str] systemd_units:
