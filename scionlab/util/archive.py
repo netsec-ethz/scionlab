@@ -99,11 +99,19 @@ class BaseArchiveWriter:
         """
         raise NotImplementedError()
 
-    def _normalize_path(self, path):
+    def _normalize_path(self, path) -> str:
+        """
+        The `path` is either
+        - a string
+        - a pathlib.Path
+        - or a tuple consisting of string/pathlib.Path that will be joined
+
+        Spurious slashes and single dots are collapsed (double dots are not).
+        """
         if isinstance(path, tuple):
             return str(pathlib.PurePosixPath(*path))
         else:
-            return str(path)
+            return str(pathlib.PurePosixPath(path))
 
 
 class FileArchiveWriter(BaseArchiveWriter):
