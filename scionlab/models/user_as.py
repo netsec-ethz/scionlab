@@ -451,8 +451,7 @@ class AttachmentPoint(models.Model):
         related_name='+',
         on_delete=models.SET_NULL
     )
-    #auto_now will cause an issue where an AP that was just created will automatically be active (make it editable ASAP)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(null=True)
     
     objects = AttachmentPointManager()
 

@@ -799,10 +799,7 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
         for host in queryset.filter(managed=True).iterator():
             deploy_host_config(host)
 
-class APAdmin(admin.ModelAdmin):
-    readonly_fields = ('updated_at',)
 
-admin.site.register(
+admin.site.register([
     AttachmentPoint,
-    APAdmin
-)
+])

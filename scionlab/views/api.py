@@ -26,9 +26,11 @@ from django.http import (
     HttpResponseGone,
     HttpResponseNotModified
 )
+from django.utils import timezone
 
 from scionlab import config_tar
 from scionlab.models.core import Host
+from scionlab.models.user_as import  AttachmentPoint
 from scionlab.util.http import HttpResponseAttachment, basicauth
 from scionlab.util.archive import TarWriter
 
@@ -114,6 +116,11 @@ class PostHostDeployedConfigVersion(SingleObjectMixin, View):
             return HttpResponseBadRequest()
 
         host = self.get_object()
+        ap = AttachmentPoint.objects.filter(AS = host.AS).first()
+        if ap != None:
+            ap.updated_at = timezone.now()
+            ap.save()
+            
         if version > host.config_version or version < host.config_version_deployed:
             return HttpResponseNotModified()
 
