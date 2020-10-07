@@ -409,10 +409,6 @@ def check_file_conflicts(old_files, new_files):
     return skip
 
 
-def extract_files(tar, files, tmpdir):
-    """ Extract listed files from tar to tmpdir """
-
-
 def install_config_files(old_files, new_files, skip, tmpdir):
     """ Install scion config to /etc/scion/"""
 
@@ -602,36 +598,6 @@ def _sha1(path):
     """ Compute the sha1 of the file at path """
     with open(path, 'rb') as f:
         return hashlib.sha1(f.read()).hexdigest()
-
-
-def _mv_dir(srcdir, dirname, dstdir):
-    shutil.rmtree(os.path.join(dstdir, dirname), ignore_errors=True)
-    shutil.move(os.path.join(srcdir, dirname), dstdir)
-
-
-def _install_file(srcdir, filename, dstdir):
-    """
-    Installs the file from srcdir into the directory dstdir.
-    If the file doesn't exist in srcdir, the file at dstdir will be removed.
-    :returns:   tuple (exists, changed):
-                    exists indicates whether the file exists now.
-                    changed indicates whether the file was changed.
-    """
-    srcfilename = os.path.join(srcdir, filename)
-    dstfilename = os.path.join(dstdir, filename)
-    if not os.path.exists(srcfilename):
-        if os.path.exists(dstfilename):
-            subprocess.run(['rm', dstfilename], check=True)
-            return (False, True)
-        return (False, False)
-
-    equal = subprocess.run(['diff', '-q', srcfilename, dstfilename],
-                           check=False,
-                           stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL).returncode == 0
-    if not equal:
-        subprocess.run(['mv', srcfilename, dstfilename], check=True)
-    return (True, not equal)
 
 
 def _prompt(explanation, question, options, default=None):
