@@ -99,7 +99,7 @@ class _ConfigGeneratorBase:
         self.topo_info = TopologyInfo(self.AS, with_sig_dummy_entry)
 
     def _write_as_config(self, cb: '_ConfigBuilder'):
-        config_dir = cb.config_dir.lstrip('/')  # dont use absolute paths in the archive
+        config_dir = cb.config_dir.lstrip('/')  # don't use absolute paths in the archive
 
         for router in self._routers():
             self.archive.write_toml((config_dir, f'{router.instance_name}.toml'),
@@ -417,18 +417,6 @@ def _join_host_port(host, port):
         return '[%s]:%s' % (host, port)
     else:
         return '%s:%s' % (host, port)
-
-
-def _localhost(ip):
-    """
-    Returns a/the loopback address for an address of the same type as host_ip
-    :param str host_ip: IP address
-    :return str: loopback address
-    """
-    if isinstance(ipaddress.ip_address(ip), ipaddress.IPv6Address):
-        return "::1"
-    else:
-        return "127.0.0.1"
 
 
 def _chain_dicts(dict0, *dicts):
