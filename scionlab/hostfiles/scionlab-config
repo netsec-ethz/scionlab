@@ -44,6 +44,8 @@ import time
 import urllib.request
 from collections import namedtuple
 
+SCRIPT_VERSION = '3.0, api/v3, October 2020'
+
 SCION_CONFIG_PATH = '/etc/scion'
 OPENVPN_CONFIG_DIR = '/etc/openvpn'
 
@@ -151,7 +153,7 @@ def parse_command_line_args(argv):
     group_fetch.add_argument('--host-secret', help='Authentication for host')
     group_fetch.add_argument('--url', help='URL of the SCIONLab coordination service')
 
-    parser.add_argument('--version', action='version', version='%(prog)s 3.0, api/v3, October 2020')
+    parser.add_argument('--version', action='version', version='%(prog)s ' + SCRIPT_VERSION)
 
     args = parser.parse_args(argv)
     # additional validation:
