@@ -63,7 +63,7 @@ CMDS = {
 }
 
 
-def generate_scion_config_systemd(host, archive, with_sig_dummy_entry=False):
+def generate_systemd_scion_config(host, archive, with_sig_dummy_entry=False):
     """
     Generate the configuration archive for the :host: in the given archive-writer
     :param host: Host object
@@ -75,7 +75,7 @@ def generate_scion_config_systemd(host, archive, with_sig_dummy_entry=False):
     return generator.systemd_units()
 
 
-def generate_scion_config_supervisord(host, archive, with_sig_dummy_entry=False):
+def generate_supervisord_scion_config(host, archive, with_sig_dummy_entry=False):
     """
     Generate the configuration archive for the :host: in the given archive-writer
     :param host: Host object

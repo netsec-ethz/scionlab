@@ -18,7 +18,7 @@ import string
 
 from django.conf import settings
 from scionlab.defines import OPENVPN_CONFIG_DIR
-from scionlab.scion.config import generate_scion_config_systemd, generate_scion_config_supervisord
+from scionlab.scion.config import generate_systemd_scion_config, generate_supervisord_scion_config
 from scionlab.models.user_as import UserAS
 from scionlab.openvpn_config import (
     generate_vpn_client_config,
@@ -83,7 +83,7 @@ def _add_files_user_as_src(archive, host):
     - VPN config /etc/openvpn/client-scionlab-*.conf (if using VPN)
     """
     _add_vpn_client_configs(host, archive)
-    generate_scion_config_supervisord(host, archive, with_sig_dummy_entry=True)
+    generate_supervisord_scion_config(host, archive, with_sig_dummy_entry=True)
     archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
 
@@ -95,7 +95,7 @@ def generate_host_config_tar(host, archive):
     :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
     hashed_archive = HashedArchiveWriter(archive)
-    units = generate_scion_config_systemd(host,
+    units = generate_systemd_scion_config(host,
                                           hashed_archive,
                                           with_sig_dummy_entry=hasattr(host.AS, 'useras'))
     _add_vpn_client_configs(host, hashed_archive)  # note: not adding these to the file list
