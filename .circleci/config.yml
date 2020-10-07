@@ -108,7 +108,7 @@ jobs:
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/flake8/
-            flake8 --config=flake8.ini --format junit-xml --output-file=test-reports/flake8/results.xml
+            flake8 --format junit-xml --output-file=test-reports/flake8/results.xml
 
       # run Django's tests (using nose as the test runner)
       - run:
