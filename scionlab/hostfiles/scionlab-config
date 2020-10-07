@@ -27,6 +27,7 @@ Prerequisites:
 
 import argparse
 import base64
+import datetime
 import hashlib
 import io
 import json
@@ -38,8 +39,8 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import time
 import textwrap
+import time
 import urllib.request
 from collections import namedtuple
 
@@ -326,6 +327,29 @@ def _error_exit(*args, **kwargs):
 
 
 def install_config(args, tar):
+    """
+    Install the configuration files from the tar ball.
+    Checks for modification conflicts, i.e. for files that are modified locally and that would also
+    be changed by installing the new file.
+    If running with --force, the conflicting files will be overwritten, but a backup is created.
+    Otherwise, the user is prompted for choice (replace/replace and backup/skip) where necessary.
+
+                           result
+       old   disk    new   default  force
+        x      x      x     x
+        x      x      z     z
+        x      x      -     -
+        x      y      x     y       x     keep y (with --force: replace + backup)
+        x      y      y     y
+        x      y      z     ?       z     prompt (with --force: replace + backup)
+        x      y      -     -             delete (guessing modification is no longer relevant)
+        -      y      -     -
+        -      y      y     y
+        -      y      z     ?       z     prompt (with --force: replace + backup)
+        x      -      x     x
+        x      -      y     y
+        x      -      -     -        -
+    """
     # Get metadata about currently installed configuration
     old_config_info = _read_config_info_file()
     old_files = old_config_info.files if old_config_info is not None else {}
@@ -334,10 +358,12 @@ def install_config(args, tar):
     new_config_info = _read_config_info_tar_member(tar)
     new_files = new_config_info.files
 
-    if args.force:
-        skip = []
-    else:
-        skip = check_file_conflicts(old_files, new_files)
+    skip, backup = resolve_file_conflicts(args.force, old_files, new_files)
+
+    if args.force and backup:  # only warn in --force, otherwise user has already been prompted
+        logging.warn("Overwriting files with local modifications, creating backup: %s",
+                     ", ".join(_root(f) for f in backup))
+    backup_files(backup)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # safely extract files; new_files list has been checked
@@ -359,58 +385,87 @@ def install_config(args, tar):
         shutil.rmtree(os.path.join(SCION_CONFIG_PATH, 'gen'), ignore_errors=True)
 
 
-def check_file_conflicts(old_files, new_files):
+def resolve_file_conflicts(force, old_files, new_files):
     """
-    Checks that the files are save to modify. Prompts the user for choice where necessary.
-    Returns a list of files (existing or new) that should be _skipped_ during the installation.
+    Check for modification conflicts and determines the appropriate action, prompting the user
+    where necessary. Returns the lists of files to be skipped and backed-up
 
-       old   disk    new   result
-        x      x      x     x
-        x      x      z     z
-        x      x      -     -
-        x      y      x     y     skip (keep y)
-        x      y      y     y
-        x      y      z     ?     prompt (skip/replace)
-        x      y      -     -     OK, delete (guessing modification is no longer relevant)
-        -      y      -     -
-        -      y      y     y
-        -      y      z     ?     prompt
-        x      -      x     x
-        x      -      y     y
-        x      -      -     -
+    :returns: list of files to be skipped, list of files to backed up
     """
+    conflicts = find_file_conflicts(old_files, new_files)
+    if force:
+        skip = []
+        backup = conflicts
+    else:
+        unchanged = [f for f in new_files if new_files[f] == old_files.get(f, None)]
+        prompts = sorted(set(conflicts) - set(unchanged))
+        skip, backup = prompt_conflicts(old_files, new_files, prompts)
+        skip += unchanged
+
+    return skip, backup
+
+
+def find_file_conflicts(old_files, new_files):
+    """
+    Find any local files which are replaced by a new file and are not identical
+    to the old installed file.
+    :returns: list of conflicting file names
+    """
+
     disk_files = {}
     for f in set(old_files.keys()) | set(new_files.keys()):
         if os.path.exists(_root(f)):
             disk_files[f] = _sha1(_root(f))
 
-    prompt = []
-    skip = []
+    conflicts = []
     for f, h in disk_files.items():
-        if f not in old_files or h != old_files[f]:
-            if f in new_files and f in old_files and old_files[f] == new_files[f]:
-                skip.append(f)
-            elif f in new_files and h != new_files[f]:
-                prompt.append(f)
+        if (f in new_files and h != new_files[f]) and (f not in old_files or h != old_files[f]):
+            conflicts.append(f)
+    return conflicts
 
-    for f in prompt:
+
+def prompt_conflicts(old_files, new_files, conflicts):
+    skip = []
+    backup = []
+    for f in conflicts:
         if f in old_files:
             explanation = "File '/%s' was modified and the updated config would overwrite it." % f
         else:
             explanation = "File '/%s' exists on disk and the updated config would overwrite it." % f
 
-        question = "Do you want to (s)kip/(r)eplace/(q)uit (default: replace)?"
-        reply = _prompt(explanation, question, ["skip", "replace", "quit"], default="replace")
+        question = ("Do you want to (b)ackup + replace, (o)verwrite, or (k)eep the file? "
+                    "(default: backup + replace)?")
+        options = ["backup", "overwrite", "keep", "quit"]
+        reply = _prompt(explanation, question, options, default="backup")
         if reply == "quit":
             sys.exit(1)
-        elif reply == "skip":
+        elif reply == "keep":
             skip.append(f)
+        elif reply == "backup":
+            backup.append(f)
 
-    return skip
+    return skip, backup
+
+
+def backup_files(files):
+    """ Create a backup copy of files. Files are given as list of root-relative paths. """
+    suffix = ".bk-" + datetime.date.today().strftime("%Y%m%d")
+    for f in files:
+        backup_file(_root(f), suffix)
+
+
+def backup_file(path, suffix):
+    """ Create a backup copy of file at path. Finds a non-existing name for the backup file """
+    bkname = path + suffix
+    idx = 0
+    while os.path.exists(bkname):
+        idx += 1
+        bkname = path + suffix + "-%i" % idx
+    os.rename(path, bkname)
 
 
 def install_config_files(old_files, new_files, skip, tmpdir):
-    """ Install scion config to /etc/scion/"""
+    """ Install new config files by copying from tmpdir, and remove old files """
 
     to_delete = set(old_files) - set(new_files) - set(skip)
     for f in to_delete:

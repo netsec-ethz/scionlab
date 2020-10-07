@@ -17,9 +17,10 @@ import importlib.machinery
 import os
 import sys
 import tarfile
+from collections import namedtuple
 from io import StringIO
-from unittest.mock import patch
 from unittest import TestCase
+from unittest.mock import patch
 
 from django.test import LiveServerTestCase
 
@@ -132,7 +133,7 @@ class ScionlabConfigUnitTests(TestCase):
             _check_bad([f])  # individual bad fail
             _check_bad(good + [f])  # individual bad with good still fail
 
-    def test_check_file_conflicts(self):
+    def test_resolve_file_conflicts(self):
         # Test setup defines some files and their pseudo sha1 hashes:
         # foo: unchanged
         # fmo: modified locally, unchanged in update -> skip
@@ -168,10 +169,34 @@ class ScionlabConfigUnitTests(TestCase):
         # define expected result, the list of files to be skipped, depending on
         # user input on prompt:
         expected_num_prompts = 2
-        tests = {
-            "skip": ["etc/scion/fmo.toml", "etc/scion/bar.toml", "etc/scion/egg.toml"],
-            "replace": ["etc/scion/fmo.toml"],
-        }
+        case = namedtuple('case', ['force', 'prompt_reply', 'expected_skip', 'expected_backup'])
+        cases = [
+            case(
+                force=True,
+                prompt_reply=None,
+                expected_skip=[],
+                expected_backup=["etc/scion/fmo.toml", "etc/scion/bar.toml", "etc/scion/egg.toml"],
+            ),
+            case(
+                force=False,
+                prompt_reply="backup",
+                expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml"],
+                expected_backup=["etc/scion/bar.toml", "etc/scion/egg.toml"],
+            ),
+            case(
+                force=False,
+                prompt_reply="keep",
+                expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml",
+                               "etc/scion/bar.toml", "etc/scion/egg.toml"],
+                expected_backup=[],
+            ),
+            case(
+                force=False,
+                prompt_reply="overwrite",
+                expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml"],
+                expected_backup=[],
+            ),
+        ]
 
         def _mock_os_path_exists(path):
             return path in disk_files
@@ -179,15 +204,17 @@ class ScionlabConfigUnitTests(TestCase):
         def _mock_sha1(path):
             return disk_files[path]
 
-        for user_input, expected_skip in tests.items():
+        for c in cases:
             with patch('scionlab_config._sha1', side_effect=_mock_sha1), \
                     patch('os.path.exists', side_effect=_mock_os_path_exists), \
-                    patch('scionlab_config._prompt', return_value=user_input) as mock_prompt:
+                    patch('scionlab_config._prompt', return_value=c.prompt_reply) as mock_prompt:
 
-                skip = scionlab_config.check_file_conflicts(old_files, new_files)
+                skip, backup = scionlab_config.resolve_file_conflicts(c.force, old_files, new_files)
 
-                self.assertEqual(mock_prompt.call_count, expected_num_prompts)
-                self.assertEqual(sorted(skip), sorted(expected_skip))
+                self.assertEqual(mock_prompt.call_count, expected_num_prompts if not c.force else 0,
+                                 c)
+                self.assertEqual(sorted(skip), sorted(c.expected_skip), c)
+                self.assertEqual(sorted(backup), sorted(c.expected_backup), c)
 
     def test_prompt(self):
         context = "Darling, you got to let me know."
