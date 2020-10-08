@@ -150,6 +150,12 @@ jobs:
             docker-compose build
 
       - run:
+          name: Set date so certificates in test data are valid
+          command: |
+            # Certificates are valid between 2019-10-02 and 2020-10-01.
+            sudo date -s "2020-04-01"  # haha
+
+      - run:
           name: Start coordinator
           working_directory: ~/project/.circleci
           <<: *start_coordinator
