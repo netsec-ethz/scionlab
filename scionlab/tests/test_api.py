@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 from django.test import TestCase
+from parameterized import parameterized
 from scionlab.models.core import Host
 from scionlab.tests import utils
 from scionlab.tests.utils import basic_auth
@@ -24,7 +27,7 @@ class GetHostConfigTests(TestCase):
     def setUp(self):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
-        self.url = '/api/v2/host/%s/config' % self.host.uid
+        self.url = '/api/v3/host/%s/config' % self.host.uid
         self.auth_headers = basic_auth(self.host.uid, self.host.secret)
 
     def test_aaa(self):
@@ -88,7 +91,7 @@ class GetHostConfigExtraServicesTests(TestCase):
 
     @staticmethod
     def _get_url(host):
-        return '/api/v2/host/%s/config' % host.uid
+        return '/api/v3/host/%s/config' % host.uid
 
     @staticmethod
     def _get_auth_headers(host):
@@ -101,8 +104,8 @@ class GetHostConfigExtraServicesTests(TestCase):
         resp = self.client.get(self._get_url(host), {}, **self._get_auth_headers(host))
         self.assertEqual(resp.status_code, 200)
         tar = utils.check_tarball_host(self, resp, host)
-        services = utils.tar_cat(tar, 'scionlab-services.txt').decode().split('\n')
-        self.assertTrue('scion-bwtestserver.service' in services)
+        services = json.loads(utils.tar_cat(tar, 'scionlab-config.json'))['systemd_units']
+        self.assertIn('scion-bwtestserver.service', services)
 
 
 class PostHostConfigVersionTests(TestCase):
@@ -111,7 +114,7 @@ class PostHostConfigVersionTests(TestCase):
     def setUp(self):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
-        self.url = '/api/v2/host/%s/deployed_config_version' % self.host.uid
+        self.url = '/api/v3/host/%s/deployed_config_version' % self.host.uid
         self.auth_headers = basic_auth(self.host.uid, self.host.secret)
 
     def test_bad_auth(self):
@@ -160,20 +163,36 @@ class PostHostConfigVersionTests(TestCase):
 
 class OldVersionTests(TestCase):
     fixtures = ['testdata']
+    old_versions = [
+        ('', 'oldest, unversioned'),
+        ('v2/', 'v2')
+    ]
 
-    def test_get_config(self):
+    @parameterized.expand(old_versions)
+    def test_get_config(self, version_str, _comment):
         # Note: using an existing host and correct auth headers, but this will not matter.
         host = Host.objects.last()
-        url = '/api/host/%s/config' % host.uid
+        url = '/api/%shost/%s/config' % (version_str, host.uid)
         auth_headers = basic_auth(host.uid, host.secret)
 
         ret = self.client.get(url, **auth_headers)
         self.assertEqual(ret.status_code, 410)
 
-    def test_post_(self):
+    @parameterized.expand(old_versions)
+    def test_post_(self, version_str, _comment):
         host = Host.objects.last()
-        url = '/api/host/%s/deployed_config_version' % host.uid
+        url = '/api/%shost/%s/deployed_config_version' % (version_str, host.uid)
         auth_headers = basic_auth(host.uid, host.secret)
 
         ret = self.client.post(url, {'version': 1}, **auth_headers)
         self.assertEqual(ret.status_code, 410)
+
+    def test_topology_json_v2_redirect(self):
+        url_pattern = '/api/{version}/topology/topology'
+        url_v2 = url_pattern.format(version='v2')
+        url_v3 = url_pattern.format(version='v3')
+
+        ret = self.client.get(url_v2, follow=True)
+        self.assertEqual(ret.redirect_chain, [(url_v3, 301)])
+        self.assertEqual(ret.status_code, 200)
+        self.assertEqual(ret['Content-Type'], 'application/json')

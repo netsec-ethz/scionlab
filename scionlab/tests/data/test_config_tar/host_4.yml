@@ -1,997 +1,7 @@
-ccd/: null
-ccd/exbert@scionlab.org_ffaa_1_1: |-
+etc/openvpn/ccd/: null
+etc/openvpn/ccd/exbert@scionlab.org_ffaa_1_1: |-
   ifconfig-push 10.0.0.1 255.255.0.0
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/br.toml: |
-  [general]
-  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1"
-  id = "br17-ffaa_0_1107-1"
-  reconnect_to_dispatcher = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30442"
-
-  [log.file]
-  level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/br17-ffaa_0_1107-1.log"
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  [
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
-      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
-    },
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
-      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
-    }
-  ]
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/certs/ISD19-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "3YGYoxPTR8jgDGadWM5ac03jNC6eIyrYVYJ3IFL_0d6ESO1eDfaWhPpEJPjni_am5DM-BGTC_6dl4IM4i58vDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "mKhwMiacq-3sJOEkkQ_e92622gR6pnFTvrI829vdoC64lkieM-18HGbJANXVmi-Bpl_CcF0uQyMSswapax23BQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "IyAgvp-9ZOHOnnVkUXMqlS22nF-KO2VYP_bXd09AONuJHsWlsGXDjoxOmH6SN2FwPpSDc_hkXuskHCUrk76HCg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "yBo9CKM5LgNk95QcjjK3UMdDVq3z0rsDIvvaWrKeWnbc1ejDpVK4IgM9hcpYLrRSt6y5sncFHw2Q1wTTlhSrDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "S0jmllXbdZL-1HQmT0C_29zIyuGnA03nKv2CiLpoeccWJN9sCoBc9AG9SaZQzasvJvEE7JNAHxrpNjB_j6bQCw"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wV0ZrVAXx88EUvIuk673MJLIAXcqQ-iV4vCCH50LCs0tLx65cI7ps6a31PSgIAnbp3SEg1VerkhUxJTxzyhzAg"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/certs/ISD20-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "lMflSxDL23pPZdxm4kCQrrExtho-3qWjBUGtFR9DCyADGjuhBBvJhUYXKCQgJmZwZKQ6sNvZhQrN650H7pXIAQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "IEQs-UKm_a0azRdYCBKgfytqLPKkC-KicEn8WyGNj_nJEpc6il5SvfUJkfv1TAUu2m5TK3Cwi_06dlKaOuacDQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "5x2TpKF5nJA3Z9gLdD45NZGm7nJZn8ndLaN8groZogAR9jW4y4qICkXuXz9ESYyA0JWVNLv_NsEEcaT33-hHBA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "LdhZ-vIz-I2G2dPJ3genkYhOCFJxsB3fZ_JDkm8w-94n8pAfh4CzdkiVLFJkW5xjIdcH6v-M5SyF-_4vwaXNAg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "CMXlaUloufb05e0myd4-fICnAVzCHrgJ7-mDegDHjMqSi3QuE70Gm-Muf887Rey_OHV9x7woExKQ-NpjSaa8Cg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wdZ-vcrtMLvPFnTTp1367W2i9CNq-kDLtpRJyEp4G2bf5KhdqdW_gtuYFEArtW0oGZ4-tiIErM3ng9Rvv7EjDQ"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/as-decrypt-v1.key: |
-  -----BEGIN PRIVATE KEY-----
-  algorithm: curve25519xsalsa20poly1305
-  ia: 17-ffaa:0:1107
-  not_after: 2019-10-02 11:07:41+0000
-  not_before: 2020-10-01 11:07:41+0000
-  usage: as-decrypt
-  version: 1
-
-  yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=
-  -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/as-signing-v1.key: |
-  -----BEGIN PRIVATE KEY-----
-  algorithm: ed25519
-  ia: 17-ffaa:0:1107
-  not_after: 2019-10-02 11:07:41+0000
-  not_before: 2020-10-01 11:07:41+0000
-  usage: as-signing
-  version: 1
-
-  v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=
-  -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/master0.key: |-
-  R7D6Lhl52uxloBQFRulzzA==
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/keys/master1.key: |-
-  R7D6Lhl52uxloBQFRulzzA==
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-1/topology.json: |-
-  {
-    "Attributes": [],
-    "BorderRouters": {
-      "br17-ffaa_0_1107-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30242
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30042
-            }
-          }
-        }
-      },
-      "br17-ffaa_0_1107-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30243
-            }
-          }
-        },
-        "Interfaces": {
-          "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
-            }
-          },
-          "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30043
-            }
-          }
-        }
-      }
-    },
-    "ControlService": {
-      "cs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30254
-            }
-          }
-        }
-      }
-    },
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4"
-  }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/br.toml: |
-  [general]
-  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2"
-  id = "br17-ffaa_0_1107-2"
-  reconnect_to_dispatcher = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30443"
-
-  [log.file]
-  level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/br17-ffaa_0_1107-2.log"
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  [
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
-      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
-    },
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
-      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
-    }
-  ]
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/certs/ISD17-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/certs/ISD19-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "3YGYoxPTR8jgDGadWM5ac03jNC6eIyrYVYJ3IFL_0d6ESO1eDfaWhPpEJPjni_am5DM-BGTC_6dl4IM4i58vDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "mKhwMiacq-3sJOEkkQ_e92622gR6pnFTvrI829vdoC64lkieM-18HGbJANXVmi-Bpl_CcF0uQyMSswapax23BQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "IyAgvp-9ZOHOnnVkUXMqlS22nF-KO2VYP_bXd09AONuJHsWlsGXDjoxOmH6SN2FwPpSDc_hkXuskHCUrk76HCg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "yBo9CKM5LgNk95QcjjK3UMdDVq3z0rsDIvvaWrKeWnbc1ejDpVK4IgM9hcpYLrRSt6y5sncFHw2Q1wTTlhSrDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "S0jmllXbdZL-1HQmT0C_29zIyuGnA03nKv2CiLpoeccWJN9sCoBc9AG9SaZQzasvJvEE7JNAHxrpNjB_j6bQCw"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wV0ZrVAXx88EUvIuk673MJLIAXcqQ-iV4vCCH50LCs0tLx65cI7ps6a31PSgIAnbp3SEg1VerkhUxJTxzyhzAg"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/certs/ISD20-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "lMflSxDL23pPZdxm4kCQrrExtho-3qWjBUGtFR9DCyADGjuhBBvJhUYXKCQgJmZwZKQ6sNvZhQrN650H7pXIAQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "IEQs-UKm_a0azRdYCBKgfytqLPKkC-KicEn8WyGNj_nJEpc6il5SvfUJkfv1TAUu2m5TK3Cwi_06dlKaOuacDQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "5x2TpKF5nJA3Z9gLdD45NZGm7nJZn8ndLaN8groZogAR9jW4y4qICkXuXz9ESYyA0JWVNLv_NsEEcaT33-hHBA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "LdhZ-vIz-I2G2dPJ3genkYhOCFJxsB3fZ_JDkm8w-94n8pAfh4CzdkiVLFJkW5xjIdcH6v-M5SyF-_4vwaXNAg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "CMXlaUloufb05e0myd4-fICnAVzCHrgJ7-mDegDHjMqSi3QuE70Gm-Muf887Rey_OHV9x7woExKQ-NpjSaa8Cg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wdZ-vcrtMLvPFnTTp1367W2i9CNq-kDLtpRJyEp4G2bf5KhdqdW_gtuYFEArtW0oGZ4-tiIErM3ng9Rvv7EjDQ"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/as-decrypt-v1.key: |
-  -----BEGIN PRIVATE KEY-----
-  algorithm: curve25519xsalsa20poly1305
-  ia: 17-ffaa:0:1107
-  not_after: 2019-10-02 11:07:41+0000
-  not_before: 2020-10-01 11:07:41+0000
-  usage: as-decrypt
-  version: 1
-
-  yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=
-  -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/as-signing-v1.key: |
-  -----BEGIN PRIVATE KEY-----
-  algorithm: ed25519
-  ia: 17-ffaa:0:1107
-  not_after: 2019-10-02 11:07:41+0000
-  not_before: 2020-10-01 11:07:41+0000
-  usage: as-signing
-  version: 1
-
-  v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=
-  -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/master0.key: |-
-  R7D6Lhl52uxloBQFRulzzA==
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/keys/master1.key: |-
-  R7D6Lhl52uxloBQFRulzzA==
-gen/ISD17/ASffaa_0_1107/br17-ffaa_0_1107-2/topology.json: |-
-  {
-    "Attributes": [],
-    "BorderRouters": {
-      "br17-ffaa_0_1107-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30242
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30042
-            }
-          }
-        }
-      },
-      "br17-ffaa_0_1107-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30243
-            }
-          }
-        },
-        "Interfaces": {
-          "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
-            }
-          },
-          "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30043
-            }
-          }
-        }
-      }
-    },
-    "ControlService": {
-      "cs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30254
-            }
-          }
-        }
-      }
-    },
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4"
-  }
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/beacon_policy.yaml: |
-  Filter:
-    AllowIsdLoop: false
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  [
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
-      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
-    },
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
-      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
-    }
-  ]
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD17-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD19-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "3YGYoxPTR8jgDGadWM5ac03jNC6eIyrYVYJ3IFL_0d6ESO1eDfaWhPpEJPjni_am5DM-BGTC_6dl4IM4i58vDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "mKhwMiacq-3sJOEkkQ_e92622gR6pnFTvrI829vdoC64lkieM-18HGbJANXVmi-Bpl_CcF0uQyMSswapax23BQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "IyAgvp-9ZOHOnnVkUXMqlS22nF-KO2VYP_bXd09AONuJHsWlsGXDjoxOmH6SN2FwPpSDc_hkXuskHCUrk76HCg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "yBo9CKM5LgNk95QcjjK3UMdDVq3z0rsDIvvaWrKeWnbc1ejDpVK4IgM9hcpYLrRSt6y5sncFHw2Q1wTTlhSrDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "S0jmllXbdZL-1HQmT0C_29zIyuGnA03nKv2CiLpoeccWJN9sCoBc9AG9SaZQzasvJvEE7JNAHxrpNjB_j6bQCw"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wV0ZrVAXx88EUvIuk673MJLIAXcqQ-iV4vCCH50LCs0tLx65cI7ps6a31PSgIAnbp3SEg1VerkhUxJTxzyhzAg"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/certs/ISD20-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "lMflSxDL23pPZdxm4kCQrrExtho-3qWjBUGtFR9DCyADGjuhBBvJhUYXKCQgJmZwZKQ6sNvZhQrN650H7pXIAQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "IEQs-UKm_a0azRdYCBKgfytqLPKkC-KicEn8WyGNj_nJEpc6il5SvfUJkfv1TAUu2m5TK3Cwi_06dlKaOuacDQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "5x2TpKF5nJA3Z9gLdD45NZGm7nJZn8ndLaN8groZogAR9jW4y4qICkXuXz9ESYyA0JWVNLv_NsEEcaT33-hHBA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "LdhZ-vIz-I2G2dPJ3genkYhOCFJxsB3fZ_JDkm8w-94n8pAfh4CzdkiVLFJkW5xjIdcH6v-M5SyF-_4vwaXNAg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "CMXlaUloufb05e0myd4-fICnAVzCHrgJ7-mDegDHjMqSi3QuE70Gm-Muf887Rey_OHV9x7woExKQ-NpjSaa8Cg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wdZ-vcrtMLvPFnTTp1367W2i9CNq-kDLtpRJyEp4G2bf5KhdqdW_gtuYFEArtW0oGZ4-tiIErM3ng9Rvv7EjDQ"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/cs.toml: |
-  [beacon_db]
-  backend = "sqlite"
-  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.beacon.db"
-
-  [beaconing]
-  origination_interval = "5s"
-  propagation_interval = "5s"
-  rev_overlap = "5s"
-  rev_ttl = "20s"
-
-  [general]
-  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1"
-  id = "cs17-ffaa_0_1107-1"
-  reconnect_to_dispatcher = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30454"
-
-  [path_db]
-  backend = "sqlite"
-  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.path.db"
-
-  [quic]
-  address = "127.0.0.1:30354"
-  cert_file = "/etc/scion/gen-certs/tls.pem"
-  key_file = "/etc/scion/gen-certs/tls.key"
-  resolution_fraction = 0.4
-
-  [trust_db]
-  backend = "sqlite"
-  connection = "/var/lib/scion/cs17-ffaa_0_1107-1.trust.db"
-
-  [beaconing.policies]
-  Propagation = "/etc/scion/gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/beacon_policy.yaml"
-
-  [log.file]
-  level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/cs17-ffaa_0_1107-1.log"
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-decrypt-v1.key: |
-  -----BEGIN PRIVATE KEY-----
-  algorithm: curve25519xsalsa20poly1305
-  ia: 17-ffaa:0:1107
-  not_after: 2019-10-02 11:07:41+0000
-  not_before: 2020-10-01 11:07:41+0000
-  usage: as-decrypt
-  version: 1
-
-  yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=
-  -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/as-signing-v1.key: |
-  -----BEGIN PRIVATE KEY-----
-  algorithm: ed25519
-  ia: 17-ffaa:0:1107
-  not_after: 2019-10-02 11:07:41+0000
-  not_before: 2020-10-01 11:07:41+0000
-  usage: as-signing
-  version: 1
-
-  v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=
-  -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/master0.key: |-
-  R7D6Lhl52uxloBQFRulzzA==
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/keys/master1.key: |-
-  R7D6Lhl52uxloBQFRulzzA==
-gen/ISD17/ASffaa_0_1107/cs17-ffaa_0_1107-1/topology.json: |-
-  {
-    "Attributes": [],
-    "BorderRouters": {
-      "br17-ffaa_0_1107-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30242
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30042
-            }
-          }
-        }
-      },
-      "br17-ffaa_0_1107-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30243
-            }
-          }
-        },
-        "Interfaces": {
-          "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
-            }
-          },
-          "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30043
-            }
-          }
-        }
-      }
-    },
-    "ControlService": {
-      "cs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30254
-            }
-          }
-        }
-      }
-    },
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4"
-  }
-gen/ISD17/ASffaa_0_1107/endhost/certs/ISD17-ASffaa_0_1107-V1.crt: |-
-  [
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
-      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
-    },
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
-      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
-    }
-  ]
-gen/ISD17/ASffaa_0_1107/endhost/certs/ISD17-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/endhost/certs/ISD19-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "3YGYoxPTR8jgDGadWM5ac03jNC6eIyrYVYJ3IFL_0d6ESO1eDfaWhPpEJPjni_am5DM-BGTC_6dl4IM4i58vDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "mKhwMiacq-3sJOEkkQ_e92622gR6pnFTvrI829vdoC64lkieM-18HGbJANXVmi-Bpl_CcF0uQyMSswapax23BQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "IyAgvp-9ZOHOnnVkUXMqlS22nF-KO2VYP_bXd09AONuJHsWlsGXDjoxOmH6SN2FwPpSDc_hkXuskHCUrk76HCg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "yBo9CKM5LgNk95QcjjK3UMdDVq3z0rsDIvvaWrKeWnbc1ejDpVK4IgM9hcpYLrRSt6y5sncFHw2Q1wTTlhSrDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "S0jmllXbdZL-1HQmT0C_29zIyuGnA03nKv2CiLpoeccWJN9sCoBc9AG9SaZQzasvJvEE7JNAHxrpNjB_j6bQCw"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wV0ZrVAXx88EUvIuk673MJLIAXcqQ-iV4vCCH50LCs0tLx65cI7ps6a31PSgIAnbp3SEg1VerkhUxJTxzyhzAg"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/endhost/certs/ISD20-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "lMflSxDL23pPZdxm4kCQrrExtho-3qWjBUGtFR9DCyADGjuhBBvJhUYXKCQgJmZwZKQ6sNvZhQrN650H7pXIAQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "IEQs-UKm_a0azRdYCBKgfytqLPKkC-KicEn8WyGNj_nJEpc6il5SvfUJkfv1TAUu2m5TK3Cwi_06dlKaOuacDQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "5x2TpKF5nJA3Z9gLdD45NZGm7nJZn8ndLaN8groZogAR9jW4y4qICkXuXz9ESYyA0JWVNLv_NsEEcaT33-hHBA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "LdhZ-vIz-I2G2dPJ3genkYhOCFJxsB3fZ_JDkm8w-94n8pAfh4CzdkiVLFJkW5xjIdcH6v-M5SyF-_4vwaXNAg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "CMXlaUloufb05e0myd4-fICnAVzCHrgJ7-mDegDHjMqSi3QuE70Gm-Muf887Rey_OHV9x7woExKQ-NpjSaa8Cg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wdZ-vcrtMLvPFnTTp1367W2i9CNq-kDLtpRJyEp4G2bf5KhdqdW_gtuYFEArtW0oGZ4-tiIErM3ng9Rvv7EjDQ"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_0_1107/endhost/sd.toml: |
-  [general]
-  config_dir = "/etc/scion/gen/ISD17/ASffaa_0_1107/endhost"
-  id = "sd17-ffaa_0_1107"
-  reconnect_to_dispatcher = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30455"
-
-  [path_db]
-  backend = "sqlite"
-  connection = "/var/lib/scion/sd17-ffaa_0_1107.path.db"
-
-  [sd]
-  address = "127.0.0.1:30255"
-
-  [trust_db]
-  backend = "sqlite"
-  connection = "/var/lib/scion/sd17-ffaa_0_1107.trust.db"
-
-  [log.file]
-  level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/sd17-ffaa_0_1107.log"
-gen/ISD17/ASffaa_0_1107/endhost/topology.json: |-
-  {
-    "Attributes": [],
-    "BorderRouters": {
-      "br17-ffaa_0_1107-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30242
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30042
-            }
-          }
-        }
-      },
-      "br17-ffaa_0_1107-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30243
-            }
-          }
-        },
-        "Interfaces": {
-          "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
-            }
-          },
-          "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30043
-            }
-          }
-        }
-      }
-    },
-    "ControlService": {
-      "cs17-ffaa_0_1107-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30254
-            }
-          }
-        }
-      }
-    },
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4"
-  }
-gen/dispatcher/disp.toml: |
-  [dispatcher]
-  id = "dispatcher"
-  socket_file_mode = "0777"
-
-  [metrics]
-  prometheus = "127.0.0.1:30441"
-
-  [log.file]
-  level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/dispatcher.log"
-gen/scionlab-config.json: |-
-  {
-    "host_id": "9e090a4529264b958a5c65fd8c214b1d",
-    "host_secret": "7abb3def0c4e4ddb85ba124d67d5544c",
-    "url": "http://localhost:8000",
-    "version": 10
-  }
-scionlab-services.txt: |-
-  scion-border-router@17-ffaa_0_1107-1.service
-  scion-border-router@17-ffaa_0_1107-2.service
-  scion-control-service@17-ffaa_0_1107-1.service
-  scion-bwtestserver.service
-  scion-daemon@17-ffaa_0_1107.service
-  scion-dispatcher.service
-server.conf: |
+etc/openvpn/server.conf: |
   mode server
   tls-server
 
@@ -1116,3 +126,356 @@ server.conf: |
   -----END RSA PRIVATE KEY-----
 
   </key>
+etc/scion/beacon_policy.yaml: |
+  Filter:
+    AllowIsdLoop: false
+etc/scion/br-1.toml: |
+  [general]
+  config_dir = "/etc/scion"
+  id = "br-1"
+  reconnect_to_dispatcher = true
+
+  [metrics]
+  prometheus = "127.0.0.1:30442"
+
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/br-1.log"
+etc/scion/br-2.toml: |
+  [general]
+  config_dir = "/etc/scion"
+  id = "br-2"
+  reconnect_to_dispatcher = true
+
+  [metrics]
+  prometheus = "127.0.0.1:30443"
+
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/br-2.log"
+etc/scion/certs/ISD17-ASffaa_0_1107-V1.crt: |-
+  [
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
+      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
+    },
+    {
+      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
+      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
+      "signature": "DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"
+    }
+  ]
+etc/scion/certs/ISD17-V1.trc: |-
+  {
+    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
+      }
+    ]
+  }
+etc/scion/certs/ISD19-V1.trc: |-
+  {
+    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "3YGYoxPTR8jgDGadWM5ac03jNC6eIyrYVYJ3IFL_0d6ESO1eDfaWhPpEJPjni_am5DM-BGTC_6dl4IM4i58vDg"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "mKhwMiacq-3sJOEkkQ_e92622gR6pnFTvrI829vdoC64lkieM-18HGbJANXVmi-Bpl_CcF0uQyMSswapax23BQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "IyAgvp-9ZOHOnnVkUXMqlS22nF-KO2VYP_bXd09AONuJHsWlsGXDjoxOmH6SN2FwPpSDc_hkXuskHCUrk76HCg"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "yBo9CKM5LgNk95QcjjK3UMdDVq3z0rsDIvvaWrKeWnbc1ejDpVK4IgM9hcpYLrRSt6y5sncFHw2Q1wTTlhSrDg"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "S0jmllXbdZL-1HQmT0C_29zIyuGnA03nKv2CiLpoeccWJN9sCoBc9AG9SaZQzasvJvEE7JNAHxrpNjB_j6bQCw"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "wV0ZrVAXx88EUvIuk673MJLIAXcqQ-iV4vCCH50LCs0tLx65cI7ps6a31PSgIAnbp3SEg1VerkhUxJTxzyhzAg"
+      }
+    ]
+  }
+etc/scion/certs/ISD20-V1.trc: |-
+  {
+    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
+    "signatures": [
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "lMflSxDL23pPZdxm4kCQrrExtho-3qWjBUGtFR9DCyADGjuhBBvJhUYXKCQgJmZwZKQ6sNvZhQrN650H7pXIAQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "IEQs-UKm_a0azRdYCBKgfytqLPKkC-KicEn8WyGNj_nJEpc6il5SvfUJkfv1TAUu2m5TK3Cwi_06dlKaOuacDQ"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "5x2TpKF5nJA3Z9gLdD45NZGm7nJZn8ndLaN8groZogAR9jW4y4qICkXuXz9ESYyA0JWVNLv_NsEEcaT33-hHBA"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "LdhZ-vIz-I2G2dPJ3genkYhOCFJxsB3fZ_JDkm8w-94n8pAfh4CzdkiVLFJkW5xjIdcH6v-M5SyF-_4vwaXNAg"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
+        "signature": "CMXlaUloufb05e0myd4-fICnAVzCHrgJ7-mDegDHjMqSi3QuE70Gm-Muf887Rey_OHV9x7woExKQ-NpjSaa8Cg"
+      },
+      {
+        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
+        "signature": "wdZ-vcrtMLvPFnTTp1367W2i9CNq-kDLtpRJyEp4G2bf5KhdqdW_gtuYFEArtW0oGZ4-tiIErM3ng9Rvv7EjDQ"
+      }
+    ]
+  }
+etc/scion/cs-1.toml: |
+  [beacon_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs-1.beacon.db"
+
+  [beaconing]
+  origination_interval = "5s"
+  propagation_interval = "5s"
+  rev_overlap = "5s"
+  rev_ttl = "20s"
+
+  [general]
+  config_dir = "/etc/scion"
+  id = "cs-1"
+  reconnect_to_dispatcher = true
+
+  [metrics]
+  prometheus = "127.0.0.1:30454"
+
+  [path_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs-1.path.db"
+
+  [quic]
+  address = "127.0.0.1:30354"
+  cert_file = "/etc/scion/gen-certs/tls.pem"
+  key_file = "/etc/scion/gen-certs/tls.key"
+  resolution_fraction = 0.4
+
+  [trust_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/cs-1.trust.db"
+
+  [beaconing.policies]
+  Propagation = "/etc/scion/beacon_policy.yaml"
+
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/cs-1.log"
+etc/scion/keys/as-decrypt-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: curve25519xsalsa20poly1305
+  ia: 17-ffaa:0:1107
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
+  usage: as-decrypt
+  version: 1
+
+  yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=
+  -----END PRIVATE KEY-----
+etc/scion/keys/as-signing-v1.key: |
+  -----BEGIN PRIVATE KEY-----
+  algorithm: ed25519
+  ia: 17-ffaa:0:1107
+  not_after: 2019-10-02 11:07:41+0000
+  not_before: 2020-10-01 11:07:41+0000
+  usage: as-signing
+  version: 1
+
+  v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=
+  -----END PRIVATE KEY-----
+etc/scion/keys/master0.key: |-
+  R7D6Lhl52uxloBQFRulzzA==
+etc/scion/keys/master1.key: |-
+  R7D6Lhl52uxloBQFRulzzA==
+etc/scion/sd.toml: |
+  [general]
+  config_dir = "/etc/scion"
+  id = "sd"
+  reconnect_to_dispatcher = true
+
+  [metrics]
+  prometheus = "127.0.0.1:30455"
+
+  [path_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/sd.path.db"
+
+  [sd]
+  address = "127.0.0.1:30255"
+
+  [trust_db]
+  backend = "sqlite"
+  connection = "/var/lib/scion/sd.trust.db"
+
+  [log.file]
+  level = "debug"
+  max_age = 3
+  max_backups = 1
+  path = "/var/log/scion/sd.log"
+etc/scion/topology.json: |-
+  {
+    "Attributes": [],
+    "BorderRouters": {
+      "br-1": {
+        "CtrlAddr": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 30242
+            }
+          }
+        },
+        "Interfaces": {
+          "1": {
+            "Bandwidth": 1000,
+            "ISD_AS": "17-ffaa:0:1102",
+            "LinkTo": "PARENT",
+            "MTU": 1472,
+            "Overlay": "UDP/IPv4",
+            "PublicOverlay": {
+              "Addr": "192.0.2.17",
+              "OverlayPort": 50000
+            },
+            "RemoteOverlay": {
+              "Addr": "192.0.2.12",
+              "OverlayPort": 50001
+            }
+          }
+        },
+        "InternalAddrs": {
+          "IPv4": {
+            "PublicOverlay": {
+              "Addr": "127.0.0.1",
+              "OverlayPort": 30042
+            }
+          }
+        }
+      },
+      "br-2": {
+        "CtrlAddr": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 30243
+            }
+          }
+        },
+        "Interfaces": {
+          "2": {
+            "Bandwidth": 1000,
+            "ISD_AS": "17-ffaa:1:1",
+            "LinkTo": "CHILD",
+            "MTU": 1472,
+            "Overlay": "UDP/IPv4",
+            "PublicOverlay": {
+              "Addr": "10.0.8.1",
+              "OverlayPort": 50000
+            },
+            "RemoteOverlay": {
+              "Addr": "10.0.0.1",
+              "OverlayPort": 54321
+            }
+          },
+          "3": {
+            "Bandwidth": 1000,
+            "ISD_AS": "17-ffaa:1:5",
+            "LinkTo": "CHILD",
+            "MTU": 1472,
+            "Overlay": "UDP/IPv4",
+            "PublicOverlay": {
+              "Addr": "192.0.2.17",
+              "OverlayPort": 50001
+            },
+            "RemoteOverlay": {
+              "Addr": "172.31.0.200",
+              "OverlayPort": 54321
+            }
+          }
+        },
+        "InternalAddrs": {
+          "IPv4": {
+            "PublicOverlay": {
+              "Addr": "127.0.0.1",
+              "OverlayPort": 30043
+            }
+          }
+        }
+      }
+    },
+    "ControlService": {
+      "cs-1": {
+        "Addrs": {
+          "IPv4": {
+            "Public": {
+              "Addr": "127.0.0.1",
+              "L4Port": 30254
+            }
+          }
+        }
+      }
+    },
+    "ISD_AS": "17-ffaa:0:1107",
+    "MTU": 1472,
+    "Overlay": "UDP/IPv4"
+  }
+scionlab-config.json: |-
+  {
+    "files": {
+      "etc/openvpn/ccd/exbert@scionlab.org_ffaa_1_1": "72a44b475588d54d168220d99cb1d5b26a39decd",
+      "etc/openvpn/server.conf": "1ac605e494b70f28906b70434028d3724193aba8",
+      "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
+      "etc/scion/br-1.toml": "2df19de492ec1257d6cf3a244ead625c3fe3e102",
+      "etc/scion/br-2.toml": "7fd1b53d6c64cd2eff87c6c70d91990eb8909bcc",
+      "etc/scion/certs/ISD17-ASffaa_0_1107-V1.crt": "89bb64b0a92a9efc6d84e47ce1b2ab9c98bccf47",
+      "etc/scion/certs/ISD17-V1.trc": "ed4f99c371b544e3bd6b4293e14396fd40b0b657",
+      "etc/scion/certs/ISD19-V1.trc": "087f805b006e0ff52e8f4fbab3dcd63d27498601",
+      "etc/scion/certs/ISD20-V1.trc": "df94e1688f2c88dd9648fa4c003f895b546467ab",
+      "etc/scion/cs-1.toml": "0c31ad123b489e233f616393faad56d4a7e93b5d",
+      "etc/scion/keys/as-decrypt-v1.key": "70b7a82e6d8ebbff8018b4f2deb251c308ac2e3b",
+      "etc/scion/keys/as-signing-v1.key": "d79601ba79eea4161cc6b3f074f9d9e1df32bc5f",
+      "etc/scion/keys/master0.key": "d3061b379b7044f794e598e1910f3a95dac95040",
+      "etc/scion/keys/master1.key": "d3061b379b7044f794e598e1910f3a95dac95040",
+      "etc/scion/sd.toml": "6094e9c83d36e8ff82a188880b7612d4fb0f5c07",
+      "etc/scion/topology.json": "cb3d7a4480ec834dcf53201465034af672826b1c"
+    },
+    "host_id": "9e090a4529264b958a5c65fd8c214b1d",
+    "host_secret": "7abb3def0c4e4ddb85ba124d67d5544c",
+    "systemd_units": [
+      "scion-border-router@br-1.service",
+      "scion-border-router@br-2.service",
+      "scion-control-service@cs-1.service",
+      "scion-bwtestserver.service",
+      "scion-daemon@sd.service",
+      "scion-dispatcher.service"
+    ],
+    "url": "http://localhost:8000",
+    "version": 10
+  }
