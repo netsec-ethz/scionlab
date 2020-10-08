@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import configparser
-import ipaddress
 import os
 from collections import OrderedDict
 
