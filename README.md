@@ -100,7 +100,7 @@ These commands are also recorded in the preamble of the `*.txt` files.
 ##### Style checker:
 
 ```bash
-flake8 --config=flake8.ini
+flake8
 ```
 
 ##### Integration tests:

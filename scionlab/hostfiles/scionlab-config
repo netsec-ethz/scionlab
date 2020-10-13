@@ -27,40 +27,57 @@ Prerequisites:
 
 import argparse
 import base64
+import datetime
+import hashlib
 import io
 import json
 import logging
 import os
-import shutil
 import shlex
+import shutil
 import subprocess
 import sys
 import tarfile
 import tempfile
-import urllib.request
+import textwrap
 import time
-import re
+import urllib.request
 from collections import namedtuple
 
-SCION_CONFIG_PATH = '/etc/scion/'
-SERVICE_FILES_DIR = '/etc/systemd/system/'
-OPENVPN_CONFIG_DIR = '/etc/openvpn/'
-OPENVPN_CLIENT_NAME_REGEX = re.compile(r"client(-scionlab.*)?.conf")
+SCRIPT_VERSION = '3.0, api/v3, October 2020'
 
-DEFAULT_CONFIG_INFO_PATH = os.path.join(SCION_CONFIG_PATH, 'gen/scionlab-config.json')
+SCION_CONFIG_PATH = '/etc/scion'
+OPENVPN_CONFIG_DIR = '/etc/openvpn'
+
+CONFIG_INFO_FILE = 'scionlab-config.json'
+CONFIG_INFO_PATH = os.path.join(SCION_CONFIG_PATH, CONFIG_INFO_FILE)
+FALLBACK_CONFIG_INFO_PATH = os.path.join(SCION_CONFIG_PATH, 'gen', CONFIG_INFO_FILE)
+
+# Names for
+FALLBACK_SYSTEMD_UNIT_PATTERNS = [
+    'scion-border-router', 'scion-control-service', 'scion-daemon', 'scionlab-dispatcher'
+]
+
 DEFAULT_COORDINATOR_URL = 'https://www.scionlab.org'
 REQUEST_TIMEOUT_SECONDS = 10
 
 _CONFIG_EMPTY = object()
 _CONFIG_UNCHANGED = object()
 
-ConfigInfo = namedtuple('ConfigInfo',
-                        ['host_id',
-                         'host_secret',
-                         'url',
-                         'version'])
+# FetchInfo is the information needed to retrieve the configuration from the coordinator webserver
+FetchInfo = namedtuple('FetchInfo',
+                       ['host_id',
+                        'host_secret',
+                        'url',
+                        'version'])
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.WARNING)
+# ConfigInfo contains metadata about the scionlab configuration; lists of files (with hashes) and of
+# services installed by this script.
+ConfigInfo = namedtuple('ConfigInfo',
+                        ['files',
+                         'systemd_units'])
+
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
 
 
 def main(argv):
@@ -70,103 +87,141 @@ def main(argv):
     if os.geteuid() != 0:
         _error_exit("The script must be run as root")
     if not args.tar:
-        config_info = get_config_info(args)
-        config = fetch_config(config_info)
+        fetch_info = get_fetch_info(args)
+        config = fetch_config(fetch_info)
         if config is _CONFIG_EMPTY:
             stop_scion()
         elif config is _CONFIG_UNCHANGED:
             logging.info('Configuration unchanged (version %s). Nothing to do.',
-                         config_info.version)
+                         fetch_info.version)
         else:
-            install_config(config)
+            install_config(args, config)
             confirm_deployed(args)
     else:
         tar = tarfile.open(args.tar, mode='r')
-        install_config(tar)
+        install_config(args, tar)
 
 
 def parse_command_line_args(argv):
-    parser = argparse.ArgumentParser(description='Install configuration for a SCIONLab host.')
+    description = textwrap.dedent(
+        """
+        Install configuration for a SCIONLab host.
 
-    group_fetch = parser.add_argument_group('Fetch options')
-    parser.add_argument('--config-info',
-                        help="Path to json file containing host-id, secret and the local version. "
-                             "(default=%s)" % DEFAULT_CONFIG_INFO_PATH)
+        When invoked with no parameters, will attempt to fetch the latest configuration
+        for this host from the SCIONLab API and install it. The host-id/secret (and URL)
+        parameters for the SCIONLab API are read from, and stored to,
+        /etc/scion/scionlab-config.json.
+
+        The configuration for the SCION services is installed to /etc/scion.
+        If a VPN tunnel is configured, additional files are installed to /etc/openvpn.
+
+        By default, this script is cautious and will not overwrite local modifications to
+        configuration files. If a conflict occurs, e.g. if a file appears to be modified
+        locally and is also changed in the new version of the configuration, the script
+        asks for confirmation before overwriting the file.
+        Use --force to overwrite all locally modified config files and disable prompts
+        in case of conflicting file modifications.
+        """
+    )
+
+    epilog = textwrap.dedent(
+        """
+        Files:
+          /etc/scion/scionlab-config.json      Metadata about installed configuration
+          /etc/scion/*                         Configuration for SCION services
+          /etc/openvpn/client-scionlab-*.conf  Configuration for VPN tunnels
+        """
+    )
+
+    parser = argparse.ArgumentParser(prog='scionlab-config',
+                                     description=description,
+                                     epilog=epilog,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    group_config = parser.add_argument_group('Configuration installation options')
+    group_config.add_argument('--force',
+                              action='store_true',
+                              help='Overwrite locally modified configuration files. '
+                                   'Unconditionally fetch latest configuration from SCIONLab API.')
+    group_config.add_argument('--tar',
+                              type=argparse.FileType('r'),
+                              help='Install configuration from a tar-file already obtained from '
+                                   'the SCIONLab coordination service')
+
+    group_fetch = parser.add_argument_group('SCIONLab API options')
     group_fetch.add_argument('--host-id', help='Host identifier')
     group_fetch.add_argument('--host-secret', help='Authentication for host')
-    # Either 'local-version' or 'force'
-    group_version = group_fetch.add_mutually_exclusive_group()
-    group_version.add_argument('--local-version', help='',
-                               action='store', type=int)
-    group_version.add_argument('--force', help='',
-                               action='store_true')
     group_fetch.add_argument('--url', help='URL of the SCIONLab coordination service')
 
-    parser.add_argument('--tar')
+    parser.add_argument('--version', action='version', version='%(prog)s ' + SCRIPT_VERSION)
 
-    parser.add_argument('--version', action='version', version='%(prog)s 2.0, api/v2, March 2020')
-
-    return parser.parse_args(argv[1:])
-
-
-def get_config_info(args):
-    if args.config_info:
-        return _get_config_info_from_file(args.config_info, args)
-    elif args.host_id or args.host_secret:
-        if not args.host_id and args.host_secret:
-            _error_exit("Either none of or --host-id and --host-secret parameters need to be set")
-        return ConfigInfo(args.host_id,
-                          args.host_secret,
-                          args.url or DEFAULT_COORDINATOR_URL,
-                          args.local_version if not args.force else None)
+    args = parser.parse_args(argv)
+    # additional validation:
+    if args.tar:
+        if args.host_id or args.host_secret or args.url:
+            parser.error("argument --tar cannot be combined with any of --host-id, --host-secret, "
+                         "or --url\n")
     else:
-        if not os.path.exists(DEFAULT_CONFIG_INFO_PATH):
-            _error_exit("No scionlab config info file found at '%s'. Please specify the path to "
-                        "an existing config info file with --config-info, or explicitly provide "
-                        "authentication parameters for this host with --host-id and --host-secret.",
-                        DEFAULT_CONFIG_INFO_PATH)
-        return _get_config_info_from_file(DEFAULT_CONFIG_INFO_PATH, args)
+        if bool(args.host_id) != bool(args.host_secret):
+            parser.error("arguments --host-id and --host-secret must be used together\n")
+    return args
 
 
-def _get_config_info_from_file(file, args):
+def get_fetch_info(args):
+    if args.host_id:
+        assert args.host_secret
+        return FetchInfo(args.host_id,
+                         args.host_secret,
+                         args.url or DEFAULT_COORDINATOR_URL,
+                         None)
+    else:
+        for file in [CONFIG_INFO_PATH, FALLBACK_CONFIG_INFO_PATH]:
+            if os.path.exists(file):
+                return _load_fetch_info(file, args)
+        else:
+            _error_exit("No scionlab config info file found at '%s'. "
+                        "Please specify authentication parameters for this host "
+                        "with --host-id and --host-secret.",
+                        CONFIG_INFO_PATH)
+
+
+def _load_fetch_info(file, args):
     """
     Load config info file.
     Overwrite url with the URL argument.
-    Overwrite the version if '--force' or '--local-version' are given.
+    Overwrite the version if '--force' is given.
     """
-    config_info = _load_config_info(file)
+    fetch_info = _read_fetch_info(file)
 
     if args.url:
-        config_info = config_info._replace(url=args.url)
+        fetch_info = fetch_info._replace(url=args.url)
 
     if args.force:
-        config_info = config_info._replace(version=None)
-    elif args.local_version:
-        config_info = config_info._replace(version=args.local_version)
+        fetch_info = fetch_info._replace(version=None)
 
-    return config_info
+    return fetch_info
 
 
-def _load_config_info(file):
+def _read_fetch_info(file):
     """
-    Load and parse the config info json-file.
-    :returns: ConfigInfo
+    Load and parse the fetch information from the scionlab-config.json file.
+    :returns: FetchInfo
     """
     try:
         with open(file, 'r') as f:
             config_info_dict = json.load(f)
-    except IOError as e:
+    except (IOError, json.decoder.JSONDecodeError) as e:
         _error_exit("Error loading the scionlab config info file '%s': %s", file, e)
     try:
-        return ConfigInfo(config_info_dict['host_id'],
-                          config_info_dict['host_secret'],
-                          config_info_dict.get('url') or DEFAULT_COORDINATOR_URL,
-                          config_info_dict.get('version'))
+        return FetchInfo(config_info_dict['host_id'],
+                         config_info_dict['host_secret'],
+                         config_info_dict.get('url') or DEFAULT_COORDINATOR_URL,
+                         config_info_dict.get('version'))
     except KeyError as e:
         _error_exit("Invalid scionlab config info file '%s': %s", file, e)
 
 
-def fetch_config(config_info):
+def fetch_config(fetch_info):
     """
     Request configuration tar-ball from SCIONLab coordinator.
 
@@ -174,28 +229,28 @@ def fetch_config(config_info):
     request sent to the coordinator will include the currently installed version. If the current
     version is already the latest version, the server will reply with 304 Not Modified.
 
-    :param ConfigInfo config_info: base url, host-id/secret for authentication, version (optional).
+    :param FetchInfo fetch_info: base url, host-id/secret for authentication, version (optional).
     :returns:
         - _CONFIG_UNCHANGED if the current version is already the latest version, or
         - _CONFIG_EMPTY if there is currently no configuration for this host, or
         - tarfile.tar the configuration archive
     """
 
-    url = '{coordinator_url}/api/v2/host/{host_id}/config'.format(
-        coordinator_url=config_info.url.rstrip('/'),
-        host_id=config_info.host_id
+    url = '{coordinator_url}/api/v3/host/{host_id}/config'.format(
+        coordinator_url=fetch_info.url.rstrip('/'),
+        host_id=fetch_info.host_id
     )
 
     # version may be None (if "--force" is used or if version is not in the config info file and
     # we will behave like --force here if the config is not yet ready for deb packages)
     data = {}
-    if config_info.version:
-        data['version'] = config_info.version
+    if fetch_info.version:
+        data['version'] = fetch_info.version
 
     error_msg = "Failed to fetch configuration from SCIONLab coordinator at %s: %s"
 
     try:
-        conn = _http_get(url, data, username=config_info.host_id, password=config_info.host_secret)
+        conn = _http_get(url, data, username=fetch_info.host_id, password=fetch_info.host_secret)
         code = conn.getcode()
         if code == 200:
             response_data = conn.read()
@@ -203,14 +258,14 @@ def fetch_config(config_info):
         elif code == 204:
             return _CONFIG_EMPTY
         else:
-            _error_exit(error_msg, config_info.url, code)
+            _error_exit(error_msg, fetch_info.url, code)
     except urllib.error.HTTPError as e:
         if e.code == 304:
             return _CONFIG_UNCHANGED
         else:
-            _error_exit(error_msg, config_info.url, e)
+            _error_exit(error_msg, fetch_info.url, e)
     except Exception as e:
-        _error_exit(error_msg, config_info.url, e)
+        _error_exit(error_msg, fetch_info.url, e)
 
 
 def confirm_deployed(args):
@@ -223,16 +278,16 @@ def confirm_deployed(args):
     :param args: commandline arguments for optional coordinator URL
     """
     # Get newly installed config info
-    config_info = _load_config_info(DEFAULT_CONFIG_INFO_PATH)
+    fetch_info = _read_fetch_info(CONFIG_INFO_PATH)
     if args.url:
-        config_info = config_info._replace(url=args.url)
+        fetch_info = fetch_info._replace(url=args.url)
 
-    url = '{coordinator_url}/api/v2/host/{host_id}/deployed_config_version'.format(
-        coordinator_url=config_info.url.rstrip('/'),
-        host_id=config_info.host_id
+    url = '{coordinator_url}/api/v3/host/{host_id}/deployed_config_version'.format(
+        coordinator_url=fetch_info.url.rstrip('/'),
+        host_id=fetch_info.host_id
     )
-    data = {'version': config_info.version}
-    _http_post(url, data, username=config_info.host_id, password=config_info.host_secret)
+    data = {'version': fetch_info.version}
+    _http_post(url, data, username=fetch_info.host_id, password=fetch_info.host_secret)
 
 
 def _http_get(url, params, username, password):
@@ -273,97 +328,223 @@ def _error_exit(*args, **kwargs):
     sys.exit(1)
 
 
-def install_config(tar):
-    try:
-        tmpdir = tempfile.mkdtemp()
-        tar.extractall(path=tmpdir)
-        install_vpn_client_configs(tmpdir)
-        install_vpn_server_config(tmpdir)
-        # TODO quick reload: only restart if set of processes changed, otherwise trigger config
-        # reloading
+def install_config(args, tar):
+    """
+    Install the configuration files from the tar ball.
+    Checks for modification conflicts, i.e. for files that are modified locally and that would also
+    be changed by installing the new file.
+    If running with --force, the conflicting files will be overwritten, but a backup is created.
+    Otherwise, the user is prompted for choice (replace/replace and backup/skip) where necessary.
+
+                           result
+       old   disk    new   default  force
+        x      x      x     x
+        x      x      z     z
+        x      x      -     -
+        x      y      x     y       x     keep y (with --force: replace + backup)
+        x      y      y     y
+        x      y      z     ?       z     prompt (with --force: replace + backup)
+        x      y      -     -             delete (guessing modification is no longer relevant)
+        -      y      -     -
+        -      y      y     y
+        -      y      z     ?       z     prompt (with --force: replace + backup)
+        x      -      x     x
+        x      -      y     y
+        x      -      -     -        -
+    """
+    # Get metadata about currently installed configuration
+    old_config_info = _read_config_info_file()
+    old_files = old_config_info.files if old_config_info is not None else {}
+
+    # Load new metadata from tar:
+    new_config_info = _read_config_info_tar_member(tar)
+    new_files = new_config_info.files
+
+    skip, backup = resolve_file_conflicts(args.force, old_files, new_files)
+
+    if args.force and backup:  # only warn in --force, otherwise user has already been prompted
+        logging.warn("Overwriting files with local modifications, creating backup: %s",
+                     ", ".join(_root(f) for f in backup))
+    backup_files(backup)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # safely extract files; new_files list has been checked
+        # (c.f. warning on tarfile.TarFile.extractall)
+        to_extract = list(new_files) + [CONFIG_INFO_FILE]
+        tar.extractall(path=tmpdir, members=[tar.getmember(f) for f in to_extract])
+
         stop_scion()
-        install_scionlab_service(tmpdir)
-        install_scion_config(tmpdir)
-        restart_scion()
-    finally:
-        shutil.rmtree(tmpdir)
+
+        install_config_files(old_files, new_files, skip, tmpdir)
+        enable_scionlab_services(old_config_info, new_config_info)
+        os.replace(os.path.join(tmpdir, CONFIG_INFO_FILE), CONFIG_INFO_PATH)
+
+        run_vpn_tunnels(old_files, new_files)
+        run_scion()
+
+    # Cleanup configuration in gen/ directory (old style)
+    if os.path.exists(FALLBACK_CONFIG_INFO_PATH):
+        shutil.rmtree(os.path.join(SCION_CONFIG_PATH, 'gen'), ignore_errors=True)
 
 
-def install_scion_config(tmpdir):
-    """ Moves gen to /etc/scion/gen """
-    sc = SCION_CONFIG_PATH
-    if not os.path.isdir(sc):
-        _error_exit('No SCION configuration directory found at %s', sc)
-    _mv_dir(tmpdir, 'gen', sc)
-    subprocess.run(['chown', '-R', 'scion:scion', os.path.join(SCION_CONFIG_PATH, 'gen')])
+def resolve_file_conflicts(force, old_files, new_files):
+    """
+    Check for modification conflicts and determines the appropriate action, prompting the user
+    where necessary. Returns the lists of files to be skipped and backed-up
+
+    :returns: list of files to be skipped, list of files to backed up
+    """
+    conflicts = find_file_conflicts(old_files, new_files)
+    if force:
+        skip = []
+        backup = conflicts
+    else:
+        unchanged = [f for f in new_files if new_files[f] == old_files.get(f, None)]
+        prompts = sorted(set(conflicts) - set(unchanged))
+        skip, backup = prompt_conflicts(old_files, new_files, prompts)
+        skip += unchanged
+
+    return skip, backup
 
 
-def install_scionlab_service(tmpdir):
+def find_file_conflicts(old_files, new_files):
+    """
+    Find any local files which are replaced by a new file and are not identical
+    to the old installed file.
+    :returns: list of conflicting file names
+    """
+
+    disk_files = {}
+    for f in set(old_files.keys()) | set(new_files.keys()):
+        if os.path.exists(_root(f)):
+            disk_files[f] = _sha1(_root(f))
+
+    conflicts = []
+    for f, h in disk_files.items():
+        if (f in new_files and h != new_files[f]) and (f not in old_files or h != old_files[f]):
+            conflicts.append(f)
+    return conflicts
+
+
+def prompt_conflicts(old_files, new_files, conflicts):
+    skip = []
+    backup = []
+    for f in conflicts:
+        if f in old_files:
+            explanation = "File '/%s' was modified and the updated config would overwrite it." % f
+        else:
+            explanation = "File '/%s' exists on disk and the updated config would overwrite it." % f
+
+        question = ("Do you want to (b)ackup + replace, (o)verwrite, or (k)eep the file? "
+                    "(default: backup + replace)?")
+        options = ["backup", "overwrite", "keep", "quit"]
+        reply = _prompt(explanation, question, options, default="backup")
+        if reply == "quit":
+            sys.exit(1)
+        elif reply == "keep":
+            skip.append(f)
+        elif reply == "backup":
+            backup.append(f)
+
+    return skip, backup
+
+
+def backup_files(files):
+    """ Create a backup copy of files. Files are given as list of root-relative paths. """
+    suffix = ".bk-" + datetime.date.today().strftime("%Y%m%d")
+    for f in files:
+        backup_file(_root(f), suffix)
+
+
+def backup_file(path, suffix):
+    """ Create a backup copy of file at path. Finds a non-existing name for the backup file """
+    bkname = path + suffix
+    idx = 0
+    while os.path.exists(bkname):
+        idx += 1
+        bkname = path + suffix + "-%i" % idx
+    os.rename(path, bkname)
+
+
+def install_config_files(old_files, new_files, skip, tmpdir):
+    """ Install new config files by copying from tmpdir, and remove old files """
+
+    to_delete = set(old_files) - set(new_files) - set(skip)
+    for f in to_delete:
+        os.remove(_root(f))
+
+    to_install = set(new_files) - set(skip)
+    for f in to_install:
+        os.makedirs(os.path.dirname(_root(f)), exist_ok=True)
+        os.replace(os.path.join(tmpdir, f), _root(f))
+        subprocess.run(['chown', 'scion:scion', _root(f)])
+
+
+def enable_scionlab_services(old_config_info, new_config_info):
     """ Creates the appropriate dependencies for scionlab.target """
 
-    scionlab_services = os.path.join(tmpdir, 'scionlab-services.txt')
-    if not os.path.exists(scionlab_services):
-        _error_exit("Could not find the scionlab-services.txt file in %s", tmpdir)
-
-    # 1. remove existing links to scionlab.target
+    # 1. disable old units
+    # systemctl disable appears to have issues when the "physical" unit-file no longer exists (e.g.
+    # package has been removed or file was renamed). Directly deleting the symlinks always works.
     wants = '/etc/systemd/system/scionlab.target.wants/'
     if os.path.exists(wants):
-        for f in os.listdir(wants):
-            f = os.path.join(wants, f)
-            os.remove(f)
+        for unit in os.listdir(wants):
+            if _controlled_unit(old_config_info, unit):
+                os.remove(os.path.join(wants, unit))
         subprocess.run(['systemctl', 'daemon-reload'], check=True)
 
-    # 2. add links to scionlab.target
-    with open(scionlab_services, 'r') as f:
-        services = f.readlines()
-    for srv in services:
-        srv = srv.strip()
-        subprocess.run(['systemctl', 'enable', srv])
+    # 2. enable new units
+    for unit in new_config_info.systemd_units:
+        subprocess.run(['systemctl', 'enable', unit])
+
+
+def _controlled_unit(old_config_info, unit):
+    """ Returns true if unit is a systemd unit that was (probably) installed by this script. """
+    if old_config_info is not None:
+        return unit in old_config_info.systemd_units
+    else:
+        return any(unit.startswith(p) for p in FALLBACK_SYSTEMD_UNIT_PATTERNS)
 
 
 def stop_scion():
     subprocess.run(['systemctl', 'stop', 'scionlab.target'], check=True)
 
 
-def restart_scion():
-    subprocess.run(['systemctl', 'restart', 'scionlab.target'], check=True)
+def run_scion():
+    subprocess.run(['systemctl', 'start', 'scionlab.target'], check=True)
 
 
-def install_vpn_client_configs(tmpdir):
+def run_vpn_tunnels(old_files, new_files):
+    def vpn_config_files(files):
+        return [f for f in files
+                if os.path.dirname(_root(f)) == OPENVPN_CONFIG_DIR
+                and os.path.splitext(f)[1] == '.conf']
 
-    def list_client_confs(path):
-        return list(filter(OPENVPN_CLIENT_NAME_REGEX.fullmatch, os.listdir(path)))
+    def unit_name(config):
+        return 'openvpn@{}'.format(os.path.splitext(os.path.basename(config))[0])
 
-    def unit_name(config_filename):
-        return 'openvpn@{}'.format(os.path.splitext(conf)[0])
+    old = vpn_config_files(old_files)
+    new = vpn_config_files(new_files)
 
-    old = list_client_confs(OPENVPN_CONFIG_DIR)
-    new = list_client_confs(tmpdir)
+    if any(unit_name(f) == 'openvpn@server' for f in new):
+        _init_vpn_server_dhparam()
 
-    for conf in sorted(set(old) - set(new)):
-        subprocess.run(['systemctl', 'stop', unit_name(conf)], check=True)
-        os.remove(os.path.join(OPENVPN_CONFIG_DIR, conf))
-
-    for conf in sorted(new):
-        shutil.copy(os.path.join(tmpdir, conf), OPENVPN_CONFIG_DIR)
-        subprocess.run(['systemctl', 'restart', unit_name(conf)], check=True)
+    for config in sorted(set(old) - set(new)):
+        subprocess.run(['systemctl', 'stop', unit_name(config)], check=True)
+    for config in sorted(new):
+        # Note: why not reload-or-restart? If a reload-or-restart fails because e.g. the
+        # configuration is messed up, the unit will be left in a state ("activating") that prevents
+        # future reload-or-restart even if the config is fixed. So we'd have to check for that and
+        # that seems too clunky for its worth.
+        subprocess.run(['systemctl', 'restart', unit_name(config)], check=True)
 
     wait_for_tun(len(new))
 
 
-def install_vpn_server_config(tmpdir):
-    exists, changed = _install_file(tmpdir, 'server.conf', '/etc/openvpn/')
-    if exists:
-        _mv_dir(tmpdir, 'ccd', '/etc/openvpn/')
-    if changed:
-        if exists:
-            if not os.path.exists('/etc/openvpn/dh.pem'):
-                subprocess.run(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'],
-                               check=True)
-            subprocess.run(['systemctl', 'restart', 'openvpn@server'], check=True)
-            wait_for_tun(1)
-        else:
-            subprocess.run(['systemctl', 'stop', 'openvpn@server'], check=False)
+def _init_vpn_server_dhparam():
+    if not os.path.exists('/etc/openvpn/dh.pem'):
+        subprocess.run(['openssl', 'dhparam', '-out', '/etc/openvpn/dh.pem', '2048'],
+                       check=True)
 
 
 def wait_for_tun(num):
@@ -389,7 +570,7 @@ def wait_for_tun(num):
         if len(tuns) >= num:
             logging.debug("VPN up: {}".format(", ".join(tuns)))
             return True
-    logging.warn('WARNING!: VPN could be unready. SCION may fail to start.')
+    logging.warn('VPN could be unready. SCION may fail to start.')
     return False
 
 
@@ -406,34 +587,105 @@ def list_tun_interfaces():
     return [line[:line.find(b':')].decode() for line in st.stdout.strip().split(b'\n')]
 
 
-def _mv_dir(srcdir, dirname, dstdir):
-    shutil.rmtree(os.path.join(dstdir, dirname), ignore_errors=True)
-    shutil.move(os.path.join(srcdir, dirname), dstdir)
-
-
-def _install_file(srcdir, filename, dstdir):
+def _read_config_info_file():
     """
-    Installs the file from srcdir into the directory dstdir.
-    If the file doesn't exist in srcdir, the file at dstdir will be removed.
-    :returns:   tuple (exists, changed):
-                    exists indicates whether the file exists now.
-                    changed indicates whether the file was changed.
+    Load and parse the fetch information from the scionlab-config.json file.
+    :returns: ConfigInfo or None
     """
-    srcfilename = os.path.join(srcdir, filename)
-    dstfilename = os.path.join(dstdir, filename)
-    if not os.path.exists(srcfilename):
-        if os.path.exists(dstfilename):
-            subprocess.run(['rm', dstfilename], check=True)
-            return (False, True)
-        return (False, False)
+    if not os.path.exists(CONFIG_INFO_PATH):
+        return None
 
-    equal = subprocess.run(['diff', '-q', srcfilename, dstfilename],
-                           check=False,
-                           stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL).returncode == 0
-    if not equal:
-        subprocess.run(['mv', srcfilename, dstfilename], check=True)
-    return (True, not equal)
+    try:
+        with open(CONFIG_INFO_PATH, 'r') as f:
+            return _read_config_info(f)
+    except (IOError, json.decoder.JSONDecodeError, KeyError, ValueError) as e:
+        _error_exit("Error loading the scionlab config info file '%s': %s", CONFIG_INFO_PATH, e)
+
+
+def _read_config_info_tar_member(tar):
+    """
+    Load and parse the fetch information from the scionlab-config.json tar member.
+    :returns: ConfigInfo
+    """
+    try:
+        with tar.extractfile(tar.getmember(CONFIG_INFO_FILE)) as f:
+            return _read_config_info(f)
+    except (IOError, json.decoder.JSONDecodeError, KeyError, ValueError) as e:
+        _error_exit("Error loading the scionlab config info from the tar: %s", e)
+
+
+def _read_config_info(f):
+    """
+    Load and parse the config information from the file-like f.
+    :returns: ConfigInfo
+    """
+    config_info_dict = json.load(f)
+    info = ConfigInfo(config_info_dict['files'],
+                      config_info_dict['systemd_units'])
+    _sanity_check_file_list(info.files)
+    return info
+
+
+def _sanity_check_file_list(files):
+    """
+    Sanity check that the file list contains entries only in the expected directories.
+    As this script is running as root, we should be extra careful when later extracting these files
+    from the tar.
+    """
+    # note: file list must contain relative paths only (relative to the tar root)
+    acceptable_dirs = [
+        "etc/scion",
+        "etc/openvpn",
+    ]
+    for f in files:
+        if (os.path.normpath(f) != f   # not norm is fishy
+                or f.startswith("/")   # must not be absolute
+                or f.endswith("/")     # should not (obviously) be a dir
+                or not any(os.path.commonpath([os.path.dirname(f), d]) == d
+                           for d in acceptable_dirs)):
+            raise ValueError("The list of files has a fishy entry ('%s')." % f)
+
+
+def _root(path):
+    """ Returns /path """
+    return "/" + path
+
+
+def _sha1(path):
+    """ Compute the sha1 of the file at path """
+    with open(path, 'rb') as f:
+        return hashlib.sha1(f.read()).hexdigest()
+
+
+def _prompt(explanation, question, options, default=None):
+    """
+    Ask a question via input() and return the answer.
+
+    explanation is the context that is printed once.
+    question is the explicit question that is presented to the user; this is repeated on bad inputs.
+    options is a list of distinct answers;
+    options must be lowercase and the first letter of each choice must be distinct.
+
+    Returns the selected option.
+    """
+    sys.stdout.write(explanation + " " + question)
+    prompt = " [%s] " % "/".join(o[0].upper() if o == default else o[0] for o in options)
+    while True:
+        try:
+            choice = input(prompt).lower()
+        except EOFError:
+            sys.stdout.write("\n")
+            sys.exit(1)
+
+        if default is not None and choice == '':
+            return default
+        for option in options:
+            if option.startswith(choice):
+                return option
+        else:
+            sys.stdout.write("Please respond with any of " +
+                             "/".join(o[0] for o in options) + ".\n")
+            sys.stdout.write(question)
 
 
 def _get_argv():
@@ -447,13 +699,13 @@ def _get_argv():
     ssh_original_cmd = os.environ.get('SSH_ORIGINAL_COMMAND')
     if ssh_original_cmd:
         argv = shlex.split(ssh_original_cmd)
-        if not argv or argv[0] != os.path.basename(sys.argv[0]):  # avoid silly things
+        if not argv or argv[0] != 'scionlab-config':  # avoid silly things
             return None
-        return argv
-    return sys.argv
+        return argv[1:]
+    return sys.argv[1:]
 
 
 if __name__ == '__main__':
     argv = _get_argv()
-    if argv:
+    if argv is not None:
         main(argv)

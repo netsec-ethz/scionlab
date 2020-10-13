@@ -74,7 +74,7 @@ def _fetch_routers(as_):
     for id, router in enumerate(as_.border_routers.order_by('pk').iterator(), start=1):
         if router.interfaces.active().exists():  # skip empty BRs
             router.instance_id = id
-            router.instance_name = "br%s-%s" % (as_.isd_as_path_str(), id)
+            router.instance_name = f"br-{id}"
             routers.append(router)
     return routers
 
@@ -84,7 +84,7 @@ def _fetch_services(as_):
     for stype, _ in Service.SERVICE_TYPES:
         for id, service in enumerate(as_.services.filter(type=stype).order_by('pk'), start=1):
             service.instance_id = id
-            service.instance_name = "%s%s-%s" % (stype.lower(), as_.isd_as_path_str(), id)
+            service.instance_name = f"{stype.lower()}-{id}"
             services.append(service)
     return services
 
@@ -201,7 +201,7 @@ def _topo_add_sig_dummy_entry(topo_dict, host, as_address_type):
     error behaviour slighly when receiving packets addressed to the SIG without the SIG running.
     """
     topo_dict["SIG"] = {
-        "sig%s-1" % host.AS.isd_as_path_str(): {  # id is irrelevant, not used for anything
+        "sig-1": {  # id is irrelevant, not used for anything
             "Addrs": {
                 as_address_type: {
                     "Public": {

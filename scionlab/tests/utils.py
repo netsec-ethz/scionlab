@@ -14,8 +14,8 @@
 
 import base64
 import io
+import json
 import os
-import pathlib
 import re
 import tarfile
 
@@ -449,23 +449,23 @@ def check_tarball_user_as(testcase, response, user_as):
     tar = _check_open_tarball(testcase, response)
 
     if user_as.installation_type == UserAS.VM:
-        testcase.assertEquals(sorted(['README.md', 'Vagrantfile']),
-                              tar_ls(tar, ''))
+        testcase.assertEquals(sorted(['README.md', 'Vagrantfile']), tar_ls(tar, ''))
         # appropriate README?
-        readme = tar.extractfile('README.md').read().decode()
-        testcase.assertTrue(readme.startswith('# SCIONLab VM'))
+        _check_tarball_readme(testcase, tar, '# SCIONLab VM')
         # Vagrantfile template expanded correctly?
         vagrantfile = tar.extractfile('Vagrantfile')
         lines = [line.decode() for line in vagrantfile]
         name_lines = [line.strip() for line in lines if line.strip().startswith('vb.name')]
         testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_path_str()])
-    else:
-        testcase.assertEquals(sorted(['README.md', 'gen']),
-                              tar_ls(tar, ''))
-        # check the full content of gen/
+    elif user_as.installation_type == UserAS.SRC:
+        testcase.assertEquals(sorted(['README.md', 'gen']), tar_ls(tar, ''))
         _check_tarball_gen(testcase, tar, user_as.hosts.get())
-        readme = tar.extractfile('README.md').read().decode()
-        testcase.assertTrue(readme.startswith('# SCIONLab Dedicated'))
+        _check_tarball_readme(testcase, tar, '# SCIONLab Dedicated')
+    else:
+        testcase.assertEquals(sorted(['README.md', 'etc']), tar_ls(tar, ''))
+        _check_tarball_etc_scion(testcase, tar, user_as.hosts.get())
+        _check_tarball_info(testcase, tar, user_as.hosts.get())
+        _check_tarball_readme(testcase, tar, '# SCIONLab Dedicated')
     return tar
 
 
@@ -476,12 +476,8 @@ def check_tarball_host(testcase, response, host):
     """
     tar = _check_open_tarball(testcase, response)
 
-    top_dir = tar_ls(tar, '')
-    testcase.assertTrue('gen' in top_dir)
-    _check_tarball_gen(testcase, tar, host)
-
-    testcase.assertTrue('scionlab-services.txt' in top_dir)
-    _check_tarball_services(testcase, tar, host)
+    _check_tarball_etc_scion(testcase, tar, host)
+    _check_tarball_info(testcase, tar, host)
     return tar
 
 
@@ -498,38 +494,70 @@ def _check_open_tarball(testcase, response):
     return tar
 
 
+def _check_tarball_etc_scion(testcase, tar, host):
+    """
+    Basic sanity checks for the configuration for /etc/scion contained in the tar.
+    """
+
+    expected = [
+        'beacon_policy.yaml',
+        'certs',
+        'keys',
+        'sd.toml',
+        'topology.json',
+    ]
+    expected += [
+        "%s-%i.toml" % (s.type.lower(), s._service_idx()) for s in host.services.all()
+        if s.type in Service.CONTROL_SERVICE_TYPES
+    ]
+    expected += [
+        "br-%i.toml" % r._br_idx() for r in host.border_routers.all()
+    ]
+    print(tar_ls(tar, 'etc/scion'))
+    testcase.assertEqual(sorted(expected), tar_ls(tar, 'etc/scion'))
+
+
 def _check_tarball_gen(testcase, tar, host):
     """
     Basic sanity checks for the gen/ folder contained in the tar.
     """
-    isd_str = 'ISD%i' % host.AS.isd.isd_id
     as_str = 'AS%s' % host.AS.as_path_str()
 
-    testcase.assertEqual([isd_str, 'dispatcher', 'scionlab-config.json'], tar_ls(tar, 'gen'))
-    testcase.assertEqual([as_str], tar_ls(tar, os.path.join('gen', isd_str)))
-
-    as_gen_dir = os.path.join('gen', isd_str, as_str)
-    topofiles = [f for f in tar.getnames() if
-                 pathlib.PurePath(f).match(as_gen_dir + "/*/topology.json")]
-    testcase.assertTrue(topofiles)
+    testcase.assertEqual([as_str, 'dispatcher', 'supervisord.conf'], tar_ls(tar, 'gen'))
+    as_dir = tar_ls(tar, os.path.join('gen', as_str))
+    testcase.assertIn('topology.json', as_dir)
 
 
-def _check_tarball_services(testcase, tar, host):
-    services = tar_cat(tar, 'scionlab-services.txt').decode().split('\n')
+def _check_tarball_info(testcase, tar, host):
+    config_info = json.loads(tar_cat(tar, 'scionlab-config.json'))
 
-    br = ["scion-border-router@%s.service" % str(br).replace('br-', '')
+    testcase.assertEqual(config_info['host_id'], host.uid)
+    testcase.assertEqual(config_info['host_secret'], host.secret)
+    testcase.assertEqual(config_info['version'], host.config_version)
+    testcase.assertIn('url', config_info)
+
+    br = ["scion-border-router@br-%i.service" % br._br_idx()
           for br in host.border_routers.all()]
-    cs = ["scion-control-service@%s.service" % str(s).replace('cs-', '')
+    cs = ["scion-control-service@cs-%i.service" % s._service_idx()
           for s in host.services.filter(type=Service.CS)]
     bw = ["scion-bwtestserver.service"
           for _ in host.services.filter(type=Service.BW)]
 
     expected_services = br + cs + bw + [
-        "scion-daemon@%s.service" % host.AS.isd_as_path_str(),
+        "scion-daemon@sd.service",
         "scion-dispatcher.service",
     ]
 
+    services = config_info['systemd_units']
     testcase.assertEqual(sorted(services), sorted(expected_services))
+
+
+def _check_tarball_readme(testcase, tar, expected_heading):
+    """
+    Sanity check for README
+    """
+    readme = tar_cat(tar, 'README.md').decode()
+    testcase.assertTrue(readme.startswith(expected_heading))
 
 
 def tar_ls(tar, path):
