@@ -132,6 +132,18 @@ def test_build_extensions_ca(subject_key, issuer_key):
             (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False)]
 
 
+def test_build_extensions_as(subject_key, issuer_key):
+    """
+    Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
+    """
+    return [(x509.KeyUsage(True, False, False, False, False, False, False, False, False),True),
+            (x509.SubjectKeyIdentifier.from_public_key(subject_key.public_key()), False),
+            (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False),
+            (x509.ExtendedKeyUsage(
+                [x509.ExtendedKeyUsageOID.SERVER_AUTH, x509.ExtendedKeyUsageOID.CLIENT_AUTH, x509.ExtendedKeyUsageOID.TIME_STAMPING]
+            ), False)]
+
+
 def test_generate_voting_certs():
     # sensitive:
     key = test_build_key()
@@ -140,7 +152,6 @@ def test_generate_voting_certs():
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
                            extensions=test_build_extensions_voting(key, OID_SENSITIVE_KEY))
-    print(cert.public_bytes(serialization.Encoding.PEM).decode("ascii"))
     with open("scionlab-test-sensitive.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # regular:
@@ -152,10 +163,10 @@ def test_generate_voting_certs():
                            extensions=test_build_extensions_voting(key, OID_REGULAR_KEY))
     with open("scionlab-test-regular.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
-    
+
 
 def test_generate_ca():
-    # generate root
+    # generate root:
     key = test_build_key()
     root_issuer = (key, test_deleteme_create_a_name("root"))
     cert = test_build_cert(subject=root_issuer,
@@ -166,24 +177,45 @@ def test_generate_ca():
     with open("scionlab-test-root.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # generate ca:
-    # TODO the CA is signed with the root key
     key = test_build_key()
-    cert = test_build_cert(subject=(key, test_deleteme_create_a_name("ca")),
+    ca_issuer = (key, test_deleteme_create_a_name("ca"))
+    cert = test_build_cert(subject=ca_issuer,
                            issuer=root_issuer,
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
                            extensions=test_build_extensions_ca(key, root_issuer[0]))
     with open("scionlab-test-ca.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
-    pass
+
+    return ca_issuer, cert
+
+
+def test_generate_as(issuer, asid):
+    """
+    issuer is a 2-tuple (key, name)
+    """
+    key = test_build_key()
+    cert = test_build_cert(subject=(key, test_deleteme_create_a_name("regular AS " + asid)),
+                           issuer=issuer,
+                           notvalidbefore=datetime.utcnow(),
+                           notvalidafter=datetime.utcnow() + timedelta(days=1),
+                           extensions=test_build_extensions_as(key, issuer[0]))
+    with open(f"scionlab-test-as{asid}.crt", "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
+
+
+def test_generate_ases(ca_issuer, ases):
+    for asid in ases:
+        test_generate_as(ca_issuer, asid)
 
 
 def test_cppki():
     # create voters
     test_generate_voting_certs()
     # create CAs
-    test_generate_ca()
+    ca_issuer, _ = test_generate_ca()
     # create ASes
+    test_generate_ases(ca_issuer, ["1-ff00:0:111", "1-ff00:0:112"])
     # create TRCs
     # flatten?
 
