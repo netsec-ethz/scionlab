@@ -132,7 +132,8 @@ def test_build_extensions_ca(subject_key, issuer_key):
             (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False)]
 
 
-def test_generate_issuer_certs():
+def test_generate_voting_certs():
+    # sensitive:
     key = test_build_key()
     cert = test_build_cert(subject=(key, test_deleteme_create_a_name("sensitive")),
                            issuer=None,
@@ -142,7 +143,15 @@ def test_generate_issuer_certs():
     print(cert.public_bytes(serialization.Encoding.PEM).decode("ascii"))
     with open("scionlab-test-sensitive.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
-    # repeat steps to create a non sensitive, regular certificate and key
+    # regular:
+    key = test_build_key()
+    cert = test_build_cert(subject=(key, test_deleteme_create_a_name("regular")),
+                           issuer=None,
+                           notvalidbefore=datetime.utcnow(),
+                           notvalidafter=datetime.utcnow() + timedelta(days=1),
+                           extensions=test_build_extensions_voting(key, OID_REGULAR_KEY))
+    with open("scionlab-test-regular.crt", "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
     
 
 def test_generate_ca():
@@ -171,7 +180,7 @@ def test_generate_ca():
 
 def test_cppki():
     # create voters
-    test_generate_issuer_certs()
+    test_generate_voting_certs()
     # create CAs
     test_generate_ca()
     # create ASes
