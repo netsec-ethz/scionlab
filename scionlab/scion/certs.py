@@ -17,8 +17,12 @@
 ====================================================================================
 """
 
+import subprocess
+import toml
+
 from datetime import datetime, timedelta
 from scionlab.scion import keys, jws
+from scionlab.scion.as_ids import parse
 from scionlab.scion.trcs import _utc_timestamp
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ObjectIdentifier
@@ -204,9 +208,108 @@ def test_generate_as(issuer, asid):
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
 
-def test_generate_ases(ca_issuer, ases):
-    for asid in ases:
+def test_generate_ases(ca_issuer, asids):
+    for asid in asids:
         test_generate_as(ca_issuer, asid)
+
+
+class TRCConf:
+    def __init__(self, isd_id, authoritative, core, certificates):
+        """
+        authoritative ASes are those that know which TRC version an ISD has
+        authoritative is a list ["ffaa:0:1102",...]
+        """
+        self.isd_id = isd_id
+        # self.authoritative = [parse(asid) for asid in authoritative]
+        self.authoritative = authoritative
+        self.core = core
+        # self.voters = ["1-ff00:0:110"]
+        # self.cas = ["1-ff00:0:110"]
+        self.certificates = certificates
+
+    def get_conf(self):
+        d = {
+            "isd": self.isd_id,
+            "description": "ISD 1",
+            "base_version": 1,
+            "serial_version": 1,
+            "voting_quorum": 1,
+            "grace_period": "0s",  # must be non zero for updates to serial_version only
+            "authoritative_ases": self.authoritative,
+            "core_ases": self.core,
+            "cert_files": self.certificates,
+            "no_trust_reset": False,
+            # "votes": 1  # empty when updating only serial_version
+            "validity": {
+                "not_before": int(datetime.utcnow().timestamp()),
+                "validity": "23h",  # the TRC must be included in the valid window of all certificates
+            },
+        }
+        return d
+
+
+def test_run_scion_cppki(*args):
+    """
+    runs scion-pki
+    """
+    COMMAND = "/home/juagargi/devel/ETH/scion.scionlab/bin/scion-pki"
+    ret = subprocess.run([COMMAND, "trcs", *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    print(ret.stdout.decode("utf-8"))
+
+
+def test_trc_configure():
+    '''
+	ISD               addr.ISD        `toml:"isd"`
+	Description       string          `toml:"description"`
+	SerialVersion     scrypto.Version `toml:"serial_version"`
+	BaseVersion       scrypto.Version `toml:"base_version"`
+	VotingQuorum      uint8           `toml:"voting_quorum"`
+	GracePeriod       util.DurWrap    `toml:"grace_period"`
+	NoTrustReset      bool            `toml:"no_trust_reset"`
+	Validity          Validity        `toml:"validity"`
+	CoreASes          []addr.AS       `toml:"core_ases"`
+	AuthoritativeASes []addr.AS       `toml:"authoritative_ases"`
+	CertificateFiles  []string        `toml:"cert_files"`
+	Votes             []int           `toml:"votes"`
+    '''
+    certificates = [  # only sensitives, regulars, and roots
+        "scionlab-test-sensitive.crt",
+        "scionlab-test-regular.crt",
+        "scionlab-test-root.crt",
+    ]
+    conf = TRCConf(1, ["ff00:0:110"], ["ff00:0:110"], certificates)
+    # s = toml.dumps(conf.get_conf())
+    # print(s)
+    with open("scionlab-test-trc-config.toml", "w") as f:
+        f.write(toml.dumps(conf.get_conf()))
+    # TODO load predecessor when updating only serial_version
+
+
+def test_trc_generate_payload():
+    test_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", "scionlab-test-trc-output.bin")
+    pass
+
+
+def test_trc_sign_payload():
+    pass
+
+
+def test_trc_combine_payloads():
+    pass
+
+
+def test_generate_trc(isd_id):
+    """
+    Generates (or regenerates) a TRC
+    """
+    # configure TRC
+    test_trc_configure()
+    # generate payload scion-pki trcs payload
+    test_trc_generate_payload()
+    # sign payload (crypto_lib.sh:sign_payload())
+    test_trc_sign_payload()
+    # combine signed TRCs
+    test_trc_combine_payloads()
 
 
 def test_cppki():
@@ -217,6 +320,7 @@ def test_cppki():
     # create ASes
     test_generate_ases(ca_issuer, ["1-ff00:0:111", "1-ff00:0:112"])
     # create TRCs
+    test_generate_trc(1)
     # flatten?
 
 
