@@ -34,7 +34,6 @@ from scionlab.defines import (
 )
 
 GEN = "gen"
-GEN_CERTS = "gen-certs"
 GEN_CACHE = "gen-cache"
 CERT_DIR = "certs"
 KEY_DIR = "keys"
@@ -164,8 +163,7 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
 
     def generate(self):
         config_builder = _ConfigBuilder(config_dir=SCION_CONFIG_DIR,
-                                        var_dir=SCION_VAR_DIR,
-                                        tls_certs_dir=os.path.join(SCION_CONFIG_DIR, GEN_CERTS))
+                                        var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
         # dispatcher config is installed with the package
 
@@ -189,8 +187,7 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
     def generate(self):
         # build AS service config into gen/AS<AS_ID>
         config_builder = _ConfigBuilder(config_dir=self._as_dir(),
-                                        var_dir=GEN_CACHE,
-                                        tls_certs_dir=GEN_CERTS)
+                                        var_dir=GEN_CACHE)
         self._write_as_config(config_builder)
 
         # the dispatcher directory is outside the AS subdirectory
@@ -258,10 +255,9 @@ class _ConfigBuilder:
     Helper object for `_ConfigGenerator`
     Builds the *.toml-configuration for the SCION services.
     """
-    def __init__(self, config_dir, var_dir, tls_certs_dir):
+    def __init__(self, config_dir, var_dir):
         self.config_dir = config_dir
         self.var_dir = var_dir
-        self.tls_certs_dir = tls_certs_dir
 
     def build_disp_conf(self):
         logging_conf = self._build_logging_conf('dispatcher')
@@ -311,8 +307,6 @@ class _ConfigBuilder:
             },
             'quic': {
                 'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
-                'key_file':  os.path.join(self.tls_certs_dir, 'tls.key'),
-                'cert_file': os.path.join(self.tls_certs_dir, 'tls.pem'),
                 'resolution_fraction': 0.4,
             },
         })

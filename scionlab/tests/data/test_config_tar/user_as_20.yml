@@ -128,8 +128,6 @@ gen/ASffaa_1_5/cs-1.toml: |
 
   [quic]
   address = "127.0.0.1:30354"
-  cert_file = "gen-certs/tls.pem"
-  key_file = "gen-certs/tls.key"
   resolution_fraction = 0.4
 
   [trust_db]

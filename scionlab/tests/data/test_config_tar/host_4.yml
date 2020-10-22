@@ -266,8 +266,6 @@ etc/scion/cs-1.toml: |
 
   [quic]
   address = "127.0.0.1:30354"
-  cert_file = "/etc/scion/gen-certs/tls.pem"
-  key_file = "/etc/scion/gen-certs/tls.key"
   resolution_fraction = 0.4
 
   [trust_db]
@@ -391,7 +389,7 @@ scionlab-config.json: |-
       "etc/scion/certs/ISD17-V1.trc": "ed4f99c371b544e3bd6b4293e14396fd40b0b657",
       "etc/scion/certs/ISD19-V1.trc": "087f805b006e0ff52e8f4fbab3dcd63d27498601",
       "etc/scion/certs/ISD20-V1.trc": "df94e1688f2c88dd9648fa4c003f895b546467ab",
-      "etc/scion/cs-1.toml": "517bb8c1762b211f4410bf36a1663354d08a7914",
+      "etc/scion/cs-1.toml": "f7da5aed1c49bd134972ad860db484c79f8bbabc",
       "etc/scion/keys/as-decrypt-v1.key": "70b7a82e6d8ebbff8018b4f2deb251c308ac2e3b",
       "etc/scion/keys/as-signing-v1.key": "d79601ba79eea4161cc6b3f074f9d9e1df32bc5f",
       "etc/scion/keys/master0.key": "d3061b379b7044f794e598e1910f3a95dac95040",
