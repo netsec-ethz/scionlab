@@ -241,8 +241,8 @@ class TRCConf:
             "no_trust_reset": False,
             # "votes": 1  # empty when updating only serial_version
             "validity": {
-                "not_before": int(datetime.utcnow().timestamp()),
-                "validity": "23h",  # the TRC must be included in the valid window of all certificates
+                "not_before": int(datetime.now().timestamp()),
+                "validity": "24h",  # the TRC must be included in the valid window of all certificates
             },
         }
         return d
@@ -286,11 +286,13 @@ def test_trc_configure():
 
 
 def test_trc_generate_payload():
-    test_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", "scionlab-test-trc-output.bin")
-    pass
+    test_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", "scionlab-test-trc-payload.der")
 
 
 def test_trc_sign_payload():
+    # openssl cms -sign -in ISD-B1-S1.pld.der -inform der -md sha512 \
+    #     -signer $PUBDIR/regular-voting.crt -inkey $KEYDIR/regular-voting.key \
+    #     -nodetach -nocerts -nosmimecap -binary -outform der > ISD-B1-S1.regular.trc
     pass
 
 
