@@ -40,22 +40,6 @@ OID_REGULAR_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.2")
 OID_ROOT_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.3")  # ca root key
 
 
-def generate_issuer_certificate(as_, version: int, trc, not_before, not_after,
-                                issuing_grant, issuer_key):
-    payload = _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key)
-    return _build_signed_issuer_cert(payload, issuing_grant)
-
-
-def generate_as_certificate(subject, version, not_before, not_after,
-                            encryption_key, signing_key,
-                            issuer, issuer_cert, issuer_key):
-
-    payload = _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
-                                     signing_key, issuer, issuer_cert)
-    leaf_cert = _build_signed_as_cert(payload, issuer_key)
-    return [issuer_cert.certificate, leaf_cert]
-
-
 def test_build_key():
     # valid curves are: SECP256R1, SECP384R1, and secp521r1
     key = ec.generate_private_key(curve=ec.SECP256R1, backend=default_backend())
@@ -379,6 +363,22 @@ def test_cppki():
     # create TRCs
     test_generate_trc(1)
     # flatten?
+
+
+def generate_issuer_certificate(as_, version: int, trc, not_before, not_after,
+                                issuing_grant, issuer_key):
+    payload = _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key)
+    return _build_signed_issuer_cert(payload, issuing_grant)
+
+
+def generate_as_certificate(subject, version, not_before, not_after,
+                            encryption_key, signing_key,
+                            issuer, issuer_cert, issuer_key):
+
+    payload = _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
+                                     signing_key, issuer, issuer_cert)
+    leaf_cert = _build_signed_as_cert(payload, issuer_key)
+    return [issuer_cert.certificate, leaf_cert]
 
 
 def _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key):
