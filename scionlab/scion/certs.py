@@ -40,13 +40,13 @@ OID_REGULAR_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.2")
 OID_ROOT_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.3")  # ca root key
 
 
-def test_build_key():
+def deleteme_build_key():
     # valid curves are: SECP256R1, SECP384R1, and secp521r1
     key = ec.generate_private_key(curve=ec.SECP256R1, backend=default_backend())
     return key
 
 
-def test_encode_key(key):
+def deleteme_encode_key(key):
     """
     Returns the bytes as PEM
     """
@@ -56,13 +56,13 @@ def test_encode_key(key):
         encryption_algorithm=serialization.NoEncryption())
 
 
-def test_load_key(filename):
+def deleteme_load_key(filename):
     with open(filename, "rb") as f:
         k = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
     return k
 
 
-def test_deleteme_create_a_name(common_name):
+def deleteme_deleteme_create_a_name(common_name):
     return [(NameOID.COUNTRY_NAME, "CH"),
             (NameOID.STATE_OR_PROVINCE_NAME, "ZH"),
             (NameOID.LOCALITY_NAME, "Zürich"),
@@ -72,8 +72,7 @@ def test_deleteme_create_a_name(common_name):
             (OID_ISD_AS, "1-ff00:0:110")]
 
 
-# def test_build_cert(key, name_list, notvalidbefore, notvalidafter, extensions):
-def test_build_cert(subject, issuer, notvalidbefore, notvalidafter, extensions):
+def deleteme_build_cert(subject, issuer, notvalidbefore, notvalidafter, extensions):
     """
     subject is a 2-tuple (key, name_list) for the subject. name_list is a list of 2-tuples (OID, value) for the subject name
     issuer is a 2-tuple (key, name_list) for the issuer name
@@ -102,14 +101,14 @@ def test_build_cert(subject, issuer, notvalidbefore, notvalidafter, extensions):
     return cert
 
 
-def test_build_extensions_voting(key, issuer_key_type):
+def deleteme_build_extensions_voting(key, issuer_key_type):
     return [(x509.SubjectKeyIdentifier.from_public_key(key.public_key()), False),
             (x509.ExtendedKeyUsage(
                 [issuer_key_type, x509.ExtendedKeyUsageOID.TIME_STAMPING]
             ), False)]
 
 
-def test_build_extensions_root(key):
+def deleteme_build_extensions_root(key):
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
@@ -119,7 +118,7 @@ def test_build_extensions_root(key):
             (x509.ExtendedKeyUsage([OID_ROOT_KEY, x509.ExtendedKeyUsageOID.TIME_STAMPING]), False)]
 
 
-def test_build_extensions_ca(subject_key, issuer_key):
+def deleteme_build_extensions_ca(subject_key, issuer_key):
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
@@ -129,7 +128,7 @@ def test_build_extensions_ca(subject_key, issuer_key):
             (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False)]
 
 
-def test_build_extensions_as(subject_key, issuer_key):
+def deleteme_build_extensions_as(subject_key, issuer_key):
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
@@ -141,73 +140,73 @@ def test_build_extensions_as(subject_key, issuer_key):
             ), False)]
 
 
-def test_generate_voting_certs():
+def deleteme_generate_voting_certs():
     # sensitive:
-    key = test_build_key()
-    cert = test_build_cert(subject=(key, test_deleteme_create_a_name("sensitive")),
+    key = deleteme_build_key()
+    cert = deleteme_build_cert(subject=(key, deleteme_deleteme_create_a_name("sensitive")),
                            issuer=None,
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=test_build_extensions_voting(key, OID_SENSITIVE_KEY))
+                           extensions=deleteme_build_extensions_voting(key, OID_SENSITIVE_KEY))
     with open("scionlab-test-sensitive.key", "wb") as f:
-        f.write(test_encode_key(key))
+        f.write(deleteme_encode_key(key))
     with open("scionlab-test-sensitive.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # regular:
-    key = test_build_key()
-    cert = test_build_cert(subject=(key, test_deleteme_create_a_name("regular")),
+    key = deleteme_build_key()
+    cert = deleteme_build_cert(subject=(key, deleteme_deleteme_create_a_name("regular")),
                            issuer=None,
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=test_build_extensions_voting(key, OID_REGULAR_KEY))
+                           extensions=deleteme_build_extensions_voting(key, OID_REGULAR_KEY))
     with open("scionlab-test-regular.key", "wb") as f:
-        f.write(test_encode_key(key))
+        f.write(deleteme_encode_key(key))
     with open("scionlab-test-regular.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
 
-def test_generate_ca():
+def deleteme_generate_ca():
     # generate root:
-    key = test_build_key()
-    root_issuer = (key, test_deleteme_create_a_name("root"))
-    cert = test_build_cert(subject=root_issuer,
+    key = deleteme_build_key()
+    root_issuer = (key, deleteme_deleteme_create_a_name("root"))
+    cert = deleteme_build_cert(subject=root_issuer,
                            issuer=None,
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=test_build_extensions_root(key))
+                           extensions=deleteme_build_extensions_root(key))
     with open("scionlab-test-root.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # generate ca:
-    key = test_build_key()
-    ca_issuer = (key, test_deleteme_create_a_name("ca"))
-    cert = test_build_cert(subject=ca_issuer,
+    key = deleteme_build_key()
+    ca_issuer = (key, deleteme_deleteme_create_a_name("ca"))
+    cert = deleteme_build_cert(subject=ca_issuer,
                            issuer=root_issuer,
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=test_build_extensions_ca(key, root_issuer[0]))
+                           extensions=deleteme_build_extensions_ca(key, root_issuer[0]))
     with open("scionlab-test-ca.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
     return ca_issuer, cert
 
 
-def test_generate_as(issuer, asid):
+def deleteme_generate_as(issuer, asid):
     """
     issuer is a 2-tuple (key, name)
     """
-    key = test_build_key()
-    cert = test_build_cert(subject=(key, test_deleteme_create_a_name("regular AS " + asid)),
+    key = deleteme_build_key()
+    cert = deleteme_build_cert(subject=(key, deleteme_deleteme_create_a_name("regular AS " + asid)),
                            issuer=issuer,
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=test_build_extensions_as(key, issuer[0]))
+                           extensions=deleteme_build_extensions_as(key, issuer[0]))
     with open(f"scionlab-test-as{asid}.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
 
-def test_generate_ases(ca_issuer, asids):
+def deleteme_generate_ases(ca_issuer, asids):
     for asid in asids:
-        test_generate_as(ca_issuer, asid)
+        deleteme_generate_as(ca_issuer, asid)
 
 
 class TRCConf:
@@ -245,7 +244,7 @@ class TRCConf:
         return d
 
 
-def test_run_scion_cppki(*args):
+def deleteme_run_scion_cppki(*args):
     """
     runs scion-pki
     """
@@ -256,7 +255,7 @@ def test_run_scion_cppki(*args):
         raise Exception(f"Bad return code: {ret.returncode}")
 
 
-def test_trc_configure():
+def deleteme_trc_configure():
     '''
 	ISD               addr.ISD        `toml:"isd"`
 	Description       string          `toml:"description"`
@@ -284,13 +283,13 @@ def test_trc_configure():
     # TODO load predecessor when updating only serial_version
 
 
-def test_trc_generate_payload():
-    test_file_name = "scionlab-test-trc-payload.der"
-    test_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", test_file_name)
-    return test_file_name
+def deleteme_trc_generate_payload():
+    deleteme_file_name = "scionlab-test-trc-payload.der"
+    deleteme_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", deleteme_file_name)
+    return deleteme_file_name
 
 
-def test_trc_sign_payload():
+def deleteme_trc_sign_payload():
     # openssl cms -sign -in ISD-B1-S1.pld.der -inform der -md sha512 \
     #     -signer $PUBDIR/regular-voting.crt -inkey $KEYDIR/regular-voting.key \
     #     -nodetach -nocerts -nosmimecap -binary -outform der > ISD-B1-S1.regular.trc
@@ -300,7 +299,7 @@ def test_trc_sign_payload():
     # -certfile $PUBDIR/regular-voting.crt -CAfile $PUBDIR/regular-voting.crt \
     # -purpose any -no_check_time > /dev/null
     #
-    # k = test_load_key("scionlab-test-regular.key")
+    # k = deleteme_load_key("scionlab-test-regular.key")
     # with open("scionlab-test-trc-payload.der", "rb") as f:
     #     hash = hashlib.sha512(f.read()).digest()
     # k.sign(hash, padding.)
@@ -328,40 +327,41 @@ def test_trc_sign_payload():
         subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
 
 
-def test_trc_combine_payloads():
-    test_file_name_payload = "scionlab-test-trc-payload.der"
-    test_file_names = [
+def deleteme_trc_combine_payloads():
+    deleteme_file_name_payload = "scionlab-test-trc-payload.der"
+    deleteme_file_names = [
         "scionlab-test-trc-signed.sensitive.trc",
         "scionlab-test-trc-signed.regular.trc",
         ]
-    test_run_scion_cppki("combine", "-p", test_file_name_payload, *test_file_names, "-o", "scionlab-test-trc.trc")
+    deleteme_run_scion_cppki("combine", "-p", deleteme_file_name_payload, *deleteme_file_names, "-o", "scionlab-test-trc.trc")
     # check the final TRC:
-    test_run_scion_cppki("verify", "--anchor", "scionlab-test-trc.trc", "scionlab-test-trc.trc")
+    deleteme_run_scion_cppki("verify", "--anchor", "scionlab-test-trc.trc", "scionlab-test-trc.trc")
 
 
-def test_generate_trc(isd_id):
+def deleteme_generate_trc(isd_id):
     """
     Generates (or regenerates) a TRC
     """
     # configure TRC
-    test_trc_configure()
+    deleteme_trc_configure()
     # generate payload scion-pki trcs payload
-    test_trc_generate_payload()
+    deleteme_trc_generate_payload()
     # sign payload (crypto_lib.sh:sign_payload())
-    test_trc_sign_payload()
+    deleteme_trc_sign_payload()
     # combine signed TRCs
-    test_trc_combine_payloads()
+    deleteme_trc_combine_payloads()
 
 
+# TODO(juagargi) remove this function
 def test_cppki():
     # create voters
-    test_generate_voting_certs()
+    deleteme_generate_voting_certs()
     # create CAs
-    ca_issuer, _ = test_generate_ca()
+    ca_issuer, _ = deleteme_generate_ca()
     # create ASes
-    test_generate_ases(ca_issuer, ["1-ff00:0:111", "1-ff00:0:112"])
+    deleteme_generate_ases(ca_issuer, ["1-ff00:0:111", "1-ff00:0:112"])
     # create TRCs
-    test_generate_trc(1)
+    deleteme_generate_trc(1)
     # flatten?
 
 
