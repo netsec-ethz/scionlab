@@ -17,6 +17,7 @@
 ====================================================================================
 """
 
+import hashlib
 import subprocess
 import toml
 
@@ -27,8 +28,10 @@ from scionlab.scion.trcs import _utc_timestamp
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ObjectIdentifier
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import padding, serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import ec
+
+from pkcs7 import PKCS7Encoder
 
 
 OID_ISD_AS = ObjectIdentifier("1.3.6.1.4.1.55324.1.2.1")
@@ -67,6 +70,12 @@ def test_encode_key(key):
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption())
+
+
+def test_load_key(filename):
+    with open(filename, "rb") as f:
+        k = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
+    return k
 
 
 def test_deleteme_create_a_name(common_name):
@@ -156,6 +165,8 @@ def test_generate_voting_certs():
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
                            extensions=test_build_extensions_voting(key, OID_SENSITIVE_KEY))
+    with open("scionlab-test-sensitive.key", "wb") as f:
+        f.write(test_encode_key(key))
     with open("scionlab-test-sensitive.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # regular:
@@ -165,6 +176,8 @@ def test_generate_voting_certs():
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
                            extensions=test_build_extensions_voting(key, OID_REGULAR_KEY))
+    with open("scionlab-test-regular.key", "wb") as f:
+        f.write(test_encode_key(key))
     with open("scionlab-test-regular.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
@@ -254,7 +267,9 @@ def test_run_scion_cppki(*args):
     """
     COMMAND = "/home/juagargi/devel/ETH/scion.scionlab/bin/scion-pki"
     ret = subprocess.run([COMMAND, "trcs", *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
-    print(ret.stdout.decode("utf-8"))
+    if ret.returncode != 0:
+        print(ret.stdout.decode("utf-8"))
+        raise Exception(f"Bad return code: {ret.returncode}")
 
 
 def test_trc_configure():
@@ -286,18 +301,58 @@ def test_trc_configure():
 
 
 def test_trc_generate_payload():
-    test_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", "scionlab-test-trc-payload.der")
+    test_file_name = "scionlab-test-trc-payload.der"
+    test_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", test_file_name)
+    return test_file_name
 
 
 def test_trc_sign_payload():
     # openssl cms -sign -in ISD-B1-S1.pld.der -inform der -md sha512 \
     #     -signer $PUBDIR/regular-voting.crt -inkey $KEYDIR/regular-voting.key \
     #     -nodetach -nocerts -nosmimecap -binary -outform der > ISD-B1-S1.regular.trc
-    pass
+
+    # verify with:
+    # openssl cms -verify -in ISD-B1-S1.regular.trc -inform der \
+    # -certfile $PUBDIR/regular-voting.crt -CAfile $PUBDIR/regular-voting.crt \
+    # -purpose any -no_check_time > /dev/null
+    #
+    # k = test_load_key("scionlab-test-regular.key")
+    # with open("scionlab-test-trc-payload.der", "rb") as f:
+    #     hash = hashlib.sha512(f.read()).digest()
+    # k.sign(hash, padding.)
+    # TODO(juagargi) replace the execution of openssl with a library
+    # XXX(juagargi): I don't find a nice way to encode CMS in python.
+    # There seems to be some possibilities:
+    # pkcs7.PKCS7Encoder()
+    # https://github.com/vbwagner/ctypescrypto
+    #
+    # signers is a list of 3-tuples (cert,key,outfile)
+    signers =[
+        ("scionlab-test-sensitive.crt", "scionlab-test-sensitive.key", "scionlab-test-trc-signed.sensitive.trc"),
+        ("scionlab-test-regular.crt", "scionlab-test-regular.key", "scionlab-test-trc-signed.regular.trc"),
+    ]
+    for (cert, key, outfile) in signers:
+        command = ["openssl", "cms", "-sign", "-in", "scionlab-test-trc-payload.der",
+                   "-inform", "der", "-md", "sha512", "-signer", cert,
+                   "-inkey", key, "-nodetach", "-nocerts", "-nosmimecap",
+                   "-binary", "-outform", "der", "-out", outfile]
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
+        # TODO(juagargi) unnecessary:
+        command = ["openssl", "cms", "-verify", "-in", outfile,
+                "-inform", "der", "-certfile", cert,
+                "-CAfile", cert, "-purpose", "any", "-no_check_time"]
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
 
 
 def test_trc_combine_payloads():
-    pass
+    test_file_name_payload = "scionlab-test-trc-payload.der"
+    test_file_names = [
+        "scionlab-test-trc-signed.sensitive.trc",
+        "scionlab-test-trc-signed.regular.trc",
+        ]
+    test_run_scion_cppki("combine", "-p", test_file_name_payload, *test_file_names, "-o", "scionlab-test-trc.trc")
+    # check the final TRC:
+    test_run_scion_cppki("verify", "--anchor", "scionlab-test-trc.trc", "scionlab-test-trc.trc")
 
 
 def test_generate_trc(isd_id):
