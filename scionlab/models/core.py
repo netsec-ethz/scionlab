@@ -226,6 +226,7 @@ class AS(TimestampedModel):
     master_as_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
 
     is_core = models.BooleanField(default=False)
+    # TODO(juagargi) cppki add is_issuer is_authoritative ?
 
     objects = ASManager()
 
