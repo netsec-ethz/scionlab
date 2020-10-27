@@ -21,6 +21,7 @@ import hashlib
 import subprocess
 import toml
 
+from collections import namedtuple
 from datetime import datetime, timedelta
 from scionlab.scion import keys, jws
 from scionlab.scion.as_ids import parse
@@ -32,6 +33,7 @@ from cryptography.hazmat.primitives import padding, serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 
 from pkcs7 import PKCS7Encoder
+from typing import cast, List, Tuple, NamedTuple, Optional
 
 
 OID_ISD_AS = ObjectIdentifier("1.3.6.1.4.1.55324.1.2.1")
@@ -39,14 +41,19 @@ OID_SENSITIVE_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.1")
 OID_REGULAR_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.2")
 OID_ROOT_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.3")  # ca root key
 
+# some type aliases
+Name = List[Tuple[ObjectIdentifier, str]]
+Extensions = List[Tuple[ObjectIdentifier, bool]]
 
-def deleteme_build_key():
+
+def deleteme_build_key() -> ec.EllipticCurvePrivateKeyWithSerialization:
     # valid curves are: SECP256R1, SECP384R1, and secp521r1
-    key = ec.generate_private_key(curve=ec.SECP256R1, backend=default_backend())
+    key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
+    key = cast(ec.EllipticCurvePrivateKeyWithSerialization, key)  # only for type hints
     return key
 
 
-def deleteme_encode_key(key):
+def deleteme_encode_key(key: ec.EllipticCurvePrivateKeyWithSerialization) -> bytes:
     """
     Returns the bytes as PEM
     """
@@ -56,13 +63,13 @@ def deleteme_encode_key(key):
         encryption_algorithm=serialization.NoEncryption())
 
 
-def deleteme_load_key(filename):
+def deleteme_load_key(filename: str) -> ec.EllipticCurvePrivateKey:
     with open(filename, "rb") as f:
         k = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
     return k
 
 
-def deleteme_deleteme_create_a_name(common_name):
+def deleteme_deleteme_create_a_name(common_name: str) -> Name:
     return [(NameOID.COUNTRY_NAME, "CH"),
             (NameOID.STATE_OR_PROVINCE_NAME, "ZH"),
             (NameOID.LOCALITY_NAME, "Zürich"),
@@ -72,7 +79,11 @@ def deleteme_deleteme_create_a_name(common_name):
             (OID_ISD_AS, "1-ff00:0:110")]
 
 
-def deleteme_build_cert(subject, issuer, notvalidbefore, notvalidafter, extensions):
+def deleteme_build_cert(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
+                        issuer: Optional[Tuple[ec.EllipticCurvePrivateKey, Name]],
+                        notvalidbefore: datetime,
+                        notvalidafter: datetime,
+                        extensions: Extensions) -> x509.Certificate:
     """
     subject is a 2-tuple (key, name_list) for the subject. name_list is a list of 2-tuples (OID, value) for the subject name
     issuer is a 2-tuple (key, name_list) for the issuer name
@@ -82,7 +93,7 @@ def deleteme_build_cert(subject, issuer, notvalidbefore, notvalidafter, extensio
     subject_name = x509.Name([x509.NameAttribute(p[0], p[1]) for p in subject[1]])
     issuer_name = x509.Name([x509.NameAttribute(p[0], p[1]) for p in issuer[1]])
     # create certificate
-    cert = x509.CertificateBuilder().subject_name(
+    cert_builder = x509.CertificateBuilder().subject_name(
         subject_name
     ).issuer_name(
         issuer_name
@@ -96,19 +107,20 @@ def deleteme_build_cert(subject, issuer, notvalidbefore, notvalidafter, extensio
         notvalidafter
     )
     for p in extensions:
-        cert = cert.add_extension(p[0], p[1])
-    cert = cert.sign(issuer[0], hashes.SHA512(), default_backend())
+        cert_builder = cert_builder.add_extension(p[0], p[1])
+    cert = cert_builder.sign(issuer[0], hashes.SHA512(), default_backend())
     return cert
 
 
-def deleteme_build_extensions_voting(key, issuer_key_type):
+def deleteme_build_extensions_voting(key: ec.EllipticCurvePrivateKey,
+                                     issuer_key_type: ObjectIdentifier) -> Extensions:
     return [(x509.SubjectKeyIdentifier.from_public_key(key.public_key()), False),
             (x509.ExtendedKeyUsage(
                 [issuer_key_type, x509.ExtendedKeyUsageOID.TIME_STAMPING]
             ), False)]
 
 
-def deleteme_build_extensions_root(key):
+def deleteme_build_extensions_root(key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
@@ -118,29 +130,31 @@ def deleteme_build_extensions_root(key):
             (x509.ExtendedKeyUsage([OID_ROOT_KEY, x509.ExtendedKeyUsageOID.TIME_STAMPING]), False)]
 
 
-def deleteme_build_extensions_ca(subject_key, issuer_key):
+def deleteme_build_extensions_ca(subject_key: ec.EllipticCurvePrivateKey,
+                                 issuer_key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
     return [(x509.BasicConstraints(True, 0), True),
-            (x509.KeyUsage(False,False,False,False,False,True,True, False,False),True),
+            (x509.KeyUsage(False, False, False, False, False, True, True, False, False), True),
             (x509.SubjectKeyIdentifier.from_public_key(subject_key.public_key()), False),
             (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False)]
 
 
-def deleteme_build_extensions_as(subject_key, issuer_key):
+def deleteme_build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
+                                 issuer_key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
-    return [(x509.KeyUsage(True, False, False, False, False, False, False, False, False),True),
+    return [(x509.KeyUsage(True, False, False, False, False, False, False, False, False), True),
             (x509.SubjectKeyIdentifier.from_public_key(subject_key.public_key()), False),
             (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False),
-            (x509.ExtendedKeyUsage(
-                [x509.ExtendedKeyUsageOID.SERVER_AUTH, x509.ExtendedKeyUsageOID.CLIENT_AUTH, x509.ExtendedKeyUsageOID.TIME_STAMPING]
-            ), False)]
+            (x509.ExtendedKeyUsage([x509.ExtendedKeyUsageOID.SERVER_AUTH,
+                                    x509.ExtendedKeyUsageOID.CLIENT_AUTH,
+                                    x509.ExtendedKeyUsageOID.TIME_STAMPING]), False)]
 
 
-def deleteme_generate_voting_certs():
+def deleteme_generate_voting_certs() -> None:
     # sensitive:
     key = deleteme_build_key()
     cert = deleteme_build_cert(subject=(key, deleteme_deleteme_create_a_name("sensitive")),
@@ -170,20 +184,20 @@ def deleteme_generate_ca():
     key = deleteme_build_key()
     root_issuer = (key, deleteme_deleteme_create_a_name("root"))
     cert = deleteme_build_cert(subject=root_issuer,
-                           issuer=None,
-                           notvalidbefore=datetime.utcnow(),
-                           notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=deleteme_build_extensions_root(key))
+                               issuer=None,
+                               notvalidbefore=datetime.utcnow(),
+                               notvalidafter=datetime.utcnow() + timedelta(days=1),
+                               extensions=deleteme_build_extensions_root(key))
     with open("scionlab-test-root.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # generate ca:
     key = deleteme_build_key()
     ca_issuer = (key, deleteme_deleteme_create_a_name("ca"))
     cert = deleteme_build_cert(subject=ca_issuer,
-                           issuer=root_issuer,
-                           notvalidbefore=datetime.utcnow(),
-                           notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=deleteme_build_extensions_ca(key, root_issuer[0]))
+                               issuer=root_issuer,
+                               notvalidbefore=datetime.utcnow(),
+                               notvalidafter=datetime.utcnow() + timedelta(days=1),
+                               extensions=deleteme_build_extensions_ca(key, root_issuer[0]))
     with open("scionlab-test-ca.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
@@ -196,10 +210,10 @@ def deleteme_generate_as(issuer, asid):
     """
     key = deleteme_build_key()
     cert = deleteme_build_cert(subject=(key, deleteme_deleteme_create_a_name("regular AS " + asid)),
-                           issuer=issuer,
-                           notvalidbefore=datetime.utcnow(),
-                           notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=deleteme_build_extensions_as(key, issuer[0]))
+                               issuer=issuer,
+                               notvalidbefore=datetime.utcnow(),
+                               notvalidafter=datetime.utcnow() + timedelta(days=1),
+                               extensions=deleteme_build_extensions_as(key, issuer[0]))
     with open(f"scionlab-test-as{asid}.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
