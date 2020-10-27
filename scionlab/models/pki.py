@@ -234,6 +234,134 @@ class Key(models.Model):
             return DEFAULT_EXPIRATION_AS_KEYS
 
 
+class CertificateManager(models.Manager):
+    def create(self, AS, type, *args, **kwargs):
+        """
+        Create issuer certificate or AS certificate chain, depending on type.
+        When creating an AS certificate chains, an `issuer` AS with an existing issuer certificate
+        must be given.
+        """
+        if type == Certificate.ISSUER:
+            self.create_issuer_cert(AS, *args, **kwargs)
+        else:
+            assert type == Certificate.CHAIN
+            self.create_as_cert(AS, *args, **kwargs)
+
+    # def create_issuer_cert(self, as_):
+    def create_issuer_cert(self, as_, not_before, not_after):
+        """
+        Create an issuer certificate for this AS.
+
+        An CA AS in SCIONLab has both the root and the CA certificates.
+        A root certificate is used to sign a CA certificate.
+        A CA certificate is used to sign an AS certificate.
+        When creating / modifying a root certificate, a new TRC must be issued.
+        """
+        # version = Certificate.next_version(as_, Certificate.ISSUER)
+
+        # trc = as_.isd.trcs.latest()
+        # issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
+        # issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
+
+        # not_before, not_after = _validity([issuer_key, issuing_grant, trc])
+
+        # cert = certs.generate_issuer_certificate(as_, version, trc, not_before, not_after,
+        #                                          issuing_grant, issuer_key)
+
+        cert, key = certs.generate_issuer_root_certificate(as_, not_before, not_after)
+
+        return super().create(
+            AS=as_,
+            type=Certificate.ISSUER,
+            version=version,
+            not_before=not_before,
+            not_after=not_after,
+            certificate=cert
+        )
+
+    def create_as_cert(self, subject, issuer):
+        """
+        Create an AS certificate chain for the subject AS.
+
+        Uses the latest cert signing key and issuer certificate of the issuer AS (i.e. assumes that
+        these match) to sign a certificate for the latest encryption and signing key of the subject
+        AS.
+        The validity period is defined by the validity of these input keys.
+        """
+        version = Certificate.next_version(subject, Certificate.CHAIN)
+
+        encryption_key = subject.keys.latest(usage=Key.DECRYPT)
+        signing_key = subject.keys.latest(usage=Key.SIGNING)
+        issuer_key = issuer.keys.latest(usage=Key.CERT_SIGNING)
+        issuer_cert = issuer.certificates.latest(type=Certificate.ISSUER)
+
+        not_before, not_after = _validity([encryption_key, signing_key, issuer_cert])
+
+        cert = certs.generate_as_certificate(subject, version, not_before, not_after,
+                                             encryption_key, signing_key,
+                                             issuer, issuer_cert, issuer_key)
+
+        return super().create(
+            AS=subject,
+            type=Certificate.CHAIN,
+            version=version,
+            not_before=not_before,
+            not_after=not_after,
+            certificate=cert
+        )
+
+    def latest(self, type):
+        return self.filter(type=type).latest('version')
+
+
+class Certificate(models.Model):
+    ISSUER = 'issuer'
+    CHAIN = 'chain'  # AS certificates are a certificate chain
+
+    TYPES = (
+        ISSUER,
+        CHAIN,
+        # TODO(juagargi) for the new cppki, add type VOTING, 
+    )
+
+    AS = models.ForeignKey(
+        'AS',
+        related_name='certificates',
+        on_delete=models.CASCADE,
+    )
+
+    type = models.CharField(
+        choices=list(zip(TYPES, TYPES)),
+        max_length=_MAX_LEN_CHOICES_DEFAULT,
+        editable=False,
+    )
+    version = models.PositiveIntegerField()
+    not_before = models.DateTimeField()
+    not_after = models.DateTimeField()
+
+    certificate = jsonfield.JSONField()
+
+    objects = CertificateManager()
+
+    class Meta:
+        unique_together = ('AS', 'type', 'version')
+
+    def __str__(self):
+        return self.filename()
+
+    def filename(self):
+        return "ISD%i-AS%s-V%i.crt" % (self.AS.isd.isd_id, self.AS.as_path_str(), self.version)
+
+    @staticmethod
+    def next_version(as_, type):
+        prev = as_.certificates.filter(type=type).aggregate(models.Max('version'))['version__max']
+        if prev:
+            return prev + 1
+        else:
+            return 1
+
+
+
 class TRCManager(models.Manager):
     def create(self, isd):
         """
@@ -360,133 +488,6 @@ def _core_key_info(keys: List[Key]) -> trcs.CoreKeys:
         voting_online=key_by_usage[Key.TRC_VOTING_ONLINE],
         voting_offline=key_by_usage[Key.TRC_VOTING_OFFLINE],
     )
-
-
-class CertificateManager(models.Manager):
-    def create(self, AS, type, *args, **kwargs):
-        """
-        Create issuer certificate or AS certificate chain, depending on type.
-        When creating an AS certificate chains, an `issuer` AS with an existing issuer certificate
-        must be given.
-        """
-        if type == Certificate.ISSUER:
-            self.create_issuer_cert(AS, *args, **kwargs)
-        else:
-            assert type == Certificate.CHAIN
-            self.create_as_cert(AS, *args, **kwargs)
-
-    # def create_issuer_cert(self, as_):
-    def create_issuer_cert(self, as_, not_before, not_after):
-        """
-        Create an issuer certificate for this AS.
-
-        An CA AS in SCIONLab has both the root and the CA certificates.
-        A root certificate is used to sign a CA certificate.
-        A CA certificate is used to sign an AS certificate.
-        When creating / modifying a root certificate, a new TRC must be issued.
-        """
-        # version = Certificate.next_version(as_, Certificate.ISSUER)
-
-        # trc = as_.isd.trcs.latest()
-        # issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
-        # issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
-
-        # not_before, not_after = _validity([issuer_key, issuing_grant, trc])
-
-        # cert = certs.generate_issuer_certificate(as_, version, trc, not_before, not_after,
-        #                                          issuing_grant, issuer_key)
-
-        cert, key = certs.generate_issuer_root_certificate(as_, not_before, not_after)
-
-        return super().create(
-            AS=as_,
-            type=Certificate.ISSUER,
-            version=version,
-            not_before=not_before,
-            not_after=not_after,
-            certificate=cert
-        )
-
-    def create_as_cert(self, subject, issuer):
-        """
-        Create an AS certificate chain for the subject AS.
-
-        Uses the latest cert signing key and issuer certificate of the issuer AS (i.e. assumes that
-        these match) to sign a certificate for the latest encryption and signing key of the subject
-        AS.
-        The validity period is defined by the validity of these input keys.
-        """
-        version = Certificate.next_version(subject, Certificate.CHAIN)
-
-        encryption_key = subject.keys.latest(usage=Key.DECRYPT)
-        signing_key = subject.keys.latest(usage=Key.SIGNING)
-        issuer_key = issuer.keys.latest(usage=Key.CERT_SIGNING)
-        issuer_cert = issuer.certificates.latest(type=Certificate.ISSUER)
-
-        not_before, not_after = _validity([encryption_key, signing_key, issuer_cert])
-
-        cert = certs.generate_as_certificate(subject, version, not_before, not_after,
-                                             encryption_key, signing_key,
-                                             issuer, issuer_cert, issuer_key)
-
-        return super().create(
-            AS=subject,
-            type=Certificate.CHAIN,
-            version=version,
-            not_before=not_before,
-            not_after=not_after,
-            certificate=cert
-        )
-
-    def latest(self, type):
-        return self.filter(type=type).latest('version')
-
-
-class Certificate(models.Model):
-    ISSUER = 'issuer'
-    CHAIN = 'chain'  # AS certificates are a certificate chain
-
-    TYPES = (
-        ISSUER,
-        CHAIN,
-        # TODO(juagargi) for the new cppki, add type VOTING, 
-    )
-
-    AS = models.ForeignKey(
-        'AS',
-        related_name='certificates',
-        on_delete=models.CASCADE,
-    )
-
-    type = models.CharField(
-        choices=list(zip(TYPES, TYPES)),
-        max_length=_MAX_LEN_CHOICES_DEFAULT,
-        editable=False,
-    )
-    version = models.PositiveIntegerField()
-    not_before = models.DateTimeField()
-    not_after = models.DateTimeField()
-
-    certificate = jsonfield.JSONField()
-
-    objects = CertificateManager()
-
-    class Meta:
-        unique_together = ('AS', 'type', 'version')
-
-    def __str__(self):
-        return self.filename()
-
-    def filename(self):
-        return "ISD%i-AS%s-V%i.crt" % (self.AS.isd.isd_id, self.AS.as_path_str(), self.version)
-
-    @staticmethod
-    def next_version(as_, type):
-        prev = as_.certificates.filter(type=type).aggregate(models.Max('version'))['version__max']
-        if prev:
-            return prev + 1
-        else:
-            return 1
 
 
 def _validity(vs):
