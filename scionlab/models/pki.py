@@ -34,30 +34,31 @@ from scionlab.util import flatten
 
 _MAX_LEN_CHOICES_DEFAULT = 32
 """ Max length value for choices fields without specific requirements to max length """
-_MAX_LEN_KEYS = 255
-""" Max length value for base64 encoded AS keys """
+# _MAX_LEN_KEYS = 255
+# """ Max length value for base64 encoded AS keys """
 
 
 def _key_set_null_or_cascade(collector, field, sub_objs, using):
     """
     on_delete callback for AS relation:
-        - SET_NULL for keys with usage==TRC_VOTING_OFFLINE
+        - SET_NULL for keys with usage==TRC_VOTING_SENSITIVE
         - CASCADE for all others
 
-    This "trick" is required to be able to use voting offline keys for the creation of a new TRC
+    This "trick" is required to be able to use voting sensitive keys for the creation of a new TRC
     after an AS has been deleted.
     """
-    voting_offline = [key for key in sub_objs if key.usage == Key.TRC_VOTING_OFFLINE]
-    others = [key for key in sub_objs if key.usage != Key.TRC_VOTING_OFFLINE]
+    sensitive = [key for key in sub_objs if key.usage == Key.TRC_VOTING_SENSITIVE]
+    others = [key for key in sub_objs if key.usage != Key.TRC_VOTING_SENSITIVE]
 
-    if voting_offline:
-        models.SET_NULL(collector, field, voting_offline, using)
+    if sensitive:
+        models.SET_NULL(collector, field, sensitive, using)
     if others:
         models.CASCADE(collector, field, others, using)
 
 
 class KeyManager(models.Manager):
-    def create(self, AS, usage, version=None, not_before=None, not_after=None):
+    # def create(self, AS, usage, version=None, not_before=None, not_after=None):
+    def create(self, AS, usage, not_before=None, not_after=None):
         """
         Create a Key for this AS, for the given usage.
         :param AS AS:
@@ -66,22 +67,22 @@ class KeyManager(models.Manager):
         :param datetime not_before: start of validity, optional, default is now
         :param datetime not_after: end of validity, optional, default is not_before+DEFAULT_EXPIRAT.
         """
-        version = version or Key.next_version(AS, usage)
+        # version = version or Key.next_version(AS, usage)
 
         not_before = not_before or datetime.utcnow()
         not_after = not_after or not_before + Key.default_expiration(usage)
 
-        if usage == Key.DECRYPT:
-            key = keys.generate_enc_key()
-        else:
-            key = keys.generate_sign_key()
+        # if usage == Key.DECRYPT:
+        #     key = keys.generate_enc_key()
+        # else:
+        #     key = keys.generate_sign_key()
 
         return super().create(
             AS=AS,
             _as_id_int=AS.as_id_int,
             usage=usage,
-            version=version,
-            key=key,
+            version=Key.next_version(AS, usage),
+            key=keys.generate_key(),
             not_before=not_before,
             not_after=not_after
         )
@@ -94,21 +95,25 @@ class KeyManager(models.Manager):
 
 
 class Key(models.Model):
-    DECRYPT = 'as-decrypt'
-    # REVOCATION = 'as-revocation'  # Not currently used by SCIONLab
-    SIGNING = 'as-signing'
-    CERT_SIGNING = 'as-cert-signing'
-    TRC_ISSUING_GRANT = 'trc-issuing-grant'
-    TRC_VOTING_ONLINE = 'trc-voting-online'
-    TRC_VOTING_OFFLINE = 'trc-voting-offline'
+    # DECRYPT = 'as-decrypt'
+    # # REVOCATION = 'as-revocation'  # Not currently used by SCIONLab
+    # SIGNING = 'as-signing'
+    # CERT_SIGNING = 'as-cert-signing'
+    # TRC_ISSUING_GRANT = 'trc-issuing-grant'
+    # TRC_VOTING_ONLINE = 'trc-voting-online'
+    # TRC_VOTING_OFFLINE = 'trc-voting-offline'
+    TRC_VOTING_SENSITIVE = "sensitive-voting"
+    TRC_VOTING_REGULAR = "regular-voting"
+    CP_ROOT = "cp-root"
+    CP_CA = "cp-ca"
+    CP_AS = "cp-as"
 
     USAGES = (
-        DECRYPT,
-        SIGNING,
-        CERT_SIGNING,
-        TRC_ISSUING_GRANT,
-        TRC_VOTING_ONLINE,
-        TRC_VOTING_OFFLINE,
+        TRC_VOTING_SENSITIVE,
+        TRC_VOTING_REGULAR,
+        CP_ROOT,
+        CP_CA,
+        CP_AS,
     )
 
     AS = models.ForeignKey(
@@ -132,7 +137,8 @@ class Key(models.Model):
     not_before = models.DateTimeField()
     not_after = models.DateTimeField()
 
-    key = models.CharField(max_length=_MAX_LEN_KEYS, editable=False)
+    # key = models.CharField(max_length=_MAX_LEN_KEYS, editable=False)
+    key = models.BinaryField()
 
     objects = KeyManager()
 
@@ -140,7 +146,7 @@ class Key(models.Model):
         unique_together = ('AS', 'usage', 'version')
 
     def __str__(self):
-        return self.filename()
+        return f"{self.as_id()}={self.usage}-{self.version}"
 
     @property
     def as_id(self) -> str:
@@ -152,74 +158,77 @@ class Key(models.Model):
         return as_ids.format(self._as_id_int)
 
     def filename(self):
-        return "%s-v%i.key" % (self.usage, self.version)
+        # return "%s-v%i.key" % (self.usage, self.version)
+        return f"{self.usage}.key"
 
     def format_keyfile(self) -> str:
         """
         Create the PEM file content for this key.
         """
-        return textwrap.dedent("""\
-            -----BEGIN PRIVATE KEY-----
-            algorithm: {algo}
-            ia: {ia}
-            not_after: {not_before}
-            not_before: {not_after}
-            usage: {usage}
-            version: {version}
+        # return textwrap.dedent("""\
+        #     -----BEGIN PRIVATE KEY-----
+        #     algorithm: {algo}
+        #     ia: {ia}
+        #     not_after: {not_before}
+        #     not_before: {not_after}
+        #     usage: {usage}
+        #     version: {version}
 
-            {key}
-            -----END PRIVATE KEY-----
-        """).format(
-            algo=self.algorithm(),
-            ia=self.AS.isd_as_str(),
-            not_after=self._format_timestamp(self.not_after),
-            not_before=self._format_timestamp(self.not_before),
-            usage=self.usage,
-            version=self.version,
-            key=self.key
-        )
+        #     {key}
+        #     -----END PRIVATE KEY-----
+        # """).format(
+        #     algo=self.algorithm(),
+        #     ia=self.AS.isd_as_str(),
+        #     not_after=self._format_timestamp(self.not_after),
+        #     not_before=self._format_timestamp(self.not_before),
+        #     usage=self.usage,
+        #     version=self.version,
+        #     key=self.key
+        # )
+        return keys.encode_key(self.key)
 
-    def algorithm(self):
-        """
-        Return the algorithm corresponding to this key, in the format expected for the .key file
-        """
-        if self.is_encryption_key():
-            return 'curve25519xsalsa20poly1305'
-        else:
-            return 'ed25519'
+    # def algorithm(self):
+    #     """
+    #     Return the algorithm corresponding to this key, in the format expected for the .key file
+    #     """
+    #     if self.is_encryption_key():
+    #         return 'curve25519xsalsa20poly1305'
+    #     else:
+    #         return 'ed25519'
 
-    def is_encryption_key(self):
-        """
-        Returns True iff this is an encryption key. Otherwise, this is a signing key.
-        """
-        return self.usage == Key.DECRYPT
+    # def is_encryption_key(self):
+    #     """
+    #     Returns True iff this is an encryption key. Otherwise, this is a signing key.
+    #     """
+    #     return self.usage == Key.DECRYPT
 
     @staticmethod
     def next_version(as_, usage):
         prev = as_.keys.filter(usage=usage).aggregate(models.Max('version'))['version__max']
-        if prev:
-            return prev + 1
-        else:
-            return 1
+        return (prev or 0) + 1
+        # if prev:
+        #     return prev + 1
+        # else:
+        #     return 1
 
-    @staticmethod
-    def _format_timestamp(dt):
-        """
-        The SCION key file format expects timestamps in a specific format:
-            2006-01-02 15:04:05-0700
-        """
-        assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
-        return dt.replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S%z")
+    # @staticmethod
+    # def _format_timestamp(dt):
+    #     """
+    #     The SCION key file format expects timestamps in a specific format:
+    #         2006-01-02 15:04:05-0700
+    #     """
+    #     assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
+    #     return dt.replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S%z")
 
     @staticmethod
     def default_expiration(usage):
         """
         Return the default expiration time for keys of the given usage.
         """
-        if usage in [Key.CERT_SIGNING,
-                     Key.TRC_ISSUING_GRANT,
-                     Key.TRC_VOTING_ONLINE,
-                     Key.TRC_VOTING_OFFLINE]:
+        if usage in [Key.TRC_VOTING_SENSITIVE,
+                     Key.TRC_VOTING_REGULAR,
+                     Key.CP_ROOT,
+                     Key.CP_CA]:
             return DEFAULT_EXPIRATION_CORE_KEYS
         else:
             return DEFAULT_EXPIRATION_AS_KEYS
@@ -366,25 +375,28 @@ class CertificateManager(models.Manager):
             assert type == Certificate.CHAIN
             self.create_as_cert(AS, *args, **kwargs)
 
-    def create_issuer_cert(self, as_):
+    # def create_issuer_cert(self, as_):
+    def create_issuer_cert(self, as_, not_before, not_after):
         """
         Create an issuer certificate for this AS.
 
-        Uses the latest TRC and TRC issuing grant key (i.e. assumes that these match) to sign an
-        issuer certificate for the latest issuer key .
-        The validity period for the certificate is defined by the validity of these inputs (TRC and
-        keys).
+        An CA AS in SCIONLab has both the root and the CA certificates.
+        A root certificate is used to sign a CA certificate.
+        A CA certificate is used to sign an AS certificate.
+        When creating / modifying a root certificate, a new TRC must be issued.
         """
-        version = Certificate.next_version(as_, Certificate.ISSUER)
+        # version = Certificate.next_version(as_, Certificate.ISSUER)
 
-        trc = as_.isd.trcs.latest()
-        issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
-        issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
+        # trc = as_.isd.trcs.latest()
+        # issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
+        # issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
 
-        not_before, not_after = _validity([issuer_key, issuing_grant, trc])
+        # not_before, not_after = _validity([issuer_key, issuing_grant, trc])
 
-        cert = certs.generate_issuer_certificate(as_, version, trc, not_before, not_after,
-                                                 issuing_grant, issuer_key)
+        # cert = certs.generate_issuer_certificate(as_, version, trc, not_before, not_after,
+        #                                          issuing_grant, issuer_key)
+
+        cert, key = certs.generate_issuer_root_certificate(as_, not_before, not_after)
 
         return super().create(
             AS=as_,
@@ -437,6 +449,7 @@ class Certificate(models.Model):
     TYPES = (
         ISSUER,
         CHAIN,
+        # TODO(juagargi) for the new cppki, add type VOTING, 
     )
 
     AS = models.ForeignKey(

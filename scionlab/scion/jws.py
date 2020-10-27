@@ -22,6 +22,8 @@ import base64
 from scionlab.scion import keys
 
 
+# TODO(juagargi) remove this file
+
 def encode(data: dict) -> str:
     return _b64url(json.dumps(data, sort_keys=True).encode())
 

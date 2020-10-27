@@ -25,7 +25,8 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 from scionlab.scion import keys, jws
 from scionlab.scion.as_ids import parse
-from scionlab.scion.trcs import _utc_timestamp
+from scionlab.scion.keys import encode_key, generate_key
+from scionlab.scion.trcs import _utc_timestamp, deleteme_generate_trc
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ObjectIdentifier
 from cryptography.hazmat.backends import default_backend
@@ -41,26 +42,13 @@ OID_SENSITIVE_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.1")
 OID_REGULAR_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.2")
 OID_ROOT_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.3")  # ca root key
 
-# some type aliases
+CertKey = NamedTuple("CertKey", [("cert", x509.Certificate),
+                                 ("key", ec.EllipticCurvePrivateKeyWithSerialization)])
+
+
+# some type aliases:
 Name = List[Tuple[ObjectIdentifier, str]]
 Extensions = List[Tuple[ObjectIdentifier, bool]]
-
-
-def deleteme_build_key() -> ec.EllipticCurvePrivateKeyWithSerialization:
-    # valid curves are: SECP256R1, SECP384R1, and secp521r1
-    key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
-    key = cast(ec.EllipticCurvePrivateKeyWithSerialization, key)  # only for type hints
-    return key
-
-
-def deleteme_encode_key(key: ec.EllipticCurvePrivateKeyWithSerialization) -> bytes:
-    """
-    Returns the bytes as PEM
-    """
-    return key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=serialization.NoEncryption())
 
 
 def deleteme_load_key(filename: str) -> ec.EllipticCurvePrivateKey:
@@ -69,30 +57,29 @@ def deleteme_load_key(filename: str) -> ec.EllipticCurvePrivateKey:
     return k
 
 
-def deleteme_deleteme_create_a_name(common_name: str) -> Name:
+def _create_name(as_id: str, common_name: str) -> Name:
     return [(NameOID.COUNTRY_NAME, "CH"),
             (NameOID.STATE_OR_PROVINCE_NAME, "ZH"),
             (NameOID.LOCALITY_NAME, "Zürich"),
             (NameOID.ORGANIZATION_NAME, "Netsec"),
             (NameOID.ORGANIZATIONAL_UNIT_NAME, "Netsec"),
             (NameOID.COMMON_NAME, common_name),
-            (OID_ISD_AS, "1-ff00:0:110")]
+            (OID_ISD_AS, as_id)]
 
 
-def deleteme_build_cert(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
-                        issuer: Optional[Tuple[ec.EllipticCurvePrivateKey, Name]],
-                        notvalidbefore: datetime,
-                        notvalidafter: datetime,
-                        extensions: Extensions) -> x509.Certificate:
+def _build_certificate(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
+                       issuer: Optional[Tuple[ec.EllipticCurvePrivateKey, Name]],
+                       notvalidbefore: datetime,
+                       notvalidafter: datetime,
+                       extensions: Extensions) -> x509.Certificate:
     """
-    subject is a 2-tuple (key, name_list) for the subject. name_list is a list of 2-tuples (OID, value) for the subject name
-    issuer is a 2-tuple (key, name_list) for the issuer name
-    extensions is a list of 2-tuples (extension, critical)
+    Builds a certificate from the parameters.
+    The certificate is signed by the issuer.
     """
     issuer = issuer or subject
     subject_name = x509.Name([x509.NameAttribute(p[0], p[1]) for p in subject[1]])
     issuer_name = x509.Name([x509.NameAttribute(p[0], p[1]) for p in issuer[1]])
-    # create certificate
+    # create certificate builder
     cert_builder = x509.CertificateBuilder().subject_name(
         subject_name
     ).issuer_name(
@@ -108,30 +95,30 @@ def deleteme_build_cert(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
     )
     for p in extensions:
         cert_builder = cert_builder.add_extension(p[0], p[1])
-    cert = cert_builder.sign(issuer[0], hashes.SHA512(), default_backend())
-    return cert
+    # use the issuer to sign a certificate
+    return cert_builder.sign(issuer[0], hashes.SHA512(), default_backend())
 
 
-def deleteme_build_extensions_voting(key: ec.EllipticCurvePrivateKey,
-                                     issuer_key_type: ObjectIdentifier) -> Extensions:
+def _build_extensions_voting(key: ec.EllipticCurvePrivateKey,
+                             issuer_key_type: ObjectIdentifier) -> Extensions:
     return [(x509.SubjectKeyIdentifier.from_public_key(key.public_key()), False),
             (x509.ExtendedKeyUsage(
                 [issuer_key_type, x509.ExtendedKeyUsageOID.TIME_STAMPING]
             ), False)]
 
 
-def deleteme_build_extensions_root(key: ec.EllipticCurvePrivateKey) -> Extensions:
+def _build_extensions_root(key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
     return [(x509.BasicConstraints(True, 1), True),
-            (x509.KeyUsage(False,False,False,False,False,True,True, False,False),True),
+            (x509.KeyUsage(False, False, False, False, False, True, True, False, False), True),
             (x509.SubjectKeyIdentifier.from_public_key(key.public_key()), False),
             (x509.ExtendedKeyUsage([OID_ROOT_KEY, x509.ExtendedKeyUsageOID.TIME_STAMPING]), False)]
 
 
-def deleteme_build_extensions_ca(subject_key: ec.EllipticCurvePrivateKey,
-                                 issuer_key: ec.EllipticCurvePrivateKey) -> Extensions:
+def _build_extensions_ca(subject_key: ec.EllipticCurvePrivateKey,
+                         issuer_key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
@@ -141,8 +128,8 @@ def deleteme_build_extensions_ca(subject_key: ec.EllipticCurvePrivateKey,
             (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False)]
 
 
-def deleteme_build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
-                                 issuer_key: ec.EllipticCurvePrivateKey) -> Extensions:
+def _build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
+                         issuer_key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
     Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
     """
@@ -156,48 +143,48 @@ def deleteme_build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
 
 def deleteme_generate_voting_certs() -> None:
     # sensitive:
-    key = deleteme_build_key()
-    cert = deleteme_build_cert(subject=(key, deleteme_deleteme_create_a_name("sensitive")),
+    key = generate_key()
+    cert = _build_certificate(subject=(key, _create_name("1-ff00:0:110", "Sensitive Voting Certificate")),
                            issuer=None,
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=deleteme_build_extensions_voting(key, OID_SENSITIVE_KEY))
+                           extensions=_build_extensions_voting(key, OID_SENSITIVE_KEY))
     with open("scionlab-test-sensitive.key", "wb") as f:
-        f.write(deleteme_encode_key(key))
+        f.write(encode_key(key))
     with open("scionlab-test-sensitive.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # regular:
-    key = deleteme_build_key()
-    cert = deleteme_build_cert(subject=(key, deleteme_deleteme_create_a_name("regular")),
+    key = generate_key()
+    cert = _build_certificate(subject=(key, _create_name("1-ff00:0:110", "regular")),
                            issuer=None,
                            notvalidbefore=datetime.utcnow(),
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=deleteme_build_extensions_voting(key, OID_REGULAR_KEY))
+                           extensions=_build_extensions_voting(key, OID_REGULAR_KEY))
     with open("scionlab-test-regular.key", "wb") as f:
-        f.write(deleteme_encode_key(key))
+        f.write(encode_key(key))
     with open("scionlab-test-regular.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
 
 def deleteme_generate_ca():
     # generate root:
-    key = deleteme_build_key()
-    root_issuer = (key, deleteme_deleteme_create_a_name("root"))
-    cert = deleteme_build_cert(subject=root_issuer,
+    key = generate_key()
+    root_issuer = (key, _create_name("1-ff00:0:110", "root"))
+    cert = _build_certificate(subject=root_issuer,
                                issuer=None,
                                notvalidbefore=datetime.utcnow(),
                                notvalidafter=datetime.utcnow() + timedelta(days=1),
-                               extensions=deleteme_build_extensions_root(key))
+                               extensions=_build_extensions_root(key))
     with open("scionlab-test-root.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # generate ca:
-    key = deleteme_build_key()
-    ca_issuer = (key, deleteme_deleteme_create_a_name("ca"))
-    cert = deleteme_build_cert(subject=ca_issuer,
+    key = generate_key()
+    ca_issuer = (key, _create_name("1-ff00:0:110", "ca"))
+    cert = _build_certificate(subject=ca_issuer,
                                issuer=root_issuer,
                                notvalidbefore=datetime.utcnow(),
                                notvalidafter=datetime.utcnow() + timedelta(days=1),
-                               extensions=deleteme_build_extensions_ca(key, root_issuer[0]))
+                               extensions=_build_extensions_ca(key, root_issuer[0]))
     with open("scionlab-test-ca.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
@@ -208,12 +195,12 @@ def deleteme_generate_as(issuer, asid):
     """
     issuer is a 2-tuple (key, name)
     """
-    key = deleteme_build_key()
-    cert = deleteme_build_cert(subject=(key, deleteme_deleteme_create_a_name("regular AS " + asid)),
+    key = generate_key()
+    cert = _build_certificate(subject=(key, _create_name("1-ff00:0:110", f"Regular AS {asid}")),
                                issuer=issuer,
                                notvalidbefore=datetime.utcnow(),
                                notvalidafter=datetime.utcnow() + timedelta(days=1),
-                               extensions=deleteme_build_extensions_as(key, issuer[0]))
+                               extensions=_build_extensions_as(key, issuer[0]))
     with open(f"scionlab-test-as{asid}.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
@@ -223,147 +210,8 @@ def deleteme_generate_ases(ca_issuer, asids):
         deleteme_generate_as(ca_issuer, asid)
 
 
-class TRCConf:
-    def __init__(self, isd_id, authoritative, core, certificates):
-        """
-        authoritative ASes are those that know which TRC version an ISD has
-        authoritative is a list ["ffaa:0:1102",...]
-        """
-        self.isd_id = isd_id
-        # self.authoritative = [parse(asid) for asid in authoritative]
-        self.authoritative = authoritative
-        self.core = core
-        # self.voters = ["1-ff00:0:110"]
-        # self.cas = ["1-ff00:0:110"]
-        self.certificates = certificates
-
-    def get_conf(self):
-        d = {
-            "isd": self.isd_id,
-            "description": "ISD 1",
-            "base_version": 1,
-            "serial_version": 1,
-            "voting_quorum": 1,
-            "grace_period": "0s",  # must be non zero for updates to serial_version only
-            "authoritative_ases": self.authoritative,
-            "core_ases": self.core,
-            "cert_files": self.certificates,
-            "no_trust_reset": False,
-            # "votes": 1  # empty when updating only serial_version
-            "validity": {
-                "not_before": int(datetime.now().timestamp()),
-                "validity": "24h",  # the TRC must be included in the valid window of all certificates
-            },
-        }
-        return d
-
-
-def deleteme_run_scion_cppki(*args):
-    """
-    runs scion-pki
-    """
-    COMMAND = "/home/juagargi/devel/ETH/scion.scionlab/bin/scion-pki"
-    ret = subprocess.run([COMMAND, "trcs", *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
-    if ret.returncode != 0:
-        print(ret.stdout.decode("utf-8"))
-        raise Exception(f"Bad return code: {ret.returncode}")
-
-
-def deleteme_trc_configure():
-    '''
-	ISD               addr.ISD        `toml:"isd"`
-	Description       string          `toml:"description"`
-	SerialVersion     scrypto.Version `toml:"serial_version"`
-	BaseVersion       scrypto.Version `toml:"base_version"`
-	VotingQuorum      uint8           `toml:"voting_quorum"`
-	GracePeriod       util.DurWrap    `toml:"grace_period"`
-	NoTrustReset      bool            `toml:"no_trust_reset"`
-	Validity          Validity        `toml:"validity"`
-	CoreASes          []addr.AS       `toml:"core_ases"`
-	AuthoritativeASes []addr.AS       `toml:"authoritative_ases"`
-	CertificateFiles  []string        `toml:"cert_files"`
-	Votes             []int           `toml:"votes"`
-    '''
-    certificates = [  # only sensitives, regulars, and roots
-        "scionlab-test-sensitive.crt",
-        "scionlab-test-regular.crt",
-        "scionlab-test-root.crt",
-    ]
-    conf = TRCConf(1, ["ff00:0:110"], ["ff00:0:110"], certificates)
-    # s = toml.dumps(conf.get_conf())
-    # print(s)
-    with open("scionlab-test-trc-config.toml", "w") as f:
-        f.write(toml.dumps(conf.get_conf()))
-    # TODO load predecessor when updating only serial_version
-
-
-def deleteme_trc_generate_payload():
-    deleteme_file_name = "scionlab-test-trc-payload.der"
-    deleteme_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", deleteme_file_name)
-    return deleteme_file_name
-
-
-def deleteme_trc_sign_payload():
-    # openssl cms -sign -in ISD-B1-S1.pld.der -inform der -md sha512 \
-    #     -signer $PUBDIR/regular-voting.crt -inkey $KEYDIR/regular-voting.key \
-    #     -nodetach -nocerts -nosmimecap -binary -outform der > ISD-B1-S1.regular.trc
-
-    # verify with:
-    # openssl cms -verify -in ISD-B1-S1.regular.trc -inform der \
-    # -certfile $PUBDIR/regular-voting.crt -CAfile $PUBDIR/regular-voting.crt \
-    # -purpose any -no_check_time > /dev/null
-    #
-    # k = deleteme_load_key("scionlab-test-regular.key")
-    # with open("scionlab-test-trc-payload.der", "rb") as f:
-    #     hash = hashlib.sha512(f.read()).digest()
-    # k.sign(hash, padding.)
-    # TODO(juagargi) replace the execution of openssl with a library
-    # XXX(juagargi): I don't find a nice way to encode CMS in python.
-    # There seems to be some possibilities:
-    # pkcs7.PKCS7Encoder()
-    # https://github.com/vbwagner/ctypescrypto
-    #
-    # signers is a list of 3-tuples (cert,key,outfile)
-    signers =[
-        ("scionlab-test-sensitive.crt", "scionlab-test-sensitive.key", "scionlab-test-trc-signed.sensitive.trc"),
-        ("scionlab-test-regular.crt", "scionlab-test-regular.key", "scionlab-test-trc-signed.regular.trc"),
-    ]
-    for (cert, key, outfile) in signers:
-        command = ["openssl", "cms", "-sign", "-in", "scionlab-test-trc-payload.der",
-                   "-inform", "der", "-md", "sha512", "-signer", cert,
-                   "-inkey", key, "-nodetach", "-nocerts", "-nosmimecap",
-                   "-binary", "-outform", "der", "-out", outfile]
-        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
-        # TODO(juagargi) unnecessary:
-        command = ["openssl", "cms", "-verify", "-in", outfile,
-                "-inform", "der", "-certfile", cert,
-                "-CAfile", cert, "-purpose", "any", "-no_check_time"]
-        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
-
-
-def deleteme_trc_combine_payloads():
-    deleteme_file_name_payload = "scionlab-test-trc-payload.der"
-    deleteme_file_names = [
-        "scionlab-test-trc-signed.sensitive.trc",
-        "scionlab-test-trc-signed.regular.trc",
-        ]
-    deleteme_run_scion_cppki("combine", "-p", deleteme_file_name_payload, *deleteme_file_names, "-o", "scionlab-test-trc.trc")
-    # check the final TRC:
-    deleteme_run_scion_cppki("verify", "--anchor", "scionlab-test-trc.trc", "scionlab-test-trc.trc")
-
-
-def deleteme_generate_trc(isd_id):
-    """
-    Generates (or regenerates) a TRC
-    """
-    # configure TRC
-    deleteme_trc_configure()
-    # generate payload scion-pki trcs payload
-    deleteme_trc_generate_payload()
-    # sign payload (crypto_lib.sh:sign_payload())
-    deleteme_trc_sign_payload()
-    # combine signed TRCs
-    deleteme_trc_combine_payloads()
+def deleteme() -> str:
+    return "deleteme called"
 
 
 # TODO(juagargi) remove this function
@@ -377,12 +225,66 @@ def test_cppki():
     # create TRCs
     deleteme_generate_trc(1)
     # flatten?
+    print(f"{deleteme()}-V1")
 
 
-def generate_issuer_certificate(as_, version: int, trc, not_before, not_after,
-                                issuing_grant, issuer_key):
-    payload = _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key)
-    return _build_signed_issuer_cert(payload, issuing_grant)
+def generate_voting_certificates(as_, version: int, trc, not_before, not_after, issuing_grant, issuer_key):
+    # sensitive:
+    key = generate_key()
+    cert = _build_certificate(subject=(key, _create_name(as_.isd_as_str(),
+                              "Sensitive Voting Certificate")),
+                              issuer=None,
+                              notvalidbefore=not_before,
+                              notvalidafter=not_after,
+                              extensions=_build_extensions_voting(key, OID_SENSITIVE_KEY))
+    sensitive = CertKey(cert=cert, key=key)
+    # regular:
+    key = generate_key()
+    cert = _build_certificate(subject=(key, _create_name(as_.isd_as_str(),
+                              "Regular Voting Certificate")),
+                              issuer=None,
+                              notvalidbefore=not_before,
+                              notvalidafter=not_after,
+                              extensions=_build_extensions_voting(key, OID_REGULAR_KEY))
+    regular = CertKey(cert=cert, key=key)
+    return (sensitive, regular)
+
+
+def generate_issuer_root_certificate(as_, not_before, not_after):
+    """
+    Generates an issuer root certificate.
+    Issuer Root Certificates are used to sign CA certificates.
+    """
+    key = generate_key()
+    root_issuer = (key, _create_name(as_.isd_as_str(), "High Security Root Certificate"))
+    cert = _build_certificate(subject=root_issuer,
+                              issuer=None,
+                              notvalidbefore=not_before,
+                              notvalidafter=not_after,
+                              extensions=_build_extensions_root(key))
+    return CertKey(cert=cert, key=key)
+
+
+def generate_issuer_ca_certificate(as_, not_before, not_after, issuer):
+    """
+    Generates an issuer CA certificate.
+    CA certificates are used to sign AS certificates.
+    CA certificates are signed by Root certificates.
+    """
+    key = generate_key()
+    # subject = (key, _create_name(as_.isd_as_str(), "Secure CA Certificate"))
+    cert = _build_certificate(subject=(key, _create_name(as_.isd_as_str(), "Secure CA Certificate")),
+                              issuer=issuer,
+                              notvalidbefore=not_before,
+                              notvalidafter=not_after,
+                              extensions=_build_extensions_ca(key, issuer[0]))
+    return CertKey(cert=cert, key=key)
+
+
+# def generate_issuer_certificate(as_, version: int, trc, not_before, not_after,
+#                                 issuing_grant, issuer_key):
+#     payload = _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key)
+#     return _build_signed_issuer_cert(payload, issuing_grant)
 
 
 def generate_as_certificate(subject, version, not_before, not_after,

@@ -20,9 +20,13 @@
 
 import base64
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
 from nacl.exceptions import BadSignatureError
 from nacl.public import PrivateKey
 from nacl.signing import SigningKey, VerifyKey
+from typing import cast
 
 
 class Base64StringEncoder:
@@ -105,3 +109,20 @@ def public_enc_key(private_key):
     """
     pk = PrivateKey(private_key, encoder=Base64StringEncoder)
     return pk.public_key.encode(encoder=Base64StringEncoder)
+
+
+def generate_key() -> ec.EllipticCurvePrivateKeyWithSerialization:
+    # valid curves are: SECP256R1, SECP384R1, and secp521r1
+    key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
+    key = cast(ec.EllipticCurvePrivateKeyWithSerialization, key)  # only for type hints
+    return key
+
+
+def encode_key(key: ec.EllipticCurvePrivateKeyWithSerialization) -> bytes:
+    """
+    Returns the bytes as PEM
+    """
+    return key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption())
