@@ -32,7 +32,12 @@ from scionlab.util.django import value_set
 
 
 class VPNManager(models.Manager):
-    def create(self, server, server_port, subnet, server_vpn_ip):
+    def create(self, server, server_port, subnet=None, server_vpn_ip=None):
+        subnet = subnet or str(self._find_vpn_subnet())
+        if server_vpn_ip == None:
+            server_vpn_ip = subnet[:-4]
+            server_vpn_ip = server_vpn_ip + "1"
+            
         vpn = VPN(
             server=server,
             server_port=server_port,
@@ -43,6 +48,17 @@ class VPNManager(models.Manager):
         vpn.save()
         server.bump_config()
         return vpn
+        
+    def _find_vpn_subnet(self):
+        """
+        Find the next free IP subnet in form 10.10.x.0/24 which will be used for User APs
+        """
+        existing_vpns = value_set(VPN.objects.all(), 'subnet')
+        for x in range(256):
+            if "10.10.%s.0/24" %x not in existing_vpns:
+                return "10.10.%s.0/24" %x
+        RaiseRuntimeError('No more subnets available')
+
 
 
 class VPN(models.Model):
@@ -145,8 +161,7 @@ class VPN(models.Model):
             self.server.bump_config()
         if oldserver and oldserver != self.server:
             oldserver.bump_config()
-
-
+    
 class VPNClientManager(models.Manager):
     def create(self, vpn, host, ip, active):
         client = VPNClient(
