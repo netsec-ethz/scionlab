@@ -315,13 +315,19 @@ class CertificateManager(models.Manager):
 
 
 class Certificate(models.Model):
-    ISSUER = 'issuer'
+    VOTING_SENSITIVE = 'voting_sensitive'
+    VOTING_REGULAR = 'voting_regular'
+    ISSUER_ROOT = 'issuer_root'
+    ISSUER_CA = 'issuer_ca'
     CHAIN = 'chain'  # AS certificates are a certificate chain
 
     TYPES = (
-        ISSUER,
+        # ISSUER,
+        VOTING_SENSITIVE,
+        VOTING_REGULAR,
+        ISSUER_ROOT,
+        ISSUER_CA,
         CHAIN,
-        # TODO(juagargi) for the new cppki, add type VOTING, 
     )
 
     AS = models.ForeignKey(
@@ -339,7 +345,8 @@ class Certificate(models.Model):
     not_before = models.DateTimeField()
     not_after = models.DateTimeField()
 
-    certificate = jsonfield.JSONField()
+    # certificate = jsonfield.JSONField()
+    certificate = models.BinaryField()
 
     objects = CertificateManager()
 
@@ -350,7 +357,19 @@ class Certificate(models.Model):
         return self.filename()
 
     def filename(self):
-        return "ISD%i-AS%s-V%i.crt" % (self.AS.isd.isd_id, self.AS.as_path_str(), self.version)
+        # TODO(juagargi) change to use the version_base version_serial
+        # return "ISD%i-AS%s-V%i.crt" % (self.AS.isd.isd_id, self.AS.as_path_str(), self.version)
+        if self.type == Certificate.VOTING_SENSITIVE:
+            suffix = ".sensitive"
+        elif self.type == Certificate.VOTING_REGULAR:
+            suffix = ".regular"
+        elif self.type == Certificate.ISSUER_ROOT:
+            suffix = ".root"
+        elif self.type == Certificate.ISSUER_CA:
+            suffix = ".ca"
+        else:
+            suffix = ""
+        return f"ISD{self.AS.isd.isd_id}-AS{self.AS.as_path_str()}{suffix}"
 
     @staticmethod
     def next_version(as_, type):
@@ -359,7 +378,6 @@ class Certificate(models.Model):
             return prev + 1
         else:
             return 1
-
 
 
 class TRCManager(models.Manager):
@@ -462,6 +480,7 @@ class TRC(models.Model):
         return self.filename()
 
     def filename(self) -> str:
+        # TODO(juagargi) change to use the version_base version_serial
         return 'ISD%i-V%i.trc' % (self.isd.isd_id, self.version)
 
 
