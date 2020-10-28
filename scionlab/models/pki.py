@@ -34,8 +34,6 @@ from scionlab.util import flatten
 
 _MAX_LEN_CHOICES_DEFAULT = 32
 """ Max length value for choices fields without specific requirements to max length """
-# _MAX_LEN_KEYS = 255
-# """ Max length value for base64 encoded AS keys """
 
 
 def _key_set_null_or_cascade(collector, field, sub_objs, using):
@@ -57,32 +55,24 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
 
 
 class KeyManager(models.Manager):
-    # def create(self, AS, usage, version=None, not_before=None, not_after=None):
     def create(self, AS, usage, not_before=None, not_after=None):
         """
         Create a Key for this AS, for the given usage.
         :param AS AS:
         :param str usage: Key usage, one of Key.USAGES
-        :param int version: optional, if not given the next natural version for AS,usage is used
         :param datetime not_before: start of validity, optional, default is now
         :param datetime not_after: end of validity, optional, default is not_before+DEFAULT_EXPIRAT.
         """
-        # version = version or Key.next_version(AS, usage)
-
         not_before = not_before or datetime.utcnow()
         not_after = not_after or not_before + Key.default_expiration(usage)
 
-        # if usage == Key.DECRYPT:
-        #     key = keys.generate_enc_key()
-        # else:
-        #     key = keys.generate_sign_key()
-
+        key = keys.encode_key(keys.generate_key())
         return super().create(
             AS=AS,
             _as_id_int=AS.as_id_int,
             usage=usage,
             version=Key.next_version(AS, usage),
-            key=keys.generate_key(),
+            key=key,
             not_before=not_before,
             not_after=not_after
         )
@@ -95,13 +85,6 @@ class KeyManager(models.Manager):
 
 
 class Key(models.Model):
-    # DECRYPT = 'as-decrypt'
-    # # REVOCATION = 'as-revocation'  # Not currently used by SCIONLab
-    # SIGNING = 'as-signing'
-    # CERT_SIGNING = 'as-cert-signing'
-    # TRC_ISSUING_GRANT = 'trc-issuing-grant'
-    # TRC_VOTING_ONLINE = 'trc-voting-online'
-    # TRC_VOTING_OFFLINE = 'trc-voting-offline'
     TRC_VOTING_SENSITIVE = "sensitive-voting"
     TRC_VOTING_REGULAR = "regular-voting"
     CP_ROOT = "cp-root"
@@ -134,11 +117,11 @@ class Key(models.Model):
         editable=False,
     )
     version = models.PositiveIntegerField(editable=False)
+
     not_before = models.DateTimeField()
     not_after = models.DateTimeField()
 
-    # key = models.CharField(max_length=_MAX_LEN_KEYS, editable=False)
-    key = models.BinaryField()
+    key = models.TextField(editable=False)  # key in PEM format
 
     objects = KeyManager()
 
@@ -158,67 +141,18 @@ class Key(models.Model):
         return as_ids.format(self._as_id_int)
 
     def filename(self):
-        # return "%s-v%i.key" % (self.usage, self.version)
         return f"{self.usage}.key"
 
     def format_keyfile(self) -> str:
         """
         Create the PEM file content for this key.
         """
-        # return textwrap.dedent("""\
-        #     -----BEGIN PRIVATE KEY-----
-        #     algorithm: {algo}
-        #     ia: {ia}
-        #     not_after: {not_before}
-        #     not_before: {not_after}
-        #     usage: {usage}
-        #     version: {version}
-
-        #     {key}
-        #     -----END PRIVATE KEY-----
-        # """).format(
-        #     algo=self.algorithm(),
-        #     ia=self.AS.isd_as_str(),
-        #     not_after=self._format_timestamp(self.not_after),
-        #     not_before=self._format_timestamp(self.not_before),
-        #     usage=self.usage,
-        #     version=self.version,
-        #     key=self.key
-        # )
-        return keys.encode_key(self.key)
-
-    # def algorithm(self):
-    #     """
-    #     Return the algorithm corresponding to this key, in the format expected for the .key file
-    #     """
-    #     if self.is_encryption_key():
-    #         return 'curve25519xsalsa20poly1305'
-    #     else:
-    #         return 'ed25519'
-
-    # def is_encryption_key(self):
-    #     """
-    #     Returns True iff this is an encryption key. Otherwise, this is a signing key.
-    #     """
-    #     return self.usage == Key.DECRYPT
+        return self.key  # already in PEM format
 
     @staticmethod
     def next_version(as_, usage):
         prev = as_.keys.filter(usage=usage).aggregate(models.Max('version'))['version__max']
         return (prev or 0) + 1
-        # if prev:
-        #     return prev + 1
-        # else:
-        #     return 1
-
-    # @staticmethod
-    # def _format_timestamp(dt):
-    #     """
-    #     The SCION key file format expects timestamps in a specific format:
-    #         2006-01-02 15:04:05-0700
-    #     """
-    #     assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
-    #     return dt.replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S%z")
 
     @staticmethod
     def default_expiration(usage):
@@ -457,6 +391,8 @@ class TRC(models.Model):
     )
 
     version = models.PositiveIntegerField(editable=False)
+    # version_base = models.PositiveIntegerField(editable=False, default=1)
+    # version_serial = models.PositiveIntegerField(editable=False, default=1)
     not_before = models.DateTimeField()
     not_after = models.DateTimeField()
 
