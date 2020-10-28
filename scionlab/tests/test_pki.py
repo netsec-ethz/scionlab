@@ -29,60 +29,53 @@ from scionlab.scion import as_ids, keys, trcs, jws
 from django.test import TestCase
 
 
-class GenerateKeyTests(TestCase):
+class TryTest(TestCase):
+    def test_thing(self):
+        pass
+
+
+class KeyTests(TestCase):
 
     def setUp(self):
         self.isd = ISD.objects.create(isd_id=1, label='Test')
         # bypass ASManager.create to avoid initializing keys
-        as_id = 'ff00:0:110'
-        self.AS = AS(
-            isd=self.isd,
-            as_id=as_id,
-            as_id_int=as_ids.parse(as_id)
-        )
-        self.AS.save()
+        self.AS = _create_AS(self.isd, 'ff00:0:110')
 
-    def test_generate_decrypt_key(self):
-        k = Key.objects.create(AS=self.AS, usage=Key.DECRYPT)
+    def test_generate_regular_as_key(self):
+        k = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
         self.assertIsNotNone(k)
         self.assertEqual(k.AS_id, self.AS.pk)
         self.assertEqual(k.version, 1)
-        self.assertEqual(k.usage, Key.DECRYPT)
+        self.assertEqual(k.usage, Key.CP_AS)
         self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION_AS_KEYS)
 
-    def test_generate_sign_key(self):
-        k = Key.objects.create(AS=self.AS, usage=Key.SIGNING)
-        self.assertIsNotNone(k)
-        self.assertEqual(k.AS_id, self.AS.pk)
-        self.assertEqual(k.version, 1)
-        self.assertEqual(k.usage, Key.SIGNING)
-        self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION_AS_KEYS)
+    def test_latest(self):
+        for as_ in [self.AS,
+                    _create_AS(self.isd, "ff00:0:111"),
+                    _create_AS(self.isd, "ff00:0:112")]:
+            Key.objects.create(AS=as_, usage=Key.CP_AS)
+        self.assertEqual(Key.objects.exclude(version=1).count(), 0)
+        k = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
+        self.assertEqual(Key.objects.exclude(version=1).get(), k)
 
-    def test_key_timestamp_format(self):
-        d = datetime(2006, 1, 2, 15, 4, 5)
-        formatted = Key._format_timestamp(d)
-        self.assertEqual(formatted, "2006-01-02 15:04:05+0000")
-
-        # Ignore microseconds
-        d = datetime(2006, 1, 2, 15, 4, 5, 12345)
-        formatted = Key._format_timestamp(d)
-        self.assertEqual(formatted, "2006-01-02 15:04:05+0000")
-
-        # Should also work on whatever utcnow returns
-        d = datetime.utcnow()
-        formatted = Key._format_timestamp(d)
-        self.assertIsNotNone(re.match(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+0000", formatted))
+    def test_key_format(self):
+        k = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
+        self.assertEqual(k.format_keyfile(), k.key)
+        first_line = k.key.splitlines()[0]
+        self.assertEqual(first_line, b"-----BEGIN EC PRIVATE KEY-----")
 
     def test_delete_as(self):
-        ks = Key.objects.create(AS=self.AS, usage=Key.SIGNING)
-        kd = Key.objects.create(AS=self.AS, usage=Key.DECRYPT)
-        ko = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_OFFLINE)
+        k_as = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
+        k_ca = Key.objects.create(AS=self.AS, usage=Key.CP_CA)
+        k_regular = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_REGULAR)
+        k_sensitive = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_SENSITIVE)
 
         self.AS.delete()
 
-        self.assertFalse(Key.objects.filter(pk=ks.pk).exists())  # Delete should cascade here, ...
-        self.assertFalse(Key.objects.filter(pk=kd.pk).exists())  # ... and here too.
-        self.assertTrue(Key.objects.filter(pk=ko.pk).exists())   # This one should still exist!
+        self.assertFalse(Key.objects.filter(pk=k_as.pk).exists())  # Delete should cascade here, ...
+        self.assertFalse(Key.objects.filter(pk=k_ca.pk).exists())  # ... and here too.
+        self.assertFalse(Key.objects.filter(pk=k_regular.pk).exists())  # ... and here too.
+        self.assertTrue(Key.objects.filter(pk=k_sensitive.pk).exists())   # This one should still exist!
 
 
 _ASID_1 = 'ff00:0:1'
@@ -96,6 +89,26 @@ class GenerateTRCTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.isd1 = ISD.objects.create(isd_id=1, label='Test')
+
+    # def test_version_base_serial(self):
+    #     k_2_2 = Key(AS=self.AS, _as_id_int=self.AS.as_id_int, usage=Key.CP_AS,
+    #                 not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+    #                 version=1, version_base=2, version_serial=2)
+    #     k_2_2.save()
+    #     latest = Key.objects.latest(Key.CP_AS)
+    #     self.assertEqual(latest, k_2_2)
+    #     k_1_1 = Key(AS=self.AS, _as_id_int=self.AS.as_id_int, usage=Key.CP_AS,
+    #                 not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+    #                 version=1, version_base=1, version_serial=1)
+    #     k_1_1.save()
+    #     latest = Key.objects.latest(Key.CP_AS)
+    #     self.assertEqual(latest, k_2_2)
+    #     k_2_3 = Key(AS=self.AS, _as_id_int=self.AS.as_id_int, usage=Key.CP_AS,
+    #                 not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+    #                 version=1, version_base=2, version_serial=3)
+    #     k_2_3.save()
+    #     latest = Key.objects.latest(Key.CP_AS)
+    #     self.assertEqual(latest, k_2_3)
 
     def gen_trc_v1(self):
         """
@@ -276,3 +289,9 @@ def _gen_key(version):
     priv = keys.generate_sign_key()
     pub = keys.public_sign_key(priv)
     return trcs.Key(version=version, priv_key=priv, pub_key=pub)
+
+
+def _create_AS(isd, as_id):
+    as_ = AS(isd=isd, as_id=as_id, as_id_int=as_ids.parse(as_id))
+    as_.save()
+    return as_
