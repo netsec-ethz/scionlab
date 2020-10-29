@@ -17,7 +17,7 @@ import re
 from datetime import datetime, timedelta
 
 from scionlab.models.core import ISD, AS
-from scionlab.models.pki import Key
+from scionlab.models.pki import Key, Certificate
 from scionlab.defines import (
     DEFAULT_EXPIRATION_AS_KEYS,
     DEFAULT_EXPIRATION_CORE_KEYS,
@@ -62,11 +62,11 @@ class KeyTests(TestCase):
         k = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
         self.assertEqual(k.format_keyfile(), k.key)
         first_line = k.key.splitlines()[0]
-        self.assertEqual(first_line, b"-----BEGIN EC PRIVATE KEY-----")
+        self.assertEqual(first_line, "-----BEGIN EC PRIVATE KEY-----")
 
     def test_delete_as(self):
         k_as = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
-        k_ca = Key.objects.create(AS=self.AS, usage=Key.CP_CA)
+        k_ca = Key.objects.create(AS=self.AS, usage=Key.ISSUING_CA)
         k_regular = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_REGULAR)
         k_sensitive = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_SENSITIVE)
 
@@ -76,6 +76,180 @@ class KeyTests(TestCase):
         self.assertFalse(Key.objects.filter(pk=k_ca.pk).exists())  # ... and here too.
         self.assertFalse(Key.objects.filter(pk=k_regular.pk).exists())  # ... and here too.
         self.assertTrue(Key.objects.filter(pk=k_sensitive.pk).exists())   # This one should still exist!
+
+
+class CertificateTests(TestCase):
+    def setUp(self):
+        self.isd = ISD.objects.create(isd_id=1, label='Test')
+        # bypass ASManager.create to avoid initializing keys
+        self.AS = _create_AS(self.isd, 'ff00:0:110')
+
+    def test_create_voting_sensitive_cert(self):
+        k = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_SENSITIVE,
+                               not_before=datetime.fromtimestamp(10),
+                               not_after=datetime.fromtimestamp(12))
+        cert = Certificate.objects.create_voting_sensitive_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(13))
+        self.assertEqual(cert.key, k)
+        self.assertEqual(cert.ca_cert, cert)  # self signed
+        self.assertEqual(cert.not_before, datetime.fromtimestamp(11))  # valid intersection
+        self.assertEqual(cert.not_after, datetime.fromtimestamp(12))
+
+    def test_create_voting_regular_cert(self):
+        k = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_REGULAR,
+                               not_before=datetime.fromtimestamp(10),
+                               not_after=datetime.fromtimestamp(12))
+        cert = Certificate.objects.create_voting_regular_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(13))
+        self.assertEqual(cert.key, k)
+        self.assertEqual(cert.ca_cert, cert)  # self signed
+        self.assertEqual(cert.not_before, datetime.fromtimestamp(11))  # valid intersection
+        self.assertEqual(cert.not_after, datetime.fromtimestamp(12))
+
+    def test_create_issuer_root_cert(self):
+        k = Key.objects.create(AS=self.AS, usage=Key.ISSUING_ROOT,
+                               not_before=datetime.fromtimestamp(10),
+                               not_after=datetime.fromtimestamp(12))
+        cert = Certificate.objects.create_issuer_root_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(13))
+        self.assertEqual(cert.key, k)
+        self.assertEqual(cert.ca_cert, cert)  # self signed
+        self.assertEqual(cert.not_before, datetime.fromtimestamp(11))  # valid intersection
+        self.assertEqual(cert.not_after, datetime.fromtimestamp(12))
+
+    def test_create_issuer_ca_cert(self):
+        Key.objects.create(
+            AS=self.AS, usage=Key.ISSUING_ROOT,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        self.assertRaises(Key.DoesNotExist,  # no CA key
+                          Certificate.objects.create_issuer_ca_cert,
+                          subject=self.AS,
+                          not_before=datetime.fromtimestamp(11),
+                          not_after=datetime.fromtimestamp(16))
+        key_ca = Key.objects.create(
+            AS=self.AS,
+            usage=Key.ISSUING_CA,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(16))
+        self.assertRaises(Certificate.DoesNotExist,  # no ROOT certificate
+                          Certificate.objects.create_issuer_ca_cert,
+                          subject=self.AS,
+                          not_before=datetime.fromtimestamp(11),
+                          not_after=datetime.fromtimestamp(16))
+        cert_root = Certificate.objects.create_issuer_root_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        cert_ca = Certificate.objects.create_issuer_ca_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(16))
+        self.assertEqual(cert_ca.ca_cert, cert_root)
+        self.assertEqual(cert_ca.key, key_ca)
+        self.assertEqual(cert_ca.not_before, datetime.fromtimestamp(11))
+        self.assertEqual(cert_ca.not_after, datetime.fromtimestamp(12))
+
+    def test_create_as_cert(self):
+        Key.objects.create(
+            AS=self.AS, usage=Key.ISSUING_ROOT,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        Certificate.objects.create_issuer_root_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+
+        subject_key = Key.objects.create(
+            AS=self.AS,
+            usage=Key.CP_AS,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(12))
+        self.assertRaises(Key.DoesNotExist,  # no CA key
+                          Certificate.objects.create_as_cert,
+                          self.AS, self.AS, datetime.fromtimestamp(11), datetime.fromtimestamp(12))
+        Key.objects.create(
+            AS=self.AS, usage=Key.ISSUING_CA,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        self.assertRaises(Certificate.DoesNotExist,  # no CA cert
+                          Certificate.objects.create_as_cert,
+                          self.AS, self.AS, datetime.fromtimestamp(11), datetime.fromtimestamp(12))
+
+        cert_ca = Certificate.objects.create_issuer_ca_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        cert = Certificate.objects.create_as_cert(
+            subject=self.AS,
+            issuer=self.AS,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(12))
+        self.assertEqual(cert.key, subject_key)
+        self.assertEqual(cert.ca_cert, cert_ca)
+
+    def test_as_certificate_another_issuer(self):
+        Key.objects.create(
+            AS=self.AS, usage=Key.ISSUING_ROOT,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        Certificate.objects.create_issuer_root_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        Key.objects.create(
+            AS=self.AS, usage=Key.ISSUING_CA,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        cert_ca = Certificate.objects.create_issuer_ca_cert(
+            subject=self.AS,
+            not_before=datetime.fromtimestamp(10),
+            not_after=datetime.fromtimestamp(12))
+        subject = _create_AS(self.isd, "ff00:0:111")
+        subject_key = Key.objects.create(
+            AS=subject,
+            usage=Key.CP_AS,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(12))
+        cert = Certificate.objects.create_as_cert(
+            subject=subject,
+            issuer=self.AS,
+            not_before=datetime.fromtimestamp(11),
+            not_after=datetime.fromtimestamp(12))
+        self.assertEqual(cert.key, subject_key)
+        self.assertEqual(cert.ca_cert, cert_ca)
+
+    def test_certificate_format(self):
+        Key.objects.create(AS=self.AS, usage=Key.ISSUING_ROOT)
+        cert = Certificate.objects.create_issuer_root_cert(
+            subject=self.AS,
+            not_before=datetime.utcnow(),
+            not_after=datetime.utcnow())
+        self.assertEqual(cert.certificate.splitlines()[0], "-----BEGIN CERTIFICATE-----")  # PEM
+        self.assertEqual(cert.certificate.count("-----BEGIN CERTIFICATE-----"), 1)
+        # AS certificates should contain a chain, with the subject certificate first,
+        # and the CA second. The rest is only one certificate.
+        Key.objects.create(self.AS, Key.ISSUING_CA)
+        cert_ca = Certificate.objects.create_issuer_ca_cert(
+            self.AS, datetime.utcnow(), datetime.utcnow())
+        self.assertEqual(cert_ca.certificate.count("-----BEGIN CERTIFICATE-----"), 1)
+        Key.objects.create(self.AS, Key.CP_AS)
+        cert = Certificate.objects.create_as_cert(
+            self.AS, self.AS, datetime.utcnow(), datetime.utcnow())
+        output = cert.format_certfile()
+        self.assertEqual(output.count("-----BEGIN CERTIFICATE-----"), 2)  # own cert and issuer
+        index = output.find("-----BEGIN CERTIFICATE-----", 1)
+        self.assertEqual(output[0:index], cert.certificate)  # own certificate
+        self.assertEqual(output[index:], cert_ca.certificate)  # issuer
+
+    def test_versions(self):
+        pass
 
 
 _ASID_1 = 'ff00:0:1'
