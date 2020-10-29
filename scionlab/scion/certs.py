@@ -42,6 +42,12 @@ OID_SENSITIVE_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.1")
 OID_REGULAR_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.2")
 OID_ROOT_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.3")  # ca root key
 
+CN_VOTING_SENSITIVE = "Sensitive Voting Certificate"
+CN_VOTING_REGULAR = "Regular Voting Certificate"
+CN_ISSUER_ROOT = "High Security Root Certificate"
+CN_ISSUER_CA = "Secure CA Certificate"
+CN_AS = "AS Certificate"
+
 CertKey = NamedTuple("CertKey", [("cert", x509.Certificate),
                                  ("key", ec.EllipticCurvePrivateKeyWithSerialization)])
 
@@ -51,10 +57,8 @@ Name = List[Tuple[ObjectIdentifier, str]]
 Extensions = List[Tuple[ObjectIdentifier, bool]]
 
 
-def deleteme_load_key(filename: str) -> ec.EllipticCurvePrivateKey:
-    with open(filename, "rb") as f:
-        k = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
-    return k
+def encode_certificate(cert: x509.Certificate) -> str:
+    return cert.public_bytes(serialization.Encoding.PEM).decode("ascii")
 
 
 def _create_name(as_id: str, common_name: str) -> Name:
@@ -228,58 +232,66 @@ def test_cppki():
     print(f"{deleteme()}-V1")
 
 
-def generate_voting_certificates(as_, version: int, trc, not_before, not_after, issuing_grant, issuer_key):
-    # sensitive:
-    key = generate_key()
-    cert = _build_certificate(subject=(key, _create_name(as_.isd_as_str(),
-                              "Sensitive Voting Certificate")),
+def generate_voting_sensitive_certificate(subject_id, subject_key, not_before, not_after):
+    subject = (subject_key, _create_name(subject_id, CN_VOTING_SENSITIVE))
+    cert = _build_certificate(subject=subject,
                               issuer=None,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
-                              extensions=_build_extensions_voting(key, OID_SENSITIVE_KEY))
-    sensitive = CertKey(cert=cert, key=key)
-    # regular:
-    key = generate_key()
-    cert = _build_certificate(subject=(key, _create_name(as_.isd_as_str(),
-                              "Regular Voting Certificate")),
+                              extensions=_build_extensions_voting(subject_key, OID_SENSITIVE_KEY))
+    # return CertKey(cert=cert, key=key)
+    return cert
+
+
+def generate_voting_regular_certificate(subject_id, subject_key, not_before, not_after):
+    subject = (subject_key, _create_name(subject_id, CN_VOTING_REGULAR))
+    cert = _build_certificate(subject=subject,
                               issuer=None,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
-                              extensions=_build_extensions_voting(key, OID_REGULAR_KEY))
-    regular = CertKey(cert=cert, key=key)
-    return (sensitive, regular)
+                              extensions=_build_extensions_voting(subject_key, OID_REGULAR_KEY))
+    return cert
 
 
-def generate_issuer_root_certificate(as_, not_before, not_after):
+def generate_issuer_root_certificate(subject_id, subject_key, not_before, not_after):
     """
     Generates an issuer root certificate.
     Issuer Root Certificates are used to sign CA certificates.
     """
-    key = generate_key()
-    root_issuer = (key, _create_name(as_.isd_as_str(), "High Security Root Certificate"))
-    cert = _build_certificate(subject=root_issuer,
+    subject = (subject_key, _create_name(subject_id, CN_ISSUER_ROOT))
+    cert = _build_certificate(subject=subject,
                               issuer=None,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
-                              extensions=_build_extensions_root(key))
-    return CertKey(cert=cert, key=key)
+                              extensions=_build_extensions_root(subject_key))
+    return cert
 
 
-def generate_issuer_ca_certificate(as_, not_before, not_after, issuer):
+def generate_issuer_ca_certificate(subject_id, subject_key, issuer_id, issuer_key, not_before, not_after):
     """
     Generates an issuer CA certificate.
     CA certificates are used to sign AS certificates.
     CA certificates are signed by Root certificates.
     """
-    key = generate_key()
-    # subject = (key, _create_name(as_.isd_as_str(), "Secure CA Certificate"))
-    cert = _build_certificate(subject=(key, _create_name(as_.isd_as_str(), "Secure CA Certificate")),
+    subject = (subject_key, _create_name(subject_id, CN_ISSUER_CA))
+    issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_ROOT))
+    cert = _build_certificate(subject=subject,
                               issuer=issuer,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
-                              extensions=_build_extensions_ca(key, issuer[0]))
-    return CertKey(cert=cert, key=key)
+                              extensions=_build_extensions_ca(subject_key, issuer_key))
+    return cert
 
+
+def generate_as_certificate(subject_id, subject_key, issuer_id, issuer_key, not_before, not_after):
+    subject = (subject_key, _create_name(subject_id, CN_AS))
+    issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_CA))
+    cert = _build_certificate(subject=subject,
+                              issuer=issuer,
+                              notvalidbefore=not_before,
+                              notvalidafter=not_after,
+                              extensions=_build_extensions_as(subject_key, issuer_key))
+    return cert
 
 # def generate_issuer_certificate(as_, version: int, trc, not_before, not_after,
 #                                 issuing_grant, issuer_key):
@@ -287,14 +299,14 @@ def generate_issuer_ca_certificate(as_, not_before, not_after, issuer):
 #     return _build_signed_issuer_cert(payload, issuing_grant)
 
 
-def generate_as_certificate(subject, version, not_before, not_after,
-                            encryption_key, signing_key,
-                            issuer, issuer_cert, issuer_key):
+# def generate_as_certificate(subject, version, not_before, not_after,
+#                             encryption_key, signing_key,
+#                             issuer, issuer_cert, issuer_key):
 
-    payload = _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
-                                     signing_key, issuer, issuer_cert)
-    leaf_cert = _build_signed_as_cert(payload, issuer_key)
-    return [issuer_cert.certificate, leaf_cert]
+#     payload = _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
+#                                      signing_key, issuer, issuer_cert)
+#     leaf_cert = _build_signed_as_cert(payload, issuer_key)
+#     return [issuer_cert.certificate, leaf_cert]
 
 
 def _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key):

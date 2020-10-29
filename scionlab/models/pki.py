@@ -18,8 +18,9 @@
 """
 
 import textwrap
-from datetime import datetime, timezone
 import jsonfield
+from collections import namedtuple
+from datetime import datetime, timezone
 from typing import List
 
 from django.db import models
@@ -34,6 +35,8 @@ from scionlab.util import flatten
 
 _MAX_LEN_CHOICES_DEFAULT = 32
 """ Max length value for choices fields without specific requirements to max length """
+
+Validity = namedtuple("Validity", ["not_before", "not_after"])
 
 
 def _key_set_null_or_cascade(collector, field, sub_objs, using):
@@ -87,15 +90,15 @@ class KeyManager(models.Manager):
 class Key(models.Model):
     TRC_VOTING_SENSITIVE = "sensitive-voting"
     TRC_VOTING_REGULAR = "regular-voting"
-    CP_ROOT = "cp-root"
-    CP_CA = "cp-ca"
-    CP_AS = "cp-as"
+    ISSUING_ROOT = "cp-root"
+    ISSUING_CA = "cp-ca"
+    CP_AS = "cp-as"  # control plane AS regular chain certificate
 
     USAGES = (
         TRC_VOTING_SENSITIVE,
         TRC_VOTING_REGULAR,
-        CP_ROOT,
-        CP_CA,
+        ISSUING_ROOT,
+        ISSUING_CA,
         CP_AS,
     )
 
@@ -151,8 +154,8 @@ class Key(models.Model):
 
     @staticmethod
     def next_version(as_, usage):
-        prev = as_.keys.filter(usage=usage).aggregate(models.Max('version'))['version__max']
-        return (prev or 0) + 1
+        prev = as_.keys.filter(usage=usage).aggregate(models.Max('version'))['version__max'] or 0
+        return prev + 1
 
     @staticmethod
     def default_expiration(usage):
@@ -161,157 +164,145 @@ class Key(models.Model):
         """
         if usage in [Key.TRC_VOTING_SENSITIVE,
                      Key.TRC_VOTING_REGULAR,
-                     Key.CP_ROOT,
-                     Key.CP_CA]:
+                     Key.ISSUING_ROOT,
+                     Key.ISSUING_CA]:
             return DEFAULT_EXPIRATION_CORE_KEYS
         else:
             return DEFAULT_EXPIRATION_AS_KEYS
 
 
 class CertificateManager(models.Manager):
-    def create(self, AS, type, *args, **kwargs):
+    # TODO(juagargi) check if everytime we create a certificate, we also create a key.
+    # is it then the same entity in disguise?
+
+    def create_voting_sensitive_cert(self, subject, not_before, not_after):
+        """ Voting sensitive cert is self signed """
+        return self._create_self_signed_cert(
+            subject, not_before, not_after, Key.TRC_VOTING_SENSITIVE,
+            certs.generate_voting_sensitive_certificate)
+
+    def create_voting_regular_cert(self, subject, not_before, not_after):
+        """ Voting regular cert is self signed """
+        return self._create_self_signed_cert(
+            subject, not_before, not_after, Key.TRC_VOTING_REGULAR,
+            certs.generate_voting_regular_certificate)
+
+    def create_issuer_root_cert(self, subject, not_before, not_after):
+        """ Issuer root cert is self signed. It will also sign CA certs """
+        return self._create_self_signed_cert(
+            subject, not_before, not_after, Key.ISSUING_ROOT, certs.generate_issuer_root_certificate)
+
+    def create_issuer_ca_cert(self, subject, not_before, not_after):
+        """ A CA cert is signed by a root cert. For now, always from the same AS """
+        subject_key = subject.keys.latest(usage=Key.ISSUING_CA)
+        issuer_key = subject.keys.latest(usage=Key.ISSUING_ROOT)
+        not_before, not_after = _validity(Validity(not_before, not_after), subject_key, issuer_key)
+        return self._create_cert(
+            certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
+
+    def create_as_cert(self, subject, issuer, not_before, not_after):
+        """ An AS cert is signed by the CA cert of the issuer """
+        subject_key = subject.keys.latest(usage=Key.CP_AS)
+        issuer_key = issuer.keys.latest(usage=Key.ISSUING_CA)
+        not_before, not_after = _validity(Validity(not_before, not_after), subject_key, issuer_key)
+        return self._create_cert(
+            certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
+
+    def latest(self, usage):
+        return self.filter(key__usage=usage).latest('version')
+
+    def _create_self_signed_cert(self, subject, not_before, not_after, usage, fcn):
+        key = subject.keys.latest(usage=usage)
+        not_before, not_after = _validity(Validity(not_before, not_after), key)
+        return self._create_cert(fcn, key, not_before, not_after)
+
+    def _create_cert(self, fcn, subject_key, not_before, not_after, issuer_key=None):
         """
-        Create issuer certificate or AS certificate chain, depending on type.
-        When creating an AS certificate chains, an `issuer` AS with an existing issuer certificate
-        must be given.
+        :param callable fcn The function from the certs package to call to generate the cert.
+        :param Key issuer_key If it is None, then self signed.
         """
-        if type == Certificate.ISSUER:
-            self.create_issuer_cert(AS, *args, **kwargs)
-        else:
-            assert type == Certificate.CHAIN
-            self.create_as_cert(AS, *args, **kwargs)
+        subject_id = subject_key.AS.isd_as_str()
+        not_before, not_after = _validity(Validity(not_before, not_after), subject_key)
+        kwargs = {}
+        if issuer_key is not None:
+            not_before, not_after = _validity(Validity(not_before, not_after), issuer_key)
+            kwargs = {"issuer_key": keys.decode_key(issuer_key.key),
+                      "issuer_id": issuer_key.AS.isd_as_str()}
 
-    # def create_issuer_cert(self, as_):
-    def create_issuer_cert(self, as_, not_before, not_after):
-        """
-        Create an issuer certificate for this AS.
-
-        An CA AS in SCIONLab has both the root and the CA certificates.
-        A root certificate is used to sign a CA certificate.
-        A CA certificate is used to sign an AS certificate.
-        When creating / modifying a root certificate, a new TRC must be issued.
-        """
-        # version = Certificate.next_version(as_, Certificate.ISSUER)
-
-        # trc = as_.isd.trcs.latest()
-        # issuer_key = as_.keys.latest(usage=Key.CERT_SIGNING)
-        # issuing_grant = as_.keys.latest(usage=Key.TRC_ISSUING_GRANT)
-
-        # not_before, not_after = _validity([issuer_key, issuing_grant, trc])
-
-        # cert = certs.generate_issuer_certificate(as_, version, trc, not_before, not_after,
-        #                                          issuing_grant, issuer_key)
-
-        cert, key = certs.generate_issuer_root_certificate(as_, not_before, not_after)
-
-        return super().create(
-            AS=as_,
-            type=Certificate.ISSUER,
+        cert = fcn(subject_id=subject_id,
+                   subject_key=keys.decode_key(subject_key.key),
+                   not_before=not_before,
+                   not_after=not_after,
+                   **kwargs)
+        version = Certificate.next_version(subject_key.AS, subject_key.usage)
+        cert = super().create(
+            key=subject_key,
             version=version,
             not_before=not_before,
             not_after=not_after,
-            certificate=cert
+            certificate=certs.encode_certificate(cert),  # PEM encoded
         )
-
-    def create_as_cert(self, subject, issuer):
-        """
-        Create an AS certificate chain for the subject AS.
-
-        Uses the latest cert signing key and issuer certificate of the issuer AS (i.e. assumes that
-        these match) to sign a certificate for the latest encryption and signing key of the subject
-        AS.
-        The validity period is defined by the validity of these input keys.
-        """
-        version = Certificate.next_version(subject, Certificate.CHAIN)
-
-        encryption_key = subject.keys.latest(usage=Key.DECRYPT)
-        signing_key = subject.keys.latest(usage=Key.SIGNING)
-        issuer_key = issuer.keys.latest(usage=Key.CERT_SIGNING)
-        issuer_cert = issuer.certificates.latest(type=Certificate.ISSUER)
-
-        not_before, not_after = _validity([encryption_key, signing_key, issuer_cert])
-
-        cert = certs.generate_as_certificate(subject, version, not_before, not_after,
-                                             encryption_key, signing_key,
-                                             issuer, issuer_cert, issuer_key)
-
-        return super().create(
-            AS=subject,
-            type=Certificate.CHAIN,
-            version=version,
-            not_before=not_before,
-            not_after=not_after,
-            certificate=cert
-        )
-
-    def latest(self, type):
-        return self.filter(type=type).latest('version')
+        cert.ca_cert = issuer_key.certificates.latest(issuer_key.usage) if issuer_key else cert
+        return cert
 
 
 class Certificate(models.Model):
-    VOTING_SENSITIVE = 'voting_sensitive'
-    VOTING_REGULAR = 'voting_regular'
-    ISSUER_ROOT = 'issuer_root'
-    ISSUER_CA = 'issuer_ca'
-    CHAIN = 'chain'  # AS certificates are a certificate chain
-
-    TYPES = (
-        # ISSUER,
-        VOTING_SENSITIVE,
-        VOTING_REGULAR,
-        ISSUER_ROOT,
-        ISSUER_CA,
-        CHAIN,
-    )
-
-    AS = models.ForeignKey(
-        'AS',
-        related_name='certificates',
+    key = models.ForeignKey(
+        Key,
+        related_name="certificates",
+        null=True,
         on_delete=models.CASCADE,
     )
-
-    type = models.CharField(
-        choices=list(zip(TYPES, TYPES)),
-        max_length=_MAX_LEN_CHOICES_DEFAULT,
-        editable=False,
+    ca_cert = models.ForeignKey(  # the CA. If self signed, it will point to itself.
+        "self",
+        related_name='issued_certificates',
+        on_delete=models.SET_NULL,  # if null, we know the CA cert was deleted
+        null=True,
     )
     version = models.PositiveIntegerField()
     not_before = models.DateTimeField()
     not_after = models.DateTimeField()
-
-    # certificate = jsonfield.JSONField()
-    certificate = models.BinaryField()
+    certificate = models.TextField(editable=False)  # in PEM format
 
     objects = CertificateManager()
 
     class Meta:
-        unique_together = ('AS', 'type', 'version')
+        unique_together = ("key", "version")
+
+    def AS(self):
+        return self.key.AS
+
+    def usage(self):
+        return self.key.usage
 
     def __str__(self):
         return self.filename()
 
     def filename(self):
-        # TODO(juagargi) change to use the version_base version_serial
-        # return "ISD%i-AS%s-V%i.crt" % (self.AS.isd.isd_id, self.AS.as_path_str(), self.version)
-        if self.type == Certificate.VOTING_SENSITIVE:
-            suffix = ".sensitive"
-        elif self.type == Certificate.VOTING_REGULAR:
-            suffix = ".regular"
-        elif self.type == Certificate.ISSUER_ROOT:
-            suffix = ".root"
-        elif self.type == Certificate.ISSUER_CA:
-            suffix = ".ca"
+        if self.usage() == Key.VOTING_SENSITIVE:
+            suffix = ".sensitive.crt"
+        elif self.usage() == Key.VOTING_REGULAR:
+            suffix = ".regular.crt"
+        elif self.usage() == Key.ISSUER_ROOT:
+            suffix = ".root.crt"
+        elif self.usage() == Key.ISSUER_CA:
+            suffix = ".ca.crt"
         else:
-            suffix = ""
+            suffix = ".pem"
         return f"ISD{self.AS.isd.isd_id}-AS{self.AS.as_path_str()}{suffix}"
 
+    def format_certfile(self) -> str:
+        """
+        Create the PEM file content for this certificate.
+        AS certificates will return the whole chain: first the subject cert, then the issuer's one.
+        """
+        return self.certificate + (self.ca_cert.certificate if self.key.usage == Key.CP_AS else "")
+
     @staticmethod
-    def next_version(as_, type):
-        prev = as_.certificates.filter(type=type).aggregate(models.Max('version'))['version__max']
-        if prev:
-            return prev + 1
-        else:
-            return 1
+    def next_version(as_, usage):
+        prev = Certificate.objects.filter(key__AS=as_, key__usage=usage).aggregate(
+            models.Max('version'))['version__max'] or 0
+        return prev + 1
 
 
 class TRCManager(models.Manager):
@@ -445,7 +436,7 @@ def _core_key_info(keys: List[Key]) -> trcs.CoreKeys:
     )
 
 
-def _validity(vs):
+def _validity(*vs):
     """
     Return the intersection of the validity periods for the given inputs.
     :param vs: iterable of objects with `not_before` and `not_after` datetime members
