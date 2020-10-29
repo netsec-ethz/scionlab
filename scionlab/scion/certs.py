@@ -48,9 +48,6 @@ CN_ISSUER_ROOT = "High Security Root Certificate"
 CN_ISSUER_CA = "Secure CA Certificate"
 CN_AS = "AS Certificate"
 
-CertKey = NamedTuple("CertKey", [("cert", x509.Certificate),
-                                 ("key", ec.EllipticCurvePrivateKeyWithSerialization)])
-
 
 # some type aliases:
 Name = List[Tuple[ObjectIdentifier, str]]
@@ -76,10 +73,7 @@ def _build_certificate(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
                        notvalidbefore: datetime,
                        notvalidafter: datetime,
                        extensions: Extensions) -> x509.Certificate:
-    """
-    Builds a certificate from the parameters.
-    The certificate is signed by the issuer.
-    """
+    """ Builds a certificate from the parameters. The certificate is signed by the issuer. """
     issuer = issuer or subject
     subject_name = x509.Name([x509.NameAttribute(p[0], p[1]) for p in subject[1]])
     issuer_name = x509.Name([x509.NameAttribute(p[0], p[1]) for p in issuer[1]])
@@ -232,42 +226,51 @@ def test_cppki():
     print(f"{deleteme()}-V1")
 
 
-def generate_voting_sensitive_certificate(subject_id, subject_key, not_before, not_after):
+def generate_voting_sensitive_certificate(subject_id: str,
+                                          subject_key: ec.EllipticCurvePrivateKey,
+                                          not_before: datetime,
+                                          not_after: datetime) -> x509.Certificate:
     subject = (subject_key, _create_name(subject_id, CN_VOTING_SENSITIVE))
-    cert = _build_certificate(subject=subject,
+    return _build_certificate(subject=subject,
                               issuer=None,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
                               extensions=_build_extensions_voting(subject_key, OID_SENSITIVE_KEY))
-    # return CertKey(cert=cert, key=key)
-    return cert
 
 
-def generate_voting_regular_certificate(subject_id, subject_key, not_before, not_after):
+def generate_voting_regular_certificate(subject_id: str,
+                                        subject_key: ec.EllipticCurvePrivateKey,
+                                        not_before: datetime,
+                                        not_after: datetime) -> x509.Certificate:
     subject = (subject_key, _create_name(subject_id, CN_VOTING_REGULAR))
-    cert = _build_certificate(subject=subject,
+    return _build_certificate(subject=subject,
                               issuer=None,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
                               extensions=_build_extensions_voting(subject_key, OID_REGULAR_KEY))
-    return cert
 
 
-def generate_issuer_root_certificate(subject_id, subject_key, not_before, not_after):
+def generate_issuer_root_certificate(subject_id: str,
+                                     subject_key: ec.EllipticCurvePrivateKey,
+                                     not_before: datetime,
+                                     not_after: datetime) -> x509.Certificate:
     """
-    Generates an issuer root certificate.
-    Issuer Root Certificates are used to sign CA certificates.
+    Generates an issuer root certificate. Issuer Root Certificates are used to sign CA certificates.
     """
     subject = (subject_key, _create_name(subject_id, CN_ISSUER_ROOT))
-    cert = _build_certificate(subject=subject,
+    return _build_certificate(subject=subject,
                               issuer=None,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
                               extensions=_build_extensions_root(subject_key))
-    return cert
 
 
-def generate_issuer_ca_certificate(subject_id, subject_key, issuer_id, issuer_key, not_before, not_after):
+def generate_issuer_ca_certificate(subject_id: str,
+                                   subject_key: ec.EllipticCurvePrivateKey,
+                                   issuer_id: str,
+                                   issuer_key: ec.EllipticCurvePrivateKey,
+                                   not_before: datetime,
+                                   not_after: datetime) -> x509.Certificate:
     """
     Generates an issuer CA certificate.
     CA certificates are used to sign AS certificates.
@@ -275,123 +278,23 @@ def generate_issuer_ca_certificate(subject_id, subject_key, issuer_id, issuer_ke
     """
     subject = (subject_key, _create_name(subject_id, CN_ISSUER_CA))
     issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_ROOT))
-    cert = _build_certificate(subject=subject,
+    return _build_certificate(subject=subject,
                               issuer=issuer,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
                               extensions=_build_extensions_ca(subject_key, issuer_key))
-    return cert
 
 
-def generate_as_certificate(subject_id, subject_key, issuer_id, issuer_key, not_before, not_after):
+def generate_as_certificate(subject_id: str,
+                            subject_key: ec.EllipticCurvePrivateKey,
+                            issuer_id: str,
+                            issuer_key: ec.EllipticCurvePrivateKey,
+                            not_before: datetime,
+                            not_after: datetime) -> x509.Certificate:
     subject = (subject_key, _create_name(subject_id, CN_AS))
     issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_CA))
-    cert = _build_certificate(subject=subject,
+    return _build_certificate(subject=subject,
                               issuer=issuer,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
                               extensions=_build_extensions_as(subject_key, issuer_key))
-    return cert
-
-# def generate_issuer_certificate(as_, version: int, trc, not_before, not_after,
-#                                 issuing_grant, issuer_key):
-#     payload = _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key)
-#     return _build_signed_issuer_cert(payload, issuing_grant)
-
-
-# def generate_as_certificate(subject, version, not_before, not_after,
-#                             encryption_key, signing_key,
-#                             issuer, issuer_cert, issuer_key):
-
-#     payload = _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
-#                                      signing_key, issuer, issuer_cert)
-#     leaf_cert = _build_signed_as_cert(payload, issuer_key)
-#     return [issuer_cert.certificate, leaf_cert]
-
-
-def _build_issuer_cert_payload(as_, version, trc, not_before, not_after, issuer_key):
-    return {
-        "subject": as_.isd_as_str(),
-        "version": version,
-        "format_version": 1,
-        "description": "Issuer certificate",
-        "certificate_type": "issuer",
-        "optional_distribution_points": [],
-        "validity": {
-            "not_before": _utc_timestamp(not_before),
-            "not_after": _utc_timestamp(not_after),
-        },
-        "keys": {
-            "issuing": {
-                "algorithm": "Ed25519",
-                "key": keys.public_sign_key(issuer_key.key),
-                "key_version": issuer_key.version,
-            }
-        },
-        "issuer": {
-            "trc_version": trc.version,
-        }
-    }
-
-
-def _build_signed_issuer_cert(payload, issuing_grant):
-    protected = {
-        "alg": "Ed25519",
-        "crit": ["type", "trc_version"],
-        "type": "trc",
-        "trc_version": payload["issuer"]["trc_version"]
-    }
-    return _build_signed_cert(payload, protected, issuing_grant)
-
-
-def _build_as_cert_payload(subject, version, not_before, not_after, encryption_key,
-                           signing_key, issuer, issuer_cert):
-    return {
-        "subject": subject.isd_as_str(),
-        "version": version,
-        "format_version": 1,
-        "description": "AS certificate",
-        "certificate_type": "as",
-        "optional_distribution_points": [],
-        "validity": {
-            "not_before": _utc_timestamp(not_before),
-            "not_after": _utc_timestamp(not_after),
-        },
-        "keys": {
-            "encryption": {
-                "algorithm": "curve25519",
-                "key": keys.public_enc_key(encryption_key.key),
-                "key_version": encryption_key.version,
-            },
-            "signing": {
-                "algorithm": "Ed25519",
-                "key": keys.public_sign_key(signing_key.key),
-                "key_version": signing_key.version,
-            }
-        },
-        "issuer": {
-            "isd_as": issuer.isd_as_str(),
-            "certificate_version": issuer_cert.version,
-        }
-    }
-
-
-def _build_signed_as_cert(payload, issuer_key):
-    protected = {
-        "alg": "Ed25519",
-        "crit": ["type", "certificate_version", "isd_as"],
-        "type": "certificate",
-        "certificate_version": payload["issuer"]["certificate_version"],
-        "isd_as": payload["issuer"]["isd_as"],
-    }
-    return _build_signed_cert(payload, protected, issuer_key)
-
-
-def _build_signed_cert(payload, protected, signing_key):
-    payload_enc = jws.encode(payload)
-    protected_enc = jws.encode(protected)
-    return {
-        "payload": payload_enc,
-        "protected": protected_enc,
-        "signature": jws.signature(payload_enc, protected_enc, signing_key.key)
-    }

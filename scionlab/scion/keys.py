@@ -89,29 +89,30 @@ def verify(msg, sig, verifying_key):
         return False
 
 
-def generate_enc_key():
-    """
-    Generate Curve25519 keypair
+# def generate_enc_key():
+#     """
+#     Generate Curve25519 keypair
 
-    :returns: a private key, usable for encryption, encoded in base64
-    :rtype: str:
-    """
-    private_key = PrivateKey.generate()
-    return private_key.encode(encoder=Base64StringEncoder)
+#     :returns: a private key, usable for encryption, encoded in base64
+#     :rtype: str:
+#     """
+#     private_key = PrivateKey.generate()
+#     return private_key.encode(encoder=Base64StringEncoder)
 
 
-def public_enc_key(private_key):
-    """
-    Return the public key corresponding to this private key.
+# def public_enc_key(private_key):
+#     """
+#     Return the public key corresponding to this private key.
 
-    :returns: a public key corresponding to priv_key, encoded in base64
-    :rtype: str:
-    """
-    pk = PrivateKey(private_key, encoder=Base64StringEncoder)
-    return pk.public_key.encode(encoder=Base64StringEncoder)
+#     :returns: a public key corresponding to priv_key, encoded in base64
+#     :rtype: str:
+#     """
+#     pk = PrivateKey(private_key, encoder=Base64StringEncoder)
+#     return pk.public_key.encode(encoder=Base64StringEncoder)
 
 
 def generate_key() -> ec.EllipticCurvePrivateKeyWithSerialization:
+    """ Generate an elliptic curve private key """
     # valid curves are: SECP256R1, SECP384R1, and secp521r1
     key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
     key = cast(ec.EllipticCurvePrivateKeyWithSerialization, key)  # only for type hints
@@ -119,9 +120,7 @@ def generate_key() -> ec.EllipticCurvePrivateKeyWithSerialization:
 
 
 def encode_key(key: ec.EllipticCurvePrivateKeyWithSerialization) -> str:
-    """
-    Returns the bytes as PEM
-    """
+    """ Returns the key as a PEM formatted string """
     return key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -129,9 +128,5 @@ def encode_key(key: ec.EllipticCurvePrivateKeyWithSerialization) -> str:
 
 
 def decode_key(pem: str) -> ec.EllipticCurvePrivateKey:
-    """
-    Returns an EllipticCurve key from its PEM encoding
-    """
-    # print(pem)
-    # print(pem.encode("ascii"))
+    """ Returns an EllipticCurve key from its PEM encoding """
     return serialization.load_pem_private_key(pem.encode("ascii"), password=None, backend=default_backend())
