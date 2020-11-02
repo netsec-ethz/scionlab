@@ -17,7 +17,7 @@ import re
 from datetime import datetime, timedelta
 
 from scionlab.models.core import ISD, AS
-from scionlab.models.pki import Key, Certificate
+from scionlab.models.pki import Key, Certificate, TRC
 from scionlab.defines import (
     DEFAULT_EXPIRATION_AS_KEYS,
     DEFAULT_EXPIRATION_CORE_KEYS,
@@ -257,32 +257,31 @@ _ASID_2 = 'ff00:0:2'
 _ASID_3 = 'ff00:0:3'
 
 
-class GenerateTRCTests(TestCase):
+class TRCTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.isd1 = ISD.objects.create(isd_id=1, label='Test')
 
-    # def test_version_base_serial(self):
-    #     k_2_2 = Key(AS=self.AS, _as_id_int=self.AS.as_id_int, usage=Key.CP_AS,
-    #                 not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-    #                 version=1, version_base=2, version_serial=2)
-    #     k_2_2.save()
-    #     latest = Key.objects.latest(Key.CP_AS)
-    #     self.assertEqual(latest, k_2_2)
-    #     k_1_1 = Key(AS=self.AS, _as_id_int=self.AS.as_id_int, usage=Key.CP_AS,
-    #                 not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-    #                 version=1, version_base=1, version_serial=1)
-    #     k_1_1.save()
-    #     latest = Key.objects.latest(Key.CP_AS)
-    #     self.assertEqual(latest, k_2_2)
-    #     k_2_3 = Key(AS=self.AS, _as_id_int=self.AS.as_id_int, usage=Key.CP_AS,
-    #                 not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-    #                 version=1, version_base=2, version_serial=3)
-    #     k_2_3.save()
-    #     latest = Key.objects.latest(Key.CP_AS)
-    #     self.assertEqual(latest, k_2_3)
+    def test_version_base_serial(self):
+        self.assertEqual(TRC.next_version_base(), 1)
+        self.assertEqual(TRC.next_version_serial(), 1)
+        k_2_2 = _create_TRC(self.isd1, 2, 2)
+        self.assertEqual(TRC.objects.latest(), k_2_2)
+        self.assertEqual(TRC.next_version_base(), 3)
+        self.assertEqual(TRC.next_version_serial(), 3)
+
+        _create_TRC(self.isd1, 1, 1)
+        self.assertEqual(TRC.objects.latest(), k_2_2)
+        self.assertEqual(TRC.next_version_base(), 3)
+        self.assertEqual(TRC.next_version_serial(), 3)
+
+        k_2_3 = _create_TRC(self.isd1, 2, 3)
+        self.assertEqual(TRC.objects.latest(), k_2_3)
+        self.assertEqual(TRC.next_version_base(), 3)
+        self.assertEqual(TRC.next_version_serial(), 4)
+        self.assertEqual(TRC.objects.count(), 3)
 
     def gen_trc_v1(self):
         """
@@ -469,3 +468,10 @@ def _create_AS(isd, as_id):
     as_ = AS(isd=isd, as_id=as_id, as_id_int=as_ids.parse(as_id))
     as_.save()
     return as_
+
+
+def _create_TRC(isd, base, serial):
+    trc = TRC(isd=isd, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+              version_base=base, version_serial=serial)
+    trc.save()
+    return trc
