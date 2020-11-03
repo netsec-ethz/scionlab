@@ -55,9 +55,10 @@ BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 
 CMDS = {
     Service.CS: 'cs',
-    TYPE_BR: 'border',
+    TYPE_BR: 'posix-router',
     TYPE_SD: 'sciond',
 }
+CMD_DISPATCHER = 'dispatcher'
 
 
 def generate_systemd_scion_config(host, archive, with_sig_dummy_entry=False):
@@ -235,7 +236,7 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
         _add_supervisord_program_conf(
             config,
             disp_prog_id,
-            _cmd('godispatcher', self._disp_dir(), 'disp.toml'),
+            _cmd(CMD_DISPATCHER, self._disp_dir(), 'disp.toml'),
             env=DEFAULT_ENV,
             priority=50,
             startsecs=1

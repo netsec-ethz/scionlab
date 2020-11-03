@@ -244,7 +244,7 @@ gen/supervisord.conf: |+
   startretries = 0
   startsecs = 5
   priority = 100
-  command = bin/border --config gen/ASffaa_1_5/br-1.toml
+  command = bin/posix-router --config gen/ASffaa_1_5/br-1.toml
 
   [program:cs-1]
   autostart = false
@@ -280,6 +280,6 @@ gen/supervisord.conf: |+
   startretries = 0
   startsecs = 1
   priority = 50
-  command = bin/godispatcher --config gen/dispatcher/disp.toml
+  command = bin/dispatcher --config gen/dispatcher/disp.toml
 
 ...
