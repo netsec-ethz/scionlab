@@ -194,17 +194,12 @@ jobs:
           command: |
             set -x
             prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
-          ##  Start the huey worker
-          ##  docker-compose up -d huey
             # Generate new AS-keys for 1303 and pull the new configuration.
             # This waits until the configuration has been deployed.
             docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py ffaa:0:1303'
-            ##; \
-            ##  python .circleci/actions/push-deploy.py ffaa:0:1303'
+            'python .circleci/actions/update-keys.py ffaa:0:1303'
             docker-compose exec as1303 /bin/bash -c \
               'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
-            ##docker-compose logs huey
             # Check that
             # i) configuration was deployed
             new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
@@ -227,14 +222,12 @@ jobs:
             # Update core keys which requires creating a new TRC
             docker-compose exec -T coord /bin/bash -c \
              'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301'
-           ##  ;
-           ##   python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
+
             for c in as1301 as1303 as1305; do
               docker-compose exec $c /bin/bash -c \
                 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
             done
 
-          ##docker-compose logs huey
             docker-compose logs coord
 
             # Check updated TRC and check that updated TRCs were installed on all hosts
