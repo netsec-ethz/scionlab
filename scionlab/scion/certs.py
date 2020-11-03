@@ -148,7 +148,7 @@ def deleteme_generate_voting_certs() -> None:
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
                            extensions=_build_extensions_voting(key, OID_SENSITIVE_KEY))
     with open("scionlab-test-sensitive.key", "wb") as f:
-        f.write(encode_key(key))
+        f.write(encode_key(key).encode("ascii"))
     with open("scionlab-test-sensitive.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # regular:
@@ -159,7 +159,7 @@ def deleteme_generate_voting_certs() -> None:
                            notvalidafter=datetime.utcnow() + timedelta(days=1),
                            extensions=_build_extensions_voting(key, OID_REGULAR_KEY))
     with open("scionlab-test-regular.key", "wb") as f:
-        f.write(encode_key(key))
+        f.write(encode_key(key).encode("ascii"))
     with open("scionlab-test-regular.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 

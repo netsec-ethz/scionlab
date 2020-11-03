@@ -17,11 +17,14 @@
 ===========================================
 """
 
-import toml
+import os
 import subprocess
+import toml
 
 from collections import namedtuple
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
+from tempfile import TemporaryDirectory
 from typing import Dict, List, Tuple
 
 from scionlab.scion import jws
@@ -34,14 +37,42 @@ CoreKeys = namedtuple('CoreKeys', ['issuing_grant', 'voting_online', 'voting_off
 CoreKeySet = Dict[str, Key]
 
 
-def generate_trc(isd, version, grace_period, not_before, not_after, primary_ases,
+# def generate_trc(isd, version, grace_period, not_before, not_after, primary_ases,
+#                  prev_trc, prev_voting_offline):
+def generate_trc(isd_id, base, serial, grace_period, not_before, not_after, primary_ases,
+                 included_certificates,
                  prev_trc, prev_voting_offline):
     """
     Generate a new TRC.
+    :param map certificates_included filename: content
     """
-    # TODO(matzf) doc
-    assert (version >= 1)
-    assert (version == 1) == (prev_trc is None) == (prev_voting_offline is None)
+
+    assert (base >= 1 and serial >= 1)
+    # assert (base == 1) == (prev_trc is None) == (prev_voting_offline is None)
+
+    """
+    # configure TRC
+    deleteme_trc_configure()
+    # generate payload scion-pki trcs payload
+    deleteme_trc_generate_payload()
+    # sign payload (crypto_lib.sh:sign_payload())
+    deleteme_trc_sign_payload()
+    # combine signed TRCs
+    deleteme_trc_combine_payloads()
+    """
+    # TODO(juagargi) check that the votes member gets populated
+    conf = TRCConf(isd_id=isd_id,
+                   base=base,
+                   serial=serial,
+                   grace_period=grace_period,
+                   not_before=not_before,
+                   not_after=not_after,
+                   authoritative=primary_ases,
+                   core=primary_ases,
+                   certificates=included_certificates)
+
+    with conf.configure() as trc:
+        pass
 
     if prev_trc:
         prev_primary_ases = _decode_primary_ases(prev_trc)
@@ -287,13 +318,29 @@ def _utc_timestamp(dt: datetime) -> int:
 
 
 
+
 class TRCConf:
-    def __init__(self, isd_id, authoritative, core, certificates):
+    # TODO(juagargi) use contextlib as soon as we write temp. files, etc.
+    def __init__(self,
+                 isd_id: int,
+                 base: int,
+                 serial: int,
+                 grace_period: timedelta,
+                 not_before: datetime,
+                 not_after: datetime,
+                 authoritative: List[str],
+                 core: List[str],
+                 certificates: Dict[str, str]):
         """
         authoritative ASes are those that know which TRC version an ISD has
         authoritative is a list ["ffaa:0:1102",...]
         """
         self.isd_id = isd_id
+        self.base = base
+        self.serial = serial
+        self.grace_period = grace_period
+        self.not_before = not_before
+        self.not_after = not_after
         # self.authoritative = [parse(asid) for asid in authoritative]
         self.authoritative = authoritative
         self.core = core
@@ -301,36 +348,70 @@ class TRCConf:
         # self.cas = ["1-ff00:0:110"]
         self.certificates = certificates
 
-    def get_conf(self):
-        d = {
+        self._temp_dir = None  # will be set later by configure()
+        self.validate()
+
+    def validate(self):
+        if any(x <= 0 for x in [self.isd_id, self.base, self.serial]):
+            raise ValueError("isd_id, base and serial must be >= 0")
+        if self.not_after <= self.not_before:
+            raise ValueError("not_before must precede not_after")
+
+        # check the certificate file names only contain file names
+        for fn in self.certificates.keys():
+            p = os.path.normpath(fn)
+            if not os.path.isfile(p):
+                raise ValueError(f"certificate file name is invalid: {fn}")
+
+    @contextmanager
+    def configure(self):
+        # create temp dir and temp files for certificates
+        try:
+            temp_dir = TemporaryDirectory()
+            self._temp_dir = temp_dir
+            self._dump_certificates_to_files()
+            yield self
+        finally:
+            temp_dir.cleanup()
+
+    def _get_conf(self):
+        return {
             "isd": self.isd_id,
-            "description": "ISD 1",
-            "base_version": 1,
-            "serial_version": 1,
-            "voting_quorum": 1,
-            "grace_period": "0s",  # must be non zero for updates to serial_version only
+            "description": f"SCIONLab TRC for ISD {self.isd_id}",
+            "base_version": self.base,
+            "serial_version": self.serial,
+            "voting_quorum": self._voting_quorum(),
+            "grace_period": self._grace_period(),
             "authoritative_ases": self.authoritative,
             "core_ases": self.core,
-            "cert_files": self.certificates,
+            "cert_files": self.certificates.keys(),
             "no_trust_reset": False,
+            # TODO(juagargi) check we will fill the "votes" member later
             # "votes": 1  # empty when updating only serial_version
             "validity": {
-                "not_before": int(datetime.now().timestamp()),
-                "validity": "24h",  # the TRC must be included in the valid window of all certificates
+                "not_before": int(self.not_before.timestamp()),
+                "validity": self._to_seconds(self.not_after - self.not_before),
             },
         }
-        return d
 
+    def _voting_quorum(self) -> int:
+        return len(self.core) // 2 + 1
 
-def deleteme_run_scion_cppki(*args):
-    """
-    runs scion-pki
-    """
-    COMMAND = "/home/juagargi/devel/ETH/scion.scionlab/bin/scion-pki"
-    ret = subprocess.run([COMMAND, "trcs", *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
-    if ret.returncode != 0:
-        print(ret.stdout.decode("utf-8"))
-        raise Exception(f"Bad return code: {ret.returncode}")
+    def _grace_period(self) -> str:
+        # must be zero for sensitive updates
+        if self.base == self.serial:
+            return "0s"
+        else:
+            return self._to_seconds(self.grace_period)
+
+    def _dump_certificates_to_files(self):
+        for fn, c in self.certificates.items():
+            with open(fn, "wb") as f:
+                f.write(c.encode("ascii"))
+
+    @staticmethod
+    def _to_seconds(d: timedelta) -> str:
+        return f"{int(d.total_seconds())}s"
 
 
 def deleteme_trc_configure():
@@ -348,17 +429,36 @@ def deleteme_trc_configure():
 	CertificateFiles  []string        `toml:"cert_files"`
 	Votes             []int           `toml:"votes"`
     '''
-    certificates = [  # only sensitives, regulars, and roots
-        "scionlab-test-sensitive.crt",
-        "scionlab-test-regular.crt",
-        "scionlab-test-root.crt",
-    ]
-    conf = TRCConf(1, ["ff00:0:110"], ["ff00:0:110"], certificates)
+    certificates = {  # only sensitives, regulars, and roots
+        "scionlab-test-sensitive.crt": "",
+        "scionlab-test-regular.crt": "",
+        "scionlab-test-root.crt": "",
+    }
+    conf = TRCConf(isd_id=1,
+                   base=1,
+                   serial=1,
+                   grace_period=timedelta(hours=1),
+                   not_before=datetime.utcnow(),
+                   not_after=datetime.utcnow() + timedelta(hours=1),
+                   authoritative=["ff00:0:110"],
+                   core=["ff00:0:110"],
+                   certificates=certificates)
     # s = toml.dumps(conf.get_conf())
     # print(s)
     with open("scionlab-test-trc-config.toml", "w") as f:
-        f.write(toml.dumps(conf.get_conf()))
+        f.write(toml.dumps(conf._get_conf()))
     # TODO load predecessor when updating only serial_version
+
+
+def deleteme_run_scion_cppki(*args):
+    """
+    runs scion-pki
+    """
+    COMMAND = "/home/juagargi/devel/ETH/scion.scionlab/bin/scion-pki"
+    ret = subprocess.run([COMMAND, "trcs", *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    if ret.returncode != 0:
+        print(ret.stdout.decode("utf-8"))
+        raise Exception(f"Bad return code: {ret.returncode}")
 
 
 def deleteme_trc_generate_payload():
