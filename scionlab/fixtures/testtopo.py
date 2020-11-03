@@ -164,10 +164,8 @@ def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
         init_certificates=False  # Defer certificates generation
     )
 
-    # Infrastracture hosts are typically managed.
     # This is also used in the integration tests for some ASes.
     for host in as_.hosts.iterator():
-        host.managed = True
         host.ssh_host = host.public_ip
         host.save()
 

@@ -79,28 +79,29 @@ ConfigInfo = namedtuple('ConfigInfo',
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
 
-
 def main(argv):
     sys.tracebacklimit = -1
     args = parse_command_line_args(argv)
-
+    
     if os.geteuid() != 0:
         _error_exit("The script must be run as root")
     if not args.tar:
-        fetch_info = get_fetch_info(args)
-        config = fetch_config(fetch_info)
-        if config is _CONFIG_EMPTY:
-            stop_scion()
-        elif config is _CONFIG_UNCHANGED:
-            logging.info('Configuration unchanged (version %s). Nothing to do.',
-                         fetch_info.version)
-        else:
-            install_config(args, config)
-            confirm_deployed(args)
+        while True:
+            fetch_info = get_fetch_info(args)
+            config = fetch_config(fetch_info)
+            if config is _CONFIG_EMPTY:
+                stop_scion()
+            elif config is _CONFIG_UNCHANGED:
+                logging.info('Configuration unchanged (version %s). Nothing to do.',
+                             fetch_info.version)
+            else:
+                install_config(args, config)
+            if not args.daemon:
+                break
+            time.sleep(20)
     else:
         tar = tarfile.open(args.tar, mode='r')
-        install_config(args, tar)
-
+        install_config(tar)
 
 def parse_command_line_args(argv):
     description = textwrap.dedent(
@@ -154,6 +155,8 @@ def parse_command_line_args(argv):
     group_fetch.add_argument('--url', help='URL of the SCIONLab coordination service')
 
     parser.add_argument('--version', action='version', version='%(prog)s ' + SCRIPT_VERSION)
+
+    parser.add_argument('--daemon', action='store_true')
 
     args = parser.parse_args(argv)
     # additional validation:
@@ -266,28 +269,6 @@ def fetch_config(fetch_info):
             _error_exit(error_msg, fetch_info.url, e)
     except Exception as e:
         _error_exit(error_msg, fetch_info.url, e)
-
-
-def confirm_deployed(args):
-    """
-    Inform the SCIONLab coordinator of the currently installed version of the configuration. This
-    confirms that this version has been sucessfully installed. This information is used coordinator
-    by the coordinator only in the case where it actively pushes configuration to a host. A failure
-    in this step is generally unproblematic.
-
-    :param args: commandline arguments for optional coordinator URL
-    """
-    # Get newly installed config info
-    fetch_info = _read_fetch_info(CONFIG_INFO_PATH)
-    if args.url:
-        fetch_info = fetch_info._replace(url=args.url)
-
-    url = '{coordinator_url}/api/v3/host/{host_id}/deployed_config_version'.format(
-        coordinator_url=fetch_info.url.rstrip('/'),
-        host_id=fetch_info.host_id
-    )
-    data = {'version': fetch_info.version}
-    _http_post(url, data, username=fetch_info.host_id, password=fetch_info.host_secret)
 
 
 def _http_get(url, params, username, password):

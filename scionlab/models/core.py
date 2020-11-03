@@ -469,7 +469,6 @@ class Host(models.Model):
     )
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
-    managed = models.BooleanField(default=False)
     ssh_host = models.CharField(
         max_length=_MAX_LEN_DEFAULT,
         null=True,
@@ -513,7 +512,6 @@ class Host(models.Model):
                public_ip=_placeholder,
                bind_ip=_placeholder,
                label=_placeholder,
-               managed=_placeholder,
                ssh_host=_placeholder,
                secret=_placeholder):
         """
@@ -524,7 +522,6 @@ class Host(models.Model):
         :param str public_ip: optional, default public IP for border router interfaces on this host
         :param str bind_ip: optional, default bind IP for border router interfaces on this host
         :param str label: optional
-        :param bool managed: optional
         :param str ssh_host: optional, hostname/IP for management access via SSH
         :param str secret: optional, a secret to authenticate the host. If `None` is given, a new
                            random secret is generated.
@@ -543,8 +540,6 @@ class Host(models.Model):
             self.bind_ip = bind_ip or None
         if label is not _placeholder:
             self.label = label or None
-        if managed is not _placeholder:
-            self.managed = managed
         if ssh_host is not _placeholder:
             self.ssh_host = ssh_host or None
         if secret is not _placeholder:

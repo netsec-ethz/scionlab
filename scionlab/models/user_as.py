@@ -17,6 +17,7 @@
 ====================================================================================
 """
 
+import datetime
 import ipaddress
 from typing import List, Set
 
@@ -25,6 +26,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils.html import format_html
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 import scionlab.tasks
 from scionlab.models.core import (
@@ -429,6 +431,11 @@ class UserAS(AS):
         """
         return self.fixed_links().filter(type=Link.PROVIDER).exists()
 
+class AttachmentPointManager(models.Manager):
+
+    def active(self):
+        threshold = timezone.now() - datetime.timedelta(minutes=1)
+        return self.filter(updated_at__gt = threshold)
 
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
@@ -443,6 +450,9 @@ class AttachmentPoint(models.Model):
         related_name='+',
         on_delete=models.SET_NULL
     )
+    updated_at = models.DateTimeField(null=True)
+
+    objects = AttachmentPointManager()
 
     def __str__(self):
         return str(self.AS)

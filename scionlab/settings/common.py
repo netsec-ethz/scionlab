@@ -113,9 +113,6 @@ GRAFANA_URL = "https://prometheus.scionlab.org"
 # two consecutive deployments (value in seconds).
 DEPLOYMENT_PERIOD = 60
 
-# SSH Config file for managed hosts
-SSH_CONFIG_PATH = os.path.join(BASE_DIR, 'run', 'ssh_config')
-
 # Openvpn key/cert:
 VPN_CA_KEY_PASSWORD = os.environ.get('VPN_CA_KEY_PASSWORD')
 VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_key.pem')

@@ -192,34 +192,6 @@ jobs:
           <<: *check_scion_connections
 
       - run:
-          name: "Push changes to AS ffaa:0:1303"
-          working_directory: ~/project/.circleci
-          no_output_time: "1m0s"
-          command: |
-            set -x
-
-            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
-
-            # Start the huey worker
-            docker-compose up -d huey
-
-            # Generate new AS-keys for 1303 and push the new configuration.
-            # This waits until the configuration has been deployed.
-            docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py ffaa:0:1303; \
-              python .circleci/actions/push-deploy.py ffaa:0:1303'
-
-            docker-compose logs huey
-
-            # Check that
-            # i) configuration was deployed
-            new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
-            [ "$prev_version" -lt "$new_version" ]
-            # ii) connection still works
-            docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
-
-      - run:
           name: Test TRC update and push changes
           working_directory: ~/project/.circleci
           command: |
