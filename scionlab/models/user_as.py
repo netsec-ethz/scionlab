@@ -531,7 +531,7 @@ class AttachmentPoint(models.Model):
         :returns: an attachment point given a link with a UserAS
         """
         assert hasattr(link.interfaceB.AS, 'useras')
-        return link.interfaceA.AS.attachment_point_info  
+        return link.interfaceA.AS.attachment_point_info
 
 
 class AttachmentConf:

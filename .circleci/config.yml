@@ -193,13 +193,16 @@ jobs:
           no_output_time: "1m0s"
           command: |
             set -x
+
             prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
+
             # Generate new AS-keys for 1303 and pull the new configuration.
             # This waits until the configuration has been deployed.
             docker-compose exec -T coord /bin/bash -c \
             'python .circleci/actions/update-keys.py ffaa:0:1303'
             docker-compose exec as1303 /bin/bash -c \
               'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+
             # Check that
             # i) configuration was deployed
             new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
