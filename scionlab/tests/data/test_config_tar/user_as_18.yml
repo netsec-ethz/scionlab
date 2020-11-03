@@ -128,7 +128,6 @@ etc/scion/cs-1.toml: |
 
   [quic]
   address = "127.0.0.1:30354"
-  resolution_fraction = 0.4
 
   [trust_db]
   connection = "/var/lib/scion/cs-1.trust.db"
@@ -233,7 +232,7 @@ scionlab-config.json: |-
       "etc/scion/certs/ISD19-V1.trc": "087f805b006e0ff52e8f4fbab3dcd63d27498601",
       "etc/scion/certs/ISD20-ASffaa_1_3-V1.crt": "2af0115f49ac6417b024c4a944877dd005bf5353",
       "etc/scion/certs/ISD20-V1.trc": "df94e1688f2c88dd9648fa4c003f895b546467ab",
-      "etc/scion/cs-1.toml": "f7da5aed1c49bd134972ad860db484c79f8bbabc",
+      "etc/scion/cs-1.toml": "0ef56839347bcb4cdef6c814ff2e1af86cbe8c89",
       "etc/scion/keys/as-decrypt-v1.key": "1b01b21751ac1fea1ba78342a7a42905b2b37415",
       "etc/scion/keys/as-signing-v1.key": "a1385c0c78e7916d269c085a381a73af1c5c9da6",
       "etc/scion/keys/master0.key": "dca432f9d6228867e00003bd7380db8ab712ab33",

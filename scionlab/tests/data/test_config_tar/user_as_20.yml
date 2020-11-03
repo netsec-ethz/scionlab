@@ -128,7 +128,6 @@ gen/ASffaa_1_5/cs-1.toml: |
 
   [quic]
   address = "127.0.0.1:30354"
-  resolution_fraction = 0.4
 
   [trust_db]
   connection = "gen-cache/cs-1.trust.db"

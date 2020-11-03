@@ -308,7 +308,6 @@ class _ConfigBuilder:
             },
             'quic': {
                 'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
-                'resolution_fraction': 0.4,
             },
         })
         if service.AS.is_core:
