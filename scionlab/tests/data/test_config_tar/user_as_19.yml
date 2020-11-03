@@ -333,11 +333,17 @@ etc/scion/topology.json: |-
         "addr": "127.0.0.1:30254"
       }
     },
+    "discovery_service": {
+      "ds-1": {
+        "addr": "127.0.0.1:30254"
+      }
+    },
     "isd_as": "20-ffaa:1:4",
     "mtu": 1472,
     "sigs": {
       "sig-1": {
-        "addr": "127.0.0.1:31056"
+        "ctrl_addr": "127.0.0.1:30256",
+        "data_addr": "127.0.0.1:30056"
       }
     }
   }
@@ -357,7 +363,7 @@ scionlab-config.json: |-
       "etc/scion/keys/master0.key": "25d839bcbd879e65f9d0f2e8bbd53dcdf80fdba7",
       "etc/scion/keys/master1.key": "25d839bcbd879e65f9d0f2e8bbd53dcdf80fdba7",
       "etc/scion/sd.toml": "1e0fcd670aa5cde7b9bfc6fc052e066cc5184598",
-      "etc/scion/topology.json": "536826809c208329f5d7c567d88c69b5d46c9b52"
+      "etc/scion/topology.json": "233d12b7e5777c02b46114a66179b018ff4263d3"
     },
     "host_id": "ebe22b06d3a4492aa0fe84689ba93570",
     "host_secret": "b5af6743059642eba32be270900dea60",

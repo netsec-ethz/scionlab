@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from scionlab.defines import SIG_PORT
+from scionlab.defines import SIG_CTRL_PORT, SIG_DATA_PORT
 from scionlab.models.core import Service, Link
 
 KEY_BR = 'border_routers'
 KEY_CS = 'control_service'
+KEY_DS = 'discovery_service'
 
 TYPES_TO_KEYS = {
     "CS": KEY_CS,
@@ -134,11 +135,17 @@ def _topo_add_interface(router_entry, interface):
 def _topo_add_control_services(topo_dict, services):
     control_services = (s for s in services if s.type in Service.CONTROL_SERVICE_TYPES)
     for service in control_services:
-        service_type_entry = topo_dict.setdefault(TYPES_TO_KEYS[service.type], {})
-        service_type_entry[service.instance_name] = {
+        service_instance_entry = {
             "addr": _join_host_port(service.host.internal_ip, service.port()),
         }
-        # XXX(matzf): bind is no longer supported here!
+        service_type_entry = topo_dict.setdefault(TYPES_TO_KEYS[service.type], {})
+        service_type_entry[service.instance_name] = service_instance_entry
+        # Add discovery service, as copy of control service (because the control service implements
+        # the discovery service, but there is still a separate entry in the topology file. Gee...).
+        if service.type == Service.CS:
+            ds_entry = topo_dict.setdefault(KEY_DS, {})
+            instance_name = f"ds-{service.instance_id}"
+            ds_entry[instance_name] = service_instance_entry
 
 
 def _topo_add_sig_dummy_entry(topo_dict, host):
@@ -153,7 +160,9 @@ def _topo_add_sig_dummy_entry(topo_dict, host):
     """
     topo_dict["sigs"] = {
         "sig-1": {  # id is irrelevant, not used for anything
-            "addr": _join_host_port(host.internal_ip, SIG_PORT)
+            "ctrl_addr": _join_host_port(host.internal_ip, SIG_CTRL_PORT),
+            "data_addr": _join_host_port(host.internal_ip, SIG_DATA_PORT),
+            # 'allow_interfaces': [...], unused for now, not setting anything
         }
     }
 

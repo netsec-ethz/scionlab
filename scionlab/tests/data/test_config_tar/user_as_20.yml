@@ -210,11 +210,17 @@ gen/ASffaa_1_5/topology.json: |-
         "addr": "127.0.0.1:30254"
       }
     },
+    "discovery_service": {
+      "ds-1": {
+        "addr": "127.0.0.1:30254"
+      }
+    },
     "isd_as": "17-ffaa:1:5",
     "mtu": 1472,
     "sigs": {
       "sig-1": {
-        "addr": "127.0.0.1:31056"
+        "ctrl_addr": "127.0.0.1:30256",
+        "data_addr": "127.0.0.1:30056"
       }
     }
   }
