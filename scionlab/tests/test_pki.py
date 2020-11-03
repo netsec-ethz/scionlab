@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import copy
+import os
 import re
 from datetime import datetime, timedelta
 
@@ -248,8 +249,46 @@ class CertificateTests(TestCase):
         self.assertEqual(output[0:index], cert.certificate)  # own certificate
         self.assertEqual(output[index:], cert_ca.certificate)  # issuer
 
-    def test_versions(self):
-        pass
+
+class ScionTests(TestCase):
+    def test_trc_configure(self):
+        kwargs = self._args_dict()
+        conf = trcs.TRCConf(**kwargs)
+        temp_dir_name = ""
+        with conf.configure() as trc:
+            # there is a temporary dir created, with the certificate files
+            temp_dir_name = trc._temp_dir.name
+            self.assertTrue(os.path.isdir(temp_dir_name))
+            for fn, c in conf.certificates.items():
+                self.assertTrue(os.path.isfile(fn))
+                with open(fn) as f:
+                    self.assertEqual(f.read(), c)
+        self.assertFalse(os.path.exists(temp_dir_name))
+        # absolute paths not allowed:
+        kwargs["certificates"] = {"/tmp/mock-certificate.crt": "no-content"}
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        # anything but a filename is not allowed
+        kwargs["certificates"] = {"../mock-certificate.crt": "no-content"}
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        kwargs["certificates"] = {"": "no-content"}
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+
+    def test_validate(self):
+        kwargs = self._args_dict()
+        trcs.TRCConf(**kwargs)  # doesn't raise
+        kwargs["isd_id"] = 0
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        kwargs = self._args_dict()
+        kwargs["not_after"] = kwargs["not_before"]
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        kwargs = self._args_dict()
+
+
+    def _args_dict(self):
+        return {"isd_id": 1, "base": 1, "serial": 1, "grace_period": None,
+                "not_before": datetime.utcnow(), "not_after": datetime.utcnow() + timedelta(days=1),
+                "authoritative": ["1-ff00:0:110"], "core": ["1-ff00:0:110"],
+                "certificates": {"mock-certificate.crt": "no-content"}}
 
 
 _ASID_1 = 'ff00:0:1'
