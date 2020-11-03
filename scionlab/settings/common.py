@@ -109,10 +109,6 @@ MAX_ASES_ADMIN = 50
 MAX_ASES_USER = 5
 GRAFANA_URL = "https://prometheus.scionlab.org"
 
-# Rate limit for host deployments, specified by the minimal time between
-# two consecutive deployments (value in seconds).
-DEPLOYMENT_PERIOD = 60
-
 # Openvpn key/cert:
 VPN_CA_KEY_PASSWORD = os.environ.get('VPN_CA_KEY_PASSWORD')
 VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_key.pem')

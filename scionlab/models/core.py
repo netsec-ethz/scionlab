@@ -484,6 +484,7 @@ class Host(models.Model):
 
     config_version = models.PositiveIntegerField(default=1)
     config_version_deployed = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(null=True)
 
     objects = HostManager()
 
@@ -600,6 +601,10 @@ class Host(models.Model):
             portmap.add(self.internal_ip, port)
 
         return portmap
+        
+    def update_timestamp(self):
+        self.updated_at = timezone.now()
+        self.save()
 
 
 class InterfaceManager(models.Manager):

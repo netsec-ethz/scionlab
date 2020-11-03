@@ -68,6 +68,10 @@ class GetHostConfig(SingleObjectMixin, View):
         version = _get_version_param(request.GET)
         if version is _BAD_VERSION:
             return HttpResponseBadRequest()
+            
+        ap = AttachmentPoint.objects.filter(AS = host.AS).first()
+        if ap != None:
+            host.update_timestamps()
 
         if version and version >= host.config_version:
             return HttpResponseNotModified()
@@ -116,10 +120,6 @@ class PostHostDeployedConfigVersion(SingleObjectMixin, View):
             return HttpResponseBadRequest()
 
         host = self.get_object()
-        ap = AttachmentPoint.objects.filter(AS = host.AS).first()
-        if ap != None:
-            ap.updated_at = timezone.now()
-            ap.save()
         if version > host.config_version or version < host.config_version_deployed:
             return HttpResponseNotModified()
 

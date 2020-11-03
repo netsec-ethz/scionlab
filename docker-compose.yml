@@ -6,17 +6,6 @@ services:
     volumes:
       - redisdata:/data:Z
 
-  huey:
-    build:
-      context: .
-      dockerfile: deploy/Dockerfile-django
-    command: /scionlab/manage.py run_huey -w 8
-    env_file: run/scionlab.env
-    depends_on:
-      - redis
-    volumes:
-      - ./run/:/scionlab/run/
-
   django:
     build:
       context: .
@@ -25,7 +14,7 @@ services:
     expose:
       - "8000"
     depends_on:
-      - huey
+      - redis
     volumes:
       - ./run/:/scionlab/run/:z
       - web-static:/scionlab/static/:z

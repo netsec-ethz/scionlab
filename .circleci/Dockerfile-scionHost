@@ -27,7 +27,7 @@ VOLUME [ "/sys/fs/cgroup" ]
 RUN bash -c 'echo "deb [trusted=yes] https://packages-test.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
 RUN apt-get update && apt-get install --assume-yes scionlab
 
-# Add 'scionlab' user with passwordless sudo & configure authorized_keys to allow automatic deployment
+# Add 'scionlab' user with passwordless sudo
 RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
 RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
 

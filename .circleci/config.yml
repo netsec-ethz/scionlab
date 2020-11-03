@@ -59,11 +59,7 @@ start_coordinator: &start_coordinator
   command: |
     # Initialize coordinator with test data and test keys
     docker-compose run -T coord /bin/bash -c \
-     './scripts/init-test-db.sh && \
-      cp .circleci/setup/deploy_ssh_config run/ssh_config && \
-      cp .circleci/setup/deploy_rsa* run/ && \
-      chmod 644 run/deploy_rsa.pub && \
-      chmod 600 run/deploy_rsa'
+     './scripts/init-test-db.sh'
 
     docker-compose up -d coord
 
@@ -192,7 +188,34 @@ jobs:
           <<: *check_scion_connections
 
       - run:
-          name: Test TRC update and push changes
+          name: "Pull changes to AS ffaa:0:1303"
+          working_directory: ~/project/.circleci
+          no_output_time: "1m0s"
+          command: |
+            set -x
+            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
+          ##  Start the huey worker
+          ##  docker-compose up -d huey
+            # Generate new AS-keys for 1303 and pull the new configuration.
+            # This waits until the configuration has been deployed.
+            docker-compose exec -T coord /bin/bash -c \
+             'python .circleci/actions/update-keys.py ffaa:0:1303'
+            ##; \
+            ##  python .circleci/actions/push-deploy.py ffaa:0:1303'
+            docker-compose exec as1303 /bin/bash -c \
+              'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+            ##docker-compose logs huey
+            # Check that
+            # i) configuration was deployed
+            new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
+            [ "$prev_version" -lt "$new_version" ]
+            # ii) connection still works
+            docker-compose exec -T as1303 /bin/bash -c \
+              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
+
+
+      - run:
+          name: Test TRC update and pull changes
           working_directory: ~/project/.circleci
           command: |
             set -x
@@ -203,10 +226,15 @@ jobs:
 
             # Update core keys which requires creating a new TRC
             docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301;
-              python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
+             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301'
+           ##  ;
+           ##   python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
+            for c in as1301 as1303 as1305; do
+              docker-compose exec $c /bin/bash -c \
+                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+            done
 
-            docker-compose logs huey
+          ##docker-compose logs huey
             docker-compose logs coord
 
             # Check updated TRC and check that updated TRCs were installed on all hosts
@@ -351,7 +379,7 @@ jobs:
             docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/
             sudo chown circleci:circleci -R ~/previous_version/run/
             cp -r ~/previous_version/run ~/project/
-            docker-compose up -d --force-recreate --build coord huey
+            docker-compose up -d --force-recreate --build coord
 
       - run:
           name: NEW -- Check coordinator ready

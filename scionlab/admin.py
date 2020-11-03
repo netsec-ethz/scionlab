@@ -39,7 +39,6 @@ from scionlab.models.core import (
 from scionlab.models.user import User
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.models.vpn import VPN, VPNClient
-from scionlab.tasks import deploy_host_config
 from scionlab.views.api import get_host_config_tar_response
 # Needs to be after import of scionlab.models.user.User
 from django.contrib.auth.admin import UserAdmin as auth_UserAdmin

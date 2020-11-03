@@ -93,6 +93,7 @@ class Migration(migrations.Migration):
                 ('public_ip', models.GenericIPAddressField(blank=True, help_text='Default public IP for for border router interfaces running on this host.', null=True)),
                 ('bind_ip', models.GenericIPAddressField(blank=True, help_text='Default bind IP for for border router interfaces running on this host.', null=True)),
                 ('label', models.CharField(blank=True, max_length=255, null=True)),
+                ('managed', models.BooleanField(default=False)),
                 ('ssh_host', models.CharField(blank=True, help_text='Hostname or IP for management access via SSH. Configured in run/ssh_config.', max_length=255, null=True)),
                 ('uid', models.CharField(editable=False, help_text='Identifier for API', max_length=255, unique=True, verbose_name='UID')),
                 ('secret', models.CharField(help_text='Secret token for API', max_length=255)),
