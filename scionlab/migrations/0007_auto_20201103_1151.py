@@ -20,14 +20,4 @@ class Migration(migrations.Migration):
             name='updated_at',
             field=models.DateTimeField(null=True),
         ),
-        migrations.AlterField(
-            model_name='certificate',
-            name='certificate',
-            field=jsonfield.fields.JSONField(),
-        ),
-        migrations.AlterField(
-            model_name='trc',
-            name='trc',
-            field=jsonfield.fields.JSONField(editable=False),
-        ),
     ]
