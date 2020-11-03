@@ -71,7 +71,7 @@ class GetHostConfig(SingleObjectMixin, View):
             
         ap = AttachmentPoint.objects.filter(AS = host.AS).first()
         if ap != None:
-            host.update_timestamps()
+            host.update_timestamp()
 
         if version and version >= host.config_version:
             return HttpResponseNotModified()

@@ -193,7 +193,7 @@ class ISDAdmin(admin.ModelAdmin):
 
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
-        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'ssh_host')
+        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'ssh_host', 'updated_at')
 
     secret = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '32'}))
 

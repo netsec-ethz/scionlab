@@ -280,20 +280,19 @@ def confirm_deployed(args):
     confirms that this version has been sucessfully installed. This information is used coordinator
     by the coordinator only in the case where it actively pushes configuration to a host. A failure
     in this step is generally unproblematic.
-
     :param args: commandline arguments for optional coordinator URL
     """
     # Get newly installed config info
-    config_info = _load_config_info(DEFAULT_CONFIG_INFO_PATH)
+    fetch_info = _read_fetch_info(CONFIG_INFO_PATH)
     if args.url:
-        config_info = config_info._replace(url=args.url)
+        fetch_info = fetch_info._replace(url=args.url)
 
-    url = '{coordinator_url}/api/v2/host/{host_id}/deployed_config_version'.format(
-        coordinator_url=config_info.url.rstrip('/'),
-        host_id=config_info.host_id
+    url = '{coordinator_url}/api/v3/host/{host_id}/deployed_config_version'.format(
+        coordinator_url=fetch_info.url.rstrip('/'),
+        host_id=fetch_info.host_id
     )
-    data = {'version': config_info.version}
-    _http_post(url, data, username=config_info.host_id, password=config_info.host_secret)
+    data = {'version': fetch_info.version}
+    _http_post(url, data, username=fetch_info.host_id, password=fetch_info.host_secret)
 
 
 def _http_get(url, params, username, password):

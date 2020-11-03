@@ -35,6 +35,7 @@ from scionlab.models.pki import Key, Certificate
 from scionlab.scion import as_ids
 from scionlab.util.django import value_set
 from scionlab.util.portmap import PortMap, LazyPortMap
+from django.utils import timezone
 from scionlab.defines import (
     MAX_INTERFACE_ID,
     DEFAULT_PUBLIC_PORT,
