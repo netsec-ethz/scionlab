@@ -14,9 +14,9 @@ Vagrantfile: |-
 
       echo 'install and update system packages'
       export DEBIAN_FRONTEND=noninteractive; export LC_ALL=C
-      apt-get update -qq
+      apt-get update > /dev/null
       apt-get upgrade -y -qq
-      apt-get install -y -qq apt-transport-https ca-certificates ntp unattended-upgrades
+      apt-get install -y -qq apt-transport-https ca-certificates unattended-upgrades
 
       echo 'install SCIONLab'
       echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" > /etc/apt/sources.list.d/scionlab.list
@@ -24,8 +24,12 @@ Vagrantfile: |-
       apt-get install -y -qq scionlab
 
       echo 'configure time sync'
-      sed -i 's/^pool .*$/\0 minpoll 3 maxpoll 6/;$a tinker panic 0' /etc/ntp.conf
-      systemctl restart ntp.service  # it's enabled and started after installation
+      printf '%s\n' \
+        '[Time]' \
+        'NTP=0.ubuntu.pool.ntp.org 1.ubuntu.pool.ntp.org 2.ubuntu.pool.ntp.org 3.ubuntu.pool.ntp.org' \
+        'FallbackNTP=ntp.ubuntu.com' \
+      > /etc/systemd/timesyncd.conf
+      systemctl restart systemd-timesyncd.service
 
       echo 'configure unattended upgrades for all system and SCION package ugprades'
       printf '%s\n' \
