@@ -16,7 +16,7 @@ import os
 import pathlib
 
 from django.conf import settings
-from jinja2 import Environment, Template
+from jinja2 import Environment
 from scionlab import scion_config
 from scionlab.defines import GEN_PATH
 from scionlab.models.user_as import UserAS
