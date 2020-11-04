@@ -1,0 +1,15 @@
+isd = 1
+description = "SCIONLab TRC for ISD 1"
+base_version = 1
+serial_version = 1
+voting_quorum = 1
+grace_period = "0s"
+authoritative_ases = [ "ff00:0:110",]
+core_ases = [ "ff00:0:110",]
+# cert_files = [ "voting-sensitive-1.crt", "voting-sensitive-2.crt", "voting-regular-1.crt", "voting-regular-2.crt",]
+cert_files = [ "voting-sensitive-1.crt", "voting-regular-1.crt", "root-1.crt",]
+no_trust_reset = false
+
+[validity]
+not_before = 1605168000  # 12.11.2020 8:00am UTC
+validity = "3600s"
