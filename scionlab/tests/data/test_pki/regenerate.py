@@ -12,23 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import subprocess
-import toml
 
-from collections import namedtuple
 from datetime import datetime, timedelta, timezone
-from scionlab.scion import keys, jws
-from scionlab.scion.as_ids import parse
 from scionlab.scion.keys import encode_key, generate_key
 from scionlab.scion.certs import _build_certificate, _build_extensions_voting,\
                                  _build_extensions_root, _build_extensions_ca,\
                                  _create_name, encode_certificate,\
                                  OID_SENSITIVE_KEY, OID_REGULAR_KEY
-from cryptography import x509
-from cryptography.x509.oid import NameOID, ObjectIdentifier
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import padding, serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import ec
 
 
 def regenerate_voting_certs() -> None:
@@ -89,6 +81,37 @@ def regenerate_ca():
         f.write(encode_certificate(cert).encode("ascii"))
 
 
+def regenerate_trc():
+    def run_scion_cppki(*args):
+        COMMAND = "scion-pki"
+        ret = subprocess.run([COMMAND, "trcs", *args],
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+        if ret.returncode != 0:
+            print(ret.stdout.decode("utf-8"))
+            raise Exception(f"Bad return code: {ret.returncode}")
+    # 1. gen payload. There is already a manually generated payload-1-config.toml
+    run_scion_cppki("payload", "-t", "payload-1-config.toml", "-o", "payload-1.der")
+    # 2. sign payload with voters
+    signers = [ # cert, key, outfile
+        ("voting-sensitive-1.crt", "voting-sensitive-1.key", "payload-1-signed-sensitive-1.der"),
+        ("voting-regular-1.crt", "voting-regular-1.key", "payload-1-signed-regular-1.der")]
+    for (cert, key, outfile) in signers:
+        command = ["openssl", "cms", "-sign", "-in", "payload-1.der",
+                   "-inform", "der", "-md", "sha512", "-signer", cert,
+                   "-inkey", key, "-nodetach", "-nocerts", "-nosmimecap",
+                   "-binary", "-outform", "der", "-out", outfile]
+        subprocess.run(command, check=True)
+    # 3. combine signed payloads
+    run_scion_cppki("combine", "-p", "payload-1.der", *(signed for (_, _, signed) in signers),
+                    "-o", "trc-1.trc")
+    # 4. verify TRC (sanity check)
+    run_scion_cppki("verify", "--anchor", "trc-1.trc", "trc-1.trc")
+
+
 def regenerate():
+    dir = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(dir)
+
     regenerate_voting_certs()
     regenerate_ca()
+    regenerate_trc()
