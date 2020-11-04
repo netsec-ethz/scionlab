@@ -256,14 +256,37 @@ class ScionTests(TestCase):
         conf = trcs.TRCConf(**kwargs)
         temp_dir_name = ""
         with conf.configure() as trc:
-            # there is a temporary dir created, with the certificate files
             temp_dir_name = trc._temp_dir.name
+            # double call (nested in outer, should not happen) must also clean up
+            temp_dir_name2 = ""
+            with conf.configure() as trc2:
+                temp_dir_name2 = trc2._temp_dir.name
+                self.assertTrue(os.path.isdir(temp_dir_name2))
+                self.assertTrue(all(os.path.isfile(os.path.join(temp_dir_name2, f))
+                                    for f in conf.certificates.keys()))
+            self.assertFalse(os.path.exists(temp_dir_name2))
+            # no more shenanigans with double usage.
+            # there is a temporary dir created, with the certificate files
             self.assertTrue(os.path.isdir(temp_dir_name))
             for fn, c in conf.certificates.items():
-                self.assertTrue(os.path.isfile(fn))
-                with open(fn) as f:
+                p = os.path.join(temp_dir_name, fn)
+                self.assertTrue(os.path.isfile(p))
+                with open(p) as f:
                     self.assertEqual(f.read(), c)
         self.assertFalse(os.path.exists(temp_dir_name))
+
+    def test_validate(self):
+        kwargs = self._args_dict()
+        trcs.TRCConf(**kwargs)  # doesn't raise
+        kwargs["isd_id"] = -1
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        kwargs = self._args_dict()
+        kwargs["not_after"] = kwargs["not_before"]
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        kwargs = self._args_dict()
+        kwargs["certificates"] = {}
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        kwargs = self._args_dict()
         # absolute paths not allowed:
         kwargs["certificates"] = {"/tmp/mock-certificate.crt": "no-content"}
         self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
@@ -272,16 +295,10 @@ class ScionTests(TestCase):
         self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
         kwargs["certificates"] = {"": "no-content"}
         self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
-
-    def test_validate(self):
-        kwargs = self._args_dict()
-        trcs.TRCConf(**kwargs)  # doesn't raise
-        kwargs["isd_id"] = 0
+        kwargs["certificates"] = {"..": "no-content"}
         self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
-        kwargs = self._args_dict()
-        kwargs["not_after"] = kwargs["not_before"]
+        kwargs["certificates"] = {"/": "no-content"}
         self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
-        kwargs = self._args_dict()
 
 
     def _args_dict(self):
