@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import os
-import string
 import pathlib
 
 from django.conf import settings
+from jinja2 import Environment, Template
 from scionlab import scion_config
 from scionlab.defines import GEN_PATH
 from scionlab.models.user_as import UserAS
@@ -156,18 +156,13 @@ def _add_vagrantfiles(host, archive):
 def _expand_vagrantfile_template(host):
     public_ifaces = [iface for iface in host.interfaces.iterator()
                      if not UserAS.is_link_over_vpn(iface)]
-    forwarding_strings = []
-    for iface in public_ifaces:
-        port = iface.bind_port or iface.public_port
-        # XXX: The two spaces are on purpose for indentation, don't remove them (I'm watching you)
-        forwarding_strings.append('  config.vm.network "forwarded_port", guest: {port},'
-                                  ' host: {port}, protocol: "udp"'.format(port=port))
-    forwarding_string = '\n'.join(forwarding_strings)
+    forwarded_ports = [iface.bind_port or iface.public_port for iface in public_ifaces]
 
     vagrant_tmpl = pathlib.Path(_hostfiles_path("Vagrantfile.tmpl")).read_text()
 
-    return string.Template(vagrant_tmpl).safe_substitute(
-        PortForwarding=forwarding_string,
+    env = Environment(lstrip_blocks=True, trim_blocks=True)
+    return env.from_string(vagrant_tmpl).render(
+        forwarded_ports=forwarded_ports,
         host_id=host.uid,
         host_secret=host.secret,
         url=settings.SCIONLAB_SITE,
