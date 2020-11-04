@@ -349,19 +349,7 @@ class TRCConf:
         self.certificates = certificates
 
         self._temp_dir = None  # will be set later by configure()
-        self.validate()
-
-    def validate(self):
-        if any(x <= 0 for x in [self.isd_id, self.base, self.serial]):
-            raise ValueError("isd_id, base and serial must be >= 0")
-        if self.not_after <= self.not_before:
-            raise ValueError("not_before must precede not_after")
-
-        # check the certificate file names only contain file names
-        for fn in self.certificates.keys():
-            p = os.path.normpath(fn)
-            if not os.path.isfile(p):
-                raise ValueError(f"certificate file name is invalid: {fn}")
+        self._validate()
 
     @contextmanager
     def configure(self):
@@ -373,6 +361,22 @@ class TRCConf:
             yield self
         finally:
             temp_dir.cleanup()
+            self._temp_dir = temp_dir  # only needed if nested call to configure()
+
+    def _validate(self):
+        if any(x <= 0 for x in [self.isd_id, self.base, self.serial]):
+            raise ValueError("isd_id, base and serial must be >= 0")
+        if self.not_after <= self.not_before:
+            raise ValueError("not_before must precede not_after")
+        if not self.certificates:
+            raise ValueError("must provide sensitive voting, regular voting, and root certificates")
+
+        # check the certificate file names only contain file names and not paths.
+        # the rest of invalid file names will fail when configure() is called.
+        for fn in self.certificates.keys():
+            p = os.path.normpath(fn)  # not necessary, as we ask for filenames only and not paths
+            if os.path.dirname(p) or not os.path.basename(p) or p in {".", ".."}:
+                raise ValueError(f"certificate file name is invalid: {fn}")
 
     def _get_conf(self):
         return {
@@ -402,11 +406,11 @@ class TRCConf:
         if self.base == self.serial:
             return "0s"
         else:
-            return self._to_seconds(self.grace_period)
+            return f"{self._to_seconds(self.grace_period)}s"
 
     def _dump_certificates_to_files(self):
         for fn, c in self.certificates.items():
-            with open(fn, "wb") as f:
+            with open(os.path.join(self._temp_dir.name, fn), "wb") as f:
                 f.write(c.encode("ascii"))
 
     @staticmethod
