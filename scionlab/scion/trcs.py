@@ -25,7 +25,7 @@ from collections import namedtuple
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from tempfile import TemporaryDirectory
-from typing import Dict, List, Tuple
+from typing import cast, Dict, List, Tuple
 
 from scionlab.scion import jws
 
@@ -320,7 +320,17 @@ def _utc_timestamp(dt: datetime) -> int:
 
 
 class TRCConf:
-    # TODO(juagargi) use contextlib as soon as we write temp. files, etc.
+    """
+    Configures, creates, signs, and combines all the pieces to finally have a TRC.
+    The typical usage is:
+
+    with TRCConf(...).configure() as trc:
+        trc.gen_payload()
+        trc.sign_payload()
+        final_trc = trc.combine()
+
+    The combine step returns the bytes of the final TRC.
+    """
     def __init__(self,
                  isd_id: int,
                  base: int,
@@ -348,7 +358,6 @@ class TRCConf:
         # self.cas = ["1-ff00:0:110"]
         self.certificates = certificates
 
-        self._temp_dir = None  # will be set later by configure()
         self._validate()
 
     @contextmanager
@@ -363,7 +372,16 @@ class TRCConf:
             temp_dir.cleanup()
             self._temp_dir = temp_dir  # only needed if nested call to configure()
 
-    def _validate(self):
+    def gen_payload(self):
+        pass
+
+    def sign_payload(self):
+        pass
+
+    def combine(self):
+        pass
+
+    def _validate(self) -> None:
         if any(x <= 0 for x in [self.isd_id, self.base, self.serial]):
             raise ValueError("isd_id, base and serial must be >= 0")
         if self.not_after <= self.not_before:
@@ -378,7 +396,7 @@ class TRCConf:
             if os.path.dirname(p) or not os.path.basename(p) or p in {".", ".."}:
                 raise ValueError(f"certificate file name is invalid: {fn}")
 
-    def _get_conf(self):
+    def _get_conf(self) -> Dict:
         return {
             "isd": self.isd_id,
             "description": f"SCIONLab TRC for ISD {self.isd_id}",
@@ -408,7 +426,7 @@ class TRCConf:
         else:
             return f"{self._to_seconds(self.grace_period)}s"
 
-    def _dump_certificates_to_files(self):
+    def _dump_certificates_to_files(self) -> None:
         for fn, c in self.certificates.items():
             with open(os.path.join(self._temp_dir.name, fn), "wb") as f:
                 f.write(c.encode("ascii"))
