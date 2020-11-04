@@ -11,9 +11,9 @@ Vagrant.configure(2) do |config|
 
     echo 'install and update system packages'
     export DEBIAN_FRONTEND=noninteractive; export LC_ALL=C
-    apt-get update -qq
+    apt-get update > /dev/null
     apt-get upgrade -y -qq
-    apt-get install -y -qq apt-transport-https ca-certificates ntp unattended-upgrades
+    apt-get install -y -qq apt-transport-https ca-certificates unattended-upgrades
 
     echo 'install SCIONLab'
     echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" > /etc/apt/sources.list.d/scionlab.list
@@ -23,16 +23,18 @@ Vagrant.configure(2) do |config|
     {#
       time sync: virtualbox host timesync is disabled to avoid issues on hosts
       with bad time that we cannot work around (see GetHostTimeDisabled below).
-      Instead, we use ntp in the VM:
-      - set min/maxpoll intervals to force frequent polling.
-        The lower limit is 3 (the manual is lying), corresponding to 2**3 == 8 seconds.
-      - set `tinker panic 0` to avoid ntp erroring out due to large time diffs after
-        pausing the VM.
-        See e.g. https://www.redhat.com/en/blog/avoiding-clock-drift-vms
+      Instead, we use systemd-timesyncd in the VM:
+      - ntp is a lot clumsier to use and I couldn't make it reliably adjust the
+        clock after a VM pause.
+      - use the ubuntu ntp pools, from default ubuntu ntp.conf
     #}
     echo 'configure time sync'
-    sed -i 's/^pool .*$/\0 minpoll 3 maxpoll 6/;$a tinker panic 0' /etc/ntp.conf
-    systemctl restart ntp.service  # it's enabled and started after installation
+    printf '%s\n' \
+      '[Time]' \
+      'NTP=0.ubuntu.pool.ntp.org 1.ubuntu.pool.ntp.org 2.ubuntu.pool.ntp.org 3.ubuntu.pool.ntp.org' \
+      'FallbackNTP=ntp.ubuntu.com' \
+    > /etc/systemd/timesyncd.conf
+    systemctl restart systemd-timesyncd.service
 
     {#
       unattended upgrades:
