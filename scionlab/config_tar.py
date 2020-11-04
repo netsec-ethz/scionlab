@@ -17,7 +17,7 @@ import pathlib
 import string
 
 from django.conf import settings
-from jinja2 import Environment, Template
+from jinja2 import Environment
 from scionlab.defines import OPENVPN_CONFIG_DIR
 from scionlab.scion.config import generate_systemd_scion_config, generate_supervisord_scion_config
 from scionlab.models.user_as import UserAS
