@@ -316,6 +316,7 @@ class TRCManager(models.Manager):
 
         All TRC updates must comply with the following:
         - The ISD identifier must not change.
+        - The base identifier must not change.
         - noTrustReset must not change.
         - Votes must belong to sensitive or regular certificates present in the previous TRC.
         - The number of votes >= previous TRC votingQuorum.
@@ -339,12 +340,17 @@ class TRCManager(models.Manager):
         For sensitive TRC updates to be verifyable, they must contain votes
         only from sensitive certificates.
 
+        For SCIONLab this means that only updates to the validity will be regular updates. The rest
+        will be sensitive, as the update will involve changing membership of the core ASes.
+
 
 
 
         The version is incremented from the previous TRC. The voting offline keys related to the
         previous TRC may be (precisely: for online key updates and sensitive updates) used to sign
         the new TRC.
+
+        In SCIONLab, authoritative ASes = core ASes = CA ASes.
 
         Requires at least one core AS in this ISD.
 
@@ -396,7 +402,9 @@ class TRCManager(models.Manager):
         obj.voting_offline.set(voting_offline)
 
     def latest(self):
-        return self.order_by("-version_base").latest("version_serial")
+        """ there could be more than one TRC with the same serial, but the latest is the one
+        that has its base the further in the sequence """
+        return self.order_by("-version_serial").latest("base_version")
 
     def latest_or_none(self):
         try:
@@ -413,20 +421,23 @@ class TRC(models.Model):
         verbose_name='ISD'
     )
 
-    # version = models.PositiveIntegerField(editable=False)
-    version_base = models.PositiveIntegerField(editable=False, default=1)
+    # the serial version should be incremented monotonically.
     version_serial = models.PositiveIntegerField(editable=False, default=1)
+    # the base version points at the serial which represents the anchor of an update chain.
+    # when the base version is equal to the serial version, this TRC is the anchor, and
+    # there is no update, but a creation from scratch.
+    base_version = models.PositiveIntegerField(editable=False, default=1)
+
     not_before = models.DateTimeField()
     not_after = models.DateTimeField()
 
-    # trc = jsonfield.JSONField(editable=False)
     trc = models.BinaryField()  # in binary DER format
 
     # Sensitive voting keys are required to create the next TRC version for sensitive updates;
     # These keys are never deleted to ensure it is always possible to create a new TRC version, even
     # after removing _all_ core ASes of an ISD. (see also _key_set_null_or_cascade).
     # TODO(juagargi) should we reference the cert instead?
-    voting_offline = models.ManyToManyField(
+    voting_sensitive = models.ManyToManyField(
         Key,
         related_name="trc_voted_sensitive",
     )
@@ -444,22 +455,16 @@ class TRC(models.Model):
         verbose_name = 'TRC'
         verbose_name_plural = 'TRCs'
         # unique_together = ('isd', 'version')
-        unique_together = ('isd', 'version_base', 'version_serial')
+        unique_together = ('isd', 'version_serial', 'base_version')
 
     def __str__(self):
         return self.filename()
 
     def filename(self) -> str:
-        return f"ISD{self.isd.isd_id}-B{self.version_base}-S{self.version_serial}"
+        return f"ISD{self.isd.isd_id}-B{self.base_version}-S{self.version_serial}"
 
     @staticmethod
-    def next_version_base():
-        prev = TRC.objects.aggregate(
-            models.Max('version_base'))['version_base__max'] or 0
-        return prev + 1
-
-    @staticmethod
-    def next_version_serial():
+    def next_version():
         prev = TRC.objects.aggregate(
             models.Max('version_serial'))['version_serial__max'] or 0
         return prev + 1

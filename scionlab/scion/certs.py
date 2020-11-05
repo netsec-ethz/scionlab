@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 from scionlab.scion import keys, jws
 from scionlab.scion.as_ids import parse
 from scionlab.scion.keys import encode_key, generate_key
-from scionlab.scion.trcs import _utc_timestamp, deleteme_generate_trc
+from scionlab.scion.trcs import _utc_timestamp
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ObjectIdentifier
 from cryptography.hazmat.backends import default_backend
@@ -138,97 +138,6 @@ def _build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
             (x509.ExtendedKeyUsage([x509.ExtendedKeyUsageOID.SERVER_AUTH,
                                     x509.ExtendedKeyUsageOID.CLIENT_AUTH,
                                     x509.ExtendedKeyUsageOID.TIME_STAMPING]), False)]
-
-
-def deleteme_generate_voting_certs() -> None:
-    # sensitive:
-    key = generate_key()
-    cert = _build_certificate(subject=(key, _create_name("1-ff00:0:110", "Sensitive Voting Certificate")),
-                           issuer=None,
-                           notvalidbefore=datetime.utcnow(),
-                           notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=_build_extensions_voting(key, OID_SENSITIVE_KEY))
-    with open("scionlab-test-sensitive.key", "wb") as f:
-        f.write(encode_key(key).encode("ascii"))
-    with open("scionlab-test-sensitive.crt", "wb") as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
-    # regular:
-    key = generate_key()
-    cert = _build_certificate(subject=(key, _create_name("1-ff00:0:110", "regular")),
-                           issuer=None,
-                           notvalidbefore=datetime.utcnow(),
-                           notvalidafter=datetime.utcnow() + timedelta(days=1),
-                           extensions=_build_extensions_voting(key, OID_REGULAR_KEY))
-    with open("scionlab-test-regular.key", "wb") as f:
-        f.write(encode_key(key).encode("ascii"))
-    with open("scionlab-test-regular.crt", "wb") as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
-
-
-def deleteme_generate_ca():
-    # generate root:
-    key = generate_key()
-    root_issuer = (key, _create_name("1-ff00:0:110", "root"))
-    cert = _build_certificate(subject=root_issuer,
-                               issuer=None,
-                               notvalidbefore=datetime.utcnow(),
-                               notvalidafter=datetime.utcnow() + timedelta(days=1),
-                               extensions=_build_extensions_root(key))
-    with open("scionlab-test-root.key", "wb") as f:
-        f.write(encode_key(key).encode("ascii"))
-    with open("scionlab-test-root.crt", "wb") as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
-    # generate ca:
-    key = generate_key()
-    ca_issuer = (key, _create_name("1-ff00:0:110", "ca"))
-    cert = _build_certificate(subject=ca_issuer,
-                               issuer=root_issuer,
-                               notvalidbefore=datetime.utcnow(),
-                               notvalidafter=datetime.utcnow() + timedelta(days=1),
-                               extensions=_build_extensions_ca(key, root_issuer[0]))
-    with open("scionlab-test-ca.key", "wb") as f:
-        f.write(encode_key(key).encode("ascii"))
-    with open("scionlab-test-ca.crt", "wb") as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
-
-    return ca_issuer, cert
-
-
-def deleteme_generate_as(issuer, asid):
-    """
-    issuer is a 2-tuple (key, name)
-    """
-    key = generate_key()
-    cert = _build_certificate(subject=(key, _create_name("1-ff00:0:110", f"Regular AS {asid}")),
-                               issuer=issuer,
-                               notvalidbefore=datetime.utcnow(),
-                               notvalidafter=datetime.utcnow() + timedelta(days=1),
-                               extensions=_build_extensions_as(key, issuer[0]))
-    with open(f"scionlab-test-as{asid}.crt", "wb") as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
-
-
-def deleteme_generate_ases(ca_issuer, asids):
-    for asid in asids:
-        deleteme_generate_as(ca_issuer, asid)
-
-
-def deleteme() -> str:
-    return "deleteme called"
-
-
-# TODO(juagargi) remove this function
-def test_cppki():
-    # create voters
-    deleteme_generate_voting_certs()
-    # create CAs
-    ca_issuer, _ = deleteme_generate_ca()
-    # create ASes
-    deleteme_generate_ases(ca_issuer, ["1-ff00:0:111", "1-ff00:0:112"])
-    # create TRCs
-    deleteme_generate_trc(1)
-    # flatten?
-    print(f"{deleteme()}-V1")
 
 
 def generate_voting_sensitive_certificate(subject_id: str,

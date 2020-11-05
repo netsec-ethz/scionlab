@@ -16,10 +16,10 @@ import os
 import subprocess
 
 from datetime import datetime, timedelta, timezone
-from scionlab.scion.keys import encode_key, generate_key
-from scionlab.scion.certs import _build_certificate, _build_extensions_voting,\
-                                 _build_extensions_root, _build_extensions_ca,\
-                                 _create_name, encode_certificate,\
+from scionlab.scion.keys import encode_key, decode_key, generate_key
+from scionlab.scion.certs import _build_certificate, _build_extensions_as,\
+                                 _build_extensions_ca, _build_extensions_root,\
+                                 _build_extensions_voting, _create_name, encode_certificate,\
                                  OID_SENSITIVE_KEY, OID_REGULAR_KEY
 
 
@@ -79,6 +79,26 @@ def regenerate_ca():
         f.write(encode_key(key).encode("ascii"))
     with open("ca-1.crt", "wb") as f:
         f.write(encode_certificate(cert).encode("ascii"))
+
+
+def regenerate_ases():
+    # get the CA key
+    with open("ca-1.key", "rb") as f:
+        ca_key = decode_key(f.read().decode("ascii"))
+        issuer = (ca_key, _create_name("1-ff00:0:110",
+                                       "Secure CA Certificate"))
+    # and generate
+    for asid in ["1-ff00:0:110", "1-ff00:0:111", "1-ff00:0:112"]:
+        key = generate_key()
+        cert = _build_certificate(subject=(key, _create_name(asid, f"Regular AS {asid}")),
+                                  issuer=issuer,
+                                  notvalidbefore=datetime.utcnow(),
+                                  notvalidafter=datetime.utcnow() + timedelta(days=1),
+                                  extensions=_build_extensions_as(key, issuer[0]))
+        with open(f"as{asid}.key", "wb") as f:
+            f.write(encode_key(key).encode("ascii"))
+        with open(f"as{asid}.crt", "wb") as f:
+            f.write(encode_certificate(cert).encode("ascii"))
 
 
 def regenerate_trc():

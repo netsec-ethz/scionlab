@@ -254,11 +254,15 @@ class CertificateTests(TestCase):
         self.assertEqual(output[index:], cert_ca.certificate)  # issuer
 
 
-class ScionTRCTests(TestCase):
+class ScionTRCConfTests(TestCase):
+    """ tests the correct behavior of the TRCConf class """
     def test_validate(self):
         kwargs = self._args_dict()
         trcs.TRCConf(**kwargs)  # doesn't raise
         kwargs["isd_id"] = -1
+        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        kwargs = self._args_dict()
+        kwargs["base_version"] = 2
         self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
         kwargs = self._args_dict()
         kwargs["not_after"] = kwargs["not_before"]
@@ -359,6 +363,16 @@ class ScionTRCTests(TestCase):
             trc_fn = os.path.join(trc._temp_dir.name, trc._trc_filename())
             trc._run_scion_cppki("verify", "--anchor", trc_fn, trc_fn)
 
+    def test_sensitive_update(self):
+        # create initial TRC
+        # add a core-authoritative-CA AS
+        pass
+
+    def test_regular_update(self):
+        # create base TRC
+        # change the validity dates
+        pass
+
     def _args_dict(self):
         return {"isd_id": 1, "base_version": 1, "serial_version": 1, "grace_period": None,
                 "not_before": datetime.utcnow(), "not_after": datetime.utcnow() + timedelta(days=1),
@@ -406,23 +420,19 @@ class TRCTests(TestCase):
         super().setUpClass()
         cls.isd1 = ISD.objects.create(isd_id=1, label='Test')
 
-    def test_version_base_serial(self):
-        self.assertEqual(TRC.next_version_base(), 1)
-        self.assertEqual(TRC.next_version_serial(), 1)
+    def test_version(self):
+        self.assertEqual(TRC.next_version(), 1)
         k_2_2 = _create_TRC(self.isd1, 2, 2)
         self.assertEqual(TRC.objects.latest(), k_2_2)
-        self.assertEqual(TRC.next_version_base(), 3)
-        self.assertEqual(TRC.next_version_serial(), 3)
+        self.assertEqual(TRC.next_version(), 3)
 
         _create_TRC(self.isd1, 1, 1)
         self.assertEqual(TRC.objects.latest(), k_2_2)
-        self.assertEqual(TRC.next_version_base(), 3)
-        self.assertEqual(TRC.next_version_serial(), 3)
+        self.assertEqual(TRC.next_version(), 3)
 
-        k_2_3 = _create_TRC(self.isd1, 2, 3)
-        self.assertEqual(TRC.objects.latest(), k_2_3)
-        self.assertEqual(TRC.next_version_base(), 3)
-        self.assertEqual(TRC.next_version_serial(), 4)
+        k_3_2 = _create_TRC(self.isd1, 3, 2)
+        self.assertEqual(TRC.objects.latest(), k_3_2)
+        self.assertEqual(TRC.next_version(), 4)
         self.assertEqual(TRC.objects.count(), 3)
 
     def gen_trc_v1(self):
@@ -612,8 +622,8 @@ def _create_AS(isd, as_id):
     return as_
 
 
-def _create_TRC(isd, base, serial):
+def _create_TRC(isd, serial, base):
     trc = TRC(isd=isd, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-              version_base=base, version_serial=serial)
+              base_version=base, version_serial=serial)
     trc.save()
     return trc

@@ -427,6 +427,8 @@ class TRCConf:
     def _validate(self) -> None:
         if any(x <= 0 for x in [self.isd_id, self.base_version, self.serial_version]):
             raise ValueError("isd_id, base_version and serial_version must be >= 0")
+        if self.base_version > self.serial_version:
+            raise ValueError("base version should refer to this or older serial version")
         if self.not_after <= self.not_before:
             raise ValueError("not_before must precede not_after")
         if not self.certificates:
@@ -463,7 +465,7 @@ class TRCConf:
         return len(self.core_ases) // 2 + 1
 
     def _grace_period(self) -> str:
-        # must be zero for sensitive updates
+        # must be zero for base TRCs
         if self.base_version == self.serial_version:
             return "0s"
         else:
@@ -506,121 +508,3 @@ class TRCConf:
     @staticmethod
     def _trc_filename() -> str:
         return "scionlab-trc.trc"
-
-
-def deleteme_trc_configure():
-    '''
-	ISD               addr.ISD        `toml:"isd"`
-	Description       string          `toml:"description"`
-	SerialVersion     scrypto.Version `toml:"serial_version"`
-	BaseVersion       scrypto.Version `toml:"base_version"`
-	VotingQuorum      uint8           `toml:"voting_quorum"`
-	GracePeriod       util.DurWrap    `toml:"grace_period"`
-	NoTrustReset      bool            `toml:"no_trust_reset"`
-	Validity          Validity        `toml:"validity"`
-	CoreASes          []addr.AS       `toml:"core_ases"`
-	AuthoritativeASes []addr.AS       `toml:"authoritative_ases"`
-	CertificateFiles  []string        `toml:"cert_files"`
-	Votes             []int           `toml:"votes"`
-    '''
-    certificates = {  # only sensitives, regulars, and roots
-        "scionlab-test-sensitive.crt": "",
-        "scionlab-test-regular.crt": "",
-        "scionlab-test-root.crt": "",
-    }
-    conf = TRCConf(isd_id=1,
-                   base_version=1,
-                   serial_version=1,
-                   grace_period=timedelta(hours=1),
-                   not_before=datetime.utcnow(),
-                   not_after=datetime.utcnow() + timedelta(hours=1),
-                   authoritative=["ff00:0:110"],
-                   core_ases=["ff00:0:110"],
-                   certificates=certificates)
-    # s = toml.dumps(conf.get_conf())
-    # print(s)
-    with open("scionlab-test-trc-config.toml", "w") as f:
-        f.write(toml.dumps(conf._get_conf()))
-    # TODO load predecessor when updating only serial_version
-
-
-def deleteme_run_scion_cppki(*args):
-    """
-    runs scion-pki
-    """
-    COMMAND = "/home/juagargi/devel/ETH/scion.scionlab/bin/scion-pki"
-    ret = subprocess.run([COMMAND, "trcs", *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
-    if ret.returncode != 0:
-        print(ret.stdout.decode("utf-8"))
-        raise Exception(f"Bad return code: {ret.returncode}")
-
-
-def deleteme_trc_generate_payload():
-    deleteme_file_name = "scionlab-test-trc-payload.der"
-    deleteme_run_scion_cppki("payload", "-t", "scionlab-test-trc-config.toml", "-o", deleteme_file_name)
-    return deleteme_file_name
-
-
-def deleteme_trc_sign_payload():
-    # openssl cms -sign -in ISD-B1-S1.pld.der -inform der -md sha512 \
-    #     -signer $PUBDIR/regular-voting.crt -inkey $KEYDIR/regular-voting.key \
-    #     -nodetach -nocerts -nosmimecap -binary -outform der > ISD-B1-S1.regular.trc
-
-    # verify with:
-    # openssl cms -verify -in ISD-B1-S1.regular.trc -inform der \
-    # -certfile $PUBDIR/regular-voting.crt -CAfile $PUBDIR/regular-voting.crt \
-    # -purpose any -no_check_time > /dev/null
-    #
-    # k = deleteme_load_key("scionlab-test-regular.key")
-    # with open("scionlab-test-trc-payload.der", "rb") as f:
-    #     hash = hashlib.sha512(f.read()).digest()
-    # k.sign(hash, padding.)
-    # TODO(juagargi) replace the execution of openssl with a library
-    # XXX(juagargi): I don't find a nice way to encode CMS in python.
-    # There seems to be some possibilities:
-    # pkcs7.PKCS7Encoder()
-    # https://github.com/vbwagner/ctypescrypto
-    #
-    # signers is a list of 3-tuples (cert,key,outfile)
-    signers = [
-        ("scionlab-test-sensitive.crt", "scionlab-test-sensitive.key", "scionlab-test-trc-signed.sensitive.trc"),
-        ("scionlab-test-regular.crt", "scionlab-test-regular.key", "scionlab-test-trc-signed.regular.trc"),
-    ]
-    for (cert, key, outfile) in signers:
-        command = ["openssl", "cms", "-sign", "-in", "scionlab-test-trc-payload.der",
-                   "-inform", "der", "-md", "sha512", "-signer", cert,
-                   "-inkey", key, "-nodetach", "-nocerts", "-nosmimecap",
-                   "-binary", "-outform", "der", "-out", outfile]
-        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
-        # TODO(juagargi) unnecessary:
-        command = ["openssl", "cms", "-verify", "-in", outfile,
-                "-inform", "der", "-certfile", cert,
-                "-CAfile", cert, "-purpose", "any", "-no_check_time"]
-        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
-
-
-def deleteme_trc_combine_payloads():
-    deleteme_file_name_payload = "scionlab-test-trc-payload.der"
-    deleteme_file_names = [
-        "scionlab-test-trc-signed.sensitive.trc",
-        "scionlab-test-trc-signed.regular.trc",
-        ]
-    deleteme_run_scion_cppki("combine", "-p", deleteme_file_name_payload, *deleteme_file_names, "-o", "scionlab-test-trc.trc")
-    # check the final TRC:
-    deleteme_run_scion_cppki("verify", "--anchor", "scionlab-test-trc.trc", "scionlab-test-trc.trc")
-
-
-def deleteme_generate_trc(isd_id):
-    """
-    Generates (or regenerates) a TRC
-    """
-    # configure TRC
-    deleteme_trc_configure()
-    # generate payload scion-pki trcs payload
-    deleteme_trc_generate_payload()
-    # sign payload (crypto_lib.sh:sign_payload())
-    deleteme_trc_sign_payload()
-    # combine signed TRCs
-    deleteme_trc_combine_payloads()
-
-
