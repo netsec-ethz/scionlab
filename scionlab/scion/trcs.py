@@ -344,7 +344,8 @@ class TRCConf:
                  authoritative_ases: List[str],
                  core_ases: List[str],
                  certificates: Dict[str, str],
-                 votes: Optional[List[int]] = None):
+                 votes: Optional[List[int]] = None,
+                 predecessor_trc: Optional[bytes] = None):
         """
         authoritative_ases ASes are those that know which TRC version an ISD has
         certificates is a map filename: content, of certificates that will be included in the TRC
@@ -359,6 +360,7 @@ class TRCConf:
         self.core_ases = core_ases
         self.certificates = certificates
         self.votes = votes
+        self.predecessor_trc = predecessor_trc
 
         self._validate()
 
@@ -378,8 +380,13 @@ class TRCConf:
         conf = self._get_conf()
         with open(self._tmp_join(self._conf_filename()), "w") as f:
             f.write(toml.dumps(conf))
-        self._run_scion_cppki("payload", "-t", self._conf_filename(),
-                              "-o", self._payload_filename())
+        args = ["payload", "-t", self._conf_filename(), "-o", self._payload_filename()]
+        if self.predecessor_trc:
+            predecessor_fn = self._tmp_join(self._predecessor_trc_name())
+            with open(predecessor_fn, "wb") as f:
+                f.write(self.predecessor_trc)
+            args.extend(["-p", predecessor_fn])
+        self._run_scion_cppki(*args)
 
     def sign_payload(self, cert: bytes, key: bytes) -> bytes:
         # TODO(juagargi) replace the execution of openssl with a library call !!.
@@ -433,6 +440,8 @@ class TRCConf:
             raise ValueError("base version should refer to this or older serial version")
         if self.is_update() and self.votes is None:
             raise ValueError("must provide votes when updating")
+        if self.is_update() and self.predecessor_trc is None:
+            raise ValueError("must provide predecessor TRC when updating")
         if self.not_after <= self.not_before:
             raise ValueError("not_before must precede not_after")
         if not self.certificates:
@@ -474,7 +483,7 @@ class TRCConf:
         if self.base_version == self.serial_version:
             return "0s"
         else:
-            return f"{self._to_seconds(self.grace_period)}s"
+            return self._to_seconds(self.grace_period)
 
     def _tmp_join(self, filename: str) -> str:
         return os.path.join(self._temp_dir.name, filename)
@@ -513,3 +522,7 @@ class TRCConf:
     @staticmethod
     def _trc_filename() -> str:
         return "scionlab-trc.trc"
+
+    @staticmethod
+    def _predecessor_trc_name() -> str:
+        return "predecessor-trc.trc"
