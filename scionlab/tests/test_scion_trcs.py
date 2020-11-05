@@ -148,7 +148,7 @@ class TRCUpdate(TestCase):
     def test_regular_update(self):
         # initial TRC in TESTDATA/trc-1.trc
         predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-1.trc")
-        # change the validity dates
+        # update the TRC by just incrementing the serial. That is in payload-2-config.toml
         voters = [  # (cert, key)
             (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.crt")),
                 _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.key")))]
@@ -167,12 +167,29 @@ class TRCUpdate(TestCase):
                                  os.path.join(trc._temp_dir.name, trc._trc_filename()))
 
     def test_sensitive_update(self):
-        # initial TRC in TESTDATA/trc-1.trc
-        # add a core-authoritative-CA AS
-        kwargs = _args_dict()
-        conf = trcs.TRCConf(**kwargs)
-        with conf.configure() as c:
-            print(c._get_conf())
+        # previous TRC in TESTDATA/trc-2.trc
+        predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-2.trc")
+        # add a core-authoritative AS and its sensitive, regular and root certs
+        voters = [  # (cert, key)
+            (_readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.crt")),
+                _readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.key"))),
+            (_readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_210.crt")),
+                _readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_210.key"))),
+            (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_210.crt")),
+                _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_210.key")))]
+        with open(os.path.join(_TESTDATA_DIR, "payload-3-config.toml")) as f:
+            kwargs = _transform_toml_conf_to_trcconf_args(toml.load(f))
+        with open(predec_trc_fn, "rb") as f:
+            conf = trcs.TRCConf(**kwargs, predecessor_trc=f.read())
+        signed_payloads = []
+        with conf.configure() as trc:
+            trc.gen_payload()
+            for (cert, key) in voters:
+                signed_payloads.append(trc.sign_payload(cert, key))
+            trc.combine(*signed_payloads)
+            # verify trc with the old trc as anchor
+            trc._run_scion_cppki("verify", "--anchor", predec_trc_fn,
+                                 os.path.join(trc._temp_dir.name, trc._trc_filename()))
 
 
 def _args_dict():
