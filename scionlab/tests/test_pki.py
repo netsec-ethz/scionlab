@@ -14,8 +14,9 @@
 
 import copy
 import os
-import re
-from datetime import datetime, timedelta
+import toml
+from datetime import datetime, timedelta, timezone
+from django.test import TestCase
 
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key, Certificate, TRC
@@ -24,10 +25,11 @@ from scionlab.defines import (
     DEFAULT_EXPIRATION_CORE_KEYS,
     DEFAULT_TRC_GRACE_PERIOD,
 )
-
 from scionlab.scion import as_ids, keys, trcs, jws
 
-from django.test import TestCase
+
+
+_TESTDATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/test_pki")
 
 
 class TryTest(TestCase):
@@ -250,31 +252,7 @@ class CertificateTests(TestCase):
         self.assertEqual(output[index:], cert_ca.certificate)  # issuer
 
 
-class ScionTests(TestCase):
-    def test_trc_configure(self):
-        kwargs = self._args_dict()
-        conf = trcs.TRCConf(**kwargs)
-        temp_dir_name = ""
-        with conf.configure() as trc:
-            temp_dir_name = trc._temp_dir.name
-            # double call (nested in outer, should not happen) must also clean up
-            temp_dir_name2 = ""
-            with conf.configure() as trc2:
-                temp_dir_name2 = trc2._temp_dir.name
-                self.assertTrue(os.path.isdir(temp_dir_name2))
-                self.assertTrue(all(os.path.isfile(os.path.join(temp_dir_name2, f))
-                                    for f in conf.certificates.keys()))
-            self.assertFalse(os.path.exists(temp_dir_name2))
-            # no more shenanigans with double usage.
-            # there is a temporary dir created, with the certificate files
-            self.assertTrue(os.path.isdir(temp_dir_name))
-            for fn, c in conf.certificates.items():
-                p = os.path.join(temp_dir_name, fn)
-                self.assertTrue(os.path.isfile(p))
-                with open(p) as f:
-                    self.assertEqual(f.read(), c)
-        self.assertFalse(os.path.exists(temp_dir_name))
-
+class ScionTRCTests(TestCase):
     def test_validate(self):
         kwargs = self._args_dict()
         trcs.TRCConf(**kwargs)  # doesn't raise
@@ -300,12 +278,68 @@ class ScionTests(TestCase):
         kwargs["certificates"] = {"/": "no-content"}
         self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
 
+    def test_configure(self):
+        kwargs = self._args_dict()
+        conf = trcs.TRCConf(**kwargs)
+        temp_dir_name = ""
+        with conf.configure() as trc:
+            temp_dir_name = trc._temp_dir.name
+            # double call (nested in outer, should not happen) must also clean up
+            temp_dir_name2 = ""
+            with conf.configure() as trc2:
+                temp_dir_name2 = trc2._temp_dir.name
+                self.assertTrue(os.path.isdir(temp_dir_name2))
+                self.assertTrue(all(os.path.isfile(os.path.join(temp_dir_name2, f))
+                                    for f in conf.certificates.keys()))
+            self.assertFalse(os.path.exists(temp_dir_name2))
+            # let's do no more shenanigans with nested usage, and check that
+            # there is a temporary dir created, with the certificate files
+            self.assertTrue(os.path.isdir(temp_dir_name))
+            for fn, c in conf.certificates.items():
+                p = os.path.join(temp_dir_name, fn)
+                self.assertTrue(os.path.isfile(p))
+                with open(p) as f:
+                    self.assertEqual(f.read(), c)
+        self.assertFalse(os.path.exists(temp_dir_name))
+
+    def test_gen_payload(self):
+        # load conf. toml dictionary
+        with open(os.path.join(_TESTDATA_DIR, "payload-1-config.toml")) as f:
+            c = toml.load(f)
+            # adapt the dictionary to be used with the TRCConf class
+            not_before = datetime.fromtimestamp(c["validity"]["not_before"], tz=timezone.utc)
+            certificates = {}
+            for fn in c["cert_files"]:
+                with open(os.path.join(_TESTDATA_DIR, fn)) as f:
+                    certificates[fn] = f.read()
+            kwargs = {
+                "isd_id": c["isd"],
+                "base_version": c["base_version"],
+                "serial_version": c["serial_version"],
+                "grace_period": timedelta(seconds=int(c["grace_period"][:-1])),
+                "not_before": not_before,
+                "not_after": not_before + timedelta(seconds=int(c["validity"]["validity"][:-1])),
+                "authoritative_ases": c["authoritative_ases"],
+                "core_ases": c["core_ases"],
+                "certificates": certificates,
+            }
+        conf = trcs.TRCConf(**kwargs)
+        with conf.configure() as trc:
+            trc.gen_payload()
+            gen_conf = toml.loads(self._readfile(trc._temp_dir.name, trc._conf_filename()).decode())
+            gen_payload = self._readfile(trc._temp_dir.name, trc._payload_filename())
+        self.assertEqual(gen_conf, c)
+        self.assertEqual(gen_payload, self._readfile(_TESTDATA_DIR, "payload-1.der"))
 
     def _args_dict(self):
-        return {"isd_id": 1, "base": 1, "serial": 1, "grace_period": None,
+        return {"isd_id": 1, "base_version": 1, "serial_version": 1, "grace_period": None,
                 "not_before": datetime.utcnow(), "not_after": datetime.utcnow() + timedelta(days=1),
-                "authoritative": ["1-ff00:0:110"], "core": ["1-ff00:0:110"],
+                "authoritative_ases": ["1-ff00:0:110"], "core_ases": ["1-ff00:0:110"],
                 "certificates": {"mock-certificate.crt": "no-content"}}
+
+    def _readfile(self, *path_args, text=False):
+        with open(os.path.join(*path_args), "rb") as f:
+            return f.read()
 
 
 _ASID_1 = 'ff00:0:1'
