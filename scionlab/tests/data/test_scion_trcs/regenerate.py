@@ -148,18 +148,23 @@ def regenerate_sensitive_update_trc():
                      "-o", "payload-3.der")
     # 2. sign again with the sensitive certificate only
     signers = [  # cert, key, outfile
-        ("voting-regular-ff00_0_110.crt", "voting-regular-ff00_0_110.key", "payload-2-signed-regular-ff00_0_110.der")]
+        ("voting-sensitive-ff00_0_110.crt", "voting-sensitive-ff00_0_110.key",
+         "payload-3-signed-sensitive-ff00_0_110.der"),
+        ("voting-sensitive-ff00_0_210.crt", "voting-sensitive-ff00_0_210.key",
+         "payload-3-signed-sensitive-ff00_0_210.der"),
+        ("voting-regular-ff00_0_210.crt", "voting-regular-ff00_0_210.key",
+         "payload-3-signed-regular-ff00_0_210.der")]
     for (cert, key, outfile) in signers:
-        command = ["openssl", "cms", "-sign", "-in", "payload-2.der",
+        command = ["openssl", "cms", "-sign", "-in", "payload-3.der",
                    "-inform", "der", "-md", "sha512", "-signer", cert,
                    "-inkey", key, "-nodetach", "-nocerts", "-nosmimecap",
                    "-binary", "-outform", "der", "-out", outfile]
         subprocess.run(command, check=True)
     # 3. combine signed payloads
-    _run_scion_cppki("combine", "-p", "payload-2.der", *(signed for (_, _, signed) in signers),
-                     "-o", "trc-2.trc")
+    _run_scion_cppki("combine", "-p", "payload-3.der", *(signed for (_, _, signed) in signers),
+                     "-o", "trc-3.trc")
     # 4. verify TRC. This time it is anchored in the previous TRC.
-    _run_scion_cppki("verify", "--anchor", "trc-1.trc", "trc-2.trc")
+    _run_scion_cppki("verify", "--anchor", "trc-2.trc", "trc-3.trc")
 
 
 def regenerate():
