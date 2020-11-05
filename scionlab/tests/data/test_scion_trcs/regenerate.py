@@ -102,17 +102,10 @@ def regenerate_ases():
 
 
 def regenerate_trc():
-    def run_scion_cppki(*args):
-        COMMAND = "scion-pki"
-        ret = subprocess.run([COMMAND, "trcs", *args],
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
-        if ret.returncode != 0:
-            print(ret.stdout.decode("utf-8"))
-            raise Exception(f"Bad return code: {ret.returncode}")
     # 1. gen payload. There is already a manually generated payload-1-config.toml
-    run_scion_cppki("payload", "-t", "payload-1-config.toml", "-o", "payload-1.der")
+    _run_scion_cppki("payload", "-t", "payload-1-config.toml", "-o", "payload-1.der")
     # 2. sign payload with voters
-    signers = [ # cert, key, outfile
+    signers = [  # cert, key, outfile
         ("voting-sensitive-1.crt", "voting-sensitive-1.key", "payload-1-signed-sensitive-1.der"),
         ("voting-regular-1.crt", "voting-regular-1.key", "payload-1-signed-regular-1.der")]
     for (cert, key, outfile) in signers:
@@ -122,10 +115,30 @@ def regenerate_trc():
                    "-binary", "-outform", "der", "-out", outfile]
         subprocess.run(command, check=True)
     # 3. combine signed payloads
-    run_scion_cppki("combine", "-p", "payload-1.der", *(signed for (_, _, signed) in signers),
-                    "-o", "trc-1.trc")
+    _run_scion_cppki("combine", "-p", "payload-1.der", *(signed for (_, _, signed) in signers),
+                     "-o", "trc-1.trc")
     # 4. verify TRC (sanity check)
-    run_scion_cppki("verify", "--anchor", "trc-1.trc", "trc-1.trc")
+    _run_scion_cppki("verify", "--anchor", "trc-1.trc", "trc-1.trc")
+
+
+def regenerate_updated_trc():
+    # 1. gen payload. Use payload-2-config.toml, that declares a regular update
+    _run_scion_cppki("payload", "-t", "payload-2-config.toml", "-p", "trc-1.trc",
+                     "-o", "payload-2.der")
+    # 2. sign again with the regular certificate only
+    signers = [  # cert, key, outfile
+        ("voting-regular-1.crt", "voting-regular-1.key", "payload-2-signed-regular-1.der")]
+    for (cert, key, outfile) in signers:
+        command = ["openssl", "cms", "-sign", "-in", "payload-2.der",
+                   "-inform", "der", "-md", "sha512", "-signer", cert,
+                   "-inkey", key, "-nodetach", "-nocerts", "-nosmimecap",
+                   "-binary", "-outform", "der", "-out", outfile]
+        subprocess.run(command, check=True)
+    # 3. combine signed payloads
+    _run_scion_cppki("combine", "-p", "payload-2.der", *(signed for (_, _, signed) in signers),
+                     "-o", "trc-2.trc")
+    # 4. verify TRC. This time it is anchored in the previous TRC.
+    _run_scion_cppki("verify", "--anchor", "trc-1.trc", "trc-2.trc")
 
 
 def regenerate():
@@ -135,3 +148,13 @@ def regenerate():
     regenerate_voting_certs()
     regenerate_ca()
     regenerate_trc()
+    regenerate_updated_trc()
+
+
+def _run_scion_cppki(*args):
+    COMMAND = "scion-pki"
+    ret = subprocess.run([COMMAND, "trcs", *args],
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    if ret.returncode != 0:
+        print(ret.stdout.decode("utf-8"))
+        raise Exception(f"Bad return code: {ret.returncode}")
