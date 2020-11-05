@@ -6,7 +6,7 @@ voting_quorum = 1
 grace_period = "0s"
 authoritative_ases = [ "ff00:0:110",]
 core_ases = [ "ff00:0:110",]
-cert_files = [ "voting-sensitive-1.crt", "voting-regular-1.crt", "root-1.crt",]
+cert_files = [ "voting-sensitive-ff00_0_110.crt", "voting-regular-ff00_0_110.crt", "root-ff00_0_110.crt",]
 no_trust_reset = false
 votes = [1]
 
