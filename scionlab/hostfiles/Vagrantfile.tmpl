@@ -68,9 +68,13 @@ Vagrant.configure(2) do |config|
       Also, ensure that the apt-daily-upgrade timer runs _after_ apt-daily, by
       removing RandomizedDelaySec on both timers and a few minutes offset in the OnCalendar.
       Otherwise, the upgrade step may act based on an old package list.
-      Supposedly, the order is correct at boot due to an After=, but I was
-      unable to verify this: c.f.
-      https://github.com/Debian/apt/commit/496313fb8e83af2ba71f6ce3d729be687c293dfd
+      Note:
+      - Supposedly, the order is correct at boot due to an After=, but I was
+        unable to verify this: c.f.
+        https://github.com/Debian/apt/commit/496313fb8e83af2ba71f6ce3d729be687c293dfd
+      - Because OnCalendar can be specified more than once to cumulate entries,
+        we first reset it with OnCalendar=, to ensure that only our values in
+        override file are effective.
     #}
     echo 'configure unattended upgrades for all system and SCION package ugprades'
     printf '%s\n' \
@@ -85,14 +89,14 @@ Vagrant.configure(2) do |config|
       '[Timer]' \
       'OnCalendar=' \
       'OnCalendar=07,19:00' \
-      'RandomizedDealySec=0' \
+      'RandomizedDelaySec=0' \
     > /etc/systemd/system/apt-daily.timer.d/override.conf
     mkdir /etc/systemd/system/apt-daily-upgrade.timer.d/ || true
     printf '%s\n' \
       '[Timer]' \
       'OnCalendar=' \
       'OnCalendar=07,19:15' \
-      'RandomizedDealySec=0' \
+      'RandomizedDelaySec=0' \
     > /etc/systemd/system/apt-daily-upgrade.timer.d/override.conf
     systemctl daemon-reload
     systemctl restart apt-daily.timer apt-daily-upgrade.timer
