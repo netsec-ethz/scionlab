@@ -379,7 +379,6 @@ class TRCConf:
         conf = self._get_conf()
         with open(self._tmp_join(self._conf_filename()), "w") as f:
             f.write(toml.dumps(conf))
-        # TODO load predecessor when updating only serial_version
         self._run_scion_cppki("payload", "-t", self._conf_filename(),
                               "-o", self._payload_filename())
 
@@ -412,8 +411,18 @@ class TRCConf:
         finally:
             os.chdir(prev_cwd)
 
-    def combine(self):
-        pass
+    def combine(self, *signed) -> bytes:
+        """ returns the final TRC by combining the signed blocks and payload """
+        for i in range(len(signed)):
+            with open(os.path.join(self._temp_dir.name, f"signed-{i}.der"), "wb") as f:
+                f.write(signed[i])
+        self._run_scion_cppki(
+            "combine", "-p", self._payload_filename(),
+            *(f"signed-{i}.der" for i in range(len(signed))),
+            "-o", os.path.join(self._temp_dir.name, self._trc_filename()),
+        )
+        with open(os.path.join(self._temp_dir.name, self._trc_filename()), "rb") as f:
+            return f.read()
 
     def _validate(self) -> None:
         if any(x <= 0 for x in [self.isd_id, self.base_version, self.serial_version]):
@@ -493,6 +502,10 @@ class TRCConf:
     @staticmethod
     def _payload_filename() -> str:
         return "scionlab-trc-payload.der"
+
+    @staticmethod
+    def _trc_filename() -> str:
+        return "scionlab-trc.trc"
 
 
 def deleteme_trc_configure():
