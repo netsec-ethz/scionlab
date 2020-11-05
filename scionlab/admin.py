@@ -193,7 +193,7 @@ class ISDAdmin(admin.ModelAdmin):
 
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
-        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'ssh_host', 'updated_at')
+        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'ssh_host', 'config_queried_at')
 
     secret = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '32'}))
 
@@ -205,7 +205,8 @@ class HostAdminForm(_CreateUpdateModelForm):
             bind_ip=self.cleaned_data['bind_ip'],
             label=self.cleaned_data['label'],
             ssh_host=self.cleaned_data['ssh_host'],
-            secret=self.cleaned_data['secret']
+            secret=self.cleaned_data['secret'],
+            config_queried_at=self.cleaned_data['config_queried_at'],
         )
 
     def update(self):
@@ -215,7 +216,8 @@ class HostAdminForm(_CreateUpdateModelForm):
             bind_ip=self.cleaned_data['bind_ip'],
             label=self.cleaned_data['label'],
             ssh_host=self.cleaned_data['ssh_host'],
-            secret=self.cleaned_data['secret']
+            secret=self.cleaned_data['secret'],
+            config_queried_at=self.cleaned_data['config_queried_at']
         )
 
 

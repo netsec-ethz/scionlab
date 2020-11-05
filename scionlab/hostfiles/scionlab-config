@@ -61,6 +61,8 @@ FALLBACK_SYSTEMD_UNIT_PATTERNS = [
 DEFAULT_COORDINATOR_URL = 'https://www.scionlab.org'
 REQUEST_TIMEOUT_SECONDS = 10
 
+DAEMON_REQUEST_INTERVAL_SECONDS = 10
+
 _CONFIG_EMPTY = object()
 _CONFIG_UNCHANGED = object()
 
@@ -100,7 +102,7 @@ def main(argv):
                 confirm_deployed(args)
             if not args.daemon:
                 break
-            time.sleep(20)
+            time.sleep(DAEMON_REQUEST_INTERVAL_SECONDS)
     else:
         tar = tarfile.open(args.tar, mode='r')
         install_config(args, tar)

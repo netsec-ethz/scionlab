@@ -485,7 +485,7 @@ class Host(models.Model):
 
     config_version = models.PositiveIntegerField(default=1)
     config_version_deployed = models.PositiveIntegerField(default=0)
-    updated_at = models.DateTimeField(null=True)
+    config_queried_at = models.DateTimeField(null=True, blank=True)
 
     objects = HostManager()
 
@@ -515,7 +515,8 @@ class Host(models.Model):
                bind_ip=_placeholder,
                label=_placeholder,
                ssh_host=_placeholder,
-               secret=_placeholder):
+               secret=_placeholder,
+               config_queried_at=_placeholder):
         """
         Update the specified fields of this host instance, and immediately `save`.
         Updates to the IPs will trigger a configuration bump for all Hosts in all affected ASes.
@@ -546,6 +547,8 @@ class Host(models.Model):
             self.ssh_host = ssh_host or None
         if secret is not _placeholder:
             self.secret = secret or uuid.uuid4().hex
+        if config_queried_at is not _placeholder:
+            self.config_queried_at = config_queried_at or None
 
         internal_ip_changed = (self.internal_ip != prev_internal_ip)
         public_ip_changed = (self.public_ip != prev_public_ip)
@@ -604,7 +607,7 @@ class Host(models.Model):
         return portmap
         
     def update_timestamp(self):
-        self.updated_at = timezone.now()
+        self.config_queried_at = timezone.now()
         self.save()
 
 

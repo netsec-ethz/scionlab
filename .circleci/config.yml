@@ -200,8 +200,7 @@ jobs:
             # This waits until the configuration has been deployed.
             docker-compose exec -T coord /bin/bash -c \
             'python .circleci/actions/update-keys.py ffaa:0:1303'
-            docker-compose exec as1303 /bin/bash -c \
-              'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+            docker-compose exec -T as1303 scionlab-config
 
             # Check that
             # i) configuration was deployed

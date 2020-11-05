@@ -4,4 +4,4 @@ Description=service to start scionlab-config script in daemon mode
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/bash -c 'instance_name="%I"; exec scionlab-config --host-id "$${instance_name%:$}" --host-secret "$${instance_name#*:}" --daemon'
+ExecStart=/usr/bin/bash -c 'instance_name="%I"; exec scionlab-config --host-id "$${instance_name%:*}" --host-secret "$${instance_name#*:}" --daemon'

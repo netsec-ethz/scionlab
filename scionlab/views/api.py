@@ -68,10 +68,8 @@ class GetHostConfig(SingleObjectMixin, View):
         version = _get_version_param(request.GET)
         if version is _BAD_VERSION:
             return HttpResponseBadRequest()
-            
-        ap = AttachmentPoint.objects.filter(AS = host.AS).first()
-        if ap != None:
-            host.update_timestamp()
+
+        host.update_timestamp()
 
         if version and version >= host.config_version:
             return HttpResponseNotModified()

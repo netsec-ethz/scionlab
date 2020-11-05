@@ -140,8 +140,6 @@ class UserASForm(forms.Form):
                 installation_type=self.cleaned_data['installation_type'],
                 label=self.cleaned_data['label'],
             )
-            host = user_as.hosts.first()
-            host.update_timestamp()
             self.attachment_conf_form_set.save(user_as)
             return user_as
         else:
