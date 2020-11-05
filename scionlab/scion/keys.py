@@ -121,6 +121,7 @@ def generate_key() -> ec.EllipticCurvePrivateKeyWithSerialization:
 
 def encode_key(key: ec.EllipticCurvePrivateKeyWithSerialization) -> str:
     """ Returns the key as a PEM formatted string """
+    # TODO(juagargi) change return type to bytes
     return key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,

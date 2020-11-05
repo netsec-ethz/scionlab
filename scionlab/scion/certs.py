@@ -55,6 +55,7 @@ Extensions = List[Tuple[ObjectIdentifier, bool]]
 
 
 def encode_certificate(cert: x509.Certificate) -> str:
+    # TODO(juagargi) change to return bytes
     return cert.public_bytes(serialization.Encoding.PEM).decode("ascii")
 
 
@@ -173,6 +174,8 @@ def deleteme_generate_ca():
                                notvalidbefore=datetime.utcnow(),
                                notvalidafter=datetime.utcnow() + timedelta(days=1),
                                extensions=_build_extensions_root(key))
+    with open("scionlab-test-root.key", "wb") as f:
+        f.write(encode_key(key).encode("ascii"))
     with open("scionlab-test-root.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     # generate ca:
@@ -183,6 +186,8 @@ def deleteme_generate_ca():
                                notvalidbefore=datetime.utcnow(),
                                notvalidafter=datetime.utcnow() + timedelta(days=1),
                                extensions=_build_extensions_ca(key, root_issuer[0]))
+    with open("scionlab-test-ca.key", "wb") as f:
+        f.write(encode_key(key).encode("ascii"))
     with open("scionlab-test-ca.crt", "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
