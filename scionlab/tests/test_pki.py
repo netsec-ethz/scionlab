@@ -366,7 +366,10 @@ class ScionTRCConfTests(TestCase):
     def test_sensitive_update(self):
         # create initial TRC
         # add a core-authoritative-CA AS
-        pass
+        kwargs = self._args_dict()
+        conf = trcs.TRCConf(**kwargs)
+        with conf.configure() as c:
+            print(c._get_conf())
 
     def test_regular_update(self):
         # create base TRC
