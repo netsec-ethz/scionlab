@@ -110,10 +110,10 @@ class TRCCreation(TestCase):
             trc.gen_payload()
             # sign
             voters = [  # cert_fn, key_fn
-                (os.path.join(_TESTDATA_DIR, "voting-sensitive-1.crt"),
-                    os.path.join(_TESTDATA_DIR, "voting-sensitive-1.key")),
-                (os.path.join(_TESTDATA_DIR, "voting-regular-1.crt"),
-                    os.path.join(_TESTDATA_DIR, "voting-regular-1.key"))]
+                (os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.crt"),
+                    os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.key")),
+                (os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.crt"),
+                    os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.key"))]
             for (cert_fn, key_fn) in voters:
                 cert = _readfile(cert_fn)
                 key = _readfile(key_fn)
@@ -127,10 +127,10 @@ class TRCCreation(TestCase):
 
     def test_combine(self):
         voters = [  # (cert, key)
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-1.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-1.key"))),
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-1.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-1.key")))]
+            (_readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.crt")),
+                _readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.key"))),
+            (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.crt")),
+                _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.key")))]
         with open(os.path.join(_TESTDATA_DIR, "payload-1-config.toml")) as f:
             conf = trcs.TRCConf(**_transform_toml_conf_to_trcconf_args(toml.load(f)))
         signed_payloads = []
@@ -150,8 +150,8 @@ class TRCUpdate(TestCase):
         predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-1.trc")
         # change the validity dates
         voters = [  # (cert, key)
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-1.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-1.key")))]
+            (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.crt")),
+                _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.key")))]
         with open(os.path.join(_TESTDATA_DIR, "payload-2-config.toml")) as f:
             kwargs = _transform_toml_conf_to_trcconf_args(toml.load(f))
         with open(predec_trc_fn, "rb") as f:
