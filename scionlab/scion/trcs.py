@@ -25,7 +25,7 @@ from collections import namedtuple
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from tempfile import TemporaryDirectory
-from typing import cast, Dict, List, Tuple
+from typing import cast, Dict, List, Tuple, Optional
 
 from scionlab.scion import jws
 
@@ -343,7 +343,8 @@ class TRCConf:
                  not_after: datetime,
                  authoritative_ases: List[str],
                  core_ases: List[str],
-                 certificates: Dict[str, str]):
+                 certificates: Dict[str, str],
+                 votes: Optional[List[int]] = None):
         """
         authoritative_ases ASes are those that know which TRC version an ISD has
         certificates is a map filename: content, of certificates that will be included in the TRC
@@ -354,12 +355,10 @@ class TRCConf:
         self.grace_period = grace_period
         self.not_before = not_before
         self.not_after = not_after
-        # self.authoritative = [parse(asid) for asid in authoritative]
         self.authoritative_ases = authoritative_ases
         self.core_ases = core_ases
-        # self.voters = ["1-ff00:0:110"]
-        # self.cas = ["1-ff00:0:110"]
         self.certificates = certificates
+        self.votes = votes
 
         self._validate()
 
@@ -424,11 +423,16 @@ class TRCConf:
         with open(os.path.join(self._temp_dir.name, self._trc_filename()), "rb") as f:
             return f.read()
 
+    def is_update(self):
+        return self.base_version != self.serial_version
+
     def _validate(self) -> None:
         if any(x <= 0 for x in [self.isd_id, self.base_version, self.serial_version]):
             raise ValueError("isd_id, base_version and serial_version must be >= 0")
         if self.base_version > self.serial_version:
             raise ValueError("base version should refer to this or older serial version")
+        if self.is_update() and self.votes is None:
+            raise ValueError("must provide votes when updating")
         if self.not_after <= self.not_before:
             raise ValueError("not_before must precede not_after")
         if not self.certificates:
@@ -459,6 +463,7 @@ class TRCConf:
                 "not_before": int(self.not_before.timestamp()),
                 "validity": self._to_seconds(self.not_after - self.not_before),
             },
+            "votes": self.votes,
         }
 
     def _voting_quorum(self) -> int:
