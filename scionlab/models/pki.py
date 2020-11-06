@@ -58,6 +58,15 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
 
 
 class KeyManager(models.Manager):
+    def create_core_keys(self, AS, not_before=None, not_after=None):
+        keys = []
+        for usage in [Key.TRC_VOTING_SENSITIVE,
+                      Key.TRC_VOTING_REGULAR,
+                      Key.ISSUING_ROOT,
+                      Key.ISSUING_CA]:
+            keys.append(self.create(AS, usage, not_before, not_after))
+        return keys
+
     def create(self, AS, usage, not_before=None, not_after=None):
         """
         Create a Key for this AS, for the given usage.
@@ -174,27 +183,31 @@ class Key(models.Model):
 class CertificateManager(models.Manager):
     # TODO(juagargi) check if everytime we create a certificate, we also create a key.
     # is it then the same entity in disguise?
-    def create(self):
-        pass
+    def create_core_certs(self, subject, not_before=None, not_after=None):
+        return [f(subject, not_before, not_after)
+                for f in [self.create_voting_sensitive_cert,
+                          self.create_voting_regular_cert,
+                          self.create_issuer_root_cert,
+                          self.create_issuer_ca_cert]]
 
-    def create_voting_sensitive_cert(self, subject, not_before, not_after):
+    def create_voting_sensitive_cert(self, subject, not_before=None, not_after=None):
         """ Voting sensitive cert is self signed """
         return self._create_self_signed_cert(
             subject, not_before, not_after, Key.TRC_VOTING_SENSITIVE,
             certs.generate_voting_sensitive_certificate)
 
-    def create_voting_regular_cert(self, subject, not_before, not_after):
+    def create_voting_regular_cert(self, subject, not_before=None, not_after=None):
         """ Voting regular cert is self signed """
         return self._create_self_signed_cert(
             subject, not_before, not_after, Key.TRC_VOTING_REGULAR,
             certs.generate_voting_regular_certificate)
 
-    def create_issuer_root_cert(self, subject, not_before, not_after):
+    def create_issuer_root_cert(self, subject, not_before=None, not_after=None):
         """ Issuer root cert is self signed. It will also sign CA certs """
-        return self._create_self_signed_cert(
-            subject, not_before, not_after, Key.ISSUING_ROOT, certs.generate_issuer_root_certificate)
+        return self._create_self_signed_cert(subject, not_before, not_after, Key.ISSUING_ROOT,
+                                             certs.generate_issuer_root_certificate)
 
-    def create_issuer_ca_cert(self, subject, not_before, not_after):
+    def create_issuer_ca_cert(self, subject, not_before=None, not_after=None):
         """ A CA cert is signed by a root cert. For now, always from the same AS """
         subject_key = subject.keys.latest(usage=Key.ISSUING_CA)
         issuer_key = subject.keys.latest(usage=Key.ISSUING_ROOT)
@@ -202,7 +215,7 @@ class CertificateManager(models.Manager):
         return self._create_cert(
             certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
 
-    def create_as_cert(self, subject, issuer, not_before, not_after):
+    def create_as_cert(self, subject, issuer, not_before=None, not_after=None):
         """ An AS cert is signed by the CA cert of the issuer """
         subject_key = subject.keys.latest(usage=Key.CP_AS)
         issuer_key = issuer.keys.latest(usage=Key.ISSUING_CA)
@@ -307,199 +320,11 @@ class Certificate(models.Model):
         return prev + 1
 
 
-class TRCManager(models.Manager):
-    def create(self, isd):
-        """
-        Create a TRC for this ISD.
-
-        A TRC is "versioned" using a base number, and a serial number.
-
-        All TRC updates must comply with the following:
-        - The ISD identifier must not change.
-        - The base identifier must not change.
-        - noTrustReset must not change.
-        - Votes must belong to sensitive or regular certificates present in the previous TRC.
-        - The number of votes >= previous TRC votingQuorum.
-        - Every "sensitive voting cert" and "regular voting cert" that are new in
-          this TRC, attach a signature to the TRC.
-
-        It is a regular update if:
-        - The voting quorum does not change.
-        - The core ASes section does not change.
-        - The authoritative ASes section does not change.
-        - The number of sensitive, regular and root certificates does not change.
-        - The set of sensitive certificates does not change.
-        - For every regular certificate that changes, the regular certificate in the previous
-          TRC is part of the voters of the new TRC.
-        - For every root certificate that changes, the root certificate in the previous TRC
-          attaches a signature to the new TRC.
-        For regular TRC updates to be verifyable, they must contain votes
-        only from regular certificates.
-
-        The update is sensitive if it is not regular.
-        For sensitive TRC updates to be verifyable, they must contain votes
-        only from sensitive certificates.
-
-        For SCIONLab this means that only updates to the validity will be regular updates. The rest
-        will be sensitive, as the update will involve changing membership of the core ASes.
-
-
-
-
-        The version is incremented from the previous TRC. The voting offline keys related to the
-        previous TRC may be (precisely: for online key updates and sensitive updates) used to sign
-        the new TRC.
-
-        In SCIONLab, authoritative ASes = core ASes = CA ASes.
-
-        Requires at least one core AS in this ISD.
-
-        The latest keys for all core ASes are used. The validity period for the TRC is determined
-        based the validity of these keys.
-
-        :param isd ISD:
-        """
-
-        prev = isd.trcs.latest_or_none()
-
-        if prev:
-            version = prev.version + 1
-            prev_trc = prev.trc
-            prev_voting_offline = {key.as_id: _key_info(key)
-                                   for key in prev.voting_offline.all()}
-        else:
-            version = 1
-            prev_trc = None
-            prev_voting_offline = None
-
-        keys = {as_.as_id: _latest_core_keys(as_) for as_ in isd.ases.filter(is_core=True)}
-        all_keys = flatten(keys.values())
-
-        not_before, not_after = _validity(all_keys)
-
-        primary_ases = {as_id: _core_key_info(as_keys) for as_id, as_keys in keys.items()}
-
-        trc = trcs.generate_trc(
-            isd=isd,
-            version=version,
-            grace_period=DEFAULT_TRC_GRACE_PERIOD,
-            not_before=not_before,
-            not_after=not_after,
-            primary_ases=primary_ases,
-            prev_trc=prev_trc,
-            prev_voting_offline=prev_voting_offline,
-        )
-
-        voting_offline = [k for k in all_keys if k.usage == Key.TRC_VOTING_OFFLINE]
-
-        obj = super().create(
-            isd=isd,
-            version=version,
-            not_before=not_before,
-            not_after=not_after,
-            trc=trc,
-        )
-        obj.voting_offline.set(voting_offline)
-
-    def latest(self):
-        """ there could be more than one TRC with the same serial, but the latest is the one
-        that has its base the further in the sequence """
-        return self.order_by("-version_serial").latest("base_version")
-
-    def latest_or_none(self):
-        try:
-            return self.latest()
-        except TRC.DoesNotExist:
-            return None
-
-
-class TRC(models.Model):
-    isd = models.ForeignKey(
-        'ISD',
-        related_name='trcs',
-        on_delete=models.CASCADE,
-        verbose_name='ISD'
-    )
-
-    # the serial version should be incremented monotonically.
-    version_serial = models.PositiveIntegerField(editable=False, default=1)
-    # the base version points at the serial which represents the anchor of an update chain.
-    # when the base version is equal to the serial version, this TRC is the anchor, and
-    # there is no update, but a creation from scratch.
-    base_version = models.PositiveIntegerField(editable=False, default=1)
-
-    not_before = models.DateTimeField()
-    not_after = models.DateTimeField()
-
-    trc = models.BinaryField()  # in binary DER format
-
-    # Sensitive voting keys are required to create the next TRC version for sensitive updates;
-    # These keys are never deleted to ensure it is always possible to create a new TRC version, even
-    # after removing _all_ core ASes of an ISD. (see also _key_set_null_or_cascade).
-    # TODO(juagargi) should we reference the cert instead?
-    voting_sensitive = models.ManyToManyField(
-        Key,
-        related_name="trc_voted_sensitive",
-    )
-
-    # we keep track of the certificates that have been included in the TRC
-    # TODO(juagargi) do we? should we?
-    voting_regular = models.ManyToManyField(
-        Key,
-        related_name="trc_voted_regular",
-    )
-
-    objects = TRCManager()
-
-    class Meta:
-        verbose_name = 'TRC'
-        verbose_name_plural = 'TRCs'
-        # unique_together = ('isd', 'version')
-        unique_together = ('isd', 'version_serial', 'base_version')
-
-    def __str__(self):
-        return self.filename()
-
-    def filename(self) -> str:
-        return f"ISD{self.isd.isd_id}-B{self.base_version}-S{self.version_serial}"
-
-    @staticmethod
-    def next_version():
-        prev = TRC.objects.aggregate(
-            models.Max('version_serial'))['version_serial__max'] or 0
-        return prev + 1
-
-
-# def _latest_core_keys(as_) -> List[Key]:
-#     return [
-#         as_.keys.latest(Key.TRC_ISSUING_GRANT),
-#         as_.keys.latest(Key.TRC_VOTING_ONLINE),
-#         as_.keys.latest(Key.TRC_VOTING_OFFLINE),
-#     ]
-
-
-# def _key_info(key: Key) -> trcs.Key:
-#     return trcs.Key(
-#         version=key.version,
-#         priv_key=key.key,
-#         pub_key=keys.public_sign_key(key.key),
-#     )
-
-
-# def _core_key_info(keys: List[Key]) -> trcs.CoreKeys:
-#     key_by_usage = {key.usage: _key_info(key) for key in keys}
-#     return trcs.CoreKeys(
-#         issuing_grant=key_by_usage[Key.TRC_ISSUING_GRANT],
-#         voting_online=key_by_usage[Key.TRC_VOTING_ONLINE],
-#         voting_offline=key_by_usage[Key.TRC_VOTING_OFFLINE],
-#     )
-
-
 def _validity(*vs):
     """
     Return the intersection of the validity periods for the given inputs.
     :param vs: iterable of objects with `not_before` and `not_after` datetime members
     """
-    not_before = max(v.not_before for v in vs)
-    not_after = min(v.not_after for v in vs)
+    not_before = max(v.not_before for v in vs if v.not_before)
+    not_after = min(v.not_after for v in vs if v.not_after)
     return not_before, not_after

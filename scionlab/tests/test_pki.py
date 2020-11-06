@@ -17,7 +17,8 @@ from datetime import datetime, timedelta
 from django.test import TestCase
 
 from scionlab.models.core import ISD, AS
-from scionlab.models.pki import Key, Certificate, TRC
+from scionlab.models.pki import Key, Certificate
+from scionlab.models.trc import TRC, _can_update
 from scionlab.defines import (
     DEFAULT_EXPIRATION_AS_KEYS,
     DEFAULT_EXPIRATION_CORE_KEYS,
@@ -40,6 +41,17 @@ class KeyTests(TestCase):
         self.assertEqual(k.version, 1)
         self.assertEqual(k.usage, Key.CP_AS)
         self.assertEqual(k.not_after - k.not_before, DEFAULT_EXPIRATION_AS_KEYS)
+
+    def test_create_core_keys(self):
+        self.assertEqual(Key.objects.count(), 0)
+        keys = Key.objects.create_core_keys(self.AS)
+        self.assertEqual(Key.objects.count(), 4)
+        self.assertEqual([*Key.objects.all()], keys)
+        expected = {Key.TRC_VOTING_SENSITIVE,
+                    Key.TRC_VOTING_REGULAR,
+                    Key.ISSUING_ROOT,
+                    Key.ISSUING_CA}
+        self.assertEqual({k.usage for k in keys}, expected)
 
     def test_latest(self):
         for as_ in [self.AS,
@@ -217,6 +229,10 @@ class CertificateTests(TestCase):
         self.assertEqual(cert.key, subject_key)
         self.assertEqual(cert.ca_cert, cert_ca)
 
+    def test_create_core_certs(self):
+        Key.objects.create_core_keys(self.AS)
+        Certificate.objects.create_core_certs(self.AS)
+
     def test_certificate_format(self):
         Key.objects.create(AS=self.AS, usage=Key.ISSUING_ROOT)
         cert = Certificate.objects.create_issuer_root_cert(
@@ -267,6 +283,28 @@ class TRCTests(TestCase):
         self.assertEqual(TRC.objects.latest(), k_3_2)
         self.assertEqual(TRC.next_version(), 4)
         self.assertEqual(TRC.objects.count(), 3)
+
+    def test_can_update(self):
+        self.assertFalse(_can_update(1))
+        prev_trc = _create_TRC(self.isd1, 1, 1)
+        self.assertEqual(prev_trc.quorum, 1)  # default quorum is 1
+        self.assertFalse(_can_update(1))  # no core ASes yet
+        _create_AS(self.isd1, "ff00:0:111")
+        self.assertFalse(_can_update(1))  # no core ASes yet
+        _create_AS(self.isd1, "ff00:0:110", is_core=True)
+        self.assertTrue(_can_update(1))  # there is 1 voter, which >= prev.quorum
+
+    def test_can_regular_update(self):
+        prev_trc = _create_TRC(self.isd1, 1, 1)
+        self.assertFalse(prev_trc.can_update_regular())  # no previous TRC
+        _create_AS(self.isd1, "ff00:0:110", is_core=True)
+        _create_AS(self.isd1, "ff00:0:210", is_core=True)
+
+        trc = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+                  base_version=1, version_serial=2, quorum=2)
+        self.assertFalse(trc.can_update_regular())
+        trc.quorum = 1
+        # TODO(juagargi)
 
     def gen_trc_v1(self):
         """
@@ -449,8 +487,8 @@ def _gen_key(version):
     return trcs.Key(version=version, priv_key=priv, pub_key=pub)
 
 
-def _create_AS(isd, as_id):
-    as_ = AS(isd=isd, as_id=as_id, as_id_int=as_ids.parse(as_id))
+def _create_AS(isd, as_id, is_core=False):
+    as_ = AS(isd=isd, as_id=as_id, as_id_int=as_ids.parse(as_id), is_core=is_core)
     as_.save()
     return as_
 
