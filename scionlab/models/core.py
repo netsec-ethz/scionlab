@@ -113,7 +113,7 @@ class ISD(TimestampedModel):
 
     @staticmethod
     def _update_coreas_certificates(as_):
-        as_.generate_core_certificate()
+        as_.generate_core_certificates()
         as_.generate_certificate_chain()
         as_.hosts.bump_config()
         as_.save()
@@ -276,8 +276,8 @@ class AS(TimestampedModel):
 
     def init_keys(self):
         """
-        Initialise AS signing and encryption keys.
-        If this is a core AS, also initialise the core AS voting and issuing keys.
+        Create the control plane AS private key for this AS.
+        If the AS is core, also the sensitive and regular voting keys, the root and CA keys.
 
         Note: does not set master_as_key.
         """
@@ -333,12 +333,13 @@ class AS(TimestampedModel):
         if issuer:  # Skip if failed to find a core AS as issuer
             self.certificates.create(type=Certificate.CHAIN, issuer=issuer)
 
-    def generate_core_certificate(self):
+    def generate_core_certificates(self):
         """
         Create or update the Core AS Certificate.
 
         Requires that the TRC in this ISD exists/is up to date.
         """
+
         self.certificates.create(type=Certificate.ISSUER)
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
@@ -391,17 +392,16 @@ class AS(TimestampedModel):
         """
         Generate signing and encryption key pairs.
         """
-        for usage in [Key.DECRYPT, Key.SIGNING]:
-            self.keys.create(usage=usage, not_before=valid_not_before)
+        self.keys.create(AS=self, usage=Key.CP_AS, not_before=valid_not_before)
 
     def _gen_core_keys(self, valid_not_before):
         """
-        Generate core AS signing key pairs.
+        Generate voting sensitive, regular, root and CA keys.
         """
-        for usage in [Key.CERT_SIGNING,
-                      Key.TRC_ISSUING_GRANT,
-                      Key.TRC_VOTING_ONLINE,
-                      Key.TRC_VOTING_OFFLINE]:
+        for usage in [Key.TRC_VOTING_SENSITIVE,
+                      Key.TRC_VOTING_REGULAR,
+                      Key.ISSUING_ROOT,
+                      Key.ISSUING_CA]:
             self.keys.create(usage=usage, not_before=valid_not_before)
 
     @staticmethod
