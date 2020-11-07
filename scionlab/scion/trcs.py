@@ -106,17 +106,8 @@ def generate_trc(isd_id, base, serial, grace_period, not_before, not_after, prim
     return _build_signed_trc(payload, votes, proof_of_possession,)
 
 
-def _is_regular_update(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> bool:
+def deleteme_is_regular_update(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> bool:
     """
-    Check if this is a regular TRC update.
-
-
-    In a regular update, the voting_quorum parameter must not be changed. In the primary_ases
-    section, only the issuing grant and online voting keys can change. No other parts of the
-    primary_ases section may change.
-
-    - All votes from ASes with unchanged online voting keys must be cast with the online voting key.
-    - All ASes with changed online voting keys must cast a vote with their offline voting key.
 
     A sensitive update is any update that is not "regular" (as defined above). The following
     conditions must be met:

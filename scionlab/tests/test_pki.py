@@ -294,17 +294,74 @@ class TRCTests(TestCase):
         _create_AS(self.isd1, "ff00:0:110", is_core=True)
         self.assertTrue(_can_update(1))  # there is 1 voter, which >= prev.quorum
 
-    def test_can_regular_update(self):
-        prev_trc = _create_TRC(self.isd1, 1, 1)
-        self.assertFalse(prev_trc.can_update_regular())  # no previous TRC
-        _create_AS(self.isd1, "ff00:0:110", is_core=True)
-        _create_AS(self.isd1, "ff00:0:210", is_core=True)
+    def test_can_update_regular(self):
+        trc1 = _create_TRC(self.isd1, 1, 1)
+        self.assertFalse(trc1.can_update_regular())  # no previous TRC
+        as1 = _create_AS(self.isd1, "ff00:0:110", is_core=True)
+        Key.objects.create_core_keys(as1)
+        Certificate.objects.create_core_certs(as1)
+        self._reset_core_ases(trc1)
+        trc2 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+                   base_version=1, version_serial=2)
+        trc2.save()
+        self._reset_core_ases(trc2)
+        self.assertTrue(trc2.can_update_regular())
+        # create new voter
+        as2 = _create_AS(self.isd1, "ff00:0:210", is_core=True)
+        Key.objects.create_core_keys(as2)
+        Certificate.objects.create_core_certs(as2)
+        self._reset_core_ases(trc2)
+        self.assertFalse(trc2.can_update_regular())  # quorum changed
+        # sanity check
+        trc3 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+                   base_version=1, version_serial=3)
+        trc3.save()
+        self._reset_core_ases(trc3)
+        self.assertTrue(trc3.can_update_regular())
+        # change sensitive voting cert
+        # as1.keys.create(AS=as1, usage=Key.TRC_VOTING_SENSITIVE)
+        Certificate.objects.create_voting_sensitive_cert(as1)
+        trc4 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+                   base_version=1, version_serial=4)
+        trc4.save()
+        self._reset_core_ases(trc4)
+        self.assertFalse(trc4.can_update_regular())
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        # this ^^ fails because there is no foreign key to point to the certificate, but to the key
+        # TODO(juagargi) change trc.voting_* to point to certificates        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
+        # sanity check
+        trc5 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+                   base_version=1, version_serial=5)
+        trc5.save()
+        self._reset_core_ases(trc5)
+        self.assertTrue(trc5.can_update_regular())
 
-        trc = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-                  base_version=1, version_serial=2, quorum=2)
-        self.assertFalse(trc.can_update_regular())
-        trc.quorum = 1
-        # TODO(juagargi)
+    def _reset_core_ases(self, trc):
+        trc.voting_sensitive.set(Key.objects.filter(usage=Key.TRC_VOTING_SENSITIVE))
+        trc.voting_regular.set(Key.objects.filter(usage=Key.TRC_VOTING_REGULAR))
+        trc.quorum = trc.voting_sensitive.count() // 2 + 1
+        # trc.certificates.set(Certificate.objects.exclude(key__usage__in=[
+        #     Key.ISSUING_CA, Key.CP_AS]).exclude(key__AS__is_core=False))
+        # trc.certificates.create_voting_sensitive_cert(trc.isd.ases.first())
+        certs = Certificate.objects.exclude(key__usage__in=[
+            Key.ISSUING_CA, Key.CP_AS]).exclude(key__AS__is_core=False)
+        trc.add_certificates(certs)
+        trc.save()
+        # for cert in certs:
+        #     trc.add_certificate(cert)
+        
+
 
     def gen_trc_v1(self):
         """
@@ -494,6 +551,7 @@ def _create_AS(isd, as_id, is_core=False):
 
 
 def _create_TRC(isd, serial, base):
+    # avoid using the create methods from the TRCManager
     trc = TRC(isd=isd, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
               base_version=base, version_serial=serial)
     trc.save()

@@ -22,7 +22,7 @@ from django.db import models
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
 from scionlab.models.core import AS, ISD
 from scionlab.models.pki import Certificate, Key
-from scionlab.scion import as_ids, keys, trcs, certs
+from scionlab.scion import as_ids, keys, trcs
 
 
 class TRCManager(models.Manager):
@@ -173,6 +173,12 @@ class TRC(models.Model):
         # unique_together = ('isd', 'version')
         unique_together = ('isd', 'version_serial', 'base_version')
 
+    def add_certificates(self, certs):
+        count = self.certificates.count()
+        for i in range(len(certs)):
+            CertificateInTRC.objects.create(trc=self, certificate=certs[i],
+                                            index=count + i)
+
     def __str__(self):
         return self.filename()
 
@@ -199,19 +205,24 @@ class TRC(models.Model):
         - All votes from ASes with unchanged online voting keys must be cast with the online voting key.
         - All ASes with changed online voting keys must cast a vote with their offline voting key.
         """
-        prev = TRC.objects.latest_or_none()
-        if prev is None or prev == self or prev.quorum != self.quorum:
+        prev = TRC.objects.filter(isd=self.isd, version_serial=self.version_serial - 1)
+        if not prev.exists() or prev.get() == self:
+            return False
+        prev = prev.get()
+        if prev.quorum != self.quorum:
             return False
         # check core, authoritative ASes (they are treated the same in SCIONLab)
         prev_voters = prev.voting_sensitive.values_list(
             "AS__as_id_int", flat=True).order_by("AS__as_id_int")
-        if self.voting_sensitive.values_list(
-                "AS__as_id_int", flat=True).order_by("AS__as_id_int") != prev_voters:
+        if list(self.voting_sensitive.values_list(
+                "AS__as_id_int", flat=True).order_by("AS__as_id_int")) != list(prev_voters):
             return False
         # get sensitive certificates
-        prev_sensitive = [k.certificates.latest() for k in prev.voting_sensitive.order_by(AS__as_id_int).all()]
-        if [k.certificates.latest() for k in self.voting_sensitive.order_by(AS__as_id_int).all()] != prev_sensitive:
+        prev_sensitive = list(k.certificates.latest(Key.TRC_VOTING_SENSITIVE)
+                              for k in prev.voting_sensitive.order_by("AS__as_id_int"))
+        if list(k.certificates.latest(Key.TRC_VOTING_SENSITIVE) for k in self.voting_sensitive.order_by("AS__as_id_int")) != prev_sensitive:
             return False
+        # TODO(juagargi) compare certs using the bytes
         return True
 
     @staticmethod
