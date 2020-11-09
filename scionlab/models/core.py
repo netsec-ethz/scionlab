@@ -595,6 +595,9 @@ class Host(models.Model):
             portmap.add(self.internal_ip, internal_port)
             portmap.add(self.internal_ip, control_port)
 
+        for srv in self.services.filter(type=Service.CS):
+            portmap.add(self.internal_ip, srv.port())
+
         # Note: could also use values_list for interface ports, but slightly more complicated
         for interface in self.interfaces.iterator():
             portmap.add(interface.get_public_ip(), interface.public_port)
