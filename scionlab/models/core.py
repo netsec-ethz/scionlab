@@ -1093,7 +1093,7 @@ class BorderRouterManager(models.Manager):
 class BorderRouter(models.Model):
     """
     A BorderRouter object represents the actual `border`-process executing an Interface.
-    It stores the per-border-router settings (internal addess port and control addess port).
+    It stores the per-border-router settings (internal address port and control address port).
     """
     AS = models.ForeignKey(
         AS,
