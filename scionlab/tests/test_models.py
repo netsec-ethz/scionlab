@@ -14,6 +14,7 @@
 
 from unittest.mock import patch
 from django.test import TestCase
+from scionlab.defines import SD_TCP_PORT
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
 from scionlab.models.pki import Certificate
 from scionlab.fixtures import testtopo
@@ -269,3 +270,24 @@ class DeleteASTests(TestCase):
         ases.delete()
 
         self.assertEqual(self.mock_as_post_delete.call_count, ases_count)
+
+
+class HostTests(TestCase):
+    def test_add_border_routers(self):
+        isd17 = ISD.objects.create(isd_id=17, label='Switzerland')
+        as_1101 = AS.objects.create(isd=isd17, as_id='ff00:0:1101', label='SCMN')
+        as_1101.init_default_services()
+        self.assertEqual(Host.objects.filter(AS=as_1101).count(), 1)
+        host = Host.objects.first()
+        # check service ports do not clash
+        ports_in_use = {SD_TCP_PORT}
+        for srv in host.services.iterator():
+            self.assertNotIn(srv.port(), ports_in_use)
+            ports_in_use.add(srv.port())
+        # create a lot (e.g. 200) border routers. No port clash should occur.
+        for i in range(200):
+            br = BorderRouter.objects.create(host=host)
+            self.assertNotIn(br.internal_port, ports_in_use)
+            ports_in_use.add(br.internal_port)
+            self.assertNotIn(br.control_port, ports_in_use)
+            ports_in_use.add(br.control_port)

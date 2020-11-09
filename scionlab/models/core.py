@@ -40,6 +40,7 @@ from scionlab.defines import (
     DEFAULT_PUBLIC_PORT,
     DEFAULT_INTERNAL_PORT,
     DEFAULT_CONTROL_PORT,
+    SD_TCP_PORT,
     CS_PORT,
     BW_PORT,
     PP_PORT,
@@ -589,13 +590,15 @@ class Host(models.Model):
         """
         portmap = PortMap()
         portmap.add(None, DISPATCHER_PORT)
+        # SD_TCP_PORT TCP port doesn't clash with UDP, but anyways excluded
+        portmap.add(self.internal_ip, SD_TCP_PORT)
 
         for internal_port, control_port in \
                 self.border_routers.values_list('internal_port', 'control_port'):
             portmap.add(self.internal_ip, internal_port)
             portmap.add(self.internal_ip, control_port)
 
-        for srv in self.services.filter(type=Service.CS):
+        for srv in self.services.iterator():
             portmap.add(self.internal_ip, srv.port())
 
         # Note: could also use values_list for interface ports, but slightly more complicated
