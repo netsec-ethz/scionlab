@@ -14,7 +14,6 @@
 
 from unittest.mock import patch
 from django.test import TestCase
-from scionlab.defines import SD_TCP_PORT
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
 from scionlab.models.pki import Certificate
 from scionlab.fixtures import testtopo
@@ -280,7 +279,7 @@ class HostTests(TestCase):
         self.assertEqual(Host.objects.filter(AS=as_1101).count(), 1)
         host = Host.objects.first()
         # check service ports do not clash
-        ports_in_use = {SD_TCP_PORT}
+        ports_in_use = set()
         for srv in host.services.iterator():
             self.assertNotIn(srv.port(), ports_in_use)
             ports_in_use.add(srv.port())
