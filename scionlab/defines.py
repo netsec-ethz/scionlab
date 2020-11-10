@@ -26,7 +26,7 @@ USER_AS_ID_END = 0xffaa0001ffff  # 'ffaa:1:ffff'
 DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-port-ranges)
 DEFAULT_INTERNAL_PORT = 30042  # 30042-30051
 DEFAULT_CONTROL_PORT = 30242   # 30242-30251
-BR_PROM_PORT_OFFSET = 400  # offset from BR internal (data plane) port. E.g. 30042 + 400 = 30442
+BR_PROM_PORT_OFFSET = 200  # offset from BR control port. E.g. 30242 + 200 = 30442
 
 CS_PORT = 30254  # This is both a SCION/UDP (inter-AS) and TCP (intra-AS)
 CS_QUIC_PORT = 30354  # SCION/UDP/QUIC port for inter-AS
