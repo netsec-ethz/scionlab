@@ -302,7 +302,6 @@ class HostTests(TestCase):
         # Note that with the currently defined port ranges, we _will_ have clashes with more
         # routers.
         for i in range(196):
-            print(i)
             br = BorderRouter.objects.create(host=self.host)
             self.assertNotIn(br.internal_port, ports_in_use)
             ports_in_use.add(br.internal_port)
