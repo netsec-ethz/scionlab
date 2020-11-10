@@ -996,6 +996,7 @@ server.conf: |
   tls-server
 
   dev tun
+  local 192.0.2.17
   port 1194
   proto udp
 
