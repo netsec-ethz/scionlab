@@ -212,15 +212,12 @@ def generate_vpn_server_config(vpn):
     ca_cert = load_ca_cert().public_bytes(
         encoding=serialization.Encoding.PEM).decode()
     server_config_tmpl = pathlib.Path(SERVER_CONFIG_TEMPLATE_PATH).read_text(encoding='utf-8')
-    server_vpn_as = vpn.server.AS.as_path_str()
-    server_vpn_ip = vpn.server_vpn_ip
-    server_vpn_port = vpn.server_port
     server_vpn_subnet = vpn.vpn_subnet()
 
     server_config = string.Template(server_config_tmpl).substitute(
-        AS=server_vpn_as,
-        ServerIP=server_vpn_ip,
-        ServerPort=server_vpn_port,
+        ServerPublicIP=vpn.server.public_ip,
+        ServerPort=vpn.server_port,
+        ServerVPNIP=vpn.server_vpn_ip,
         Netmask=server_vpn_subnet.netmask,
         Subnet=server_vpn_subnet,
         CACert=ca_cert,
