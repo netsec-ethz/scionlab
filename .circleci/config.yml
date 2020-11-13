@@ -282,6 +282,19 @@ jobs:
             docker-compose exec useras4 /bin/bash -c \
              'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; \
               scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
+      - run:
+          name: Export logs
+          working_directory: ~/project/.circleci
+          command: |
+            mkdir -p ~/project/scion_services_integration_logs
+            for c in as1301 as1303 as1305 as1401 as1405 useras4; do
+              mkdir ~/project/scion_services_integration_logs/${c}
+              docker cp $(docker-compose ps -q ${c}):/var/log/scion ~/project/scion_services_integration_logs/${c}/ || true
+            done
+          when: always
+      - store_artifacts:
+          path: ~/project/scion_services_integration_logs
+          destination: scion_services_integration_logs
 
   upgrade_integration:
     machine:
