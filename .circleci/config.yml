@@ -286,6 +286,7 @@ jobs:
           name: Export logs
           working_directory: ~/project/.circleci
           command: |
+            sudo date -s "$(curl --silent --insecure --head https://github.com | grep 'date: ' | sed 's/date: //g')"  # not funny, circleci doesn't like old artifacts
             mkdir -p ~/project/scion_services_integration_logs
             for c in as1301 as1303 as1305 as1401 as1405 useras4; do
               mkdir ~/project/scion_services_integration_logs/${c}
