@@ -595,6 +595,9 @@ class Host(models.Model):
             portmap.add(self.internal_ip, internal_port)
             portmap.add(self.internal_ip, control_port)
 
+        for srv in self.services.iterator():
+            portmap.add(self.internal_ip, srv.port())
+
         # Note: could also use values_list for interface ports, but slightly more complicated
         for interface in self.interfaces.iterator():
             portmap.add(interface.get_public_ip(), interface.public_port)
@@ -1091,7 +1094,7 @@ class BorderRouterManager(models.Manager):
 class BorderRouter(models.Model):
     """
     A BorderRouter object represents the actual `border`-process executing an Interface.
-    It stores the per-border-router settings (internal addess port and control addess port).
+    It stores the per-border-router settings (internal address port and control address port).
     """
     AS = models.ForeignKey(
         AS,

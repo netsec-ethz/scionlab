@@ -6,6 +6,7 @@ etc/openvpn/server.conf: |
   tls-server
 
   dev tun
+  local 192.0.2.17
   port 1194
   proto udp
 
@@ -450,7 +451,7 @@ scionlab-config.json: |-
   {
     "files": {
       "etc/openvpn/ccd/exbert@scionlab.org_ffaa_1_1": "72a44b475588d54d168220d99cb1d5b26a39decd",
-      "etc/openvpn/server.conf": "1ac605e494b70f28906b70434028d3724193aba8",
+      "etc/openvpn/server.conf": "94b139e770cf95e62b57596c2b363c9af4ed4ff8",
       "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
       "etc/scion/br-1.toml": "2df19de492ec1257d6cf3a244ead625c3fe3e102",
       "etc/scion/br-2.toml": "7fd1b53d6c64cd2eff87c6c70d91990eb8909bcc",
