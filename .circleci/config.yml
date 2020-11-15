@@ -59,11 +59,7 @@ start_coordinator: &start_coordinator
   command: |
     # Initialize coordinator with test data and test keys
     docker-compose run -T coord /bin/bash -c \
-     './scripts/init-test-db.sh && \
-      cp .circleci/setup/deploy_ssh_config run/ssh_config && \
-      cp .circleci/setup/deploy_rsa* run/ && \
-      chmod 644 run/deploy_rsa.pub && \
-      chmod 600 run/deploy_rsa'
+     './scripts/init-test-db.sh'
 
     docker-compose up -d coord
 
@@ -108,7 +104,7 @@ jobs:
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/flake8/
-            flake8 --config=flake8.ini --format junit-xml --output-file=test-reports/flake8/results.xml
+            flake8 --format junit-xml --output-file=test-reports/flake8/results.xml
 
       # run Django's tests (using nose as the test runner)
       - run:
@@ -150,6 +146,12 @@ jobs:
             docker-compose build
 
       - run:
+          name: Set date so certificates in test data are valid
+          command: |
+            # Certificates are valid between 2019-10-02 and 2020-10-01.
+            sudo date -s "2020-04-01"  # haha
+
+      - run:
           name: Start coordinator
           working_directory: ~/project/.circleci
           <<: *start_coordinator
@@ -186,49 +188,48 @@ jobs:
           <<: *check_scion_connections
 
       - run:
-          name: "Push changes to AS ffaa:0:1303"
+          name: "Pull changes to AS ffaa:0:1303"
           working_directory: ~/project/.circleci
           no_output_time: "1m0s"
           command: |
             set -x
 
-            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
+            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
 
-            # Start the huey worker
-            docker-compose up -d huey
-
-            # Generate new AS-keys for 1303 and push the new configuration.
+            # Generate new AS-keys for 1303 and pull the new configuration.
             # This waits until the configuration has been deployed.
             docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py ffaa:0:1303; \
-              python .circleci/actions/push-deploy.py ffaa:0:1303'
-
-            docker-compose logs huey
+            'python .circleci/actions/update-keys.py ffaa:0:1303'
+            docker-compose exec -T as1303 scionlab-config
 
             # Check that
             # i) configuration was deployed
-            new_version=$(docker-compose exec -T as1303 cat /etc/scion/gen/scionlab-config.json | jq .version)
+            new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
             [ "$prev_version" -lt "$new_version" ]
             # ii) connection still works
             docker-compose exec -T as1303 /bin/bash -c \
               'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
 
+
       - run:
-          name: Test TRC update and push changes
+          name: Test TRC update and pull changes
           working_directory: ~/project/.circleci
           command: |
             set -x
 
             # Show current TRC
             TRC_version=1
-            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/gen/ISD19/ASffaa_0_1301/endhost/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/certs/ISD19-V${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
             docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301;
-              python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
+             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301'
 
-            docker-compose logs huey
+            for c in as1301 as1303 as1305; do
+              docker-compose exec $c /bin/bash -c \
+                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+            done
+
             docker-compose logs coord
 
             # Check updated TRC and check that updated TRCs were installed on all hosts
@@ -236,12 +237,12 @@ jobs:
             TRC_version=$((TRC_version + 1))
             docker-compose exec -T as1301 /bin/bash -c \
              "mkdir -p /tmp/pki/ISD19/trcs/;
-              cp /etc/scion/gen/ISD19/ASffaa_0_1301/endhost/certs/ISD19*.trc /tmp/pki/ISD19/trcs/;
+              cp /etc/scion/certs/ISD19*.trc /tmp/pki/ISD19/trcs/;
               scion-pki trcs human /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc;
               scion-pki trcs verify -d /tmp/pki/ /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc"
 
-            docker-compose exec -T as1303 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1303/endhost/certs/ISD19-V${TRC_version}.trc"
-            docker-compose exec -T as1305 stat -t "/etc/scion/gen/ISD19/ASffaa_0_1305/endhost/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1303 stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T as1305 stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
 
             # Check that infra still works
             sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
@@ -373,7 +374,7 @@ jobs:
             docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/
             sudo chown circleci:circleci -R ~/previous_version/run/
             cp -r ~/previous_version/run ~/project/
-            docker-compose up -d --force-recreate --build coord huey
+            docker-compose up -d --force-recreate --build coord
 
       - run:
           name: NEW -- Check coordinator ready
@@ -416,17 +417,17 @@ jobs:
             docker cp ./setup/check_tun0_in_topo.py $(docker-compose ps -q as1405):/home/scionlab/
             docker-compose exec -T as1405 /bin/bash -c \
               "apt-get install -y jq > /dev/null 2>&1; "\
-              "jq .BorderRouters[].Interfaces /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json; "\
+              "jq .BorderRouters[].Interfaces /etc/scion/topology.json; "\
               "ip address show tun0; "\
-              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/gen/ISD20/ASffaa_0_1405/endhost/topology.json"
+              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/topology.json"
             # Check configuration on client
             echo "Client AS4 new VPN configuration"
             docker cp ./setup/check_tun0_in_topo.py $(docker-compose ps -q useras4):/home/scionlab/
             docker-compose exec -T useras4 /bin/bash -c \
               "apt-get install -y jq > /dev/null 2>&1; "\
-              "jq .BorderRouters[].Interfaces /etc/scion/gen/ISD20/ASffaa_1_4/endhost/topology.json; "\
+              "jq .BorderRouters[].Interfaces /etc/scion/topology.json; "\
               "ip address show tun0; "\
-              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/gen/ISD20/ASffaa_1_4/endhost/topology.json"
+              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/topology.json"
 
       - run:
           name: NEW -- Check CA and server VPN certificates on server and client
