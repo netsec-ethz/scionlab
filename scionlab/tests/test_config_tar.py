@@ -14,6 +14,7 @@
 
 import os
 import yaml
+from parameterized import parameterized
 
 from django.test import TestCase
 
@@ -56,11 +57,12 @@ class ConfigTarRegressionTests(TestCase):
         generate_host_config_tar(host, archive)
         self._check_archive('host_%i' % host.id, archive)
 
-    def test_user_as(self):
-        for user_as in UserAS.objects.filter(owner=get_testuser_exbert()).iterator():
-            archive = DictWriter()
-            generate_user_as_config_tar(user_as, archive)
-            self._check_archive('user_as_%i' % user_as.id, archive)
+    @parameterized.expand(list(zip(range(5))))
+    def test_user_as(self, user_as_id):
+        user_as = UserAS.objects.filter(owner=get_testuser_exbert()).order_by('pk')[user_as_id]
+        archive = DictWriter()
+        generate_user_as_config_tar(user_as, archive)
+        self._check_archive('user_as_%i' % user_as.id, archive)
 
     def _check_archive(self, test_id, archive):
 

@@ -24,6 +24,7 @@ import tarfile
 import time
 import toml
 import yaml
+import hashlib
 from collections import OrderedDict
 
 
@@ -98,11 +99,19 @@ class BaseArchiveWriter:
         """
         raise NotImplementedError()
 
-    def _normalize_path(self, path):
+    def _normalize_path(self, path) -> str:
+        """
+        The `path` is either
+        - a string
+        - a pathlib.Path
+        - or a tuple consisting of string/pathlib.Path that will be joined
+
+        Spurious slashes and single dots are collapsed (double dots are not).
+        """
         if isinstance(path, tuple):
             return str(pathlib.PurePosixPath(*path))
         else:
-            return str(path)
+            return str(pathlib.PurePosixPath(path))
 
 
 class FileArchiveWriter(BaseArchiveWriter):
@@ -202,3 +211,27 @@ class DictWriter(BaseArchiveWriter):
     def add_dir(self, path):
         d = self._normalize_path(path) + "/"
         self.dict[d] = None  # Just a marker
+
+
+class HashedArchiveWriter(BaseArchiveWriter):
+    """
+    Adapter for an archive writer that keeps track of the sha1 hash of each file added.
+    """
+
+    def __init__(self, archive):
+        self._archive = archive
+        self.hashes = {}
+
+    def write_text(self, path, content):
+        self._add_checksum(path, content)
+        self._archive.write_text(path, content)
+
+    def add(self, path, src):
+        self.write_text(path, pathlib.Path(src).read_text())
+
+    def add_dir(self, path):
+        self._archive.add_dir(path)
+
+    def _add_checksum(self, path, content):
+        path = self._normalize_path(path)
+        self.hashes[path] = hashlib.sha1(content.encode()).hexdigest()

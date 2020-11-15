@@ -50,7 +50,7 @@ PROPAGATE_TIME_NONCORE = 5  # higher frequency in non-cores ASes to have quicker
 SCION_CONFIG_DIR = "/etc/scion"
 SCION_LOG_DIR = "/var/log/scion"
 SCION_VAR_DIR = "/var/lib/scion"
-GEN_PATH = "gen"
+OPENVPN_CONFIG_DIR = "/etc/openvpn"
 
 # Default expiration time for keys; we currently only distinguish between core/non-core keys.
 # Note: the expiration of the core keys also defines the expiration of the TRCs.

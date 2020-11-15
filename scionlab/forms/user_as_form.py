@@ -13,15 +13,13 @@
 # limitations under the License.
 from crispy_forms.bootstrap import AppendedText
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field, Row, Column, Div
+from crispy_forms.layout import Layout, Field
 from django import forms
 from django.forms import modelformset_factory
-from django.core.exceptions import ValidationError
 
 from scionlab.forms.attachment_conf_form import AttachmentConfForm, AttachmentConfFormSet
-from scionlab.models.core import Link, Host
-from scionlab.models.user_as import UserAS, AttachmentPoint
-from scionlab.models.vpn import VPN, VPNClient
+from scionlab.models.core import Link
+from scionlab.models.user_as import UserAS
 
 
 def _crispy_helper(instance):
@@ -36,16 +34,8 @@ def _crispy_helper(instance):
         AppendedText('label', '<span class="fa fa-pencil"/>'),
         Field(
             'installation_type',
-            template='scionlab/partials/installation_type_accordion.html'
+            template='scionlab/partials/installation_type_accordion.html',
         ),
-        Field(
-            'become_user_ap',
-            Row(
-                Column('public_ip', css_class='col-md-5'),
-                Column('provide_vpn', css_class='col-md-5'),
-                ),
-        ),
-        
     )
 
     # We need this to render the UserASForm along with the AttachmentConfForm
@@ -83,20 +73,7 @@ class UserASForm(forms.Form):
         required=True,
         widget=forms.RadioSelect(),
     )
-    become_user_ap= forms.BooleanField(
-        required=False,
-        label="Become User AP",
-        help_text="activate this to become user AP" 
-    )
-    public_ip = forms.GenericIPAddressField(
-        required=False,
-        help_text="IP Address that will be used for the connections"
-    )
-    provide_vpn = forms.BooleanField(
-        required=False,
-        label="provide VPN",
-        help_text="Allow Users to connect to your AP via VPN"
-    )
+
     def _get_attachment_conf_form_set(self, data, instance: UserAS):
         """
         Returns an instance of  `AttachmentConfFormSet`
@@ -123,20 +100,9 @@ class UserASForm(forms.Form):
         self.attachment_conf_form_set = self._get_attachment_conf_form_set(data, self.instance)
         initial = kwargs.pop('initial', {})
         if self.instance:
-            host = Host.objects.filter(AS=self.instance).first()
-            is_user_ap = False
-            has_vpn = False
-            if AttachmentPoint.objects.filter(AS=self.instance).first() != None:
-                is_user_ap = True
-                ap = AttachmentPoint.objects.filter(AS=self.instance).first()
-                if ap.vpn != None:
-                    has_vpn = True
             initial.update({
                 'label': self.instance.label,
                 'installation_type': self.instance.installation_type,
-                'public_ip': host.public_ip,
-                'become_user_ap': is_user_ap,
-                'provide_vpn': has_vpn
             })
         self.helper = _crispy_helper(self.instance)
         super().__init__(data, *args, initial=initial, **kwargs)
@@ -146,12 +112,6 @@ class UserASForm(forms.Form):
         if self.instance is None:
             self.user.check_as_quota()
 
-        if cleaned_data['become_user_ap'] and not cleaned_data.get('public_ip'):
-            self.add_error(
-                'public_ip',
-                ValidationError("Please enter a public IP address to become User AP")
-            )
-        
         self.attachment_conf_form_set.full_clean()
         return cleaned_data
 
@@ -173,8 +133,6 @@ class UserASForm(forms.Form):
         return super().is_valid() and self.attachment_conf_form_set.is_valid()
 
     def save(self, commit=True):
-        wants_user_ap = self.cleaned_data['become_user_ap']
-        wants_vpn = self.cleaned_data['provide_vpn']
         if not self.instance:
             user_as = UserAS.objects.create(
                 owner=self.user,
@@ -183,36 +141,11 @@ class UserASForm(forms.Form):
                 label=self.cleaned_data['label'],
             )
             self.attachment_conf_form_set.save(user_as)
-            if wants_user_ap:
-                ap = AttachmentPoint.objects.create(AS = user_as)
-                host = user_as.hosts.first()
-                host.update(public_ip = self.cleaned_data['public_ip'])
-                if wants_vpn:
-                    vpn = VPN.objects.create(server = host, server_port = 1194)
-                    ap.vpn = vpn 
-                    ap.save()
             return user_as
         else:
             self.instance.update(
                 installation_type=self.cleaned_data['installation_type'],
                 label=self.cleaned_data['label']
             )
-            # 2 cases: User wants to become a new AP or User wants to stop being AP
-            if wants_user_ap and not self.instance.is_attachment_point():
-                ap = AttachmentPoint.objects.create(AS = self.instance)
-                host = self.instance.hosts.first()
-                host.update(public_ip = self.cleaned_data['public_ip'])
-                if wants_vpn:                   
-                    ap.vpn = vpn = VPN.objects.create(server = host, server_port = 1194)
-                    ap.save()
-            elif not wants_user_ap and self.instance.is_attachment_point():
-            # if a user decides to not be AP anymore he can uncheck the 'become User AP' box and save the changes
-            # the AP, links and VPN (if existing) will then be deleted
-                if VPN.objects.filter(server = self.instance.hosts.first()) != None:
-                    vpn = VPN.objects.filter(server = self.instance.hosts.first()).delete
-                AttachmentPoint.objects.filter(AS=self.instance).delete()
-                Link.objects.filter(interfaceA__AS=self.instance).delete()
-            host = self.instance.hosts.first()
-            host.update(public_ip = self.cleaned_data['public_ip'])   
             self.attachment_conf_form_set.save(self.instance)
             return self.instance

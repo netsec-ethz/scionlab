@@ -16,7 +16,7 @@
 :mod:`scionlab.models.user_as` --- Django models for User ASes and Attachment Points
 ====================================================================================
 """
-import datetime
+
 import ipaddress
 from typing import List, Set
 
@@ -25,9 +25,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils.html import format_html
 from django.contrib.auth.models import User
-from django.utils import timezone
 
-import scionlab.tasks
 from scionlab.models.core import (
     AS,
     Interface,
@@ -176,7 +174,6 @@ class UserAS(AS):
             self._delete_attachment(deleted_link)
         for ap in aps_set:
             ap.split_border_routers()
-            ap.trigger_deployment()
         self._deactivate_unused_vpn_clients(att_confs)
 
         self.save()
@@ -354,10 +351,9 @@ class UserAS(AS):
             return {link.interfaceA.AS.attachment_point_info}
         return set()
 
-
     def _deactivate(self) -> Set['AttachmentPoint']:
         """
-        Deactivate all the links with the attachment points
+        Deactivate all links with the attachment points
         :return: attachment points that shall be updated
         """
         attachment_points = set()
@@ -376,8 +372,6 @@ class UserAS(AS):
             attachment_points = self._activate()
         else:
             attachment_points = self._deactivate()
-        for ap in attachment_points:
-            attachment_points = ap.trigger_deployment()  
 
     @property
     def ip_port_labels(self):
@@ -401,11 +395,10 @@ class UserAS(AS):
         query = query.select_related('interfaceA__AS__attachment_point_info').order_by('pk')
         return [link.interfaceA.AS.attachment_point_info for link in query]
 
-
     @property
     def attachment_points_labels(self):
         return [ap.AS.label for ap in self.attachment_points()]
-        
+
     def attachment_links(self):
         """
         :returns: queryset for links to attachment points
@@ -432,11 +425,6 @@ class UserAS(AS):
         """
         return self.fixed_links().filter(type=Link.PROVIDER).exists()
 
-class AttachmentPointManager(models.Manager):
-
-    def active(self):
-        threshold = timezone.now() - datetime.timedelta(minutes=1)
-        return self.filter(updated_at__gt = threshold)
 
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
@@ -451,13 +439,8 @@ class AttachmentPoint(models.Model):
         related_name='+',
         on_delete=models.SET_NULL
     )
-    updated_at = models.DateTimeField(null=True)
-    
-    objects = AttachmentPointManager()
 
     def __str__(self):
-        if self.AS.owner != None:
-            return 'User AP: %s' %(str(self.AS))
         return str(self.AS)
 
     def get_border_router_for_useras_interface(self) -> BorderRouter:
@@ -478,17 +461,6 @@ class AttachmentPoint(models.Model):
         if self.vpn is None:
             raise ValidationError("Selected attachment point does not support VPN",
                                   code='attachment_point_no_vpn')
-
-    def trigger_deployment(self):
-        """
-        Trigger the deployment for the attachment point configuration (after the current transaction
-        is successfully committed).
-
-        The deployment is rate limited, max rate controlled by
-        settings.DEPLOYMENT_PERIOD.
-        """
-        #for host in self.AS.hosts.iterator():
-        #   transaction.on_commit(lambda: scionlab.tasks.deploy_host_config(host))
 
     def supported_ip_versions(self) -> Set[int]:
         """

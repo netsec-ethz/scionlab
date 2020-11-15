@@ -266,7 +266,7 @@ class AttachmentConfForm(forms.ModelForm):
         label="Active",
         help_text="Activate or deactivate this connection without deleting it"
     )
-    attachment_point = forms.ModelChoiceField(queryset=None)
+    attachment_point = forms.ModelChoiceField(queryset=AttachmentPoint.objects)
 
     class Meta:
         model = Link
@@ -309,7 +309,6 @@ class AttachmentConfForm(forms.ModelForm):
 
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
-        self.fields['attachment_point'].queryset = AttachmentPoint.objects.active()
 
     @staticmethod
     def _get_formset_index(prefix):

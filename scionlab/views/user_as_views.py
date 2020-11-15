@@ -23,7 +23,6 @@ from django.views.generic.detail import SingleObjectMixin
 from scionlab import config_tar
 from scionlab.util.http import HttpResponseAttachment
 from scionlab.models.user_as import UserAS, AttachmentPoint
-from scionlab.models.core import Host
 from scionlab.forms.user_as_form import UserASForm
 from scionlab.util.archive import TarWriter
 

@@ -1,9 +1,12 @@
 README.md: |-
   content_not_checked
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/br.toml: |
+gen/ASffaa_1_5/beacon_policy.yaml: |
+  Filter:
+    AllowIsdLoop: false
+gen/ASffaa_1_5/br-1.toml: |
   [general]
-  config_dir = "gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1"
-  id = "br17-ffaa_1_5-1"
+  config_dir = "gen/ASffaa_1_5"
+  id = "br-1"
   reconnect_to_dispatcher = true
 
   [metrics]
@@ -13,8 +16,8 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/br.toml: |
   level = "debug"
   max_age = 3
   max_backups = 1
-  path = "logs/br17-ffaa_1_5-1.log"
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD17-ASffaa_1_5-V1.crt: |-
+  path = "logs/br-1.log"
+gen/ASffaa_1_5/certs/ISD17-ASffaa_1_5-V1.crt: |-
   [
     {
       "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
@@ -27,7 +30,7 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD17-ASffaa_1_5-V1.crt: |-
       "signature": "cIeg8fYNYGq_kszOW5fMDaEgiPzJlllmrnG0B7BDSkeS7XOdEnMTQgsK5xlcJ63_FTlBLL2DBJyJw44seI34Bw"
     }
   ]
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD17-V1.trc: |-
+gen/ASffaa_1_5/certs/ISD17-V1.trc: |-
   {
     "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
     "signatures": [
@@ -45,7 +48,7 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD17-V1.trc: |-
       }
     ]
   }
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD19-V1.trc: |-
+gen/ASffaa_1_5/certs/ISD19-V1.trc: |-
   {
     "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
     "signatures": [
@@ -75,7 +78,7 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD19-V1.trc: |-
       }
     ]
   }
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD20-V1.trc: |-
+gen/ASffaa_1_5/certs/ISD20-V1.trc: |-
   {
     "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
     "signatures": [
@@ -105,210 +108,10 @@ gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/certs/ISD20-V1.trc: |-
       }
     ]
   }
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/as-decrypt-v1.key: |
-  -----BEGIN PRIVATE KEY-----
-  algorithm: curve25519xsalsa20poly1305
-  ia: 17-ffaa:1:5
-  not_after: 2019-10-02 11:07:41+0000
-  not_before: 2020-10-01 11:07:41+0000
-  usage: as-decrypt
-  version: 1
-
-  EfYRemSQ82iOF0N7OtAcSyRczxgjqN0O0qojlo8yAQg=
-  -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/as-signing-v1.key: |
-  -----BEGIN PRIVATE KEY-----
-  algorithm: ed25519
-  ia: 17-ffaa:1:5
-  not_after: 2019-10-02 11:07:41+0000
-  not_before: 2020-10-01 11:07:41+0000
-  usage: as-signing
-  version: 1
-
-  3GeOs8GafbawG+55j1jfx1ffGK8BPTp/1vtPRjkCflo=
-  -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/master0.key: |-
-  pWR5Qy46il0oTdqb1OokdA==
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/keys/master1.key: |-
-  pWR5Qy46il0oTdqb1OokdA==
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/supervisord.conf: |+
-  [program:br17-ffaa_1_5-1]
-  autostart = false
-  autorestart = true
-  environment = TZ=UTC,GODEBUG="cgocheck=0"
-  stdout_logfile = logs/br17-ffaa_1_5-1.OUT
-  stderr_logfile = logs/br17-ffaa_1_5-1.ERR
-  startretries = 0
-  startsecs = 5
-  priority = 100
-  command = bin/border -config gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/br.toml
-
-gen/ISD17/ASffaa_1_5/br17-ffaa_1_5-1/topology.json: |-
-  {
-    "Attributes": [],
-    "BorderRouters": {
-      "br17-ffaa_1_5-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30242
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1107",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30042
-            }
-          }
-        }
-      }
-    },
-    "ControlService": {
-      "cs17-ffaa_1_5-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30254
-            }
-          }
-        }
-      }
-    },
-    "ISD_AS": "17-ffaa:1:5",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "SIG": {
-      "sig17-ffaa_1_5-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31056
-            }
-          }
-        }
-      }
-    }
-  }
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/beacon_policy.yaml: |
-  Filter:
-    AllowIsdLoop: false
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/certs/ISD17-ASffaa_1_5-V1.crt: |-
-  [
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
-      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
-    },
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICI4TGx0Tk1PdVNmRW4ydVE4NjRtM2NqdCtienc0TzZqQ0ZHNE5yRnFpYWdJPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjhJUXVXeU5pZ3pXWmxJTTZpMnZ1bEdwOGJsS1RuN1IxVEhsTkVBOWFpTE09IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjE6NSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
-      "signature": "cIeg8fYNYGq_kszOW5fMDaEgiPzJlllmrnG0B7BDSkeS7XOdEnMTQgsK5xlcJ63_FTlBLL2DBJyJw44seI34Bw"
-    }
-  ]
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/certs/ISD17-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/certs/ISD19-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "3YGYoxPTR8jgDGadWM5ac03jNC6eIyrYVYJ3IFL_0d6ESO1eDfaWhPpEJPjni_am5DM-BGTC_6dl4IM4i58vDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "mKhwMiacq-3sJOEkkQ_e92622gR6pnFTvrI829vdoC64lkieM-18HGbJANXVmi-Bpl_CcF0uQyMSswapax23BQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "IyAgvp-9ZOHOnnVkUXMqlS22nF-KO2VYP_bXd09AONuJHsWlsGXDjoxOmH6SN2FwPpSDc_hkXuskHCUrk76HCg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "yBo9CKM5LgNk95QcjjK3UMdDVq3z0rsDIvvaWrKeWnbc1ejDpVK4IgM9hcpYLrRSt6y5sncFHw2Q1wTTlhSrDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "S0jmllXbdZL-1HQmT0C_29zIyuGnA03nKv2CiLpoeccWJN9sCoBc9AG9SaZQzasvJvEE7JNAHxrpNjB_j6bQCw"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wV0ZrVAXx88EUvIuk673MJLIAXcqQ-iV4vCCH50LCs0tLx65cI7ps6a31PSgIAnbp3SEg1VerkhUxJTxzyhzAg"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/certs/ISD20-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "lMflSxDL23pPZdxm4kCQrrExtho-3qWjBUGtFR9DCyADGjuhBBvJhUYXKCQgJmZwZKQ6sNvZhQrN650H7pXIAQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "IEQs-UKm_a0azRdYCBKgfytqLPKkC-KicEn8WyGNj_nJEpc6il5SvfUJkfv1TAUu2m5TK3Cwi_06dlKaOuacDQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "5x2TpKF5nJA3Z9gLdD45NZGm7nJZn8ndLaN8groZogAR9jW4y4qICkXuXz9ESYyA0JWVNLv_NsEEcaT33-hHBA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "LdhZ-vIz-I2G2dPJ3genkYhOCFJxsB3fZ_JDkm8w-94n8pAfh4CzdkiVLFJkW5xjIdcH6v-M5SyF-_4vwaXNAg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "CMXlaUloufb05e0myd4-fICnAVzCHrgJ7-mDegDHjMqSi3QuE70Gm-Muf887Rey_OHV9x7woExKQ-NpjSaa8Cg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wdZ-vcrtMLvPFnTTp1367W2i9CNq-kDLtpRJyEp4G2bf5KhdqdW_gtuYFEArtW0oGZ4-tiIErM3ng9Rvv7EjDQ"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
+gen/ASffaa_1_5/cs-1.toml: |
   [beacon_db]
   backend = "sqlite"
-  connection = "gen-cache/cs17-ffaa_1_5-1.beacon.db"
+  connection = "gen-cache/cs-1.beacon.db"
 
   [beaconing]
   origination_interval = "5s"
@@ -317,8 +120,8 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
   rev_ttl = "20s"
 
   [general]
-  config_dir = "gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1"
-  id = "cs17-ffaa_1_5-1"
+  config_dir = "gen/ASffaa_1_5"
+  id = "cs-1"
   reconnect_to_dispatcher = true
 
   [metrics]
@@ -326,7 +129,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
 
   [path_db]
   backend = "sqlite"
-  connection = "gen-cache/cs17-ffaa_1_5-1.path.db"
+  connection = "gen-cache/cs-1.path.db"
 
   [quic]
   address = "127.0.0.1:30354"
@@ -336,17 +139,17 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml: |
 
   [trust_db]
   backend = "sqlite"
-  connection = "gen-cache/cs17-ffaa_1_5-1.trust.db"
+  connection = "gen-cache/cs-1.trust.db"
 
   [beaconing.policies]
-  Propagation = "gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/beacon_policy.yaml"
+  Propagation = "gen/ASffaa_1_5/beacon_policy.yaml"
 
   [log.file]
   level = "debug"
   max_age = 3
   max_backups = 1
-  path = "logs/cs17-ffaa_1_5-1.log"
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-decrypt-v1.key: |
+  path = "logs/cs-1.log"
+gen/ASffaa_1_5/keys/as-decrypt-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: curve25519xsalsa20poly1305
   ia: 17-ffaa:1:5
@@ -357,7 +160,7 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-decrypt-v1.key: |
 
   EfYRemSQ82iOF0N7OtAcSyRczxgjqN0O0qojlo8yAQg=
   -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-signing-v1.key: |
+gen/ASffaa_1_5/keys/as-signing-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: ed25519
   ia: 17-ffaa:1:5
@@ -368,185 +171,14 @@ gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/as-signing-v1.key: |
 
   3GeOs8GafbawG+55j1jfx1ffGK8BPTp/1vtPRjkCflo=
   -----END PRIVATE KEY-----
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/master0.key: |-
+gen/ASffaa_1_5/keys/master0.key: |-
   pWR5Qy46il0oTdqb1OokdA==
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/keys/master1.key: |-
+gen/ASffaa_1_5/keys/master1.key: |-
   pWR5Qy46il0oTdqb1OokdA==
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/supervisord.conf: |+
-  [program:cs17-ffaa_1_5-1]
-  autostart = false
-  autorestart = true
-  environment = TZ=UTC
-  stdout_logfile = logs/cs17-ffaa_1_5-1.OUT
-  stderr_logfile = logs/cs17-ffaa_1_5-1.ERR
-  startretries = 0
-  startsecs = 5
-  priority = 100
-  command = bin/cs -config gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/cs.toml
-
-gen/ISD17/ASffaa_1_5/cs17-ffaa_1_5-1/topology.json: |-
-  {
-    "Attributes": [],
-    "BorderRouters": {
-      "br17-ffaa_1_5-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30242
-            }
-          }
-        },
-        "Interfaces": {
-          "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1107",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            }
-          }
-        },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30042
-            }
-          }
-        }
-      }
-    },
-    "ControlService": {
-      "cs17-ffaa_1_5-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30254
-            }
-          }
-        }
-      }
-    },
-    "ISD_AS": "17-ffaa:1:5",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4",
-    "SIG": {
-      "sig17-ffaa_1_5-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 31056
-            }
-          }
-        }
-      }
-    }
-  }
-gen/ISD17/ASffaa_1_5/endhost/certs/ISD17-ASffaa_1_5-V1.crt: |-
-  [
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9",
-      "signature": "w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"
-    },
-    {
-      "payload": "eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICI4TGx0Tk1PdVNmRW4ydVE4NjRtM2NqdCtienc0TzZqQ0ZHNE5yRnFpYWdJPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjhJUXVXeU5pZ3pXWmxJTTZpMnZ1bEdwOGJsS1RuN1IxVEhsTkVBOWFpTE09IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjE6NSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ",
-      "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0",
-      "signature": "cIeg8fYNYGq_kszOW5fMDaEgiPzJlllmrnG0B7BDSkeS7XOdEnMTQgsK5xlcJ63_FTlBLL2DBJyJw44seI34Bw"
-    }
-  ]
-gen/ISD17/ASffaa_1_5/endhost/certs/ISD17-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_1_5/endhost/certs/ISD19-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "3YGYoxPTR8jgDGadWM5ac03jNC6eIyrYVYJ3IFL_0d6ESO1eDfaWhPpEJPjni_am5DM-BGTC_6dl4IM4i58vDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "mKhwMiacq-3sJOEkkQ_e92622gR6pnFTvrI829vdoC64lkieM-18HGbJANXVmi-Bpl_CcF0uQyMSswapax23BQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "IyAgvp-9ZOHOnnVkUXMqlS22nF-KO2VYP_bXd09AONuJHsWlsGXDjoxOmH6SN2FwPpSDc_hkXuskHCUrk76HCg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "yBo9CKM5LgNk95QcjjK3UMdDVq3z0rsDIvvaWrKeWnbc1ejDpVK4IgM9hcpYLrRSt6y5sncFHw2Q1wTTlhSrDg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "S0jmllXbdZL-1HQmT0C_29zIyuGnA03nKv2CiLpoeccWJN9sCoBc9AG9SaZQzasvJvEE7JNAHxrpNjB_j6bQCw"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wV0ZrVAXx88EUvIuk673MJLIAXcqQ-iV4vCCH50LCs0tLx65cI7ps6a31PSgIAnbp3SEg1VerkhUxJTxzyhzAg"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_1_5/endhost/certs/ISD20-V1.trc: |-
-  {
-    "payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-    "signatures": [
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "lMflSxDL23pPZdxm4kCQrrExtho-3qWjBUGtFR9DCyADGjuhBBvJhUYXKCQgJmZwZKQ6sNvZhQrN650H7pXIAQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "IEQs-UKm_a0azRdYCBKgfytqLPKkC-KicEn8WyGNj_nJEpc6il5SvfUJkfv1TAUu2m5TK3Cwi_06dlKaOuacDQ"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "5x2TpKF5nJA3Z9gLdD45NZGm7nJZn8ndLaN8groZogAR9jW4y4qICkXuXz9ESYyA0JWVNLv_NsEEcaT33-hHBA"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "LdhZ-vIz-I2G2dPJ3genkYhOCFJxsB3fZ_JDkm8w-94n8pAfh4CzdkiVLFJkW5xjIdcH6v-M5SyF-_4vwaXNAg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-        "signature": "CMXlaUloufb05e0myd4-fICnAVzCHrgJ7-mDegDHjMqSi3QuE70Gm-Muf887Rey_OHV9x7woExKQ-NpjSaa8Cg"
-      },
-      {
-        "protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-        "signature": "wdZ-vcrtMLvPFnTTp1367W2i9CNq-kDLtpRJyEp4G2bf5KhdqdW_gtuYFEArtW0oGZ4-tiIErM3ng9Rvv7EjDQ"
-      }
-    ]
-  }
-gen/ISD17/ASffaa_1_5/endhost/sd.toml: |
+gen/ASffaa_1_5/sd.toml: |
   [general]
-  config_dir = "gen/ISD17/ASffaa_1_5/endhost"
-  id = "sd17-ffaa_1_5"
+  config_dir = "gen/ASffaa_1_5"
+  id = "sd"
   reconnect_to_dispatcher = true
 
   [metrics]
@@ -554,37 +186,25 @@ gen/ISD17/ASffaa_1_5/endhost/sd.toml: |
 
   [path_db]
   backend = "sqlite"
-  connection = "gen-cache/sd17-ffaa_1_5.path.db"
+  connection = "gen-cache/sd.path.db"
 
   [sd]
   address = "127.0.0.1:30255"
 
   [trust_db]
   backend = "sqlite"
-  connection = "gen-cache/sd17-ffaa_1_5.trust.db"
+  connection = "gen-cache/sd.trust.db"
 
   [log.file]
   level = "debug"
   max_age = 3
   max_backups = 1
-  path = "logs/sd17-ffaa_1_5.log"
-gen/ISD17/ASffaa_1_5/endhost/supervisord.conf: |+
-  [program:sd17-ffaa_1_5]
-  autostart = false
-  autorestart = true
-  environment = TZ=UTC
-  stdout_logfile = logs/sd17-ffaa_1_5.OUT
-  stderr_logfile = logs/sd17-ffaa_1_5.ERR
-  startretries = 0
-  startsecs = 5
-  priority = 100
-  command = bin/sciond -config gen/ISD17/ASffaa_1_5/endhost/sd.toml
-
-gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
+  path = "logs/sd.log"
+gen/ASffaa_1_5/topology.json: |-
   {
     "Attributes": [],
     "BorderRouters": {
-      "br17-ffaa_1_5-1": {
+      "br-1": {
         "CtrlAddr": {
           "IPv4": {
             "Public": {
@@ -621,7 +241,7 @@ gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
       }
     },
     "ControlService": {
-      "cs17-ffaa_1_5-1": {
+      "cs-1": {
         "Addrs": {
           "IPv4": {
             "Public": {
@@ -636,7 +256,7 @@ gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
     "MTU": 1472,
     "Overlay": "UDP/IPv4",
     "SIG": {
-      "sig17-ffaa_1_5-1": {
+      "sig-1": {
         "Addrs": {
           "IPv4": {
             "Public": {
@@ -648,10 +268,6 @@ gen/ISD17/ASffaa_1_5/endhost/topology.json: |-
       }
     }
   }
-gen/ISD17/ASffaa_1_5/supervisord.conf: |+
-  [group:as17-ffaa_1_5]
-  programs = br17-ffaa_1_5-1,cs17-ffaa_1_5-1,sd17-ffaa_1_5,dispatcher
-
 gen/dispatcher/disp.toml: |
   [dispatcher]
   id = "dispatcher"
@@ -665,22 +281,52 @@ gen/dispatcher/disp.toml: |
   max_age = 3
   max_backups = 1
   path = "logs/dispatcher.log"
-gen/dispatcher/supervisord.conf: |+
+gen/supervisord.conf: |+
+  [program:br-1]
+  autostart = false
+  autorestart = true
+  environment = TZ=UTC,GODEBUG="cgocheck=0"
+  stdout_logfile = logs/br-1.log
+  redirect_stderr = True
+  startretries = 0
+  startsecs = 5
+  priority = 100
+  command = bin/border -config gen/ASffaa_1_5/br-1.toml
+
+  [program:cs-1]
+  autostart = false
+  autorestart = true
+  environment = TZ=UTC
+  stdout_logfile = logs/cs-1.log
+  redirect_stderr = True
+  startretries = 0
+  startsecs = 5
+  priority = 100
+  command = bin/cs -config gen/ASffaa_1_5/cs-1.toml
+
+  [program:sd]
+  autostart = false
+  autorestart = true
+  environment = TZ=UTC
+  stdout_logfile = logs/sd.log
+  redirect_stderr = True
+  startretries = 0
+  startsecs = 5
+  priority = 100
+  command = bin/sciond -config gen/ASffaa_1_5/sd.toml
+
+  [group:as17-ffaa_1_5]
+  programs = br-1,cs-1,sd
+
   [program:dispatcher]
   autostart = false
   autorestart = true
   environment = TZ=UTC
-  stdout_logfile = logs/dispatcher.OUT
-  stderr_logfile = logs/dispatcher.ERR
+  stdout_logfile = logs/dispatcher.log
+  redirect_stderr = True
   startretries = 0
   startsecs = 1
   priority = 50
   command = bin/godispatcher -config gen/dispatcher/disp.toml
 
-gen/scionlab-config.json: |-
-  {
-    "host_id": "f2f482ed5717434e926c39bd5ef661dc",
-    "host_secret": "c2253b49ef334ec6bba8e1c85b48629c",
-    "url": "http://localhost:8000",
-    "version": 4
-  }
+...

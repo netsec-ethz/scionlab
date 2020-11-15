@@ -13,18 +13,19 @@
 # limitations under the License.
 
 import os
-import string
 import pathlib
+import string
 
 from django.conf import settings
-from scionlab import scion_config
-from scionlab.defines import GEN_PATH
+from scionlab.defines import OPENVPN_CONFIG_DIR
+from scionlab.scion.config import generate_systemd_scion_config, generate_supervisord_scion_config
 from scionlab.models.user_as import UserAS
 from scionlab.openvpn_config import (
     generate_vpn_client_config,
     generate_vpn_server_config,
     ccd_config,
 )
+from scionlab.util.archive import HashedArchiveWriter
 
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
@@ -66,12 +67,11 @@ def _add_files_user_as_pkg(archive, host):
     """
     The configuration tar for a PKG user AS contains:
     - README
-    - scionlab-services.txt file listing the services running in the host
-    - config_info file (scionlab-config.json) inside the gen directory
-    - full gen directory
-    - VPN file client-scionlab-.conf (if using VPN)
+    - scionlab-config.json metadata file
+    - scion config /etc/scion/*
+    - VPN config /etc/openvpn/client-scionlab-*.conf (if using VPN)
     """
-    _add_host_config(host, archive, scion_config.ProcessControl.SYSTEMD)
+    generate_host_config_tar(host, archive)
     archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
 
@@ -79,11 +79,11 @@ def _add_files_user_as_src(archive, host):
     """
     The configuration tar for a SRC user AS contains:
     - README
-    - config_info file (scionlab-config.json) inside the gen directory
     - full gen directory, including supervisord files
-    - VPN file client-scionlab-.conf (if using VPN)
+    - VPN config /etc/openvpn/client-scionlab-*.conf (if using VPN)
     """
-    _add_host_config(host, archive, scion_config.ProcessControl.SUPERVISORD)
+    _add_vpn_client_configs(host, archive)
+    generate_supervisord_scion_config(host, archive, with_sig_dummy_entry=True)
     archive.add("README.md", _hostfiles_path("README_dedicated.md"))
 
 
@@ -94,23 +94,13 @@ def generate_host_config_tar(host, archive):
     :param Host host: the Host for which config should be generated
     :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
     """
-    _add_host_config(host, archive, scion_config.ProcessControl.SYSTEMD)
-
-
-def _add_host_config(host, archive, process_control):
-    """
-    Write the configuration for the given host to the archive.
-
-    :param Host host: the Host for which config should be generated
-    :param scionlab.util.archive.BaseArchiveWriter archive: output archive-writer
-    :param ProcessControl process_control: configuration generated for installation with
-                                           supervisord/systemd
-    """
-    _add_config_info(host, archive)
-    _add_vpn_client_configs(host, archive)
-    _add_vpn_server_config(host, archive)
-    scion_config.create_gen(host, archive, process_control,
-                            with_sig_dummy_entry=hasattr(host.AS, 'useras'))
+    hashed_archive = HashedArchiveWriter(archive)
+    units = generate_systemd_scion_config(host,
+                                          hashed_archive,
+                                          with_sig_dummy_entry=hasattr(host.AS, 'useras'))
+    _add_vpn_client_configs(host, hashed_archive)  # note: not adding these to the file list
+    _add_vpn_server_config(host, hashed_archive)
+    _add_config_info(host, hashed_archive.hashes, units, archive)
 
 
 def is_empty_config(host):
@@ -124,6 +114,7 @@ def _add_vpn_client_configs(host, archive):
     """
     Generate the VPN config files and add them to the tar.
     """
+    vpn_dir = OPENVPN_CONFIG_DIR.lstrip("/")  # don't use absolute paths in the archive
     # Each host can run at most one VPN-Client per VPN
     clients = host.vpn_clients.filter(active=True).select_related('vpn__server__AS').all()
     configs = dict()
@@ -132,17 +123,18 @@ def _add_vpn_client_configs(host, archive):
         configs[name] = generate_vpn_client_config(client)
 
     for name, config in configs.items():
-        archive.write_text("client-scionlab-{}.conf".format(name), config)
+        archive.write_text((vpn_dir, "client-scionlab-{}.conf".format(name)), config)
 
 
 def _add_vpn_server_config(host, archive):
+    vpn_dir = OPENVPN_CONFIG_DIR.lstrip("/")  # don't use absolute paths in the archive
     server = host.vpn_servers.first()  # only one server per host supported for now
     if server:
-        archive.write_text("server.conf", generate_vpn_server_config(server))
-        archive.add_dir("ccd")
+        archive.write_text((vpn_dir, "server.conf"), generate_vpn_server_config(server))
+        archive.add_dir((vpn_dir, "ccd"))
         for client in server.clients.iterator():
             common_name, config_string = ccd_config(client)
-            archive.write_text("ccd/" + common_name, config_string)
+            archive.write_text((vpn_dir, "ccd", common_name), config_string)
 
 
 def _add_vagrantfiles(host, archive):
@@ -176,23 +168,33 @@ def _expand_vagrantfile_template(host):
     )
 
 
-def _add_config_info(host, archive):
-    archive.write_json((GEN_PATH, 'scionlab-config.json'), _generate_config_info_json(host))
+def _add_config_info(host, hashes, systemd_units, archive):
+    archive.write_json('scionlab-config.json',
+                       _generate_config_info_json(host, hashes, systemd_units))
 
 
-def _generate_config_info_json(host):
+def _generate_config_info_json(host, hashes, systemd_units):
     """
-    Return a JSON-formatted string; a dict containing the authentication parameters for the host
-    and the current configuration version number.
+    Return a dict containing
+    - authentication parameters for the host
+    - current configuration version number
+    - hashes of all installed config files; used in scionlab-config to determine
+      whether a file has local changes
+    - list of systemd units to be started
+
     :param Host host:
-    :returns: json string
+    :param hashes: dict filename -> hash
+    :param List[str] systemd_units:
+    :returns: dict
     """
     config_info = {
         'host_id': host.uid,
         'host_secret': host.secret,
-        'url': settings.SCIONLAB_SITE
+        'url': settings.SCIONLAB_SITE,
+        'version': host.config_version,
+        'files': hashes,
+        'systemd_units': systemd_units,
     }
-    config_info['version'] = host.config_version
     return config_info
 
 

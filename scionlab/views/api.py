@@ -20,13 +20,13 @@ from django.views import View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
     HttpResponseGone,
     HttpResponseNotModified
 )
-from django.utils import timezone
 
 from scionlab import config_tar
 from scionlab.models.core import Host
@@ -68,6 +68,8 @@ class GetHostConfig(SingleObjectMixin, View):
         version = _get_version_param(request.GET)
         if version is _BAD_VERSION:
             return HttpResponseBadRequest()
+
+        host.update_timestamp()
 
         if version and version >= host.config_version:
             return HttpResponseNotModified()
@@ -116,11 +118,6 @@ class PostHostDeployedConfigVersion(SingleObjectMixin, View):
             return HttpResponseBadRequest()
 
         host = self.get_object()
-        ap = AttachmentPoint.objects.filter(AS = host.AS).first()
-        if ap != None:
-            ap.updated_at = timezone.now()
-            ap.save()
-            
         if version > host.config_version or version < host.config_version_deployed:
             return HttpResponseNotModified()
 
