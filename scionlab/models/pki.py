@@ -47,32 +47,19 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
 
     This "trick" is required to be able to use voting sensitive keys for the creation of a new TRC
     after an AS has been deleted.
+    We use the callback on the Key.on_delete because Key is an intermediate model between
+    Certificate and AS, and simplifies checking membership on the cert.trc_voted_sensitive.
     See also: test_pki:CertificateTests.test_delete_while_sensitive_voted
     """
-    sensitive, others = [], []
-    for key in sub_objs:
-        if key.certificates.exclude(trc_voted_sensitive__isnull=True):
-            sensitive.append(key)
-        else:
-            others.append(key)
+    sensitive = [key for key in sub_objs
+                 if key.certificates.exclude(trc_voted_sensitive__isnull=True)]
+    theothers = [key for key in sub_objs
+                 if key.certificates.exclude(trc_voted_sensitive__isnull=False)]
 
     if sensitive:
         models.SET_NULL(collector, field, sensitive, using)
-    if others:
-        models.CASCADE(collector, field, others, using)
-
-
-def _cert_set_null_or_cascade(collector, field, sub_objs, using):
-    others = [cert for cert in sub_objs if not cert.trc_voted_sensitive.exists()]
-    for cert in sub_objs:
-        if cert.trc_voted_sensitive.exists():
-            keys = collector.data.get(cert.key.__class__)
-            if cert.key in keys:
-                keys.remove(cert.key)
-                cert.key.AS.keys.set(cert.key.AS.keys.exclude(pk=cert.key.pk))
-                cert.key.AS = None
-    if others:
-        models.CASCADE(collector, field, others, using)
+    if theothers:
+        models.CASCADE(collector, field, theothers, using)
 
 
 class KeyManager(models.Manager):
@@ -133,7 +120,6 @@ class Key(models.Model):
         'AS',
         related_name='keys',
         on_delete=_key_set_null_or_cascade,
-        # on_delete=models.CASCADE,
         editable=False,
         null=True,
     )
@@ -286,7 +272,6 @@ class Certificate(models.Model):
         related_name="certificates",
         null=True,
         on_delete=models.CASCADE,
-        # on_delete=_cert_set_null_or_cascade,
     )
     ca_cert = models.ForeignKey(  # the CA. If self signed, it will point to itself.
         "self",
