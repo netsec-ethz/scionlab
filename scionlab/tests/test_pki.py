@@ -421,7 +421,7 @@ class TRCTests(TestCase):
 
         return trc
 
-    def test_generate_initial(self):
+    def _test_generate_initial(self):
         trc, primary_ases, _ = self.gen_trc_v1()
 
         # initial version, is signed by _all_ keys (as proof of possession)
@@ -438,7 +438,7 @@ class TRCTests(TestCase):
         trc_bad['signatures'][0]['signature'] = 'forged'
         self.assertFalse(trcs.test_verify(trc_bad, votes, pops))
 
-    def test_update_offline(self):
+    def _test_update_offline(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
 
         primary_ases_v2 = copy.deepcopy(primary_ases_v1)
@@ -457,7 +457,7 @@ class TRCTests(TestCase):
         ]
         self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
-    def test_remove_as(self):
+    def _test_remove_as(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
 
         primary_ases_v2 = copy.deepcopy(primary_ases_v1)
@@ -474,7 +474,7 @@ class TRCTests(TestCase):
         pops = []
         self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
-    def test_add_as(self):
+    def _test_add_as(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
 
         primary_ases_v2 = copy.deepcopy(primary_ases_v1)
@@ -496,7 +496,7 @@ class TRCTests(TestCase):
         ]
         self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
-    def test_update_online(self):
+    def _test_update_online(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
 
         primary_ases_v2 = copy.deepcopy(primary_ases_v1)
@@ -518,7 +518,7 @@ class TRCTests(TestCase):
         ]
         self.assertTrue(trcs.test_verify(trc_v2, votes, pops))
 
-    def test_update_issuing(self):
+    def _test_update_issuing(self):
         trc_v1, primary_ases_v1, voting_offline_v1 = self.gen_trc_v1()
 
         primary_ases_v2 = copy.deepcopy(primary_ases_v1)
