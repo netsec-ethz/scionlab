@@ -42,14 +42,19 @@ Validity = namedtuple("Validity", ["not_before", "not_after"])
 def _key_set_null_or_cascade(collector, field, sub_objs, using):
     """
     on_delete callback for AS relation:
-        - SET_NULL for keys with usage==TRC_VOTING_SENSITIVE
+        - SET_NULL for keys that have a cert sensitive signing a TRC
         - CASCADE for all others
 
     This "trick" is required to be able to use voting sensitive keys for the creation of a new TRC
     after an AS has been deleted.
+    See also: test_pki:CertificateTests.test_delete_while_sensitive_voted
     """
-    sensitive = [key for key in sub_objs if key.usage == Key.TRC_VOTING_SENSITIVE]
-    others = [key for key in sub_objs if key.usage != Key.TRC_VOTING_SENSITIVE]
+    sensitive, others = [], []
+    for key in sub_objs:
+        if key.certificates.exclude(trc_voted_sensitive__isnull=True):
+            sensitive.append(key)
+        else:
+            others.append(key)
 
     if sensitive:
         models.SET_NULL(collector, field, sensitive, using)
@@ -127,8 +132,8 @@ class Key(models.Model):
     AS = models.ForeignKey(
         'AS',
         related_name='keys',
-        # on_delete=_key_set_null_or_cascade,
-        on_delete=models.CASCADE,
+        on_delete=_key_set_null_or_cascade,
+        # on_delete=models.CASCADE,
         editable=False,
         null=True,
     )
@@ -280,8 +285,8 @@ class Certificate(models.Model):
         Key,
         related_name="certificates",
         null=True,
-        # on_delete=models.CASCADE,
-        on_delete=_cert_set_null_or_cascade,
+        on_delete=models.CASCADE,
+        # on_delete=_cert_set_null_or_cascade,
     )
     ca_cert = models.ForeignKey(  # the CA. If self signed, it will point to itself.
         "self",
