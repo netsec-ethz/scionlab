@@ -110,7 +110,7 @@ class TRCManager(models.Manager):
     def latest(self):
         """ there could be more than one TRC with the same serial, but the latest is the one
         that has its base the further in the sequence """
-        return self.order_by("-version_serial").latest("base_version")
+        return super().latest("version_serial", "base_version")
 
     def latest_or_none(self):
         try:
