@@ -282,7 +282,11 @@ class TRCTests(TestCase):
         k_3_2 = _create_TRC(self.isd1, 3, 2)
         self.assertEqual(TRC.objects.latest(), k_3_2)
         self.assertEqual(TRC.next_version(), 4)
-        self.assertEqual(TRC.objects.count(), 3)
+        # weird case with same serial, different base version
+        k_3_3 = _create_TRC(self.isd1, 3, 3)
+        self.assertEqual(TRC.objects.latest(), k_3_3)
+        self.assertEqual(TRC.next_version(), 4)
+        self.assertEqual(TRC.objects.count(), 4)
 
     def test_can_update(self):
         self.assertFalse(_can_update(1))
