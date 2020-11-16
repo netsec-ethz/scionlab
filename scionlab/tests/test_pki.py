@@ -14,6 +14,7 @@
 
 import copy
 from datetime import datetime, timedelta
+from django.db import models
 from django.test import TestCase
 
 from scionlab.models.core import ISD, AS
@@ -256,6 +257,49 @@ class CertificateTests(TestCase):
         self.assertEqual(output[0:index], cert.certificate)  # own certificate
         self.assertEqual(output[index:], cert_ca.certificate)  # issuer
 
+    def test_delete_key_cascades(self):
+        k = Key.objects.create(AS=self.AS, usage=Key.ISSUING_ROOT)
+        Certificate.objects.create_issuer_root_cert(
+            subject=self.AS,
+            not_before=datetime.utcnow(),
+            not_after=datetime.utcnow())
+        self.assertEqual(Key.objects.count(), 1)
+        self.assertEqual(Certificate.objects.count(), 1)
+        k.delete()
+        self.assertEqual(Key.objects.count(), 0)
+        self.assertEqual(Certificate.objects.count(), 0)
+
+    def test_delete_while_sensitive_voted(self):
+        Key.objects.create_core_keys(self.AS)
+        Certificate.objects.create_core_certs(self.AS)
+
+        # k_as = Key.objects.get(usage=Key.CP_AS)
+        k_ca = Key.objects.get(usage=Key.ISSUING_CA)
+        k_root = Key.objects.get(usage=Key.ISSUING_ROOT)
+        k_regular = Key.objects.get(usage=Key.TRC_VOTING_REGULAR)
+        k_sensitive = Key.objects.get(usage=Key.TRC_VOTING_SENSITIVE)
+
+        AS2 = _create_AS(self.isd, "ff00:0:111")
+        Key.objects.create_core_keys(AS2)
+        Certificate.objects.create_core_certs(AS2)
+
+        trc = _create_TRC(self.isd, 1, 1)
+        trc.voting_sensitive.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_SENSITIVE,
+                                                            key__AS=self.AS))
+        self.AS.delete()
+
+        # self.assertFalse(Key.objects.filter(pk=k_as.pk).exists())
+        self.assertFalse(Key.objects.filter(pk=k_ca.pk).exists())
+        self.assertFalse(Key.objects.filter(pk=k_root.pk).exists())
+        self.assertFalse(Key.objects.filter(pk=k_regular.pk).exists())
+        self.assertTrue(Key.objects.filter(pk=k_sensitive.pk).exists())
+        # self.assertFalse(AS.objects.filter(pk=self.AS.pk).exists())
+
+        # the keys for the other AS are removed
+        AS2.delete()
+        self.assertFalse(Certificate.objects.filter(key__AS=AS2).exists())
+
+
 
 _ASID_1 = 'ff00:0:1'
 _ASID_2 = 'ff00:0:2'
@@ -337,7 +381,7 @@ class TRCTests(TestCase):
         ##############################################################################################
         ##############################################################################################
         # this ^^ fails because there is no foreign key to point to the certificate, but to the key
-        # TODO(juagargi) change trc.voting_* to point to certificates        ##############################################################################################
+        # TODO(juagargi) change trc.voting_* to point to certificates        #########################
         ##############################################################################################
         ##############################################################################################
         ##############################################################################################
@@ -352,6 +396,8 @@ class TRCTests(TestCase):
         self.assertTrue(trc5.can_update_regular())
 
     def _reset_core_ases(self, trc):
+        things = Key.objects.values("AS")
+        things = Key.objects.filter(usage=Key.TRC_VOTING_SENSITIVE).aggregate(models.Count("AS"))
         trc.voting_sensitive.set(Key.objects.filter(usage=Key.TRC_VOTING_SENSITIVE))
         trc.voting_regular.set(Key.objects.filter(usage=Key.TRC_VOTING_REGULAR))
         trc.quorum = trc.voting_sensitive.count() // 2 + 1

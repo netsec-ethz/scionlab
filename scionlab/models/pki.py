@@ -57,6 +57,34 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
         models.CASCADE(collector, field, others, using)
 
 
+def _get_related(opts):
+    # The candidate relations are the ones that come from N-1 and 1-1 relations.
+    # N-N  (i.e., many-to-many) relations aren't candidates for deletion.
+    return (
+        f for f in opts.get_fields(include_hidden=True)
+        if f.auto_created and not f.concrete and (f.one_to_one or f.one_to_many)
+    )
+
+
+def _cert_set_null_or_cascade(collector, field, sub_objs, using):
+    # sensitive = [cert for cert in sub_objs if cert.trc_voted_sensitive.exists()]
+    others = [cert for cert in sub_objs if not cert.trc_voted_sensitive.exists()]
+    for cert in sub_objs:
+        if cert.trc_voted_sensitive.exists():
+            ases = collector.data.get(cert.key.AS.__class__)
+            if cert.key.AS in ases:
+                ases.remove(cert.key.AS)
+            keys = collector.data.get(cert.key.__class__)
+            if cert.key in keys:
+                keys.remove(cert.key)
+            # key_AS_field = cert.key.__class__.AS.field
+            # models.SET_NULL(collector, key_AS_field, list(keys), using)
+    # if sensitive:
+    #     models.DO_NOTHING(collector, field, sensitive, using)
+    #     # models.SET
+    if others:
+        models.CASCADE(collector, field, others, using)
+
 class KeyManager(models.Manager):
     def create_core_keys(self, AS, not_before=None, not_after=None):
         keys = []
@@ -114,7 +142,8 @@ class Key(models.Model):
     AS = models.ForeignKey(
         'AS',
         related_name='keys',
-        on_delete=_key_set_null_or_cascade,
+        # on_delete=_key_set_null_or_cascade,
+        on_delete=models.CASCADE,
         editable=False,
         null=True,
     )
@@ -141,7 +170,7 @@ class Key(models.Model):
         unique_together = ('AS', 'usage', 'version')
 
     def __str__(self):
-        return f"{self.as_id()}={self.usage}-{self.version}"
+        return f"{self.as_id}={self.usage}-{self.version}"
 
     @property
     def as_id(self) -> str:
@@ -266,7 +295,8 @@ class Certificate(models.Model):
         Key,
         related_name="certificates",
         null=True,
-        on_delete=models.CASCADE,
+        # on_delete=models.CASCADE,
+        on_delete=_cert_set_null_or_cascade,
     )
     ca_cert = models.ForeignKey(  # the CA. If self signed, it will point to itself.
         "self",
@@ -294,17 +324,17 @@ class Certificate(models.Model):
         return self.filename()
 
     def filename(self):
-        if self.usage() == Key.VOTING_SENSITIVE:
+        if self.usage() == Key.TRC_VOTING_SENSITIVE:
             suffix = ".sensitive.crt"
-        elif self.usage() == Key.VOTING_REGULAR:
+        elif self.usage() == Key.TRC_VOTING_REGULAR:
             suffix = ".regular.crt"
-        elif self.usage() == Key.ISSUER_ROOT:
+        elif self.usage() == Key.ISSUING_ROOT:
             suffix = ".root.crt"
-        elif self.usage() == Key.ISSUER_CA:
+        elif self.usage() == Key.ISSUING_CA:
             suffix = ".ca.crt"
         else:
             suffix = ".pem"
-        return f"ISD{self.AS.isd.isd_id}-AS{self.AS.as_path_str()}{suffix}"
+        return f"ISD{self.key.AS.isd.isd_id}-AS{self.key.AS.as_path_str()}{suffix}"
 
     def format_certfile(self) -> str:
         """

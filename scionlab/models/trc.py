@@ -153,15 +153,23 @@ class TRC(models.Model):
     # These keys are never deleted to ensure it is always possible to create a new TRC version, even
     # after removing _all_ core ASes of an ISD. (see also _key_set_null_or_cascade).
     # TODO(juagargi) should we reference the cert instead?
+    # voting_sensitive = models.ManyToManyField(
+    #     Key,
+    #     related_name="trc_voted_sensitive",
+    # )
     voting_sensitive = models.ManyToManyField(
-        Key,
+        Certificate,
         related_name="trc_voted_sensitive",
     )
 
     # we keep track of the certificates that have been included in the TRC
     # TODO(juagargi) do we? should we?
+    # voting_regular = models.ManyToManyField(
+    #     Key,
+    #     related_name="trc_voted_regular",
+    # )
     voting_regular = models.ManyToManyField(
-        Key,
+        Certificate,
         related_name="trc_voted_regular",
     )
 
