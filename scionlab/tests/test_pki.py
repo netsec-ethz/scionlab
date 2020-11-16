@@ -299,6 +299,8 @@ class CertificateTests(TestCase):
         old_certs = Certificate.objects.filter(key__AS=AS2).values_list("pk", flat=True)
         AS2.delete()
         self.assertFalse(Certificate.objects.filter(pk__in=old_certs).exists())
+        self.assertEqual(Certificate.objects.count(), 1)
+        self.assertEqual(Key.objects.count(), 1)
 
 
 
