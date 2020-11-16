@@ -57,33 +57,18 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
         models.CASCADE(collector, field, others, using)
 
 
-def _get_related(opts):
-    # The candidate relations are the ones that come from N-1 and 1-1 relations.
-    # N-N  (i.e., many-to-many) relations aren't candidates for deletion.
-    return (
-        f for f in opts.get_fields(include_hidden=True)
-        if f.auto_created and not f.concrete and (f.one_to_one or f.one_to_many)
-    )
-
-
 def _cert_set_null_or_cascade(collector, field, sub_objs, using):
-    # sensitive = [cert for cert in sub_objs if cert.trc_voted_sensitive.exists()]
     others = [cert for cert in sub_objs if not cert.trc_voted_sensitive.exists()]
     for cert in sub_objs:
         if cert.trc_voted_sensitive.exists():
-            ases = collector.data.get(cert.key.AS.__class__)
-            if cert.key.AS in ases:
-                ases.remove(cert.key.AS)
             keys = collector.data.get(cert.key.__class__)
             if cert.key in keys:
                 keys.remove(cert.key)
-            # key_AS_field = cert.key.__class__.AS.field
-            # models.SET_NULL(collector, key_AS_field, list(keys), using)
-    # if sensitive:
-    #     models.DO_NOTHING(collector, field, sensitive, using)
-    #     # models.SET
+                cert.key.AS.keys.set(cert.key.AS.keys.exclude(pk=cert.key.pk))
+                cert.key.AS = None
     if others:
         models.CASCADE(collector, field, others, using)
+
 
 class KeyManager(models.Manager):
     def create_core_keys(self, AS, not_before=None, not_after=None):

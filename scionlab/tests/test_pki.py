@@ -293,11 +293,12 @@ class CertificateTests(TestCase):
         self.assertFalse(Key.objects.filter(pk=k_root.pk).exists())
         self.assertFalse(Key.objects.filter(pk=k_regular.pk).exists())
         self.assertTrue(Key.objects.filter(pk=k_sensitive.pk).exists())
-        # self.assertFalse(AS.objects.filter(pk=self.AS.pk).exists())
+        self.assertFalse(AS.objects.filter(pk=self.AS.pk).exists())
 
         # the keys for the other AS are removed
+        old_certs = Certificate.objects.filter(key__AS=AS2).values_list("pk", flat=True)
         AS2.delete()
-        self.assertFalse(Certificate.objects.filter(key__AS=AS2).exists())
+        self.assertFalse(Certificate.objects.filter(pk__in=old_certs).exists())
 
 
 
