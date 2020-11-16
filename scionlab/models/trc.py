@@ -219,18 +219,19 @@ class TRC(models.Model):
         prev = prev.get()
         if prev.quorum != self.quorum:
             return False
-        # check core, authoritative ASes (they are treated the same in SCIONLab)
+        # check core, authoritative ASes section (they are treated the same in SCIONLab)
         prev_voters = prev.voting_sensitive.values_list(
-            "AS__as_id_int", flat=True).order_by("AS__as_id_int")
-        if list(self.voting_sensitive.values_list(
-                "AS__as_id_int", flat=True).order_by("AS__as_id_int")) != list(prev_voters):
+            "key__AS__as_id_int", flat=True).order_by("key__AS__as_id_int")
+        if list(self.voting_sensitive.values_list("key__AS__as_id_int", flat=True)
+                .order_by("key__AS__as_id_int")) != list(prev_voters):
             return False
-        # get sensitive certificates
-        prev_sensitive = list(k.certificates.latest(Key.TRC_VOTING_SENSITIVE)
-                              for k in prev.voting_sensitive.order_by("AS__as_id_int"))
-        if list(k.certificates.latest(Key.TRC_VOTING_SENSITIVE) for k in self.voting_sensitive.order_by("AS__as_id_int")) != prev_sensitive:
+        # check sensitive certificates
+        prev_sensitive = list(prev.voting_sensitive.order_by("key__AS__as_id_int")
+                              .values_list("pk", flat=True))
+        if list(self.voting_sensitive.order_by("key__AS__as_id_int")
+                .values_list("pk", flat=True)) != prev_sensitive:
             return False
-        # TODO(juagargi) compare certs using the bytes
+        # TODO(juagargi) do the rest
         return True
 
     @staticmethod
