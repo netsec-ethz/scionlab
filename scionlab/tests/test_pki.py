@@ -390,21 +390,28 @@ class TRCTests(TestCase):
         self.assertFalse(trc6.can_update_regular())
         self.assertIn("different number", trc6.can_update_regular().message)
         # change regular voting certificate, not part of voters
-        # change regular voting certificate, make it part of voters
-        # change root certificate
         self._reset_core_ases(trc6)
         trc7 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, version_serial=7)
         trc7.save()
         self._reset_core_ases(trc7)
         self.assertTrue(trc7.can_update_regular())
-
-        new_root = Certificate.objects.create_issuer_root_cert(as1)
-
-        certs = list(trc7.certificates.filter(key__AS=as1))
-        trc7.certificates.filter(key__AS=as1).delete()
+        cert = trc7.certificateintrc_set.filter(
+            certificate__key__usage=Key.TRC_VOTING_REGULAR).last()
+        trc7.voting_regular.remove(cert.certificate)
+        as_ = cert.certificate.key.AS
+        cert.delete()
+        cert = Certificate.objects.create_voting_regular_cert(as_)
+        trc7.add_certificates([cert])
         trc7.save()
-        # self.assertFalse(trc7.can_update_regular())
+        self.assertFalse(trc7.can_update_regular())
+        self.assertIn("regular voting certificate", trc7.can_update_regular().message)
+        self.assertIn("not part of voters", trc7.can_update_regular().message)
+
+        # TODO:
+        # change regular voting certificate, make it part of voters
+        # change root certificate, not part of voters
+        # change root certificate, make it part of voters
 
     def _reset_core_ases(self, trc):
         trc.voting_sensitive.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_SENSITIVE))

@@ -210,7 +210,7 @@ class TRC(models.Model):
             TRC is part of the voters of the new TRC.
         - For every root certificate that changes, the root certificate in the previous TRC
             attaches a signature to the new TRC.
-        For regular TRC updates to be verifyable, they must contain votes
+        For regular TRC updates to be verifiable, they must contain votes
         only from regular certificates.
         """
         class ReturnReason:
@@ -246,7 +246,7 @@ class TRC(models.Model):
                            .order_by("pk").values_list("pk", flat=True))
         regular = set(self.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
                       .order_by("pk").values_list("pk", flat=True))
-        diff = prev_regular.difference(regular)
+        diff = regular.difference(prev_regular)
         if self.voting_regular.filter(pk__in=diff).count() != len(diff):
             return ReturnReason("regular voting certificate changed and not part of voters")
         # check root certificates
