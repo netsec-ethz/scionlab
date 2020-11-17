@@ -175,9 +175,6 @@ gen/ASffaa_1_5/sd.toml: |
   [path_db]
   connection = "gen-cache/sd.path.db"
 
-  [sd]
-  address = "127.0.0.1:30255"
-
   [trust_db]
   connection = "gen-cache/sd.trust.db"
 

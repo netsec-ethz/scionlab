@@ -163,26 +163,6 @@ etc/scion/keys/master0.key: |-
   /t1Iw4Ac7l5YJKBbxHmhhA==
 etc/scion/keys/master1.key: |-
   /t1Iw4Ac7l5YJKBbxHmhhA==
-etc/scion/sd.toml: |
-  [general]
-  config_dir = "/etc/scion"
-  id = "sd"
-  reconnect_to_dispatcher = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30455"
-
-  [path_db]
-  connection = "/var/lib/scion/sd.path.db"
-
-  [sd]
-  address = "127.0.0.1:30255"
-
-  [trust_db]
-  connection = "/var/lib/scion/sd.trust.db"
-
-  [log.console]
-  level = "debug"
 etc/scion/topology.json: |-
   {
     "attributes": [],
@@ -237,7 +217,6 @@ scionlab-config.json: |-
       "etc/scion/keys/as-signing-v1.key": "a1385c0c78e7916d269c085a381a73af1c5c9da6",
       "etc/scion/keys/master0.key": "dca432f9d6228867e00003bd7380db8ab712ab33",
       "etc/scion/keys/master1.key": "dca432f9d6228867e00003bd7380db8ab712ab33",
-      "etc/scion/sd.toml": "1e0fcd670aa5cde7b9bfc6fc052e066cc5184598",
       "etc/scion/topology.json": "a1c013186e3d405564853fd55255573db812a895"
     },
     "host_id": "b7cb55af1ecd46ea9ad668c5dc43e628",
@@ -245,7 +224,7 @@ scionlab-config.json: |-
     "systemd_units": [
       "scion-border-router@br-1.service",
       "scion-control-service@cs-1.service",
-      "scion-daemon@sd.service",
+      "scion-daemon.service",
       "scion-dispatcher.service"
     ],
     "url": "http://localhost:8000",

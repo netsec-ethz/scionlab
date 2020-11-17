@@ -108,9 +108,6 @@ class _ConfigGeneratorBase:
             self.archive.write_toml((config_dir, f'{service.instance_name}.toml'),
                                     cb.build_cs_conf(service))
 
-        self.archive.write_toml((config_dir, 'sd.toml'),
-                                cb.build_sciond_conf(self.host))
-
         self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
         self._write_topo(config_dir)
         self._write_trcs(config_dir)
@@ -166,7 +163,7 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
         config_builder = _ConfigBuilder(config_dir=SCION_CONFIG_DIR,
                                         var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
-        # dispatcher config is installed with the package
+        # dispatcher and sciond config files are installed with the package
 
     def systemd_units(self):
         units = ["scion-border-router@%s.service" % router.instance_name
@@ -176,7 +173,7 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
         # XXX(matzf) drop this!
         units += ["%s.service" % SERVICES_TO_SYSTEMD_NAMES[service.type]
                   for service in self._extra_services()]
-        units.append('scion-daemon@sd.service')
+        units.append('scion-daemon.service')
         units.append('scion-dispatcher.service')
         return units
 
@@ -194,6 +191,9 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
         # the dispatcher directory is outside the AS subdirectory
         self.archive.write_toml((self._disp_dir(), 'disp.toml'),
                                 config_builder.build_disp_conf())
+
+        self.archive.write_toml((self._as_dir(), 'sd.toml'),
+                                config_builder.build_sciond_conf(self.host))
 
         self._write_supervisord_file()
 
@@ -261,6 +261,8 @@ class _ConfigBuilder:
         self.var_dir = var_dir
 
     def build_disp_conf(self):
+        # Note: this is only used in the supervisord setup;
+        # in the systemd setup, the dispatcher.toml file is installed with the package.
         logging_conf = self._build_logging_conf('dispatcher')
         metrics_conf = self._build_metrics_conf(DISPATCHER_PROM_PORT)
         conf = _chain_dicts(logging_conf, metrics_conf)
@@ -321,16 +323,16 @@ class _ConfigBuilder:
         return conf
 
     def build_sciond_conf(self, host):
+        # Note: this is only used in the supervisord setup;
+        # in the systemd setup, the sciond.toml file is installed with the package.
         instance_name = 'sd'
-
         general_conf = self._build_general_conf(instance_name)
         logging_conf = self._build_logging_conf(instance_name)
         metrics_conf = self._build_metrics_conf(SD_PROM_PORT)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
-            'sd': {
-                'address': _join_host_port('127.0.0.1', SD_TCP_PORT),
-            },
+            # Note, using default address:
+            # sd.address = 127.0.0.1:30255 (SD_TCP_PORT)
             'path_db': {
                 'connection': '%s.path.db' % os.path.join(self.var_dir, instance_name),
             },
