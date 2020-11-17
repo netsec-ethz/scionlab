@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import copy
+from collections import defaultdict
 from datetime import datetime, timedelta
 from django.db import models
 from django.test import TestCase
@@ -336,6 +337,7 @@ class TRCTests(TestCase):
     def test_can_update_regular(self):
         trc1 = _create_TRC(self.isd1, 1, 1)
         self.assertFalse(trc1.can_update_regular())  # no previous TRC
+        self.assertIn("no previous", trc1.can_update_regular().message)
         as1 = _create_AS(self.isd1, "ff00:0:110", is_core=True)
         Key.objects.create_core_keys(as1)
         Certificate.objects.create_core_certs(as1)
@@ -351,6 +353,13 @@ class TRCTests(TestCase):
         Certificate.objects.create_core_certs(as2)
         self._reset_core_ases(trc2)
         self.assertFalse(trc2.can_update_regular())  # quorum changed
+        self.assertIn("quorum", trc2.can_update_regular().message)
+        trc2.quorum = trc1.quorum  # force quorum to be the same
+        trc2.save()
+        self.assertFalse(trc2.can_update_regular())  # core section changed
+        self.assertIn("core section", trc2.can_update_regular().message)
+        trc2.quorum += 1  # reinstate the correct quorum
+        trc2.save()
         # sanity check
         trc3 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, version_serial=3)
@@ -363,29 +372,55 @@ class TRCTests(TestCase):
                    base_version=1, version_serial=4)
         trc4.save()
         self._reset_core_ases(trc4)
-        self.assertFalse(trc4.can_update_regular())
+        self.assertFalse(trc4.can_update_regular())  # sensitive voting different
+        self.assertIn("sensitive vote", trc4.can_update_regular().message)
         # sanity check
         trc5 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, version_serial=5)
         trc5.save()
         self._reset_core_ases(trc5)
         self.assertTrue(trc5.can_update_regular())
+        # change number of included certificates
+        trc6 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+                   base_version=1, version_serial=6)
+        trc6.save()
+        self._reset_core_ases(trc6)
+        print(type(trc6.certificates.last()))
+        trc6.certificateintrc_set.filter(certificate__key__usage=Key.ISSUING_ROOT).last().delete()
+        self.assertFalse(trc6.can_update_regular())
+        self.assertIn("different number", trc6.can_update_regular().message)
+        # change regular voting certificate, not part of voters
+        # change regular voting certificate, make it part of voters
+        # change root certificate
+        self._reset_core_ases(trc6)
+        trc7 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+                   base_version=1, version_serial=7)
+        trc7.save()
+        self._reset_core_ases(trc7)
+        self.assertTrue(trc7.can_update_regular())
+
+        new_root = Certificate.objects.create_issuer_root_cert(as1)
+
+        certs = list(trc7.certificates.filter(key__AS=as1))
+        trc7.certificates.filter(key__AS=as1).delete()
+        trc7.save()
+        # self.assertFalse(trc7.can_update_regular())
 
     def _reset_core_ases(self, trc):
-        # things = Key.objects.values("AS")
-        # things = Key.objects.filter(usage=Key.TRC_VOTING_SENSITIVE).aggregate(models.Count("AS"))
-
-        # trc.voting_sensitive.set(Key.objects.filter(usage=Key.TRC_VOTING_SENSITIVE))
-        # trc.voting_regular.set(Key.objects.filter(usage=Key.TRC_VOTING_REGULAR))
         trc.voting_sensitive.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_SENSITIVE))
         trc.voting_regular.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_REGULAR))
         trc.quorum = trc.voting_sensitive.count() // 2 + 1
-        # trc.certificates.set(Certificate.objects.exclude(key__usage__in=[
-        #     Key.ISSUING_CA, Key.CP_AS]).exclude(key__AS__is_core=False))
-        # trc.certificates.create_voting_sensitive_cert(trc.isd.ases.first())
+        # tethered certificates:
         certs = Certificate.objects.exclude(key__usage__in=[
             Key.ISSUING_CA, Key.CP_AS]).exclude(key__AS__is_core=False)
-        trc.add_certificates(certs)
+        # group them by [usage], [AS], annotate ( max(version) , certificate )
+        dcerts = defaultdict(lambda: defaultdict(lambda: (0, None)))
+        for cert in certs:
+            stored_ver = dcerts[cert.key.usage][cert.key.AS.pk][0]
+            if cert.version > stored_ver:
+                dcerts[cert.key.usage][cert.key.AS.pk] = (cert.version, cert)
+        trc.certificates.clear()
+        trc.add_certificates([tup[1] for per_as in dcerts.values() for tup in per_as.values()])
         trc.save()
 
 

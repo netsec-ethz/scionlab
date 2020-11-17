@@ -149,14 +149,10 @@ class TRC(models.Model):
 
     trc = models.BinaryField()  # in binary DER format
 
-    # Sensitive voting keys are required to create the next TRC version for sensitive updates;
-    # These keys are never deleted to ensure it is always possible to create a new TRC version, even
-    # after removing _all_ core ASes of an ISD. (see also _key_set_null_or_cascade).
-    # TODO(juagargi) should we reference the cert instead?
-    # voting_sensitive = models.ManyToManyField(
-    #     Key,
-    #     related_name="trc_voted_sensitive",
-    # )
+    # Sensitive voting certs and keys are required to create the next TRC version for
+    # sensitive updates. These certs and keys are never deleted to ensure it is always possible
+    # to create a new TRC version, even after removing _all_ core ASes of an ISD.
+    # (see also _key_set_null_or_cascade).
     voting_sensitive = models.ManyToManyField(
         Certificate,
         related_name="trc_voted_sensitive",
@@ -164,10 +160,6 @@ class TRC(models.Model):
 
     # we keep track of the certificates that have been included in the TRC
     # TODO(juagargi) do we? should we?
-    # voting_regular = models.ManyToManyField(
-    #     Key,
-    #     related_name="trc_voted_regular",
-    # )
     voting_regular = models.ManyToManyField(
         Certificate,
         related_name="trc_voted_regular",
@@ -178,14 +170,25 @@ class TRC(models.Model):
     class Meta:
         verbose_name = 'TRC'
         verbose_name_plural = 'TRCs'
-        # unique_together = ('isd', 'version')
         unique_together = ('isd', 'version_serial', 'base_version')
+
+    def core_ases(self):
+        """ In SCIONLab all the core ASes vote in the TRC. """
+        return AS.objects.filter(pk__in=self.voting_sensitive.values("key__AS"))
+
+    def authoritative_ases(self):
+        """ In SCIONLab core ASes <-> authoritative ASes """
+        return self.core_ases()
 
     def add_certificates(self, certs):
         count = self.certificates.count()
         for i in range(len(certs)):
             CertificateInTRC.objects.create(trc=self, certificate=certs[i],
                                             index=count + i)
+
+    def set_certificates(self, certs):
+        self.certificates.clear()
+        self.add_certificates(certs)
 
     def __str__(self):
         return self.filename()
@@ -209,29 +212,51 @@ class TRC(models.Model):
             attaches a signature to the new TRC.
         For regular TRC updates to be verifyable, they must contain votes
         only from regular certificates.
-
-        - All votes from ASes with unchanged online voting keys must be cast with the online voting key.
-        - All ASes with changed online voting keys must cast a vote with their offline voting key.
         """
+        class ReturnReason:
+            def __init__(self, message=None):
+                self.message = message
+
+            def __bool__(self):
+                return self.message is None or self.message == ""
+
         prev = TRC.objects.filter(isd=self.isd, version_serial=self.version_serial - 1)
         if not prev.exists() or prev.get() == self:
-            return False
+            return ReturnReason("no previous TRC")
         prev = prev.get()
         if prev.quorum != self.quorum:
-            return False
-        # check core, authoritative ASes section (they are treated the same in SCIONLab)
-        prev_voters = prev.voting_sensitive.values_list(
-            "key__AS__as_id_int", flat=True).order_by("key__AS__as_id_int")
-        if list(self.voting_sensitive.values_list("key__AS__as_id_int", flat=True)
-                .order_by("key__AS__as_id_int")) != list(prev_voters):
-            return False
-        # check sensitive certificates
-        prev_sensitive = list(prev.voting_sensitive.order_by("key__AS__as_id_int")
-                              .values_list("pk", flat=True))
-        if list(self.voting_sensitive.order_by("key__AS__as_id_int")
-                .values_list("pk", flat=True)) != prev_sensitive:
-            return False
+            return ReturnReason("different quorum")
+        # check core, authoritative ASes section (they are treated the same in SCIONLab):
+        if set(self.core_ases()) != set(prev.core_ases()):
+            return ReturnReason("different core section")
+        # number of sensitive, regular and root certificates is the same
+        for usage in [Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]:
+            if prev.certificates.filter(key__usage=usage).count()\
+                    != self.certificates.filter(key__usage=usage).count():
+                return ReturnReason(f"different number of certificates for {usage}")
+        # check sensitive voting certificate set:
+        prev_sensitive = list(prev.voting_sensitive.order_by("pk").values_list("pk", flat=True))
+        if list(self.voting_sensitive.order_by("pk").values_list(
+                "pk", flat=True)) != prev_sensitive:
+            return ReturnReason("different sensitive voters certificates")
+        # check regular voting certificates:
+        # For every Regular Voting Certificate that changes, the Regular Voting Certificate
+        # in the predecessor TRC is part of the voters on the successor TRC.
+        prev_regular = set(prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
+                           .order_by("pk").values_list("pk", flat=True))
+        regular = set(self.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
+                      .order_by("pk").values_list("pk", flat=True))
+        diff = prev_regular.difference(regular)
+        if self.voting_regular.filter(pk__in=diff).count() != len(diff):
+            return ReturnReason("regular voting certificate changed and not part of voters")
+        # check root certificates
+        # For every CP Root Certificate that changes, the CP Root Certificate in the
+        # predecessor TRC attaches a signature to the signed successor TRC.
         # TODO(juagargi) do the rest
+        prev_root = set(prev.certificates.filter(key__usage=Key.ISSUING_ROOT)
+                        .order_by("pk").values_list("pk", flat=True))
+        root = set(self.certificates.filter(key__usage=Key.ISSUING_ROOT)
+                           .order_by("pk").values_list("pk", flat=True))
         return True
 
     @staticmethod
