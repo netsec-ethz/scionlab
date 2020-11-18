@@ -208,9 +208,16 @@ class TRC(models.Model):
         # simply reset the certificate list:
         self.set_certificates([c for c in self.get_certificates() if c not in set(certs)])
 
-    def get_voters_index_sequence(self):
-        # TODO(juagargi)
-        pass
+    def add_vote(self, cert_in_prev_trc):
+        """ cert_in_prev_trc must be an object in the prev_trc.certificates """
+        self.votes.add(cert_in_prev_trc)
+
+    def get_voters_indices(self):
+        prev = self._previous_trc_or_none()
+        if prev is None:
+            return None
+        return list(prev.certificateintrc_set.filter(certificate__in=self.votes.iterator())
+                    .order_by("index").values_list("index", flat=True))
 
     def __str__(self):
         return self.filename()
@@ -242,10 +249,9 @@ class TRC(models.Model):
             def __bool__(self):
                 return self.message is None or self.message == ""
 
-        prev = TRC.objects.filter(isd=self.isd, version_serial=self.version_serial - 1)
-        if not prev.exists() or prev.get() == self:
+        prev = self._previous_trc_or_none()
+        if prev is None or prev == self:
             return ReturnReason("no previous TRC")
-        prev = prev.get()
         if prev.quorum != self.quorum:
             return ReturnReason("different quorum")
         # check core, authoritative ASes section (they are treated the same in SCIONLab):
@@ -280,6 +286,12 @@ class TRC(models.Model):
         prev = TRC.objects.aggregate(
             models.Max('version_serial'))['version_serial__max'] or 0
         return prev + 1
+
+    def _previous_trc_or_none(self):
+        if self.base_version == self.version_serial:
+            return self
+        prev = TRC.objects.filter(isd=self.isd, version_serial=self.version_serial - 1)
+        return prev.get() if prev.exists() else None
 
 
 class CertificateInTRC(models.Model):
@@ -332,7 +344,6 @@ def _can_update(isd):
 
     In SCIONLab we only need to worry about the quorum.
     """
-    # prev = TRC.objects.filter(isd=isd).latest_or_none()
     prev = ISD.objects.get(isd_id=isd).trcs.latest_or_none()
     if prev is None:
         return False
