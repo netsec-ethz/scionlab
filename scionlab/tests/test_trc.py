@@ -35,11 +35,8 @@ _ASID_3 = 'ff00:0:3'
 
 
 class TRCTests(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.isd1 = ISD.objects.create(isd_id=1, label='Test')
+    def setUp(self):
+        self.isd1 = ISD.objects.create(isd_id=1, label='Test')
 
     def test_version(self):
         self.assertEqual(TRC.next_version(), 1)
@@ -59,6 +56,44 @@ class TRCTests(TestCase):
         self.assertEqual(TRC.objects.latest(), k_3_3)
         self.assertEqual(TRC.next_version(), 4)
         self.assertEqual(TRC.objects.count(), 4)
+
+    def test_get_previous(self):
+        trc1 = _create_TRC(self.isd1, 1, 1)
+        self.assertEqual(trc1._previous_trc_or_none(), trc1)
+        trc2 = _create_TRC(self.isd1, 2, 1)
+        self.assertEqual(trc2._previous_trc_or_none(), trc1)
+        trc4 = _create_TRC(self.isd1, 4, 1)
+        self.assertIsNone(trc4._previous_trc_or_none())
+
+    def test_get_voters_indices(self):
+        as110 = _create_AS(self.isd1, "ff00:0:110", is_core=True)
+        Key.objects.create_core_keys(as110)
+        Certificate.objects.create_core_certs(as110)
+        prev = _create_TRC(self.isd1, 1, 1)
+        c0 = Certificate.objects.create_voting_regular_cert(as110)
+        c1 = Certificate.objects.create_voting_regular_cert(as110)
+        c2 = Certificate.objects.create_voting_regular_cert(as110)
+        c3 = Certificate.objects.create_voting_regular_cert(as110)
+        c4 = Certificate.objects.create_voting_regular_cert(as110)
+        prev.add_certificates([c0, c1, c2, c3, c4])
+        prev.save()
+        trc = _create_TRC(self.isd1, 2, 1)
+        trc.add_certificates([c0, c1, c2, c3, c4])
+        trc.add_vote(c1)
+        self.assertEqual(trc.get_voters_indices(), [1])
+        trc.add_vote(c4)
+        self.assertEqual(trc.get_voters_indices(), [1, 4])
+        # insert votes in a different order
+        trc.votes.clear()
+        trc.add_vote(c3)
+        trc.add_vote(c4)
+        trc.add_vote(c1)
+        self.assertEqual(trc.get_voters_indices(), [1, 3, 4])
+
+
+class TRCUpdateTests(TestCase):
+    def setUp(self):
+        self.isd1 = ISD.objects.create(isd_id=1, label='Test')
 
     def test_can_update(self):
         self.assertFalse(_can_update(1))
@@ -166,7 +201,6 @@ class TRCTests(TestCase):
         # change root certificate, make it part of voters
         trc8.signatures.add(cert)
         self.assertTrue(trc8.can_update_regular())
-
 
     def _reset_core_ases(self, trc):
         # trc.voting_sensitive.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_SENSITIVE))
