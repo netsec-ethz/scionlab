@@ -17,13 +17,14 @@
 ====================================================================================
 """
 
-import ipaddress
+import ipaddress, datetime
 from typing import List, Set
 
 from django import urls
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils.html import format_html
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 from scionlab.models.core import (
@@ -425,6 +426,11 @@ class UserAS(AS):
         """
         return self.fixed_links().filter(type=Link.PROVIDER).exists()
 
+class AttachmentPointManager(models.Manager):
+
+    def active(self):
+        threshold = timezone.now() - datetime.timedelta(seconds=60)
+        return AttachmentPoint.objects.filter(AS__hosts__config_queried_at__gt = threshold)
 
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
@@ -439,8 +445,12 @@ class AttachmentPoint(models.Model):
         related_name='+',
         on_delete=models.SET_NULL
     )
+    
+    objects = AttachmentPointManager()
 
     def __str__(self):
+        if self.AS.owner != None:
+            return 'UserAP: %s' %(str(self.AS))
         return str(self.AS)
 
     def get_border_router_for_useras_interface(self) -> BorderRouter:

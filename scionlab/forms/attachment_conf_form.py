@@ -24,7 +24,7 @@ from crispy_forms.layout import Layout, Row, Column, Div, HTML
 from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT, DEFAULT_PUBLIC_PORT
-from scionlab.models.core import Link
+from scionlab.models.core import Link, Host
 from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS
 from scionlab.util.portmap import PortMap
 
@@ -266,7 +266,7 @@ class AttachmentConfForm(forms.ModelForm):
         label="Active",
         help_text="Activate or deactivate this connection without deleting it"
     )
-    attachment_point = forms.ModelChoiceField(queryset=AttachmentPoint.objects)
+    attachment_point = forms.ModelChoiceField(queryset=None)
 
     class Meta:
         model = Link
@@ -309,6 +309,7 @@ class AttachmentConfForm(forms.ModelForm):
 
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
+        self.fields['attachment_point'].queryset = AttachmentPoint.objects.active()
 
     @staticmethod
     def _get_formset_index(prefix):

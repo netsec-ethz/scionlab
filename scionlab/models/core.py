@@ -17,6 +17,7 @@
 ==============================================================================
 """
 
+import datetime
 from datetime import datetime
 import base64
 import os
@@ -411,6 +412,9 @@ class AS(TimestampedModel):
         Recreatable Keys (DRKeys).
         """
         return _base64encode(os.urandom(16))
+        
+    def is_attachment_point(self):
+        return hasattr(self, 'attachment_point_info')
 
 
 class HostManager(models.Manager):
@@ -442,6 +446,10 @@ class HostManager(models.Manager):
         Find all hosts with `needs_config_deployment`.
         """
         return self.filter(config_version__gt=F('config_version_deployed'))
+        
+    def active(self):
+        threshold = timezone.now() - datetime.timedelta(seconds=60)
+        return self.filter(config_queried_at__gt = threshold)
 
 
 class Host(models.Model):
