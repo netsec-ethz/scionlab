@@ -198,6 +198,7 @@ class UserASForm(forms.Form):
                 label=self.cleaned_data['label']
             )
             # 2 cases: User wants to become a new AP or User wants to stop being AP
+            # this needs to be reworked ASAP
             host = self.instance.hosts.first()
             host.update(public_ip = self.cleaned_data['public_ip'])
             if wants_user_ap and not self.instance.is_attachment_point():
