@@ -104,15 +104,14 @@ def create_and_check_useras(testcase,
     specified in att_confs, and verify that things look right.
     """
     hosts_pending_before = set(Host.objects.needs_config_deployment())
-    with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
-        isd = att_confs[0].attachment_point.AS.isd
-        user_as = UserAS.objects.create(
-            owner,
-            installation_type,
-            isd,
-            label=label,
-        )
-        user_as.update_attachments(att_confs)
+    isd = att_confs[0].attachment_point.AS.isd
+    user_as = UserAS.objects.create(
+        owner,
+        installation_type,
+        isd,
+        label=label,
+    )
+    user_as.update_attachments(att_confs)
 
     # Check AS needs_config_deployment:
     aps_hosts = []
@@ -122,12 +121,6 @@ def create_and_check_useras(testcase,
     testcase.assertSetEqual(
         hosts_pending_before | set(user_as.hosts.all()) | set(aps_hosts),
         set(Host.objects.needs_config_deployment())
-    )
-
-    # Check that deployment was triggered for the attachment point.
-    testcase.assertEqual(
-        sorted([args[0] for args, kwargs in mock_deploy.call_args_list], key=lambda ap: ap.id),
-        sorted(attachment_points, key=lambda ap: ap.id)
     )
 
     check_useras(testcase,
@@ -260,24 +253,11 @@ def update_useras(testcase,
     prev_cert_chain = user_as.certificates.latest(Certificate.CHAIN)
     hosts_pending_before = set(Host.objects.needs_config_deployment())
 
-    with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
-        user_as.update(
-            label=kwargs.get('label', user_as.label),
-            installation_type=kwargs.get('installation_type', user_as.installation_type),
-        )
-        user_as.update_attachments(att_confs, deleted_links)
-
-    # Check that deployment was triggered strictly once for each attachment point
-    testcase.assertEqual(
-        len([args[0] for args, kwargs in mock_deploy.call_args_list]),
-        len(set(args[0] for args, kwargs in mock_deploy.call_args_list))
+    user_as.update(
+        label=kwargs.get('label', user_as.label),
+        installation_type=kwargs.get('installation_type', user_as.installation_type),
     )
-    # Check that deployment was triggered for all the attachment points
-    testcase.assertEqual(
-        set(args[0] for args, kwargs in mock_deploy.call_args_list),
-        set(AttachmentConf.attachment_points(att_confs)) |
-        set([link.interfaceA.AS.attachment_point_info for link in deleted_links])
-    )
+    user_as.update_attachments(att_confs, deleted_links)
 
     # Check needs_config_deployment: hosts of UserAS and both APs
     aps_hosts = flatten(
@@ -872,31 +852,17 @@ class ActivateUserASTests(TestCase):
                 set([h for c in att_confs for h in c.attachment_point.AS.hosts.all()])
             )
 
-        def _check_deploy_args():
-            self.assertEqual(
-                set(args[0] for args, kwargs in mock_deploy.call_args_list),
-                set(c.attachment_point for c in att_confs)
-            )
-            self.assertEqual(
-                len([args[0] for args, kwargs in mock_deploy.call_args_list]),
-                len([c.attachment_point for c in att_confs])
-            )
-
-        with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
-            user_as.update_active(False)
+        user_as.update_active(False)
 
         uplink = Link.objects.get(interfaceB__AS=user_as)
         self.assertFalse(uplink.active)
         _check_deployment_needs()
-        _check_deploy_args()
 
-        with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
-            user_as.update_active(True)
+        user_as.update_active(True)
 
         uplink = Link.objects.get(interfaceB__AS=user_as)
         self.assertTrue(uplink.active)
         _check_deployment_needs()
-        _check_deploy_args()
 
         check_random_useras(self, seed, user_as, att_confs, vpn_choice)
 
