@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 from typing import List
 
 from django.db import models
+from django.db.models import Q
 
 from scionlab.defines import (
     DEFAULT_EXPIRATION_CORE_KEYS,
@@ -51,15 +52,14 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
     Certificate and AS, and simplifies checking membership on the cert.trc_voted_sensitive.
     See also: test_pki:CertificateTests.test_delete_while_sensitive_voted
     """
-    sensitive = [key for key in sub_objs
-                 if key.certificates.exclude(trc_voted_sensitive__isnull=True)]
-    theothers = [key for key in sub_objs
-                 if key.certificates.exclude(trc_voted_sensitive__isnull=False)]
+    sensitive = [key for key in sub_objs if key.certificates.exclude(trc_included__isnull=True)
+                 .filter(key__usage=Key.TRC_VOTING_SENSITIVE)]
+    others = [key for key in sub_objs if key not in sensitive]
 
     if sensitive:
         models.SET_NULL(collector, field, sensitive, using)
-    if theothers:
-        models.CASCADE(collector, field, theothers, using)
+    if others:
+        models.CASCADE(collector, field, others, using)
 
 
 class KeyManager(models.Manager):
