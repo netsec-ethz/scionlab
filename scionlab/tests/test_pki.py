@@ -71,8 +71,10 @@ class KeyTests(TestCase):
         self.assertEqual(first_line, "-----BEGIN EC PRIVATE KEY-----")
 
     def test_delete_as(self):
+        # sensitive, regular, root, and ca keys and certificates:
         Key.objects.create_core_keys(self.AS)
         Certificate.objects.create_core_certs(self.AS)
+        # just the cp as key and certificate:
         Key.objects.create(self.AS, Key.CP_AS)
         Certificate.objects.create_as_cert(self.AS, issuer=self.AS)
 
@@ -87,16 +89,15 @@ class KeyTests(TestCase):
         Certificate.objects.create_core_certs(AS2)
 
         trc = _create_TRC(self.isd, 1, 1)
-        trc.voting_sensitive.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_SENSITIVE,
-                                                            key__AS=self.AS))
+        trc.add_core_as(self.AS)
         self.AS.delete()
 
-        self.assertFalse(Key.objects.filter(pk=k_as.pk).exists())    # Delete should cascade here, ...
+        self.assertFalse(Key.objects.filter(pk=k_as.pk).exists())    # Delete should cascade here,
         self.assertFalse(Key.objects.filter(pk=k_ca.pk).exists())    # ... and here too.
         self.assertFalse(Key.objects.filter(pk=k_root.pk).exists())  # ... and here too.
         self.assertFalse(Key.objects.filter(pk=k_regular.pk).exists())   # ... and here too.
         self.assertTrue(Key.objects.filter(pk=k_sensitive.pk).exists())  # Should still exist!
-        self.assertFalse(AS.objects.filter(pk=self.AS.pk).exists())  # the AS was removed.
+        self.assertFalse(AS.objects.filter(pk=self.AS.pk).exists())      # the AS was removed.
 
         # the keys and certs for the other AS are removed
         old_certs = Certificate.objects.filter(key__AS=AS2).values_list("pk", flat=True)
@@ -398,25 +399,48 @@ class TRCTests(TestCase):
         self.assertTrue(trc7.can_update_regular())
         cert = trc7.certificateintrc_set.filter(
             certificate__key__usage=Key.TRC_VOTING_REGULAR).last()
-        trc7.voting_regular.remove(cert.certificate)
+        trc7.del_certificates([cert.certificate])
         as_ = cert.certificate.key.AS
-        cert.delete()
         cert = Certificate.objects.create_voting_regular_cert(as_)
         trc7.add_certificates([cert])
         trc7.save()
         self.assertFalse(trc7.can_update_regular())
         self.assertIn("regular voting certificate", trc7.can_update_regular().message)
         self.assertIn("not part of voters", trc7.can_update_regular().message)
-
-        # TODO:
         # change regular voting certificate, make it part of voters
+        trc7.votes.add(cert)
+        self.assertTrue(trc7.can_update_regular())
+
         # change root certificate, not part of voters
+        trc8 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
+                   base_version=1, version_serial=8)
+        trc8.save()
+        self._reset_core_ases(trc8)
+        self.assertTrue(trc8.can_update_regular())
+        cert = trc8.certificateintrc_set.filter(
+            certificate__key__usage=Key.ISSUING_ROOT).last()
+        trc8.del_certificates([cert.certificate])
+        as_ = cert.certificate.key.AS
+        cert = Certificate.objects.create_issuer_root_cert(as_)
+        trc8.add_certificates([cert])
+        trc8.save()
+        self.assertFalse(trc8.can_update_regular())
+        self.assertIn("root certificate", trc8.can_update_regular().message)
+        self.assertIn("not sign", trc8.can_update_regular().message)
+
         # change root certificate, make it part of voters
+        trc8.signatures.add(cert)
+        self.assertTrue(trc8.can_update_regular())
+
 
     def _reset_core_ases(self, trc):
-        trc.voting_sensitive.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_SENSITIVE))
-        trc.voting_regular.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_REGULAR))
-        trc.quorum = trc.voting_sensitive.count() // 2 + 1
+        # trc.voting_sensitive.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_SENSITIVE))
+        # trc.voting_regular.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_REGULAR))
+        # trc.quorum = trc.voting_sensitive.count() // 2 + 1
+        trc.core_ases.clear()
+        trc.core_ases.set(trc.isd.ases.filter(is_core=True))
+        trc.quorum = trc.core_ases.count() // 2 + 1
+
         # tethered certificates:
         certs = Certificate.objects.exclude(key__usage__in=[
             Key.ISSUING_CA, Key.CP_AS]).exclude(key__AS__is_core=False)

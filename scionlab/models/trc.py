@@ -137,6 +137,17 @@ class TRC(models.Model):
     not_before = models.DateTimeField()
     not_after = models.DateTimeField()
 
+    # in scionlab, core ASes == authoritative ASes.
+    core_ases = models.ManyToManyField(
+        AS,
+        related_name="trcs_attesting_core_as"
+    )
+
+    # List of sensitive, regular, and root certificates.
+    # Sensitive voting certs and keys are required to create the next TRC version for
+    # sensitive updates. These certs and keys are never deleted to ensure it is always possible
+    # to create a new TRC version, even after removing _all_ core ASes of an ISD.
+    # (see also _key_set_null_or_cascade).
     certificates = models.ManyToManyField(
         Certificate,
         through="CertificateInTRC",
@@ -147,23 +158,20 @@ class TRC(models.Model):
         default=1,
     )
 
+    votes = models.ManyToManyField(
+        Certificate,
+        related_name="trc_votes",
+    )
+
+    # certificates signing this TRC. They could be sensitive or regular.
+    # We could have a root cert. signing the TRC, in case of a regular update.
+    # see also can_regular_update
+    signatures = models.ManyToManyField(
+        Certificate,
+        related_name="trc_signatures",
+    )
+
     trc = models.BinaryField()  # in binary DER format
-
-    # Sensitive voting certs and keys are required to create the next TRC version for
-    # sensitive updates. These certs and keys are never deleted to ensure it is always possible
-    # to create a new TRC version, even after removing _all_ core ASes of an ISD.
-    # (see also _key_set_null_or_cascade).
-    voting_sensitive = models.ManyToManyField(
-        Certificate,
-        related_name="trc_voted_sensitive",
-    )
-
-    # we keep track of the certificates that have been included in the TRC
-    # TODO(juagargi) do we? should we?
-    voting_regular = models.ManyToManyField(
-        Certificate,
-        related_name="trc_voted_regular",
-    )
 
     objects = TRCManager()
 
@@ -172,13 +180,19 @@ class TRC(models.Model):
         verbose_name_plural = 'TRCs'
         unique_together = ('isd', 'version_serial', 'base_version')
 
-    def core_ases(self):
-        """ In SCIONLab all the core ASes vote in the TRC. """
-        return AS.objects.filter(pk__in=self.voting_sensitive.values("key__AS"))
+    def add_core_as(self, AS):
+        """ adds the AS to the core ases list, and its certificates to the cert. list """
+        certs = []
+        for usage in [Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]:
+            certs.append(AS.keys.latest(usage).certificates.latest(usage))
+        self.core_ases.add(AS)
+        self.add_certificates(certs)
+        self.quorum = self.core_ases.count() // 2 + 1
 
-    def authoritative_ases(self):
-        """ In SCIONLab core ASes <-> authoritative ASes """
-        return self.core_ases()
+    def get_certificates(self):
+        """ returns the list of certificates ordered by their index """
+        return (cert_in_trc.certificate for cert_in_trc in
+                self.certificateintrc_set.order_by("index"))
 
     def add_certificates(self, certs):
         count = self.certificates.count()
@@ -189,6 +203,14 @@ class TRC(models.Model):
     def set_certificates(self, certs):
         self.certificates.clear()
         self.add_certificates(certs)
+
+    def del_certificates(self, certs):
+        # simply reset the certificate list:
+        self.set_certificates([c for c in self.get_certificates() if c not in set(certs)])
+
+    def get_voters_index_sequence(self):
+        # TODO(juagargi)
+        pass
 
     def __str__(self):
         return self.filename()
@@ -227,36 +249,30 @@ class TRC(models.Model):
         if prev.quorum != self.quorum:
             return ReturnReason("different quorum")
         # check core, authoritative ASes section (they are treated the same in SCIONLab):
-        if set(self.core_ases()) != set(prev.core_ases()):
+        if list(prev.core_ases.order_by("pk")) != list(self.core_ases.order_by("pk")):
             return ReturnReason("different core section")
         # number of sensitive, regular and root certificates is the same
-        for usage in [Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]:
-            if prev.certificates.filter(key__usage=usage).count()\
-                    != self.certificates.filter(key__usage=usage).count():
-                return ReturnReason(f"different number of certificates for {usage}")
+        msg = _validate_compatible_certificates(prev, self)
+        if msg is not None:
+            return ReturnReason(msg)
         # check sensitive voting certificate set:
-        prev_sensitive = list(prev.voting_sensitive.order_by("pk").values_list("pk", flat=True))
-        if list(self.voting_sensitive.order_by("pk").values_list(
-                "pk", flat=True)) != prev_sensitive:
+        prev_sensitive = list(prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
+                              .order_by("pk"))
+        if list(self.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
+                .order_by("pk")) != prev_sensitive:
             return ReturnReason("different sensitive voters certificates")
         # check regular voting certificates:
         # For every Regular Voting Certificate that changes, the Regular Voting Certificate
         # in the predecessor TRC is part of the voters on the successor TRC.
-        prev_regular = set(prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
-                           .order_by("pk").values_list("pk", flat=True))
-        regular = set(self.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
-                      .order_by("pk").values_list("pk", flat=True))
-        diff = regular.difference(prev_regular)
-        if self.voting_regular.filter(pk__in=diff).count() != len(diff):
-            return ReturnReason("regular voting certificate changed and not part of voters")
+        msg = _validate_compatible_regular(prev, self)
+        if msg is not None:
+            return ReturnReason(msg)
         # check root certificates
         # For every CP Root Certificate that changes, the CP Root Certificate in the
         # predecessor TRC attaches a signature to the signed successor TRC.
-        # TODO(juagargi) do the rest
-        prev_root = set(prev.certificates.filter(key__usage=Key.ISSUING_ROOT)
-                        .order_by("pk").values_list("pk", flat=True))
-        root = set(self.certificates.filter(key__usage=Key.ISSUING_ROOT)
-                           .order_by("pk").values_list("pk", flat=True))
+        msg = _validate_compatible_root(prev, self)
+        if msg is not None:
+            return ReturnReason(msg)
         return True
 
     @staticmethod
@@ -324,9 +340,30 @@ def _can_update(isd):
     return AS.objects.filter(isd__isd_id=isd, is_core=True).count() >= prev.quorum
 
 
+def _validate_compatible_certificates(prev, this):
+    """ checks that the certificates are the same, or have the same DN """
+    for usage in [Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]:
+        prev_certs = prev.certificates.filter(key__usage=usage)
+        this_certs = this.certificates.filter(key__usage=usage)
+        if prev_certs.count() != this_certs.count():
+            return f"different number of certificates for {usage}"
+        prev_ases = AS.objects.filter(pk__in=prev_certs.values("key__AS")).order_by("pk")
+        this_ases = AS.objects.filter(pk__in=this_certs.values("key__AS")).order_by("pk")
+        if list(prev_ases) != list(this_ases):
+            return f"different distinguished name in certs. for {usage}"
 
 
+def _validate_compatible_regular(prev, this):
+    prev_regular = set(prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR))
+    this_regular = set(this.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR))
+    diff = this_regular.difference(prev_regular)
+    if this.votes.filter(pk__in=(c.pk for c in diff)).count() != len(diff):
+        return "regular voting certificate changed and not part of voters"
 
-def _voters(isd):
-    """ returns the certificates that could vote a TRC """
-    pass
+
+def _validate_compatible_root(prev, this):
+    prev_root = set(prev.certificates.filter(key__usage=Key.ISSUING_ROOT))
+    this_root = set(this.certificates.filter(key__usage=Key.ISSUING_ROOT))
+    diff = this_root.difference(prev_root)
+    if this.signatures.filter(pk__in=(c.pk for c in diff)).count() != len(diff):
+        return "changed root certificates are not signing the TRC"
