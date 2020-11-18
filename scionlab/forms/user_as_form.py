@@ -197,25 +197,30 @@ class UserASForm(forms.Form):
                 installation_type=self.cleaned_data['installation_type'],
                 label=self.cleaned_data['label']
             )
-            # 2 cases: User wants to become a new AP or User wants to stop being AP
-            # this needs to be reworked ASAP
             host = self.instance.hosts.first()
             host.update(public_ip = self.cleaned_data['public_ip'])
-            if wants_user_ap and not self.instance.is_attachment_point():
+                      
+            if self.instance.is_attachment_point():
+                # does the User already offer a VPN connection?
+                has_vpn = False
+                if VPN.objects.filter(server = self.instance.hosts.first()).first() != None:
+                    has_vpn = True
+                if not wants_user_ap:
+                # User unchecks the 'become ap' box meaning he will not be AP anymore
+                    if has_vpn:
+                        vpn = VPN.objects.filter(server = self.instance.hosts.first()).delete()
+                    AttachmentPoint.objects.filter(AS=self.instance).delete()
+                    Link.objects.filter(interfaceA__AS=self.instance).delete()
+                elif not has_vpn and wants_vpn:
+                # User wants to provide a VPN for his already existing AP
+                    ap = AttachmentPoint.objects.filter(AS = self.instance).first()
+                    ap.vpn = VPN.objects.create(server = host, server_port = 1194)
+                    ap.save()
+            elif wants_user_ap:
+                # a new User AP will be created
                 ap = AttachmentPoint.objects.create(AS = self.instance)
                 if wants_vpn:
                     ap.vpn = VPN.objects.create(server = host, server_port = 1194)
                     ap.save()
-            elif wants_user_ap and wants_vpn and self.instance.is_attachment_point():
-                ap = AttachmentPoint.objects.filter(AS=self.instance).first()
-                ap.vpn = VPN.objects.create(server = host, server_port = 1194)
-                ap.save()
-            elif not wants_user_ap and self.instance.is_attachment_point():
-            #if a user decides not to be AP anymore he can uncheck the 'become User AP' box and save the changes
-            # the AP, links and VPN (if existing) will then be deleted
-                if VPN.objects.filter(server = self.instance.hosts.first()) != None:
-                    vpn = VPN.objects.filter(server = self.instance.hosts.first()).delete()
-                AttachmentPoint.objects.filter(AS=self.instance).delete()
-                Link.objects.filter(interfaceA__AS=self.instance).delete()
             self.attachment_conf_form_set.save(self.instance)
             return self.instance
