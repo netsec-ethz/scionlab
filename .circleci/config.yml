@@ -18,6 +18,14 @@
 #
 version: 2
 
+parameters:
+  package_src:
+    type: string
+    default: master
+  run_upgrade_tests:
+    type: boolean
+    default: false
+
 check_services_status: &check_services_status
   command: |
     set -x
@@ -532,6 +540,4 @@ workflows:
       - integration
       - prod
       - upgrade_integration:
-          filters:
-            branches:
-              only: /.*_upgrade_.*/
+          when: << pipeline.parameters.run_integration_tests >>
