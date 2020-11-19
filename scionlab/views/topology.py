@@ -137,7 +137,7 @@ def topology_json(request):
         if service_type == 'BW':
             return None  # does not expose
         if service_type == 'BR':
-            return s.internal_port + BR_PROM_PORT_OFFSET
+            return s.control_port + BR_PROM_PORT_OFFSET
 
     def json_service(s):
         service_type = 'BR' if isinstance(s, BorderRouter) else s.type

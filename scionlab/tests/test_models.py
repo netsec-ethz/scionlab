@@ -14,7 +14,15 @@
 
 from unittest.mock import patch
 from django.test import TestCase
-from scionlab.defines import CS_PORT
+from scionlab.defines import (
+    BR_PROM_PORT_OFFSET,
+    CS_PORT,
+    CS_PROM_PORT,
+    DISPATCHER_PORT,
+    DISPATCHER_PROM_PORT,
+    SD_PROM_PORT,
+    SD_TCP_PORT,
+)
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
 from scionlab.models.pki import Certificate
 from scionlab.fixtures import testtopo
@@ -282,17 +290,25 @@ class HostTests(TestCase):
 
     def test_add_border_routers(self):
         # check service ports do not clash
-        ports_in_use = set()
+        ports_in_use = {SD_TCP_PORT, SD_PROM_PORT, DISPATCHER_PORT, DISPATCHER_PROM_PORT}
         for srv in self.host.services.iterator():
             self.assertNotIn(srv.port(), ports_in_use)
             ports_in_use.add(srv.port())
-        # create a lot (e.g. 200) border routers. No port clash should occur.
-        for i in range(200):
+            if srv.type == Service.CS:
+                self.assertNotIn(CS_PROM_PORT, ports_in_use)
+                ports_in_use.add(CS_PROM_PORT)
+
+        # create a lot border routers. No port clash should occur.
+        # Note that with the currently defined port ranges, we _will_ have clashes with more
+        # routers.
+        for i in range(196):
             br = BorderRouter.objects.create(host=self.host)
             self.assertNotIn(br.internal_port, ports_in_use)
             ports_in_use.add(br.internal_port)
             self.assertNotIn(br.control_port, ports_in_use)
             ports_in_use.add(br.control_port)
+            self.assertNotIn(br.control_port + BR_PROM_PORT_OFFSET, ports_in_use)
+            ports_in_use.add(br.control_port + BR_PROM_PORT_OFFSET)
 
     def test_host_port_map(self):
         pm = self.host.get_port_map()

@@ -468,6 +468,61 @@ jobs:
               "sleep 10; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
             docker-compose exec useras4 /bin/bash -c \
              'scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
+ 
+  prod:
+    machine: true
+    environment:
+      COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"
+    steps:
+      - checkout
+
+      - run:
+          name: Start stack
+          command: |
+            ln -rs .circleci/test-prod.env run/scionlab.env
+            docker-compose up --build -d
+
+      - run:
+          name: Load data from fixture to check (test) DB setup
+          command: |
+            sleep 5 # wait a bit for the migrations in the django-entrypoint.sh are done.
+            docker-compose exec -T django ./manage.py loaddata scionlab/fixtures/testdata.yaml
+
+      - run:
+          name: Check static files
+          command: |
+            set -x
+
+            # check that resource returned from a request to $1 is identical to the file at $2.
+            function check_static_file
+            {
+              curl --fail --silent "http://localhost/$1" --output /tmp/check_static_file.tmp
+              cmp --silent /tmp/check_static_file.tmp "$2" ||
+                { echo "The resource returned from '$1' is not identical to the file at '$2'";
+                  false; }
+            }
+            check_static_file favicon.ico scionlab/static/scionlab/images/favicon.ico
+            check_static_file static/scionlab/images/favicon.ico scionlab/static/scionlab/images/favicon.ico
+            check_static_file static/scionlab/style.css scionlab/static/scionlab/style.css
+
+            curl --silent --head --request GET "http://localhost/static/" | grep --quiet "404 Not Found" || 
+              { echo "The static/ subfolderst should not be browsable"; false; }
+         
+      - run:
+          name: Check django reverse proxy
+          command: |
+            set -x
+
+            # These should all exist:
+            curl --fail --silent --head --request GET "http://localhost/" > /tmp/headers.txt
+            grep --quiet "^Server: Caddy" /tmp/headers.txt
+            grep --quiet "^Server: gunicorn/" /tmp/headers.txt
+            curl --fail --silent "http://localhost/login/" > /dev/null
+            curl --fail --silent "http://localhost/topology.png" > /dev/null
+            curl --fail --silent "http://localhost/api/v2/topology/topology" > /dev/null
+
+            # This one does not:
+            curl --silent --head --request GET "http://localhost/foobar" | grep --quiet "404 Not Found"
 
 workflows:
   version: 2
@@ -475,6 +530,7 @@ workflows:
     jobs:
       - basic
       - integration
+      - prod
       - upgrade_integration:
           filters:
             branches:

@@ -282,7 +282,7 @@ class _ConfigBuilder:
     def build_br_conf(self, router):
         general_conf = self._build_general_conf(router.instance_name)
         logging_conf = self._build_logging_conf(router.instance_name)
-        metrics_conf = self._build_metrics_conf(router.internal_port + BR_PROM_PORT_OFFSET)
+        metrics_conf = self._build_metrics_conf(router.control_port + BR_PROM_PORT_OFFSET)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         return conf
 
