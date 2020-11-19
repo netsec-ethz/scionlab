@@ -66,6 +66,13 @@ class TRCManager(models.Manager):
         core_ases = AS.objects.filter(isd=isd, is_core=True)
         certificates = _coreas_certificates(isd)
         if _can_update(isd):
+            quorum = len(core_ases) // 2 + 1
+            if not _is_regular_update_prevented(prev, quorum, core_ases, certificates):
+                # find compatible voters and signers:
+                # voters will be the subset of regular certs.
+                diff = certificates.filter(key__usage=Key.TRC_VOTING_REGULAR).exclude(
+                    prev.certificates)
+                # do a regular update
             # add all certificates as votes and signatures, to check if a regular update can be done
             votes = certificates
             signatures = certificates
@@ -243,11 +250,12 @@ class TRC(models.Model):
         Returns None if all okay, and the error message otherwise.
 
         It is a regular update if:
-        - The voting quorum does not change.
-        - The core ASes section does not change.
-        - The authoritative ASes section does not change.
-        - The number of sensitive, regular and root certificates does not change.
-        - The set of sensitive certificates does not change.
+        - _is_regular_update_prevented returns False. It checks:
+            - The voting quorum does not change.
+            - The core ASes section does not change.
+            - The authoritative ASes section does not change.
+            - The number of sensitive, regular and root certificates does not change.
+            - The set of sensitive certificates does not change.
         - For every regular certificate that changes, the regular certificate in the previous
             TRC is part of the voters of the new TRC.
         - For every root certificate that changes, the root certificate in the previous TRC
@@ -263,7 +271,7 @@ class TRC(models.Model):
             return msg
         # For every Regular Voting Certificate that changes, the Regular Voting Certificate
         # in the predecessor TRC is part of the voters on the successor TRC.
-        msg = _validate_compatible_regular(prev, self)
+        msg = _validate_old_regular_votes(prev, self)
         if msg is not None:
             return msg
         # check root certificates
@@ -405,12 +413,13 @@ def _validate_compatible_certificates(prev_certs, this_certs):
             return f"different distinguished name in certs. for {usage}"
 
 
-def _validate_compatible_regular(prev, this):
+def _validate_old_regular_votes(prev, this):
     prev_regular = set(prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR))
     this_regular = set(this.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR))
-    diff = this_regular.difference(prev_regular)
+    # diff = this_regular.difference(prev_regular)
+    diff = prev_regular.difference(this_regular)  # present before and not now
     if this.votes.filter(pk__in=(c.pk for c in diff)).count() != len(diff):
-        return "regular voting certificate changed and not part of voters"
+        return "regular voting certificate changed and old one not part of voters"
 
 
 def _validate_compatible_root(prev, this):
