@@ -430,7 +430,7 @@ class TRCConf:
             "grace_period": self._grace_period(),
             "authoritative_ases": self.authoritative_ases,
             "core_ases": self.core_ases,
-            "cert_files": self.certificates.keys(),
+            "cert_files": list(self.certificates.keys()),
             "no_trust_reset": False,
             # TODO(juagargi) check we will fill the "votes" member later
             # "votes": 1  # empty when updating only serial_version
