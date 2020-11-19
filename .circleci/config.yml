@@ -16,7 +16,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
-version: 2
+version: 2.1
 
 parameters:
   package_src:
@@ -533,11 +533,13 @@ jobs:
             curl --silent --head --request GET "http://localhost/foobar" | grep --quiet "404 Not Found"
 
 workflows:
-  version: 2
   tests:
     jobs:
       - basic
       - integration
       - prod
-      - upgrade_integration:
-          when: << pipeline.parameters.run_integration_tests >>
+  upgrade_tests:
+    when: << pipeline.parameters.run_upgrade_tests >>
+    jobs:
+      - upgrade_integration
+         
