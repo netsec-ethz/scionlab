@@ -14,5 +14,6 @@
 
 # Redirect to www. subdomain
 scionlab.org {
-    redir www.scionlab.org{uri}
+    log
+    redir https://www.scionlab.org{uri} permanent
 }
