@@ -22,7 +22,7 @@ from django.db import models
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
 from scionlab.models.core import AS, ISD
-from scionlab.models.pki import Certificate, Key
+from scionlab.models.pki import Certificate, Key, _validity
 from scionlab.scion import as_ids, keys, trcs
 
 
@@ -60,49 +60,40 @@ class TRCManager(models.Manager):
 
         :param isd ISD:
         """
-        return
         prev = isd.trcs.latest_or_none()
         serial = prev.version_serial + 1 if prev else 1
         core_ases = AS.objects.filter(isd=isd, is_core=True)
+        quorum = len(core_ases) // 2 + 1
         certificates = _coreas_certificates(isd)
+        if len(core_ases) == 0:
+            raise RuntimeError("no core ASes found")
         if _can_update(isd):
-            quorum = len(core_ases) // 2 + 1
+            base = prev.base_version
             if not _is_regular_update_prevented(prev, quorum, core_ases, certificates):
                 # find compatible voters and signers:
                 # votes will be the subset of regular certs of the prev. trc
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
-                diff = certificates.filter(key__usage=Key.TRC_VOTING_REGULAR).exclude(
-                    prev.certificates)
-                # do a regular update
-            # add all certificates as votes and signatures, to check if a regular update can be done
-            votes = certificates
-            signatures = certificates
-            if can_update_regular(isd):
-                pass
+                changed_root_certs = certificates.filter(key__usage=Key.ISSUING_ROOT)\
+                    .difference(prev.certificates.all())
+                signatures = votes + changed_root_certs
             else:
-                pass
-        # create a base TRC
-
-        votes = [c for c in certificates if c.key.usage == Key.TRC_VOTING_REGULAR]
-        # signatures = 
-
-        TRC(isd=isd, version_serial=serial, base_version=serial)
-        if prev:
-            version = prev.version + 1
-            prev_trc = prev.trc
-            prev_voting_offline = {key.as_id: _key_info(key)
-                                   for key in prev.voting_offline.all()}
+                votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
+                signatures = votes
         else:
-            version = 1
-            prev_trc = None
-            prev_voting_offline = None
+            # create a base TRC
+            base = serial
+            votes = []
+            signatures = certificates.exclude(key__usage__in=[
+                Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR])
 
-        keys = {as_.as_id: _latest_core_keys(as_) for as_ in isd.ases.filter(is_core=True)}
-        all_keys = flatten(keys.values())
-
-        not_before, not_after = _validity(all_keys)
-
-        primary_ases = {as_id: _core_key_info(as_keys) for as_id, as_keys in keys.items()}
+        not_before, not_after = _validity(*[*certificates, *votes, *signatures])
+        # TODO move downwards
+        obj = super().create(isd=isd, version_serial=serial, base_version=base,
+                             not_before=not_before, not_after=not_after)
+        obj.core_ases.set(core_ases)
+        obj.add_certificates(certificates)
+        obj.votes.set(votes)
+        obj.signatures.set(signatures)
 
         trc = trcs.generate_trc(
             isd=isd,
@@ -428,7 +419,7 @@ def _validate_compatible_root(prev, this):
 
 
 def _coreas_certificates(isd):
-    """ returns the sensitive, regular and root certificates for all core ASes """
+    """ returns a queryset of the sensitive, regular and root certificates for all core ASes """
     certs = Certificate.objects.filter(key__AS__isd=isd).filter(key__usage__in=[
         Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]
         ).filter(key__AS__is_core=True)
@@ -437,5 +428,7 @@ def _coreas_certificates(isd):
     for cert in certs:
         stored_ver = dcerts[cert.key.usage][cert.key.AS.pk][0]
         if cert.version > stored_ver:  # replace this cert with the newer one
-            dcerts[cert.key.usage][cert.key.AS.pk] = (cert.version, cert)
-    return [tup[1] for per_as in dcerts.values() for tup in per_as.values()]
+            dcerts[cert.key.usage][cert.key.AS.pk] = (cert.version, cert.pk)
+    return Certificate.objects.filter(pk__in=[tup[1]
+                                      for per_as in dcerts.values()
+                                      for tup in per_as.values()])
