@@ -45,6 +45,7 @@ from scionlab.defines import (
     BW_PORT,
     PP_PORT,
     DISPATCHER_PORT,
+    SD_TCP_PORT,
     DEFAULT_HOST_INTERNAL_IP,
     DEFAULT_LINK_MTU,
     DEFAULT_LINK_BANDWIDTH,
@@ -589,6 +590,9 @@ class Host(models.Model):
         """
         portmap = PortMap()
         portmap.add(None, DISPATCHER_PORT)
+        # SD_TCP_PORT TCP port doesn't clash with UDP, but anyways excluded
+        # to ensure that the related prometheus ports do not clash either.
+        portmap.add(None, SD_TCP_PORT)
 
         for internal_port, control_port in \
                 self.border_routers.values_list('internal_port', 'control_port'):
