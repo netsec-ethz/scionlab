@@ -216,9 +216,9 @@ class TRCCreationTests(TestCase):
         self.isd1 = ISD.objects.create(isd_id=1, label='Test')
 
     def test_create_empty(self):
-        # trc = TRC.objects.create(self.isd1)
-        # self.assertTrue(trc.version_serial == trc.base_version)
-        pass
+        self.assertRaises(Exception,  # no core ases
+                          TRC.objects.create,
+                          isd=self.isd1)
 
     def test_create_first(self):
         as1 = _create_AS(self.isd1, "ff00:0:1", is_core=True)
