@@ -69,10 +69,6 @@ TEMPLATES = [
 
 # ##### DJANGO RUNNING CONFIGURATION ######################
 
-# setting the Timezone to UTC
-TIME_ZONE = "UTC"
-
-
 # the URL for static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

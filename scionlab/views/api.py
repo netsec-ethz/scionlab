@@ -20,7 +20,6 @@ from django.views import View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.utils import timezone
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
@@ -69,7 +68,7 @@ class GetHostConfig(SingleObjectMixin, View):
         if version is _BAD_VERSION:
             return HttpResponseBadRequest()
 
-        host.update_timestamp()
+        host.update_config_queried_timestamp()
 
         if version and version >= host.config_version:
             return HttpResponseNotModified()
