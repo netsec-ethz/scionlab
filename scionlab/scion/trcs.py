@@ -24,7 +24,7 @@ import toml
 from collections import namedtuple
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, mktemp
 from typing import cast, Dict, List, Tuple, Optional
 
 from scionlab.scion import jws
@@ -40,29 +40,16 @@ CoreKeys = namedtuple('CoreKeys', ['issuing_grant', 'voting_online', 'voting_off
 CoreKeySet = Dict[str, Key]
 
 
-# def generate_trc(isd, version, grace_period, not_before, not_after, primary_ases,
-#                  prev_trc, prev_voting_offline):
-def generate_trc(isd_id, base, serial, grace_period, not_before, not_after, primary_ases,
-                 included_certificates,
-                 prev_trc, prev_voting_offline):
+def generate_trc(prev_trc, isd_id, base, serial,
+                 primary_ases, quorum, votes,
+                 grace_period, not_before, not_after,
+                 certificates, signers_certs, signers_keys):
     """
     Generate a new TRC.
-    :param map certificates_included filename: content
     """
-
     assert (base >= 1 and serial >= 1)
-    # assert (base == 1) == (prev_trc is None) == (prev_voting_offline is None)
+    assert (prev_trc is None) == (base == serial)
 
-    """
-    # configure TRC
-    deleteme_trc_configure()
-    # generate payload scion-pki trcs payload
-    deleteme_trc_generate_payload()
-    # sign payload (crypto_lib.sh:sign_payload())
-    deleteme_trc_sign_payload()
-    # combine signed TRCs
-    deleteme_trc_combine_payloads()
-    """
     # TODO(juagargi) check that the votes member gets populated
     conf = TRCConf(isd_id=isd_id,
                    base_version=base,
@@ -70,40 +57,18 @@ def generate_trc(isd_id, base, serial, grace_period, not_before, not_after, prim
                    grace_period=grace_period,
                    not_before=not_before,
                    not_after=not_after,
-                   authoritative=primary_ases,
-                   core=primary_ases,
-                   certificates=included_certificates)
+                   core_ases=primary_ases,
+                   authoritative_ases=primary_ases,
+                   certificates={os.path.basename(mktemp()): c for c in certificates},
+                   votes=votes,
+                   predecessor_trc=prev_trc)
 
     with conf.configure() as trc:
-        pass
-
-    if prev_trc:
-        prev_primary_ases = _decode_primary_ases(prev_trc)
-    else:
-        prev_primary_ases = {}
-
-    changed = _changed_keys(primary_ases, prev_primary_ases)
-    if version == 1:
-        votes = {}
-        grace_period = timedelta(0)
-    elif _is_regular_update(primary_ases, prev_primary_ases):
-        votes = _regular_voting_keys(primary_ases, changed)
-    else:
-        votes = _sensitive_voting_keys(prev_voting_offline)
-    proof_of_possession = changed
-
-    payload = _build_payload(
-        isd,
-        version,
-        grace_period,
-        not_before,
-        not_after,
-        primary_ases,
-        votes,
-        proof_of_possession,
-    )
-
-    return _build_signed_trc(payload, votes, proof_of_possession,)
+        trc.gen_payload()
+        signed_payload = []
+        for c, k in zip(signers_certs, signers_keys):
+            signed_payload.append(trc.sign_payload(c, k))
+        return trc.combine(*signed_payload)
 
 
 def deleteme_is_regular_update(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> bool:
@@ -325,6 +290,8 @@ class TRCConf:
 
     The combine step returns the bytes of the final TRC.
     """
+    # TODO(juagargi) certificates should just be a list of certificates;
+    # should create random file names on the fly
     def __init__(self,
                  isd_id: int,
                  base_version: int,
@@ -489,8 +456,7 @@ class TRCConf:
         prev_cwd = os.getcwd()
         try:
             os.chdir(self._temp_dir.name)
-            ret = subprocess.run([SCION_CPPKI_COMMAND, "trcs", *args],
-                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+            ret = _raw_run_scion_cppki(*args)
         finally:
             os.chdir(prev_cwd)
         stdout = ret.stdout.decode("utf-8")
@@ -517,3 +483,8 @@ class TRCConf:
     @staticmethod
     def _predecessor_trc_name() -> str:
         return "predecessor-trc.trc"
+
+
+def _raw_run_scion_cppki(*args):
+    return subprocess.run([SCION_CPPKI_COMMAND, "trcs", *args],
+                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)

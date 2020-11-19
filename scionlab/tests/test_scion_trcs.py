@@ -17,9 +17,11 @@ import subprocess
 import toml
 from django.test import TestCase
 from datetime import datetime, timedelta, timezone
+from tempfile import mktemp
 from typing import Any, Dict
 
-from scionlab.scion import trcs
+from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
+from scionlab.scion.trcs import TRCConf, generate_trc, _raw_run_scion_cppki
 
 _TESTDATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/test_scion_trcs")
 
@@ -27,46 +29,46 @@ _TESTDATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/
 class TRCCreation(TestCase):
     """ tests the correct behavior of the TRCConf class """
     def test_validate(self):
-        kwargs = _args_dict()
-        trcs.TRCConf(**kwargs)  # doesn't raise
+        kwargs = _trcconf_args_dict()
+        TRCConf(**kwargs)  # doesn't raise
         kwargs["isd_id"] = -1
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        self.assertRaises(ValueError, TRCConf, **kwargs)
         # version and update readyness
-        kwargs = _args_dict()
+        kwargs = _trcconf_args_dict()
         kwargs["base_version"] = 2
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
-        kwargs = _args_dict()
+        self.assertRaises(ValueError, TRCConf, **kwargs)
+        kwargs = _trcconf_args_dict()
         kwargs["serial_version"] = kwargs["serial_version"] + 1
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)  # needs votes and predecessor
+        self.assertRaises(ValueError, TRCConf, **kwargs)  # needs votes and predecessor
         kwargs["votes"] = [1]
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)  # still needs predecessor
+        self.assertRaises(ValueError, TRCConf, **kwargs)  # still needs predecessor
         kwargs["predecessor_trc"] = b""
-        trcs.TRCConf(**kwargs)  # okay now
+        TRCConf(**kwargs)  # okay now
         # validity
-        kwargs = _args_dict()
+        kwargs = _trcconf_args_dict()
         kwargs["not_after"] = kwargs["not_before"]
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        self.assertRaises(ValueError, TRCConf, **kwargs)
         # certificates
-        kwargs = _args_dict()
+        kwargs = _trcconf_args_dict()
         kwargs["certificates"] = {}
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
-        kwargs = _args_dict()
+        self.assertRaises(ValueError, TRCConf, **kwargs)
+        kwargs = _trcconf_args_dict()
         # absolute paths not allowed:
         kwargs["certificates"] = {"/tmp/mock-certificate.crt": "no-content"}
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        self.assertRaises(ValueError, TRCConf, **kwargs)
         # anything but a filename is not allowed
         kwargs["certificates"] = {"../mock-certificate.crt": "no-content"}
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        self.assertRaises(ValueError, TRCConf, **kwargs)
         kwargs["certificates"] = {"": "no-content"}
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        self.assertRaises(ValueError, TRCConf, **kwargs)
         kwargs["certificates"] = {"..": "no-content"}
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        self.assertRaises(ValueError, TRCConf, **kwargs)
         kwargs["certificates"] = {"/": "no-content"}
-        self.assertRaises(ValueError, trcs.TRCConf, **kwargs)
+        self.assertRaises(ValueError, TRCConf, **kwargs)
 
     def test_configure(self):
-        kwargs = _args_dict()
-        conf = trcs.TRCConf(**kwargs)
+        kwargs = _trcconf_args_dict()
+        conf = TRCConf(**kwargs)
         temp_dir_name = ""
         with conf.configure() as trc:
             temp_dir_name = trc._temp_dir.name
@@ -93,7 +95,7 @@ class TRCCreation(TestCase):
         with open(os.path.join(_TESTDATA_DIR, "payload-1-config.toml")) as f:
             toml_conf = toml.load(f)
         kwargs = _transform_toml_conf_to_trcconf_args(toml_conf)
-        conf = trcs.TRCConf(**kwargs)
+        conf = TRCConf(**kwargs)
         with conf.configure() as trc:
             trc.gen_payload()
             gen_conf = toml.loads(_readfile(trc._temp_dir.name, trc._conf_filename()).decode())
@@ -105,19 +107,16 @@ class TRCCreation(TestCase):
         with open(os.path.join(_TESTDATA_DIR, "payload-1-config.toml")) as f:
             toml_conf = toml.load(f)
         kwargs = _transform_toml_conf_to_trcconf_args(toml_conf)
-        conf = trcs.TRCConf(**kwargs)
+        conf = TRCConf(**kwargs)
         with conf.configure() as trc:
             trc.gen_payload()
-            # sign
-            voters = [  # cert_fn, key_fn
-                (os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.crt"),
-                    os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.key")),
-                (os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.crt"),
-                    os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.key"))]
-            for (cert_fn, key_fn) in voters:
-                cert = _readfile(cert_fn)
-                key = _readfile(key_fn)
+            base_filenames = ["voting-sensitive-ff00_0_110",
+                              "voting-regular-ff00_0_210"]
+            # zip the base filenames with the content to a list of (filename, cert, key):
+            signers = zip(base_filenames, *zip(*_get_signers(base_filenames)))
+            for (fn, cert, key) in signers:
                 signed = trc.sign_payload(cert, key)
+                cert_fn = os.path.join(_TESTDATA_DIR, f"{fn}.crt")
                 cmd = ["openssl", "cms", "-verify",
                        "-inform", "der", "-certfile", cert_fn,
                        "-CAfile", cert_fn,
@@ -126,40 +125,60 @@ class TRCCreation(TestCase):
                                stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     def test_combine(self):
-        voters = [  # (cert, key)
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.key"))),
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.key")))]
+        # list of (cert, key)
+        signers = _get_signers(["voting-sensitive-ff00_0_110",
+                                "voting-regular-ff00_0_110"])
         with open(os.path.join(_TESTDATA_DIR, "payload-1-config.toml")) as f:
-            conf = trcs.TRCConf(**_transform_toml_conf_to_trcconf_args(toml.load(f)))
+            conf = TRCConf(**_transform_toml_conf_to_trcconf_args(toml.load(f)))
         signed_payloads = []
         with conf.configure() as trc:
             trc.gen_payload()
-            for (cert, key) in voters:
+            for (cert, key) in signers:
                 signed_payloads.append(trc.sign_payload(cert, key))
             trc.combine(*signed_payloads)
             # verify the trc with a call to scion-pki (would raise if error)
             trc_fn = os.path.join(trc._temp_dir.name, trc._trc_filename())
             trc._run_scion_cppki("verify", "--anchor", trc_fn, trc_fn)
 
+    def test_generate_trc(self):
+        # generate a new TRC using the generate_trc function
+        core_ases = ["ffaa:0:110"]
+        certificates = ["voting-sensitive-ff00_0_110.crt",
+                        "voting-regular-ff00_0_110.crt",
+                        "root-ff00_0_110.crt"]
+        certificates = [_readfile(_TESTDATA_DIR, f, text=True) for f in certificates]
+        signers = _get_signers(["voting-sensitive-ff00_0_110",
+                                "voting-regular-ff00_0_110"])
+        scerts, skeys = zip(*signers)
+        not_before = datetime.fromtimestamp(1605168000, tz=timezone.utc)
+        not_after = not_before + timedelta(seconds=1800)
+
+        trc = generate_trc(prev_trc=None, isd_id=1, base=1, serial=1,
+                           primary_ases=core_ases, quorum=1, votes=[],
+                           grace_period=DEFAULT_TRC_GRACE_PERIOD,
+                           not_before=not_before, not_after=not_after,
+                           certificates=certificates,
+                           signers_certs=scerts, signers_keys=skeys)
+        # test final trc
+        trc_file = mktemp()
+        with open(trc_file, "wb") as f:
+            f.write(trc)
+        _raw_run_scion_cppki("verify", trc_file)
 
 class TRCUpdate(TestCase):
     def test_regular_update(self):
         # initial TRC in TESTDATA/trc-1.trc
         predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-1.trc")
         # update the TRC by just incrementing the serial. That is in payload-2-config.toml
-        voters = [  # (cert, key)
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_110.key")))]
+        signers = _get_signers(["voting-regular-ff00_0_110"])
         with open(os.path.join(_TESTDATA_DIR, "payload-2-config.toml")) as f:
             kwargs = _transform_toml_conf_to_trcconf_args(toml.load(f))
         with open(predec_trc_fn, "rb") as f:
-            conf = trcs.TRCConf(**kwargs, predecessor_trc=f.read())
+            conf = TRCConf(**kwargs, predecessor_trc=f.read())
         signed_payloads = []
         with conf.configure() as trc:
             trc.gen_payload()
-            for (cert, key) in voters:
+            for (cert, key) in signers:
                 signed_payloads.append(trc.sign_payload(cert, key))
             trc.combine(*signed_payloads)
             # verify trc with the old trc as anchor
@@ -170,21 +189,17 @@ class TRCUpdate(TestCase):
         # previous TRC in TESTDATA/trc-2.trc
         predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-2.trc")
         # add a core-authoritative AS and its sensitive, regular and root certs
-        voters = [  # (cert, key)
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_110.key"))),
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_210.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-sensitive-ff00_0_210.key"))),
-            (_readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_210.crt")),
-                _readfile(os.path.join(_TESTDATA_DIR, "voting-regular-ff00_0_210.key")))]
+        signers = _get_signers(["voting-sensitive-ff00_0_110",
+                                "voting-sensitive-ff00_0_210",
+                                "voting-regular-ff00_0_210"])
         with open(os.path.join(_TESTDATA_DIR, "payload-3-config.toml")) as f:
             kwargs = _transform_toml_conf_to_trcconf_args(toml.load(f))
         with open(predec_trc_fn, "rb") as f:
-            conf = trcs.TRCConf(**kwargs, predecessor_trc=f.read())
+            conf = TRCConf(**kwargs, predecessor_trc=f.read())
         signed_payloads = []
         with conf.configure() as trc:
             trc.gen_payload()
-            for (cert, key) in voters:
+            for (cert, key) in signers:
                 signed_payloads.append(trc.sign_payload(cert, key))
             trc.combine(*signed_payloads)
             # verify trc with the old trc as anchor
@@ -192,7 +207,7 @@ class TRCUpdate(TestCase):
                                  os.path.join(trc._temp_dir.name, trc._trc_filename()))
 
 
-def _args_dict():
+def _trcconf_args_dict():
     return {"isd_id": 1, "base_version": 1, "serial_version": 1, "grace_period": None,
             "not_before": datetime.utcnow(), "not_after": datetime.utcnow() + timedelta(days=1),
             "authoritative_ases": ["1-ff00:0:110"], "core_ases": ["1-ff00:0:110"],
@@ -200,7 +215,8 @@ def _args_dict():
 
 
 def _readfile(*path_args, text=False):
-    with open(os.path.join(*path_args), "rb") as f:
+    mode = "r" if text else "rb"
+    with open(os.path.join(*path_args), mode) as f:
         return f.read()
 
 
@@ -228,3 +244,8 @@ def _transform_toml_conf_to_trcconf_args(toml_dict: Dict) -> Dict[str, Any]:
         "certificates": certificates,
         "votes": toml_dict.get("votes"),
     }
+
+
+def _get_signers(base_filenames):
+    return [(_readfile(f"{f}.crt"), _readfile(f"{f}.key")) for f in [
+        os.path.join(_TESTDATA_DIR, p) for p in base_filenames]]
