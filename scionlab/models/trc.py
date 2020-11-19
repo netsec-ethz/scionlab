@@ -69,7 +69,8 @@ class TRCManager(models.Manager):
             quorum = len(core_ases) // 2 + 1
             if not _is_regular_update_prevented(prev, quorum, core_ases, certificates):
                 # find compatible voters and signers:
-                # voters will be the subset of regular certs.
+                # votes will be the subset of regular certs of the prev. trc
+                votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
                 diff = certificates.filter(key__usage=Key.TRC_VOTING_REGULAR).exclude(
                     prev.certificates)
                 # do a regular update
@@ -414,19 +415,15 @@ def _validate_compatible_certificates(prev_certs, this_certs):
 
 
 def _validate_old_regular_votes(prev, this):
-    prev_regular = set(prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR))
-    this_regular = set(this.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR))
-    # diff = this_regular.difference(prev_regular)
-    diff = prev_regular.difference(this_regular)  # present before and not now
-    if this.votes.filter(pk__in=(c.pk for c in diff)).count() != len(diff):
+    diff = prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR).difference(
+        this.certificates.all())
+    if this.votes.intersection(diff).count() != diff.count():
         return "regular voting certificate changed and old one not part of voters"
 
 
 def _validate_compatible_root(prev, this):
-    prev_root = set(prev.certificates.filter(key__usage=Key.ISSUING_ROOT))
-    this_root = set(this.certificates.filter(key__usage=Key.ISSUING_ROOT))
-    diff = this_root.difference(prev_root)
-    if this.signatures.filter(pk__in=(c.pk for c in diff)).count() != len(diff):
+    diff = this.certificates.filter(key__usage=Key.ISSUING_ROOT).difference(prev.certificates.all())
+    if this.signatures.all().intersection(diff).count() != diff.count():
         return "changed root certificates are not signing the TRC"
 
 
