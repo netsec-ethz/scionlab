@@ -43,12 +43,16 @@ CoreKeySet = Dict[str, Key]
 def generate_trc(prev_trc, isd_id, base, serial,
                  primary_ases, quorum, votes,
                  grace_period, not_before, not_after,
-                 certificates, signers_certs, signers_keys):
+                 certificates: List[str],
+                 signers_certs: List[str],
+                 signers_keys: List[str]):
     """
     Generate a new TRC.
     """
     assert (base >= 1 and serial >= 1)
     assert (prev_trc is None) == (base == serial)
+    not_before = _utc_timestamp(not_before)
+    not_after = _utc_timestamp(not_after)
 
     # TODO(juagargi) check that the votes member gets populated
     conf = TRCConf(isd_id=isd_id,
@@ -59,7 +63,8 @@ def generate_trc(prev_trc, isd_id, base, serial,
                    not_after=not_after,
                    core_ases=primary_ases,
                    authoritative_ases=primary_ases,
-                   certificates={os.path.basename(mktemp()): c for c in certificates},
+                   certificates={os.path.basename(mktemp()): c.encode("ascii")
+                                 for c in certificates},
                    votes=votes,
                    predecessor_trc=prev_trc)
 
@@ -67,7 +72,7 @@ def generate_trc(prev_trc, isd_id, base, serial,
         trc.gen_payload()
         signed_payload = []
         for c, k in zip(signers_certs, signers_keys):
-            signed_payload.append(trc.sign_payload(c, k))
+            signed_payload.append(trc.sign_payload(c.encode("ascii"), k.encode("ascii")))
         return trc.combine(*signed_payload)
 
 
@@ -265,16 +270,19 @@ def test_verify(trc,
     return True
 
 
-def _utc_timestamp(dt: datetime) -> int:
-    """
-    Return the timestamp for a naive datetime representing UTC time.
-    """
+# def _utc_timestamp(dt: datetime) -> int:
+#     """
+#     Return the timestamp for a naive datetime representing UTC time.
+#     """
+#     assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
+#     return int(dt.replace(tzinfo=timezone.utc).timestamp())
+
+
+
+def _utc_timestamp(dt: datetime) -> datetime:
+    """ Return the utc datetime for a naive datetime """
     assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
-    return int(dt.replace(tzinfo=timezone.utc).timestamp())
-
-
-
-
+    return dt.replace(tzinfo=timezone.utc)
 
 
 
@@ -301,7 +309,7 @@ class TRCConf:
                  not_after: datetime,
                  authoritative_ases: List[str],
                  core_ases: List[str],
-                 certificates: Dict[str, str],
+                 certificates: Dict[str, bytes],
                  votes: Optional[List[int]] = None,
                  predecessor_trc: Optional[bytes] = None):
         """
@@ -449,7 +457,7 @@ class TRCConf:
     def _dump_certificates_to_files(self) -> None:
         for fn, c in self.certificates.items():
             with open(self._tmp_join(fn), "wb") as f:
-                f.write(c.encode("ascii"))
+                f.write(c)
 
     def _run_scion_cppki(self, *args) -> str:
         """ runs the binary scion-pki """

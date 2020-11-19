@@ -65,7 +65,7 @@ def _create_name(as_id: str, common_name: str) -> Name:
             (NameOID.LOCALITY_NAME, "Zürich"),
             (NameOID.ORGANIZATION_NAME, "Netsec"),
             (NameOID.ORGANIZATIONAL_UNIT_NAME, "Netsec"),
-            (NameOID.COMMON_NAME, common_name),
+            (NameOID.COMMON_NAME, f"{as_id} {common_name}"),
             (OID_ISD_AS, as_id)]
 
 
