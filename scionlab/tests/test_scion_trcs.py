@@ -208,7 +208,7 @@ class TRCUpdate(TestCase):
             trc._run_scion_cppki("verify", "--anchor", predec_trc_fn,
                                  os.path.join(trc._temp_dir.name, trc._trc_filename()))
 
-    def test_generate_trc(self):
+    def test_generate_trc_regular_update(self):
         # initial TRC in TESTDATA/trc-1.trc
         signers = _get_signers(["voting-regular-ff00_0_110"])
         scerts, skeys = zip(*signers)
@@ -216,6 +216,38 @@ class TRCUpdate(TestCase):
         kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
             _readfile(_TESTDATA_DIR, "payload-2-config.toml", text=True)))
         predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-1.trc")
+        _replace_keys(kwargs,
+                      [("base", "base_version"),
+                       ("serial", "serial_version"),
+                       ("primary_ases", "authoritative_ases"),
+                       ("primary_ases", "core_ases")])
+        # dates in DB have no timezone (all UTC)
+        kwargs["not_before"] = kwargs["not_before"].replace(tzinfo=None)
+        kwargs["not_after"] = kwargs["not_after"].replace(tzinfo=None)
+        kwargs["certificates"] = [_readfile(_TESTDATA_DIR, f, text=True)
+                                  for f in kwargs["certificates"]]
+        trc = generate_trc(prev_trc=_readfile(predec_trc_fn), **kwargs,
+                           quorum=len(kwargs["primary_ases"]) // 2 + 1,
+                           signers_certs=[c.decode("ascii") for c in scerts],
+                           signers_keys=[k.decode("ascii") for k in skeys])
+        # test final trc
+        trc_file = mktemp()
+        with open(trc_file, "wb") as f:
+            f.write(trc)
+        ret = _raw_run_scion_cppki("verify", trc_file)
+        ret = _raw_run_scion_cppki("verify", "--anchor", predec_trc_fn, trc_file)
+        self.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
+
+    def test_generate_trc_sensitive_update(self):
+        # initial TRC in TESTDATA/trc-1.trc
+        signers = _get_signers(["voting-sensitive-ff00_0_110",
+                                "voting-sensitive-ff00_0_210",
+                                "voting-regular-ff00_0_210"])
+        scerts, skeys = zip(*signers)
+
+        kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
+            _readfile(_TESTDATA_DIR, "payload-3-config.toml", text=True)))
+        predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-2.trc")
         _replace_keys(kwargs,
                       [("base", "base_version"),
                        ("serial", "serial_version"),
