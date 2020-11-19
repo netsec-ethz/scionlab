@@ -258,7 +258,7 @@ class TRC(models.Model):
         prev = self._previous_trc_or_none()
         if prev is None or prev == self:
             return "no previous TRC"
-        msg = _is_regular_update_prevented(prev, self)
+        msg = _is_regular_update_prevented(prev, self.quorum, self.core_ases, self.certificates)
         if msg is not None:
             return msg
         # For every Regular Voting Certificate that changes, the Regular Voting Certificate
@@ -353,11 +353,11 @@ def _can_update(isd):
     return AS.objects.filter(isd=isd, is_core=True).count() >= prev.quorum
 
 
-def _can_regular_update(prev, this):
-    return not _is_regular_update_prevented(prev, this)
+def _can_regular_update(prev, quorum, core_ases, certificates):
+    return not _is_regular_update_prevented(prev, quorum, core_ases, certificates)
 
 
-def _is_regular_update_prevented(prev, this):
+def _is_regular_update_prevented(prev_trc, quorum, core_ases, certificates):
     """
     Returns False if a regular update could be performed.
     Returns a string message with the reason, otherwise.
@@ -372,33 +372,35 @@ def _is_regular_update_prevented(prev, this):
     Some more conditions must hold as well.
     See also update_regular_impossible
     """
-    if prev.quorum != this.quorum:
+    if prev_trc.quorum != quorum:
         return "different quorum"
     # check core, authoritative ASes section (they are treated the same in SCIONLab):
-    if list(prev.core_ases.order_by("pk")) != list(this.core_ases.order_by("pk")):
+    # TODO use a set instead of the order by and a list:
+    # if list(prev_trc.core_ases.order_by("pk")) != list(core_ases.order_by("pk")):
+    if set(prev_trc.core_ases.all()) != set(core_ases.all()):
         return "different core section"
     # number of sensitive, regular and root certificates is the same
-    msg = _validate_compatible_certificates(prev, this)
+    msg = _validate_compatible_certificates(prev_trc.certificates, certificates)
     if msg is not None:
         return msg
     # check sensitive voting certificate set:
-    prev_sensitive = list(prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
-                            .order_by("pk"))
-    if list(this.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
+    prev_sensitive = list(prev_trc.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
+                          .order_by("pk"))
+    if list(certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
             .order_by("pk")) != prev_sensitive:
         return "different sensitive voters certificates"
     return None
 
 
-def _validate_compatible_certificates(prev, this):
+def _validate_compatible_certificates(prev_certs, this_certs):
     """ checks that the certificates are the same, or have the same DN """
     for usage in [Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]:
-        prev_certs = prev.certificates.filter(key__usage=usage)
-        this_certs = this.certificates.filter(key__usage=usage)
-        if prev_certs.count() != this_certs.count():
+        prev = prev_certs.filter(key__usage=usage)
+        this = this_certs.filter(key__usage=usage)
+        if prev.count() != this.count():
             return f"different number of certificates for {usage}"
-        prev_ases = AS.objects.filter(pk__in=prev_certs.values("key__AS")).order_by("pk")
-        this_ases = AS.objects.filter(pk__in=this_certs.values("key__AS")).order_by("pk")
+        prev_ases = AS.objects.filter(pk__in=prev.values("key__AS")).order_by("pk")
+        this_ases = AS.objects.filter(pk__in=this.values("key__AS")).order_by("pk")
         if list(prev_ases) != list(this_ases):
             return f"different distinguished name in certs. for {usage}"
 
