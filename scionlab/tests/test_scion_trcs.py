@@ -18,7 +18,7 @@ import toml
 from django.test import TestCase
 from datetime import datetime, timedelta, timezone
 from tempfile import mktemp
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
 from scionlab.scion.trcs import TRCConf, generate_trc, _raw_run_scion_cppki
@@ -165,7 +165,9 @@ class TRCCreation(TestCase):
         trc_file = mktemp()
         with open(trc_file, "wb") as f:
             f.write(trc)
-        _raw_run_scion_cppki("verify", trc_file)
+        ret = _raw_run_scion_cppki("verify", "--anchor", trc_file, trc_file)
+        self.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
+
 
 class TRCUpdate(TestCase):
     def test_regular_update(self):
@@ -173,10 +175,9 @@ class TRCUpdate(TestCase):
         predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-1.trc")
         # update the TRC by just incrementing the serial. That is in payload-2-config.toml
         signers = _get_signers(["voting-regular-ff00_0_110"])
-        with open(os.path.join(_TESTDATA_DIR, "payload-2-config.toml")) as f:
-            kwargs = _transform_toml_conf_to_trcconf_args(toml.load(f))
-        with open(predec_trc_fn, "rb") as f:
-            conf = TRCConf(**kwargs, predecessor_trc=f.read())
+        kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
+            _readfile(_TESTDATA_DIR, "payload-2-config.toml", text=True)))
+        conf = TRCConf(**kwargs, predecessor_trc=_readfile(predec_trc_fn))
         signed_payloads = []
         with conf.configure() as trc:
             trc.gen_payload()
@@ -196,8 +197,7 @@ class TRCUpdate(TestCase):
                                 "voting-regular-ff00_0_210"])
         with open(os.path.join(_TESTDATA_DIR, "payload-3-config.toml")) as f:
             kwargs = _transform_toml_conf_to_trcconf_args(toml.load(f))
-        with open(predec_trc_fn, "rb") as f:
-            conf = TRCConf(**kwargs, predecessor_trc=f.read())
+        conf = TRCConf(**kwargs, predecessor_trc=_readfile(predec_trc_fn))
         signed_payloads = []
         with conf.configure() as trc:
             trc.gen_payload()
@@ -207,6 +207,36 @@ class TRCUpdate(TestCase):
             # verify trc with the old trc as anchor
             trc._run_scion_cppki("verify", "--anchor", predec_trc_fn,
                                  os.path.join(trc._temp_dir.name, trc._trc_filename()))
+
+    def test_generate_trc(self):
+        # initial TRC in TESTDATA/trc-1.trc
+        signers = _get_signers(["voting-regular-ff00_0_110"])
+        scerts, skeys = zip(*signers)
+
+        kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
+            _readfile(_TESTDATA_DIR, "payload-2-config.toml", text=True)))
+        predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-1.trc")
+        _replace_keys(kwargs,
+                      [("base", "base_version"),
+                       ("serial", "serial_version"),
+                       ("primary_ases", "authoritative_ases"),
+                       ("primary_ases", "core_ases")])
+        # dates in DB have no timezone (all UTC)
+        kwargs["not_before"] = kwargs["not_before"].replace(tzinfo=None)
+        kwargs["not_after"] = kwargs["not_after"].replace(tzinfo=None)
+        kwargs["certificates"] = [_readfile(_TESTDATA_DIR, f, text=True)
+                                  for f in kwargs["certificates"]]
+        trc = generate_trc(prev_trc=_readfile(predec_trc_fn), **kwargs,
+                           quorum=len(kwargs["primary_ases"]) // 2 + 1,
+                           signers_certs=[c.decode("ascii") for c in scerts],
+                           signers_keys=[k.decode("ascii") for k in skeys])
+        # test final trc
+        trc_file = mktemp()
+        with open(trc_file, "wb") as f:
+            f.write(trc)
+        ret = _raw_run_scion_cppki("verify", trc_file)
+        ret = _raw_run_scion_cppki("verify", "--anchor", predec_trc_fn, trc_file)
+        self.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
 
 
 def _trcconf_args_dict():
@@ -246,6 +276,12 @@ def _transform_toml_conf_to_trcconf_args(toml_dict: Dict) -> Dict[str, Any]:
         "certificates": certificates,
         "votes": toml_dict.get("votes"),
     }
+
+
+def _replace_keys(d: Dict[str, Any], keys: List[Tuple[str, str]]) -> Dict[str, Any]:
+    """ keys is a list of tuples (new_key, old_key) """
+    for (nk, ok) in keys:
+        d[nk] = d.pop(ok)
 
 
 def _get_signers(base_filenames):
