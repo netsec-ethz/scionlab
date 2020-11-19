@@ -171,14 +171,13 @@ class TRCUpdateTests(TestCase):
             certificate__key__usage=Key.TRC_VOTING_REGULAR).last()
         trc7.del_certificates([cert.certificate])
         as_ = cert.certificate.key.AS
-        cert = Certificate.objects.create_voting_regular_cert(as_)
-        trc7.add_certificates([cert])
+        trc7.add_certificates([Certificate.objects.create_voting_regular_cert(as_)])
         trc7.save()
         self.assertTrue(trc7.update_regular_impossible())
         self.assertIn("regular voting certificate", trc7.update_regular_impossible())
         self.assertIn("not part of voters", trc7.update_regular_impossible())
         # change regular voting certificate, make it part of voters
-        trc7.votes.add(cert)
+        trc7.votes.add(cert.certificate)
         self.assertFalse(trc7.update_regular_impossible())
 
         # change root certificate, not part of voters
