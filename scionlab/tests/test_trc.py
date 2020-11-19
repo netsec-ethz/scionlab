@@ -20,7 +20,7 @@ from django.test import TestCase
 
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key, Certificate
-from scionlab.models.trc import TRC, _can_update
+from scionlab.models.trc import TRC, _can_update, _coreas_certificates
 from scionlab.defines import (
     DEFAULT_EXPIRATION_AS_KEYS,
     DEFAULT_EXPIRATION_CORE_KEYS,
@@ -96,19 +96,19 @@ class TRCUpdateTests(TestCase):
         self.isd1 = ISD.objects.create(isd_id=1, label='Test')
 
     def test_can_update(self):
-        self.assertFalse(_can_update(1))
+        self.assertFalse(_can_update(self.isd1))
         prev_trc = _create_TRC(self.isd1, 1, 1)
         self.assertEqual(prev_trc.quorum, 1)  # default quorum is 1
-        self.assertFalse(_can_update(1))  # no core ASes yet
+        self.assertFalse(_can_update(self.isd1))  # no core ASes yet
         _create_AS(self.isd1, "ff00:0:111")
-        self.assertFalse(_can_update(1))  # no core ASes yet
+        self.assertFalse(_can_update(self.isd1))  # no core ASes yet
         _create_AS(self.isd1, "ff00:0:110", is_core=True)
-        self.assertTrue(_can_update(1))  # there is 1 voter, which >= prev.quorum
+        self.assertTrue(_can_update(self.isd1))  # there is 1 voter, which >= prev.quorum
 
-    def test_can_update_regular(self):
+    def test_update_regular_possible(self):
         trc1 = _create_TRC(self.isd1, 1, 1)
-        self.assertFalse(trc1.can_update_regular())  # no previous TRC
-        self.assertIn("no previous", trc1.can_update_regular().message)
+        self.assertTrue(trc1.update_regular_impossible())  # no previous TRC
+        self.assertIn("no previous", trc1.update_regular_impossible())
         as1 = _create_AS(self.isd1, "ff00:0:110", is_core=True)
         Key.objects.create_core_keys(as1)
         Certificate.objects.create_core_certs(as1)
@@ -117,18 +117,18 @@ class TRCUpdateTests(TestCase):
                    base_version=1, version_serial=2)
         trc2.save()
         self._reset_core_ases(trc2)
-        self.assertTrue(trc2.can_update_regular())
+        self.assertFalse(trc2.update_regular_impossible())
         # create new voter
         as2 = _create_AS(self.isd1, "ff00:0:210", is_core=True)
         Key.objects.create_core_keys(as2)
         Certificate.objects.create_core_certs(as2)
         self._reset_core_ases(trc2)
-        self.assertFalse(trc2.can_update_regular())  # quorum changed
-        self.assertIn("quorum", trc2.can_update_regular().message)
+        self.assertTrue(trc2.update_regular_impossible())  # quorum changed
+        self.assertIn("quorum", trc2.update_regular_impossible())
         trc2.quorum = trc1.quorum  # force quorum to be the same
         trc2.save()
-        self.assertFalse(trc2.can_update_regular())  # core section changed
-        self.assertIn("core section", trc2.can_update_regular().message)
+        self.assertTrue(trc2.update_regular_impossible())  # core section changed
+        self.assertIn("core section", trc2.update_regular_impossible())
         trc2.quorum += 1  # reinstate the correct quorum
         trc2.save()
         # sanity check
@@ -136,21 +136,21 @@ class TRCUpdateTests(TestCase):
                    base_version=1, version_serial=3)
         trc3.save()
         self._reset_core_ases(trc3)
-        self.assertTrue(trc3.can_update_regular())
+        self.assertFalse(trc3.update_regular_impossible())
         # change sensitive voting cert (only the cert suffices)
         Certificate.objects.create_voting_sensitive_cert(as1)
         trc4 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, version_serial=4)
         trc4.save()
         self._reset_core_ases(trc4)
-        self.assertFalse(trc4.can_update_regular())  # sensitive voting different
-        self.assertIn("sensitive vote", trc4.can_update_regular().message)
+        self.assertTrue(trc4.update_regular_impossible())  # sensitive voting different
+        self.assertIn("sensitive vote", trc4.update_regular_impossible())
         # sanity check
         trc5 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, version_serial=5)
         trc5.save()
         self._reset_core_ases(trc5)
-        self.assertTrue(trc5.can_update_regular())
+        self.assertFalse(trc5.update_regular_impossible())
         # change number of included certificates
         trc6 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, version_serial=6)
@@ -158,15 +158,15 @@ class TRCUpdateTests(TestCase):
         self._reset_core_ases(trc6)
         print(type(trc6.certificates.last()))
         trc6.certificateintrc_set.filter(certificate__key__usage=Key.ISSUING_ROOT).last().delete()
-        self.assertFalse(trc6.can_update_regular())
-        self.assertIn("different number", trc6.can_update_regular().message)
+        self.assertTrue(trc6.update_regular_impossible())
+        self.assertIn("different number", trc6.update_regular_impossible())
         # change regular voting certificate, not part of voters
         self._reset_core_ases(trc6)
         trc7 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, version_serial=7)
         trc7.save()
         self._reset_core_ases(trc7)
-        self.assertTrue(trc7.can_update_regular())
+        self.assertFalse(trc7.update_regular_impossible())
         cert = trc7.certificateintrc_set.filter(
             certificate__key__usage=Key.TRC_VOTING_REGULAR).last()
         trc7.del_certificates([cert.certificate])
@@ -174,19 +174,19 @@ class TRCUpdateTests(TestCase):
         cert = Certificate.objects.create_voting_regular_cert(as_)
         trc7.add_certificates([cert])
         trc7.save()
-        self.assertFalse(trc7.can_update_regular())
-        self.assertIn("regular voting certificate", trc7.can_update_regular().message)
-        self.assertIn("not part of voters", trc7.can_update_regular().message)
+        self.assertTrue(trc7.update_regular_impossible())
+        self.assertIn("regular voting certificate", trc7.update_regular_impossible())
+        self.assertIn("not part of voters", trc7.update_regular_impossible())
         # change regular voting certificate, make it part of voters
         trc7.votes.add(cert)
-        self.assertTrue(trc7.can_update_regular())
+        self.assertFalse(trc7.update_regular_impossible())
 
         # change root certificate, not part of voters
         trc8 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, version_serial=8)
         trc8.save()
         self._reset_core_ases(trc8)
-        self.assertTrue(trc8.can_update_regular())
+        self.assertFalse(trc8.update_regular_impossible())
         cert = trc8.certificateintrc_set.filter(
             certificate__key__usage=Key.ISSUING_ROOT).last()
         trc8.del_certificates([cert.certificate])
@@ -194,36 +194,54 @@ class TRCUpdateTests(TestCase):
         cert = Certificate.objects.create_issuer_root_cert(as_)
         trc8.add_certificates([cert])
         trc8.save()
-        self.assertFalse(trc8.can_update_regular())
-        self.assertIn("root certificate", trc8.can_update_regular().message)
-        self.assertIn("not sign", trc8.can_update_regular().message)
+        self.assertTrue(trc8.update_regular_impossible())
+        self.assertIn("root certificate", trc8.update_regular_impossible())
+        self.assertIn("not sign", trc8.update_regular_impossible())
 
         # change root certificate, make it part of voters
         trc8.signatures.add(cert)
-        self.assertTrue(trc8.can_update_regular())
+        self.assertFalse(trc8.update_regular_impossible())
 
     def _reset_core_ases(self, trc):
-        # trc.voting_sensitive.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_SENSITIVE))
-        # trc.voting_regular.set(Certificate.objects.filter(key__usage=Key.TRC_VOTING_REGULAR))
-        # trc.quorum = trc.voting_sensitive.count() // 2 + 1
         trc.core_ases.clear()
         trc.core_ases.set(trc.isd.ases.filter(is_core=True))
         trc.quorum = trc.core_ases.count() // 2 + 1
-
-        # tethered certificates:
-        certs = Certificate.objects.exclude(key__usage__in=[
-            Key.ISSUING_CA, Key.CP_AS]).exclude(key__AS__is_core=False)
-        # group them by [usage], [AS], annotate ( max(version) , certificate )
-        dcerts = defaultdict(lambda: defaultdict(lambda: (0, None)))
-        for cert in certs:
-            stored_ver = dcerts[cert.key.usage][cert.key.AS.pk][0]
-            if cert.version > stored_ver:
-                dcerts[cert.key.usage][cert.key.AS.pk] = (cert.version, cert)
+        # insert all core AS certificates:
         trc.certificates.clear()
-        trc.add_certificates([tup[1] for per_as in dcerts.values() for tup in per_as.values()])
+        trc.add_certificates(_coreas_certificates(trc.isd))
         trc.save()
 
 
+class TRCCreationTests(TestCase):
+    def setUp(self):
+        self.isd1 = ISD.objects.create(isd_id=1, label='Test')
+
+    def test_create_empty(self):
+        # trc = TRC.objects.create(self.isd1)
+        # self.assertTrue(trc.version_serial == trc.base_version)
+        pass
+
+    def test_create_first(self):
+        as1 = _create_AS(self.isd1, "ff00:0:1", is_core=True)
+        as2 = _create_AS(self.isd1, "ff00:0:2", is_core=True)
+        as3 = _create_AS(self.isd1, "ff00:0:3", is_core=False)
+
+        Key.objects.create_core_keys(as1)
+        Key.objects.create_core_keys(as2)
+        Certificate.objects.create_core_certs(as1)
+        Certificate.objects.create_core_certs(as2)
+        # CP AS key and cert, for core and non core:
+        Key.objects.create(as1, Key.CP_AS)
+        Key.objects.create(as2, Key.CP_AS)
+        Key.objects.create(as3, Key.CP_AS)
+        Certificate.objects.create_as_cert(as1, issuer=as1)
+        Certificate.objects.create_as_cert(as2, issuer=as2)
+        Certificate.objects.create_as_cert(as3, issuer=as1)
+
+        TRC.objects.create(self.isd1)
+
+
+class OlderTests(TestCase):
     def gen_trc_v1(self):
         """
         Helper: create initial version of TRC

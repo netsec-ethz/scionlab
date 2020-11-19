@@ -17,6 +17,7 @@
 ================================================================================
 """
 
+from collections import defaultdict
 from django.db import models
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
@@ -59,15 +60,25 @@ class TRCManager(models.Manager):
 
         :param isd ISD:
         """
-
+        return
+        prev = isd.trcs.latest_or_none()
+        serial = prev.version_serial + 1 if prev else 1
+        core_ases = AS.objects.filter(isd=isd, is_core=True)
+        certificates = _coreas_certificates(isd)
         if _can_update(isd):
-            if _can_regular_update(isd):
+            # add all certificates as votes and signatures, to check if a regular update can be done
+            votes = certificates
+            signatures = certificates
+            if can_update_regular(isd):
                 pass
             else:
                 pass
+        # create a base TRC
 
-        prev = isd.trcs.latest_or_none()
+        votes = [c for c in certificates if c.key.usage == Key.TRC_VOTING_REGULAR]
+        # signatures = 
 
+        TRC(isd=isd, version_serial=serial, base_version=serial)
         if prev:
             version = prev.version + 1
             prev_trc = prev.trc
@@ -147,7 +158,7 @@ class TRC(models.Model):
     # Sensitive voting certs and keys are required to create the next TRC version for
     # sensitive updates. These certs and keys are never deleted to ensure it is always possible
     # to create a new TRC version, even after removing _all_ core ASes of an ISD.
-    # (see also _key_set_null_or_cascade).
+    # See also _key_set_null_or_cascade
     certificates = models.ManyToManyField(
         Certificate,
         through="CertificateInTRC",
@@ -164,8 +175,9 @@ class TRC(models.Model):
     )
 
     # certificates signing this TRC. They could be sensitive or regular.
-    # We could have a root cert. signing the TRC, in case of a regular update.
-    # see also can_regular_update
+    # We could also have root certs. signing the TRC, in case of a regular update,
+    # if the root certificate is changed in the update.
+    # See also can_update_regular
     signatures = models.ManyToManyField(
         Certificate,
         related_name="trc_signatures",
@@ -225,9 +237,10 @@ class TRC(models.Model):
     def filename(self) -> str:
         return f"ISD{self.isd.isd_id}-B{self.base_version}-S{self.version_serial}"
 
-    def can_update_regular(self):
+    def update_regular_impossible(self):
         """
-        Check if this is a regular TRC update (as opposed to a sensitive one).
+        Check if this TRC could do a regular TRC update (as opposed to a sensitive one).
+        Returns None if all okay, and the error message otherwise.
 
         It is a regular update if:
         - The voting quorum does not change.
@@ -242,44 +255,24 @@ class TRC(models.Model):
         For regular TRC updates to be verifiable, they must contain votes
         only from regular certificates.
         """
-        class ReturnReason:
-            def __init__(self, message=None):
-                self.message = message
-
-            def __bool__(self):
-                return self.message is None or self.message == ""
-
         prev = self._previous_trc_or_none()
         if prev is None or prev == self:
-            return ReturnReason("no previous TRC")
-        if prev.quorum != self.quorum:
-            return ReturnReason("different quorum")
-        # check core, authoritative ASes section (they are treated the same in SCIONLab):
-        if list(prev.core_ases.order_by("pk")) != list(self.core_ases.order_by("pk")):
-            return ReturnReason("different core section")
-        # number of sensitive, regular and root certificates is the same
-        msg = _validate_compatible_certificates(prev, self)
+            return "no previous TRC"
+        msg = _is_regular_update_prevented(prev, self)
         if msg is not None:
-            return ReturnReason(msg)
-        # check sensitive voting certificate set:
-        prev_sensitive = list(prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
-                              .order_by("pk"))
-        if list(self.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
-                .order_by("pk")) != prev_sensitive:
-            return ReturnReason("different sensitive voters certificates")
-        # check regular voting certificates:
+            return msg
         # For every Regular Voting Certificate that changes, the Regular Voting Certificate
         # in the predecessor TRC is part of the voters on the successor TRC.
         msg = _validate_compatible_regular(prev, self)
         if msg is not None:
-            return ReturnReason(msg)
+            return msg
         # check root certificates
         # For every CP Root Certificate that changes, the CP Root Certificate in the
         # predecessor TRC attaches a signature to the signed successor TRC.
         msg = _validate_compatible_root(prev, self)
         if msg is not None:
-            return ReturnReason(msg)
-        return True
+            return msg
+        return None
 
     @staticmethod
     def next_version():
@@ -305,6 +298,14 @@ class CertificateInTRC(models.Model):
         on_delete=models.CASCADE,
     )
     index = models.PositiveIntegerField()
+
+
+def _create_trc(isd, serial, base, not_before, not_after, core_ases,
+                certificates=None, votes=None, signatures=None):
+    quorum = len(core_ases) // 2 + 1
+    return TRC(isd=isd, version_serial=serial, base_version=base,
+               not_before=not_before, not_after=not_after, core_ases=core_ases,
+               certificates=certificates, votes=votes, signatures=signatures, quorum=quorum)
 
 # def _latest_core_keys(as_) -> List[Key]:
 #     return [
@@ -344,11 +345,49 @@ def _can_update(isd):
 
     In SCIONLab we only need to worry about the quorum.
     """
-    prev = ISD.objects.get(isd_id=isd).trcs.latest_or_none()
+    # prev = ISD.objects.get(isd_id=isd).trcs.latest_or_none()
+    prev = isd.trcs.latest_or_none()
     if prev is None:
         return False
     # get number of voters. I.e. core ASes in this ISD (all of them vote)
-    return AS.objects.filter(isd__isd_id=isd, is_core=True).count() >= prev.quorum
+    return AS.objects.filter(isd=isd, is_core=True).count() >= prev.quorum
+
+
+def _can_regular_update(prev, this):
+    return not _is_regular_update_prevented(prev, this)
+
+
+def _is_regular_update_prevented(prev, this):
+    """
+    Returns False if a regular update could be performed.
+    Returns a string message with the reason, otherwise.
+
+    There can be a regular update if:
+        - The voting quorum does not change.
+        - The core ASes section does not change.
+        - The authoritative ASes section does not change.
+        - The number of sensitive, regular and root certificates does not change.
+        - The set of sensitive certificates does not change.
+
+    Some more conditions must hold as well.
+    See also update_regular_impossible
+    """
+    if prev.quorum != this.quorum:
+        return "different quorum"
+    # check core, authoritative ASes section (they are treated the same in SCIONLab):
+    if list(prev.core_ases.order_by("pk")) != list(this.core_ases.order_by("pk")):
+        return "different core section"
+    # number of sensitive, regular and root certificates is the same
+    msg = _validate_compatible_certificates(prev, this)
+    if msg is not None:
+        return msg
+    # check sensitive voting certificate set:
+    prev_sensitive = list(prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
+                            .order_by("pk"))
+    if list(this.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
+            .order_by("pk")) != prev_sensitive:
+        return "different sensitive voters certificates"
+    return None
 
 
 def _validate_compatible_certificates(prev, this):
@@ -378,3 +417,17 @@ def _validate_compatible_root(prev, this):
     diff = this_root.difference(prev_root)
     if this.signatures.filter(pk__in=(c.pk for c in diff)).count() != len(diff):
         return "changed root certificates are not signing the TRC"
+
+
+def _coreas_certificates(isd):
+    """ returns the sensitive, regular and root certificates for all core ASes """
+    certs = Certificate.objects.filter(key__AS__isd=isd).filter(key__usage__in=[
+        Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]
+        ).filter(key__AS__is_core=True)
+    # group them by [usage], [AS], annotate ( max(version) , certificate )
+    dcerts = defaultdict(lambda: defaultdict(lambda: (0, None)))
+    for cert in certs:
+        stored_ver = dcerts[cert.key.usage][cert.key.AS.pk][0]
+        if cert.version > stored_ver:  # replace this cert with the newer one
+            dcerts[cert.key.usage][cert.key.AS.pk] = (cert.version, cert)
+    return [tup[1] for per_as in dcerts.values() for tup in per_as.values()]
