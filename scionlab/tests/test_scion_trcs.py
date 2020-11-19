@@ -86,7 +86,7 @@ class TRCCreation(TestCase):
             for fn, c in conf.certificates.items():
                 p = os.path.join(temp_dir_name, fn)
                 self.assertTrue(os.path.isfile(p))
-                with open(p) as f:
+                with open(p, "rb") as f:
                     self.assertEqual(f.read(), c)
         self.assertFalse(os.path.exists(temp_dir_name))
 
@@ -151,6 +151,7 @@ class TRCCreation(TestCase):
                                 "voting-regular-ff00_0_110"])
         scerts, skeys = zip(*signers)
         not_before = datetime.fromtimestamp(1605168000, tz=timezone.utc)
+        not_before = not_before.replace(tzinfo=None)  # dates in DB have no timezone (all UTC)
         not_after = not_before + timedelta(seconds=1800)
 
         trc = generate_trc(prev_trc=None, isd_id=1, base=1, serial=1,
@@ -158,7 +159,8 @@ class TRCCreation(TestCase):
                            grace_period=DEFAULT_TRC_GRACE_PERIOD,
                            not_before=not_before, not_after=not_after,
                            certificates=certificates,
-                           signers_certs=scerts, signers_keys=skeys)
+                           signers_certs=[c.decode("ascii") for c in scerts],
+                           signers_keys=[k.decode("ascii") for k in skeys])
         # test final trc
         trc_file = mktemp()
         with open(trc_file, "wb") as f:
@@ -211,7 +213,7 @@ def _trcconf_args_dict():
     return {"isd_id": 1, "base_version": 1, "serial_version": 1, "grace_period": None,
             "not_before": datetime.utcnow(), "not_after": datetime.utcnow() + timedelta(days=1),
             "authoritative_ases": ["1-ff00:0:110"], "core_ases": ["1-ff00:0:110"],
-            "certificates": {"mock-certificate.crt": "no-content"}}
+            "certificates": {"mock-certificate.crt": b"no-content"}}
 
 
 def _readfile(*path_args, text=False):
@@ -229,7 +231,7 @@ def _transform_toml_conf_to_trcconf_args(toml_dict: Dict) -> Dict[str, Any]:
     not_before = datetime.fromtimestamp(toml_dict["validity"]["not_before"], tz=timezone.utc)
     certificates = {}
     for fn in toml_dict["cert_files"]:
-        with open(os.path.join(_TESTDATA_DIR, fn)) as f:
+        with open(os.path.join(_TESTDATA_DIR, fn), "rb") as f:
             certificates[fn] = f.read()
     return {
         "isd_id": toml_dict["isd"],

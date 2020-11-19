@@ -125,6 +125,8 @@ class CertificateTests(TestCase):
         self.assertEqual(cert.ca_cert, cert)  # self signed
         self.assertEqual(cert.not_before, datetime.fromtimestamp(11))  # valid intersection
         self.assertEqual(cert.not_after, datetime.fromtimestamp(12))
+        with open("/tmp/cert.crt", "wb") as f:
+            f.write(cert.certificate.encode("ascii"))
 
     def test_create_voting_regular_cert(self):
         k = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_REGULAR,

@@ -75,36 +75,44 @@ class TRCManager(models.Manager):
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
                 changed_root_certs = certificates.filter(key__usage=Key.ISSUING_ROOT)\
                     .difference(prev.certificates.all())
-                signatures = votes + changed_root_certs
+                signers = votes + changed_root_certs
             else:
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
-                signatures = votes
+                signers = votes
         else:
             # create a base TRC
             base = serial
             votes = []
-            signatures = certificates.exclude(key__usage__in=[
+            signers = certificates.exclude(key__usage__in=[
                 Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR])
 
-        not_before, not_after = _validity(*[*certificates, *votes, *signatures])
+        not_before, not_after = _validity(*[*certificates, *votes, *signers])
+
+        trc = trcs.generate_trc(
+            prev_trc=prev,
+            isd_id=isd.id,
+            base=base,
+            serial=serial,
+            primary_ases=[c.as_id for c in core_ases],
+            quorum=quorum,
+            votes=[],
+            grace_period=DEFAULT_TRC_GRACE_PERIOD,
+            not_before=not_before,
+            not_after=not_after,
+            certificates=[c.certificate for c in certificates],
+            signers_certs=[s.certificate for s in signers],
+            signers_keys=[s.key.key for s in signers],
+        )
         # TODO move downwards
         obj = super().create(isd=isd, version_serial=serial, base_version=base,
                              not_before=not_before, not_after=not_after)
         obj.core_ases.set(core_ases)
         obj.add_certificates(certificates)
         obj.votes.set(votes)
-        obj.signatures.set(signatures)
+        obj.signatures.set(signers)
 
-        trc = trcs.generate_trc(
-            isd=isd,
-            version=version,
-            grace_period=DEFAULT_TRC_GRACE_PERIOD,
-            not_before=not_before,
-            not_after=not_after,
-            primary_ases=primary_ases,
-            prev_trc=prev_trc,
-            prev_voting_offline=prev_voting_offline,
-        )
+
+        return
 
         voting_offline = [k for k in all_keys if k.usage == Key.TRC_VOTING_OFFLINE]
 
@@ -177,7 +185,7 @@ class TRC(models.Model):
     # We could also have root certs. signing the TRC, in case of a regular update,
     # if the root certificate is changed in the update.
     # See also can_update_regular
-    signatures = models.ManyToManyField(
+    signatures = models.ManyToManyField(  # TODO(juagargi) rename to signers
         Certificate,
         related_name="trc_signatures",
     )
