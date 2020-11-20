@@ -48,6 +48,7 @@ def generate_trc(prev_trc, isd_id, base, serial,
                  signers_keys: List[str]):
     """
     Generate a new TRC.
+    This method is the interface between the DB objects and the scion PKI ones.
     """
     assert (base >= 1 and serial >= 1)
     assert (prev_trc is None) == (base == serial)
@@ -65,6 +66,7 @@ def generate_trc(prev_trc, isd_id, base, serial,
                    authoritative_ases=primary_ases,
                    certificates={os.path.basename(mktemp()): c.encode("ascii")
                                  for c in certificates},
+                   quorum=quorum,
                    votes=votes,
                    predecessor_trc=prev_trc)
 
@@ -310,6 +312,7 @@ class TRCConf:
                  authoritative_ases: List[str],
                  core_ases: List[str],
                  certificates: Dict[str, bytes],
+                 quorum: int = None,
                  votes: Optional[List[int]] = None,
                  predecessor_trc: Optional[bytes] = None):
         """
@@ -325,6 +328,7 @@ class TRCConf:
         self.authoritative_ases = authoritative_ases
         self.core_ases = core_ases
         self.certificates = certificates
+        self.quorum = quorum
         self.votes = votes
         self.predecessor_trc = predecessor_trc
 
@@ -442,7 +446,7 @@ class TRCConf:
         }
 
     def _voting_quorum(self) -> int:
-        return len(self.core_ases) // 2 + 1
+        return self.quorum or len(self.core_ases) // 2 + 1
 
     def _grace_period(self) -> str:
         # must be zero for base TRCs

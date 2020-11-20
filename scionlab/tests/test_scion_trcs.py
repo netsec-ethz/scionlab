@@ -137,7 +137,7 @@ class TRCCreation(TestCase):
                 signed_payloads.append(c.sign_payload(cert, key))
             trc = c.combine(*signed_payloads)
             # verify the trc with a call to scion-pki (would raise if error)
-            check_scion_trc(self, trc)
+            check_scion_trc(self, trc, trc)
 
     def test_generate_trc(self):
         # generate a new TRC using the generate_trc function
@@ -161,18 +161,18 @@ class TRCCreation(TestCase):
                            signers_certs=[c.decode("ascii") for c in scerts],
                            signers_keys=[k.decode("ascii") for k in skeys])
         # test final trc
-        check_scion_trc(self, trc)
+        check_scion_trc(self, trc, trc)
 
 
 class TRCUpdate(TestCase):
     def test_regular_update(self):
         # initial TRC in TESTDATA/trc-1.trc
-        predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-1.trc")
+        predec_trc = _readfile(_TESTDATA_DIR, "trc-1.trc")
         # update the TRC by just incrementing the serial. That is in payload-2-config.toml
         signers = _get_signers(["voting-regular-ff00_0_110"])
         kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
             _readfile(_TESTDATA_DIR, "payload-2-config.toml", text=True)))
-        conf = TRCConf(**kwargs, predecessor_trc=_readfile(predec_trc_fn))
+        conf = TRCConf(**kwargs, predecessor_trc=predec_trc)
         signed_payloads = []
         with conf.configure() as c:
             c.gen_payload()
@@ -180,18 +180,18 @@ class TRCUpdate(TestCase):
                 signed_payloads.append(c.sign_payload(cert, key))
             trc = c.combine(*signed_payloads)
             # verify trc with the old trc as anchor
-            check_scion_trc(self, trc, predec_trc_fn)
+            check_scion_trc(self, trc, predec_trc)
 
     def test_sensitive_update(self):
         # previous TRC in TESTDATA/trc-2.trc
-        predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-2.trc")
+        predec_trc = _readfile(_TESTDATA_DIR, "trc-2.trc")
         # add a core-authoritative AS and its sensitive, regular and root certs
         signers = _get_signers(["voting-sensitive-ff00_0_110",
                                 "voting-sensitive-ff00_0_210",
                                 "voting-regular-ff00_0_210"])
         with open(os.path.join(_TESTDATA_DIR, "payload-3-config.toml")) as f:
             kwargs = _transform_toml_conf_to_trcconf_args(toml.load(f))
-        conf = TRCConf(**kwargs, predecessor_trc=_readfile(predec_trc_fn))
+        conf = TRCConf(**kwargs, predecessor_trc=predec_trc)
         signed_payloads = []
         with conf.configure() as c:
             c.gen_payload()
@@ -199,7 +199,7 @@ class TRCUpdate(TestCase):
                 signed_payloads.append(c.sign_payload(cert, key))
             trc = c.combine(*signed_payloads)
             # verify trc with the old trc as anchor
-            check_scion_trc(self, trc, predec_trc_fn)
+            check_scion_trc(self, trc, predec_trc)
 
     def test_generate_trc_regular_update(self):
         # initial TRC in TESTDATA/trc-1.trc
@@ -208,7 +208,7 @@ class TRCUpdate(TestCase):
 
         kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
             _readfile(_TESTDATA_DIR, "payload-2-config.toml", text=True)))
-        predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-1.trc")
+        predec_trc = _readfile(_TESTDATA_DIR, "trc-1.trc")
         _replace_keys(kwargs,
                       [("base", "base_version"),
                        ("serial", "serial_version"),
@@ -219,12 +219,12 @@ class TRCUpdate(TestCase):
         kwargs["not_after"] = kwargs["not_after"].replace(tzinfo=None)
         kwargs["certificates"] = [_readfile(_TESTDATA_DIR, f, text=True)
                                   for f in kwargs["certificates"]]
-        trc = generate_trc(prev_trc=_readfile(predec_trc_fn), **kwargs,
+        trc = generate_trc(prev_trc=predec_trc, **kwargs,
                            quorum=len(kwargs["primary_ases"]) // 2 + 1,
                            signers_certs=[c.decode("ascii") for c in scerts],
                            signers_keys=[k.decode("ascii") for k in skeys])
         # test final trc
-        check_scion_trc(self, trc, predec_trc_fn)
+        check_scion_trc(self, trc, predec_trc)
 
     def test_generate_trc_sensitive_update(self):
         # initial TRC in TESTDATA/trc-1.trc
@@ -235,7 +235,7 @@ class TRCUpdate(TestCase):
 
         kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
             _readfile(_TESTDATA_DIR, "payload-3-config.toml", text=True)))
-        predec_trc_fn = os.path.join(_TESTDATA_DIR, "trc-2.trc")
+        predec_trc = _readfile(_TESTDATA_DIR, "trc-2.trc")
         _replace_keys(kwargs,
                       [("base", "base_version"),
                        ("serial", "serial_version"),
@@ -246,12 +246,12 @@ class TRCUpdate(TestCase):
         kwargs["not_after"] = kwargs["not_after"].replace(tzinfo=None)
         kwargs["certificates"] = [_readfile(_TESTDATA_DIR, f, text=True)
                                   for f in kwargs["certificates"]]
-        trc = generate_trc(prev_trc=_readfile(predec_trc_fn), **kwargs,
+        trc = generate_trc(prev_trc=predec_trc, **kwargs,
                            quorum=len(kwargs["primary_ases"]) // 2 + 1,
                            signers_certs=[c.decode("ascii") for c in scerts],
                            signers_keys=[k.decode("ascii") for k in skeys])
         # test final trc
-        check_scion_trc(self, trc, predec_trc_fn)
+        check_scion_trc(self, trc, predec_trc)
 
 
 def _trcconf_args_dict():

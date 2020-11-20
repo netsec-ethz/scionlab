@@ -222,10 +222,48 @@ class TRCCreationTests(TestCase):
                           isd=self.isd1)
 
     def test_create_first(self):
+        self._create_ases()
+        trc = TRC.objects.create(self.isd1)
+
+        check_scion_trc(self, trc.trc, trc.trc)
+        self.assertEqual(trc.version_serial, trc.base_version)
+        self.assertEqual(trc._previous_trc_or_none(), trc)
+        self.assertFalse(trc.votes.exists())
+        self.assertEqual(trc.quorum, 2)
+
+    def test_create_regular_update(self):
+        self._create_ases()
+        prev = TRC.objects.create(self.isd1)
+        trc = TRC.objects.create(self.isd1)
+
+        check_scion_trc(self, trc.trc, prev.trc)
+        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.base_version, prev.base_version)
+        self.assertEqual(trc._previous_trc_or_none(), prev)
+        self.assertTrue(trc.votes.exists())
+        self.assertEqual(trc.quorum, prev.quorum)
+
+    def test_create_sensitive_update(self):
+        self._create_ases()
+        prev = TRC.objects.create(self.isd1)
+        as4 = _create_AS(self.isd1, "ff00:0:4", is_core=True)
+        Key.objects.create_core_keys(as4)
+        Certificate.objects.create_core_certs(as4)
+        Key.objects.create(as4, Key.CP_AS)
+        Certificate.objects.create_as_cert(as4, issuer=as4)
+        trc = TRC.objects.create(self.isd1)
+
+        check_scion_trc(self, trc.trc, prev.trc)
+        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.base_version, prev.base_version)
+        self.assertEqual(trc._previous_trc_or_none(), prev)
+        self.assertTrue(trc.votes.exists())
+        self.assertEqual(trc.quorum, prev.quorum)
+
+    def _create_ases(self):
         as1 = _create_AS(self.isd1, "ff00:0:1", is_core=True)
         as2 = _create_AS(self.isd1, "ff00:0:2", is_core=True)
         as3 = _create_AS(self.isd1, "ff00:0:3", is_core=False)
-
         Key.objects.create_core_keys(as1)
         Key.objects.create_core_keys(as2)
         Certificate.objects.create_core_certs(as1)
@@ -237,18 +275,6 @@ class TRCCreationTests(TestCase):
         Certificate.objects.create_as_cert(as1, issuer=as1)
         Certificate.objects.create_as_cert(as2, issuer=as2)
         Certificate.objects.create_as_cert(as3, issuer=as1)
-
-        trc = TRC.objects.create(self.isd1)
-        check_scion_trc(self, trc.trc)
-        self.assertTrue(trc.version_serial == trc.base_version)
-        self.assertEqual(trc._previous_trc_or_none(), trc)
-        self.assertFalse(trc.votes.exists())
-
-    def test_create_regular_update(self):
-        pass
-
-    def test_create_sensitive_update(self):
-        pass
 
 
 class OlderTests(TestCase):
