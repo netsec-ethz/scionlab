@@ -97,9 +97,11 @@ class ISD(TimestampedModel):
             return None
 
         trc = self.trcs.create()
+        # TODO(juagargi) remove call
         for as_ in self.ases.filter(is_core=True).iterator():
             self._update_coreas_certificates(as_)
 
+        # since the issuer could have been deleted, regenerate AS certificates:
         for as_ in self.ases.filter(is_core=False).iterator():
             self._update_as_certificates(as_)
 
@@ -317,30 +319,16 @@ class AS(TimestampedModel):
         """
         Create or update the AS Certificate chain.
 
-        Requires that the TRC in this ISD exists/is up to date.
-
-        Requires that a Core AS in this ISD with existing/up to date Core AS Certificate exists;
+        Requires that a Core AS in this ISD with existing/up to date Root Certificate exists;
         for core ASes, `generate_core_certificate` needs to be called first.
-        See ASManager.update_certificates, which creates the certificates in the correct order.
         """
-        if self.is_core:
-            issuer = self
-        else:
-            # Find an issuer:
-            candidates = self.isd.ases.filter(is_core=True)
-            issuer = candidates.first()
-
+        issuer = self if self.is_core else self.isd.ases.filter(is_core=True).first()
         if issuer:  # Skip if failed to find a core AS as issuer
-            self.certificates.create(type=Certificate.CHAIN, issuer=issuer)
+            Certificate.objects.create_as_cert(self, issuer)
 
     def generate_core_certificates(self):
-        """
-        Create or update the Core AS Certificate.
-
-        Requires that the TRC in this ISD exists/is up to date.
-        """
-
-        self.certificates.create(type=Certificate.ISSUER)
+        """ Create or update the Core AS Certificate. """
+        Certificate.objects.create_core_certs(self)
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """

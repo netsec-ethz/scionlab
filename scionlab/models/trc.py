@@ -31,34 +31,27 @@ class TRCManager(models.Manager):
         """
         Create a TRC for this ISD.
 
-        A TRC is "versioned" using a serial number.
+        It will attempt to update the TRC in the lightest way possible. That is, first attempt to
+        have a regular update. If not possible, try a sensitive update.
+        Last, go and create a base TRC, without update.
 
-        
+        A base TRC breaks the chain of trust, and cannot be verified from the existing material.
+        Typically this means that a base TRC has to be copied to the ASes, so that the trust
+        is placed manually.
 
-        
-
-        The update is sensitive if it is not regular.
         For sensitive TRC updates to be verifyable, they must contain votes
         only from sensitive certificates.
 
-        For SCIONLab this means that only updates to the validity will be regular updates. The rest
-        will be sensitive, as the update will involve changing membership of the core ASes.
-
-
-
-
-        The version is incremented from the previous TRC. The voting offline keys related to the
-        previous TRC may be (precisely: for online key updates and sensitive updates) used to sign
-        the new TRC.
+        The serial (version) is incremented from the previous TRC.
 
         In SCIONLab, authoritative ASes = core ASes = CA ASes.
 
         Requires at least one core AS in this ISD.
 
-        The latest keys for all core ASes are used. The validity period for the TRC is determined
-        based the validity of these keys.
+        The latest certificates for all core ASes are used. The validity period for the TRC
+        is determined based on the validity of these certificates.
 
-        :param isd ISD:
+        :param isd ISD object.
         """
         prev = isd.trcs.latest_or_none()
         serial = prev.version_serial + 1 if prev else 1
@@ -67,6 +60,7 @@ class TRCManager(models.Manager):
         certificates = _coreas_certificates(isd)
         if len(core_ases) == 0:
             raise RuntimeError("no core ASes found")
+
         if _can_update(isd):
             base = prev.base_version
             if not _is_regular_update_prevented(prev, quorum, core_ases, certificates):
@@ -82,15 +76,22 @@ class TRCManager(models.Manager):
                     Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR]).exclude(
                         key__AS__in=prev.certificates.values("key__AS").distinct())
                 signers = votes | added_core_certs
+            # prepare to check that there exists a non-empty validity window:
+            not_before, not_after = _validity(*[*certificates, *signers])
+            if (not_after - not_before).total_seconds() <= 0:
+                # fall back to a base TRC
+                base = serial
         else:
-            # create a base TRC
             base = serial
-            votes = []
+
+        if base == serial:  # base TRC: either we can't update or there was no validity window
+            prev = None
+            votes = Certificate.objects.none()
             signers = certificates.filter(key__usage__in=[
                 Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR])
+            not_before, not_after = _validity(*[*certificates])  # "certificates" covers everything
 
-        not_before, not_after = _validity(*[*certificates, *votes, *signers])
-        votes_idx = prev.get_certificate_indices(votes) if votes else []
+        votes_idx = prev.get_certificate_indices(votes) if prev else []
 
         trc = trcs.generate_trc(
             prev_trc=prev.trc if prev else None,
@@ -107,7 +108,6 @@ class TRCManager(models.Manager):
             signers_certs=[s.certificate for s in signers],
             signers_keys=[s.key.key for s in signers],
         )
-        # TODO move downwards
         obj = super().create(isd=isd, version_serial=serial, base_version=base,
                              not_before=not_before, not_after=not_after,
                              quorum=quorum, trc=trc)
@@ -169,6 +169,8 @@ class TRC(models.Model):
         default=1,
     )
 
+    # The votes refer to certificates that where present in the previous TRC.
+    # Every voter must also include their signature in the final TRC.
     votes = models.ManyToManyField(
         Certificate,
         related_name="trc_votes",
@@ -178,7 +180,7 @@ class TRC(models.Model):
     # We could also have root certs. signing the TRC, in case of a regular update,
     # if the root certificate is changed in the update.
     # See also can_update_regular
-    signatures = models.ManyToManyField(  # TODO(juagargi) rename to signers
+    signatures = models.ManyToManyField(
         Certificate,
         related_name="trc_signatures",
     )
@@ -226,7 +228,7 @@ class TRC(models.Model):
 
     def get_voters_indices(self):
         """ uses the certificate indices of the previous TRC to indicate who voted """
-        prev = self._previous_trc_or_none()
+        prev = self.predecessor_trc_or_none()
         if prev is None:
             return None
         return prev.get_certificate_indices(self.votes.iterator())
@@ -261,7 +263,7 @@ class TRC(models.Model):
         For regular TRC updates to be verifiable, they must contain votes
         only from regular certificates.
         """
-        prev = self._previous_trc_or_none()
+        prev = self.predecessor_trc_or_none()
         if prev is None or prev == self:
             return "no previous TRC"
         msg = _is_regular_update_prevented(prev, self.quorum, self.core_ases, self.certificates)
@@ -280,14 +282,11 @@ class TRC(models.Model):
             return msg
         return None
 
-    @staticmethod
-    def next_version():
-        prev = TRC.objects.aggregate(
-            models.Max('version_serial'))['version_serial__max'] or 0
-        return prev + 1
-
-    def _previous_trc_or_none(self):
-        """ returns None if there is a gap in the TRC serial sequence """
+    def predecessor_trc_or_none(self):
+        """
+        Finds and returns the predecessor (anchor) TRC. If this is a base TRC, it returns "self".
+        Returns None iff there is a gap in the TRC serial sequence.
+        """
         if self.base_version == self.version_serial:
             return self
         prev = TRC.objects.filter(isd=self.isd, version_serial=self.version_serial - 1)
@@ -307,38 +306,6 @@ class CertificateInTRC(models.Model):
     index = models.PositiveIntegerField()
 
 
-def _create_trc(isd, serial, base, not_before, not_after, core_ases,
-                certificates=None, votes=None, signatures=None):
-    quorum = len(core_ases) // 2 + 1
-    return TRC(isd=isd, version_serial=serial, base_version=base,
-               not_before=not_before, not_after=not_after, core_ases=core_ases,
-               certificates=certificates, votes=votes, signatures=signatures, quorum=quorum)
-
-# def _latest_core_keys(as_) -> List[Key]:
-#     return [
-#         as_.keys.latest(Key.TRC_ISSUING_GRANT),
-#         as_.keys.latest(Key.TRC_VOTING_ONLINE),
-#         as_.keys.latest(Key.TRC_VOTING_OFFLINE),
-#     ]
-
-
-# def _key_info(key: Key) -> trcs.Key:
-#     return trcs.Key(
-#         version=key.version,
-#         priv_key=key.key,
-#         pub_key=keys.public_sign_key(key.key),
-#     )
-
-
-# def _core_key_info(keys: List[Key]) -> trcs.CoreKeys:
-#     key_by_usage = {key.usage: _key_info(key) for key in keys}
-#     return trcs.CoreKeys(
-#         issuing_grant=key_by_usage[Key.TRC_ISSUING_GRANT],
-#         voting_online=key_by_usage[Key.TRC_VOTING_ONLINE],
-#         voting_offline=key_by_usage[Key.TRC_VOTING_OFFLINE],
-#     )
-
-
 def _can_update(isd):
     """
     All TRC updates must comply with the following:
@@ -350,14 +317,12 @@ def _can_update(isd):
     - Every "sensitive voting cert" and "regular voting cert" that are new in
         this TRC, attach a signature to the TRC.
 
-    In SCIONLab we only need to worry about the quorum.
+    In SCIONLab we only need to worry about the previous TRC.
+    Still, it is possible to try to update a prev. TRC with new certificates, and get
+    an empty validity window. In this case, no update will be performed.
+    That empty validity window has to be checked at the caller of this function.
     """
-    # prev = ISD.objects.get(isd_id=isd).trcs.latest_or_none()
-    prev = isd.trcs.latest_or_none()
-    if prev is None:
-        return False
-    # get number of voters. I.e. core ASes in this ISD (all of them vote)
-    return AS.objects.filter(isd=isd, is_core=True).count() >= prev.quorum
+    return isd.trcs.latest_or_none() is not None
 
 
 def _can_regular_update(prev, quorum, core_ases, certificates):
@@ -382,8 +347,6 @@ def _is_regular_update_prevented(prev_trc, quorum, core_ases, certificates):
     if prev_trc.quorum != quorum:
         return "different quorum"
     # check core, authoritative ASes section (they are treated the same in SCIONLab):
-    # TODO use a set instead of the order by and a list:
-    # if list(prev_trc.core_ases.order_by("pk")) != list(core_ases.order_by("pk")):
     if set(prev_trc.core_ases.all()) != set(core_ases.all()):
         return "different core section"
     # number of sensitive, regular and root certificates is the same
@@ -391,10 +354,9 @@ def _is_regular_update_prevented(prev_trc, quorum, core_ases, certificates):
     if msg is not None:
         return msg
     # check sensitive voting certificate set:
-    prev_sensitive = list(prev_trc.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
-                          .order_by("pk"))
-    if list(certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
-            .order_by("pk")) != prev_sensitive:
+    prev_sensitive = prev_trc.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
+    if prev_sensitive.intersection(certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE
+                                                       )).count() != prev_sensitive.count():
         return "different sensitive voters certificates"
     return None
 

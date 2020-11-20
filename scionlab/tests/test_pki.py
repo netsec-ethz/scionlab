@@ -84,7 +84,7 @@ class KeyTests(TestCase):
         k_regular = Key.objects.get(usage=Key.TRC_VOTING_REGULAR)
         k_sensitive = Key.objects.get(usage=Key.TRC_VOTING_SENSITIVE)
 
-        AS2 = _create_AS(self.isd, "ff00:0:111")
+        AS2 = _create_AS(self.isd, "ff00:0:111", is_core=True)
         Key.objects.create_core_keys(AS2)
         Certificate.objects.create_core_certs(AS2)
 
