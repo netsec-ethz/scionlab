@@ -318,6 +318,9 @@ class Certificate(models.Model):
             suffix = ".ca.crt"
         else:
             suffix = ".pem"
+        # _key_set_null_or_cascade can set the AS to None. Check:
+        if not self.key.AS:
+            return f"UnknownISD-UnknownAS{suffix}"
         return f"ISD{self.key.AS.isd.isd_id}-AS{self.key.AS.as_path_str()}{suffix}"
 
     def format_certfile(self) -> str:
