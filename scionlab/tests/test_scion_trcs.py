@@ -50,20 +50,7 @@ class TRCCreation(TestCase):
         self.assertRaises(ValueError, TRCConf, **kwargs)
         # certificates
         kwargs = _trcconf_args_dict()
-        kwargs["certificates"] = {}
-        self.assertRaises(ValueError, TRCConf, **kwargs)
-        kwargs = _trcconf_args_dict()
-        # absolute paths not allowed:
-        kwargs["certificates"] = {"/tmp/mock-certificate.crt": "no-content"}
-        self.assertRaises(ValueError, TRCConf, **kwargs)
-        # anything but a filename is not allowed
-        kwargs["certificates"] = {"../mock-certificate.crt": "no-content"}
-        self.assertRaises(ValueError, TRCConf, **kwargs)
-        kwargs["certificates"] = {"": "no-content"}
-        self.assertRaises(ValueError, TRCConf, **kwargs)
-        kwargs["certificates"] = {"..": "no-content"}
-        self.assertRaises(ValueError, TRCConf, **kwargs)
-        kwargs["certificates"] = {"/": "no-content"}
+        kwargs["certificates"] = []
         self.assertRaises(ValueError, TRCConf, **kwargs)
 
     def test_configure(self):
@@ -71,20 +58,18 @@ class TRCCreation(TestCase):
         conf = TRCConf(**kwargs)
         temp_dir_name = ""
         with conf.configure() as c:
-            temp_dir_name = c._temp_dir.name
+            temp_dir_name = c._temp_dir
             # double call (nested in outer, should not happen) must also clean up
             temp_dir_name2 = ""
             with conf.configure() as c2:
-                temp_dir_name2 = c2._temp_dir.name
+                temp_dir_name2 = c2._temp_dir
                 self.assertTrue(os.path.isdir(temp_dir_name2))
-                self.assertTrue(all(os.path.isfile(os.path.join(temp_dir_name2, f))
-                                    for f in conf.certificates.keys()))
+                self.assertTrue(all(os.path.isfile(f) for f in conf.certificate_files))
             self.assertFalse(os.path.exists(temp_dir_name2))
             # let's do no more shenanigans with nested usage, and check that
             # there is a temporary dir created, with the certificate files
             self.assertTrue(os.path.isdir(temp_dir_name))
-            for fn, c in conf.certificates.items():
-                p = os.path.join(temp_dir_name, fn)
+            for p, c in zip(conf.certificate_files, conf.certificates):
                 self.assertTrue(os.path.isfile(p))
                 with open(p, "rb") as f:
                     self.assertEqual(f.read(), c)
@@ -98,8 +83,10 @@ class TRCCreation(TestCase):
         conf = TRCConf(**kwargs)
         with conf.configure() as c:
             c.gen_payload()
-            gen_conf = toml.loads(_readfile(c._temp_dir.name, c._conf_filename()).decode())
-            gen_payload = _readfile(c._temp_dir.name, c._payload_filename())
+            gen_conf = toml.loads(_readfile(c._temp_dir, c._conf_filename()).decode())
+            gen_payload = _readfile(c._temp_dir, c._payload_filename())
+        # gen_conf contains random certificate filenames. Replace them before comparing:
+        gen_conf["cert_files"] = toml_conf["cert_files"]
         self.assertEqual(gen_conf, toml_conf)
         self.assertEqual(gen_payload, _readfile(_TESTDATA_DIR, "payload-1.der"))
 
@@ -217,8 +204,7 @@ class TRCUpdate(TestCase):
         # dates in DB have no timezone (all UTC)
         kwargs["not_before"] = kwargs["not_before"].replace(tzinfo=None)
         kwargs["not_after"] = kwargs["not_after"].replace(tzinfo=None)
-        kwargs["certificates"] = [_readfile(_TESTDATA_DIR, f, text=True)
-                                  for f in kwargs["certificates"]]
+        kwargs["certificates"] = [c.decode("ascii") for c in kwargs["certificates"]]
         trc = generate_trc(prev_trc=predec_trc, **kwargs,
                            quorum=len(kwargs["primary_ases"]) // 2 + 1,
                            signers_certs=[c.decode("ascii") for c in scerts],
@@ -244,8 +230,7 @@ class TRCUpdate(TestCase):
         # dates in DB have no timezone (all UTC)
         kwargs["not_before"] = kwargs["not_before"].replace(tzinfo=None)
         kwargs["not_after"] = kwargs["not_after"].replace(tzinfo=None)
-        kwargs["certificates"] = [_readfile(_TESTDATA_DIR, f, text=True)
-                                  for f in kwargs["certificates"]]
+        kwargs["certificates"] = [c.decode("ascii") for c in kwargs["certificates"]]
         trc = generate_trc(prev_trc=predec_trc, **kwargs,
                            quorum=len(kwargs["primary_ases"]) // 2 + 1,
                            signers_certs=[c.decode("ascii") for c in scerts],
@@ -258,7 +243,7 @@ def _trcconf_args_dict():
     return {"isd_id": 1, "base_version": 1, "serial_version": 1, "grace_period": None,
             "not_before": datetime.utcnow(), "not_after": datetime.utcnow() + timedelta(days=1),
             "authoritative_ases": ["1-ff00:0:110"], "core_ases": ["1-ff00:0:110"],
-            "certificates": {"mock-certificate.crt": b"no-content"}}
+            "certificates": [b"no-content"]}
 
 
 def _readfile(*path_args, text=False):
@@ -274,10 +259,7 @@ def _transform_toml_conf_to_trcconf_args(toml_dict: Dict) -> Dict[str, Any]:
     """
     # adapt the dictionary to be used with the TRCConf class
     not_before = datetime.fromtimestamp(toml_dict["validity"]["not_before"], tz=timezone.utc)
-    certificates = {}
-    for fn in toml_dict["cert_files"]:
-        with open(os.path.join(_TESTDATA_DIR, fn), "rb") as f:
-            certificates[fn] = f.read()
+    certificates = [_readfile(_TESTDATA_DIR, f) for f in toml_dict["cert_files"]]
     return {
         "isd_id": toml_dict["isd"],
         "base_version": toml_dict["base_version"],
