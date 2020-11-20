@@ -75,10 +75,13 @@ class TRCManager(models.Manager):
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
                 changed_root_certs = certificates.filter(key__usage=Key.ISSUING_ROOT)\
                     .difference(prev.certificates.all())
-                signers = votes + changed_root_certs
+                signers = votes | changed_root_certs
             else:
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
-                signers = votes
+                added_core_certs = certificates.filter(key__usage__in=[
+                    Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR]).exclude(
+                        key__AS__in=prev.certificates.values("key__AS").distinct())
+                signers = votes | added_core_certs
         else:
             # create a base TRC
             base = serial
@@ -87,15 +90,16 @@ class TRCManager(models.Manager):
                 Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR])
 
         not_before, not_after = _validity(*[*certificates, *votes, *signers])
+        votes_idx = prev.get_certificate_indices(votes) if votes else []
 
         trc = trcs.generate_trc(
-            prev_trc=prev,
+            prev_trc=prev.trc if prev else None,
             isd_id=isd.id,
             base=base,
             serial=serial,
             primary_ases=[c.as_id for c in core_ases],
             quorum=quorum,
-            votes=[],
+            votes=votes_idx,
             grace_period=DEFAULT_TRC_GRACE_PERIOD,
             not_before=not_before,
             not_after=not_after,
@@ -106,25 +110,13 @@ class TRCManager(models.Manager):
         # TODO move downwards
         obj = super().create(isd=isd, version_serial=serial, base_version=base,
                              not_before=not_before, not_after=not_after,
-                             trc=trc)
+                             quorum=quorum, trc=trc)
         obj.core_ases.set(core_ases)
         obj.add_certificates(certificates)
         obj.votes.set(votes)
         obj.signatures.set(signers)
 
-
         return obj
-
-        voting_offline = [k for k in all_keys if k.usage == Key.TRC_VOTING_OFFLINE]
-
-        obj = super().create(
-            isd=isd,
-            version=version,
-            not_before=not_before,
-            not_after=not_after,
-            trc=trc,
-        )
-        obj.voting_offline.set(voting_offline)
 
     def latest(self):
         """ there could be more than one TRC with the same serial, but the latest is the one
@@ -233,10 +225,15 @@ class TRC(models.Model):
         self.votes.add(cert_in_prev_trc)
 
     def get_voters_indices(self):
+        """ uses the certificate indices of the previous TRC to indicate who voted """
         prev = self._previous_trc_or_none()
         if prev is None:
             return None
-        return list(prev.certificateintrc_set.filter(certificate__in=self.votes.iterator())
+        return prev.get_certificate_indices(self.votes.iterator())
+
+    def get_certificate_indices(self, certs):
+        """ returns the indices of the certs argument """
+        return list(self.certificateintrc_set.filter(certificate__in=certs)
                     .order_by("index").values_list("index", flat=True))
 
     def __str__(self):
