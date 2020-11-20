@@ -222,10 +222,8 @@ class TRCCreationTests(TestCase):
         prev = TRC.objects.create(self.isd1)
         # add another core AS. This forces a sensitive update.
         as4 = _create_AS(self.isd1, "ff00:0:4", is_core=True)
-        Key.objects.create_core_keys(as4)
-        Certificate.objects.create_core_certs(as4)
-        Key.objects.create(as4, Key.CP_AS)
-        Certificate.objects.create_as_cert(as4, issuer=as4)
+        Key.objects.create_all_keys(as4)
+        Certificate.objects.create_all_certs(as4)
         trc = TRC.objects.create(self.isd1)
 
         check_scion_trc(self, trc.trc, prev.trc)
@@ -255,17 +253,12 @@ class TRCCreationTests(TestCase):
         as1 = _create_AS(self.isd1, "ff00:0:1", is_core=True)
         as2 = _create_AS(self.isd1, "ff00:0:2", is_core=True)
         as3 = _create_AS(self.isd1, "ff00:0:3", is_core=False)
-        Key.objects.create_core_keys(as1)
-        Key.objects.create_core_keys(as2)
-        Certificate.objects.create_core_certs(as1)
-        Certificate.objects.create_core_certs(as2)
-        # CP AS key and cert, for core and non core:
-        Key.objects.create(as1, Key.CP_AS)
-        Key.objects.create(as2, Key.CP_AS)
-        Key.objects.create(as3, Key.CP_AS)
-        Certificate.objects.create_as_cert(as1, issuer=as1)
-        Certificate.objects.create_as_cert(as2, issuer=as2)
-        Certificate.objects.create_as_cert(as3, issuer=as1)
+        Key.objects.create_all_keys(as1)
+        Key.objects.create_all_keys(as2)
+        Key.objects.create_all_keys(as3)
+        Certificate.objects.create_all_certs(as1)
+        Certificate.objects.create_all_certs(as2)
+        Certificate.objects.create_all_certs(as3)
 
 
 class ExpiredCertsTests(TestCase):
@@ -273,22 +266,16 @@ class ExpiredCertsTests(TestCase):
         # have the certificates expire before voting and signing.
         isd1 = ISD.objects.create(isd_id=1, label='Test')
         as1 = _create_AS(isd1, "ff00:0:1", is_core=True)
-        not_before = datetime.utcnow()
-        not_after = not_before + timedelta(seconds=2)
-        Key.objects.create_core_keys(as1, not_before, not_after)
-        Certificate.objects.create_core_certs(as1)
-        # CP AS key and cert, for core and non core:
-        Key.objects.create(as1, Key.CP_AS)
-        Certificate.objects.create_as_cert(as1, issuer=as1)
+        not_before = datetime.utcnow() - timedelta(days=1)
+        not_after = not_before + timedelta(seconds=3600)
+        Key.objects.create_all_keys(as1, not_before, not_after)
+        Certificate.objects.create_all_certs(as1)
         prev = TRC.objects.create(isd1)
+
         # add another core AS.
         as2 = _create_AS(isd1, "ff00:0:2", is_core=True)
-        Key.objects.create_core_keys(as2)
-        Certificate.objects.create_core_certs(as2)
-        Key.objects.create(as2, Key.CP_AS)
-        Certificate.objects.create_as_cert(as2, issuer=as2)
-        # wait until the current time is past the life of the as1 key
-        sleep((not_after - not_before).total_seconds() + .1)  # XXX(juagargi) flaky test?
+        Key.objects.create_all_keys(as2, not_before, not_after)
+        Certificate.objects.create_all_certs(as2)
         trc = TRC.objects.create(isd1)
 
         # despite being created with currently expired material, all is good:

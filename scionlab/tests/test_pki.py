@@ -257,8 +257,16 @@ class CertificateTests(TestCase):
         self.assertEqual(cert.ca_cert, cert_ca)
 
     def test_create_core_certs(self):
+        self.assertEqual(Certificate.objects.count(), 0)
         Key.objects.create_core_keys(self.AS)
         Certificate.objects.create_core_certs(self.AS)
+        self.assertEqual(Certificate.objects.count(), 4)
+
+    def test_create_all_certs(self):
+        self.assertEqual(Certificate.objects.count(), 0)
+        Key.objects.create_all_keys(self.AS)
+        Certificate.objects.create_all_certs(self.AS)
+        self.assertEqual(Certificate.objects.count(), 5)
 
     def test_certificate_format(self):
         Key.objects.create(AS=self.AS, usage=Key.ISSUING_ROOT)
