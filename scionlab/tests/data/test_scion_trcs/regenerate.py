@@ -35,7 +35,7 @@ def regenerate_voting_certs(asid) -> None:
                               notvalidafter=not_before + timedelta(days=1),
                               extensions=_build_extensions_voting(key, OID_SENSITIVE_KEY))
     with open(f"voting-sensitive-{fasid}.key", "wb") as f:
-        f.write(encode_key(key).encode("ascii"))
+        f.write(encode_key(key))
     with open(f"voting-sensitive-{fasid}.crt", "wb") as f:
         f.write(encode_certificate(cert).encode("ascii"))
     # regular:
@@ -47,7 +47,7 @@ def regenerate_voting_certs(asid) -> None:
                               notvalidafter=not_before + timedelta(days=1),
                               extensions=_build_extensions_voting(key, OID_REGULAR_KEY))
     with open(f"voting-regular-{fasid}.key", "wb") as f:
-        f.write(encode_key(key).encode("ascii"))
+        f.write(encode_key(key))
     with open(f"voting-regular-{fasid}.crt", "wb") as f:
         f.write(encode_certificate(cert).encode("ascii"))
 
@@ -64,7 +64,7 @@ def regenerate_ca(asid):
                               notvalidafter=not_before + timedelta(days=1),
                               extensions=_build_extensions_root(key))
     with open(f"root-{fasid}.key", "wb") as f:
-        f.write(encode_key(key).encode("ascii"))
+        f.write(encode_key(key))
     with open(f"root-{fasid}.crt", "wb") as f:
         f.write(encode_certificate(cert).encode("ascii"))
     # generate ca:
@@ -76,7 +76,7 @@ def regenerate_ca(asid):
                               notvalidafter=not_before + timedelta(days=1),
                               extensions=_build_extensions_ca(key, root_issuer[0]))
     with open(f"ca-{fasid}.key", "wb") as f:
-        f.write(encode_key(key).encode("ascii"))
+        f.write(encode_key(key))
     with open(f"ca-{fasid}.crt", "wb") as f:
         f.write(encode_certificate(cert).encode("ascii"))
 
@@ -96,7 +96,7 @@ def regenerate_ases():
                                   extensions=_build_extensions_as(key, issuer[0]))
         fasid = asid.replace(":", "_")
         with open(f"as{fasid}.key", "wb") as f:
-            f.write(encode_key(key).encode("ascii"))
+            f.write(encode_key(key))
         with open(f"as{fasid}.crt", "wb") as f:
             f.write(encode_certificate(cert).encode("ascii"))
 
