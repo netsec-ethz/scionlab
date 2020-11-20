@@ -37,7 +37,7 @@ def regenerate_voting_certs(asid) -> None:
     with open(f"voting-sensitive-{fasid}.key", "wb") as f:
         f.write(encode_key(key))
     with open(f"voting-sensitive-{fasid}.crt", "wb") as f:
-        f.write(encode_certificate(cert).encode("ascii"))
+        f.write(encode_certificate(cert))
     # regular:
     key = generate_key()
     cert = _build_certificate(subject=(
@@ -49,7 +49,7 @@ def regenerate_voting_certs(asid) -> None:
     with open(f"voting-regular-{fasid}.key", "wb") as f:
         f.write(encode_key(key))
     with open(f"voting-regular-{fasid}.crt", "wb") as f:
-        f.write(encode_certificate(cert).encode("ascii"))
+        f.write(encode_certificate(cert))
 
 
 def regenerate_ca(asid):
@@ -66,7 +66,7 @@ def regenerate_ca(asid):
     with open(f"root-{fasid}.key", "wb") as f:
         f.write(encode_key(key))
     with open(f"root-{fasid}.crt", "wb") as f:
-        f.write(encode_certificate(cert).encode("ascii"))
+        f.write(encode_certificate(cert))
     # generate ca:
     key = generate_key()
     ca_issuer = (key, _create_name(f"1-{asid}", f"1-{asid} Secure CA Certificate"))
@@ -78,7 +78,7 @@ def regenerate_ca(asid):
     with open(f"ca-{fasid}.key", "wb") as f:
         f.write(encode_key(key))
     with open(f"ca-{fasid}.crt", "wb") as f:
-        f.write(encode_certificate(cert).encode("ascii"))
+        f.write(encode_certificate(cert))
 
 
 def regenerate_ases():
@@ -98,7 +98,7 @@ def regenerate_ases():
         with open(f"as{fasid}.key", "wb") as f:
             f.write(encode_key(key))
         with open(f"as{fasid}.crt", "wb") as f:
-            f.write(encode_certificate(cert).encode("ascii"))
+            f.write(encode_certificate(cert))
 
 
 def regenerate_trc():
