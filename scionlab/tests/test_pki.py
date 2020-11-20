@@ -111,7 +111,7 @@ class CertificateTests(TestCase):
     def setUp(self):
         self.isd = ISD.objects.create(isd_id=1, label='Test')
         # bypass ASManager.create to avoid initializing keys
-        self.AS = _create_AS(self.isd, 'ff00:0:110')
+        self.AS = _create_AS(self.isd, 'ff00:0:110', is_core=True)
 
     def test_create_voting_sensitive_cert(self):
         k = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_SENSITIVE,
@@ -264,7 +264,9 @@ class CertificateTests(TestCase):
 
     def test_create_all_certs(self):
         self.assertEqual(Certificate.objects.count(), 0)
+        self.assertTrue(self.AS.is_core)
         Key.objects.create_all_keys(self.AS)
+        self.assertEqual(Key.objects.count(), 5)
         Certificate.objects.create_all_certs(self.AS)
         self.assertEqual(Certificate.objects.count(), 5)
 
