@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import copy
-from collections import defaultdict
 from datetime import datetime, timedelta
-from django.db import models
 from django.test import TestCase
+from time import sleep
 
 from scionlab.defines import (
     DEFAULT_EXPIRATION_AS_KEYS,
@@ -39,32 +38,13 @@ class TRCTests(TestCase):
     def setUp(self):
         self.isd1 = ISD.objects.create(isd_id=1, label='Test')
 
-    def test_version(self):
-        self.assertEqual(TRC.next_version(), 1)
-        k_2_2 = _create_TRC(self.isd1, 2, 2)
-        self.assertEqual(TRC.objects.latest(), k_2_2)
-        self.assertEqual(TRC.next_version(), 3)
-
-        _create_TRC(self.isd1, 1, 1)
-        self.assertEqual(TRC.objects.latest(), k_2_2)
-        self.assertEqual(TRC.next_version(), 3)
-
-        k_3_2 = _create_TRC(self.isd1, 3, 2)
-        self.assertEqual(TRC.objects.latest(), k_3_2)
-        self.assertEqual(TRC.next_version(), 4)
-        # weird case with same serial, different base version
-        k_3_3 = _create_TRC(self.isd1, 3, 3)
-        self.assertEqual(TRC.objects.latest(), k_3_3)
-        self.assertEqual(TRC.next_version(), 4)
-        self.assertEqual(TRC.objects.count(), 4)
-
     def test_get_previous(self):
         trc1 = _create_TRC(self.isd1, 1, 1)
-        self.assertEqual(trc1._previous_trc_or_none(), trc1)
+        self.assertEqual(trc1.predecessor_trc_or_none(), trc1)
         trc2 = _create_TRC(self.isd1, 2, 1)
-        self.assertEqual(trc2._previous_trc_or_none(), trc1)
+        self.assertEqual(trc2.predecessor_trc_or_none(), trc1)
         trc4 = _create_TRC(self.isd1, 4, 1)
-        self.assertIsNone(trc4._previous_trc_or_none())
+        self.assertIsNone(trc4.predecessor_trc_or_none())
 
     def test_get_voters_indices(self):
         as110 = _create_AS(self.isd1, "ff00:0:110", is_core=True)
@@ -98,13 +78,8 @@ class TRCUpdateTests(TestCase):
 
     def test_can_update(self):
         self.assertFalse(_can_update(self.isd1))
-        prev_trc = _create_TRC(self.isd1, 1, 1)
-        self.assertEqual(prev_trc.quorum, 1)  # default quorum is 1
-        self.assertFalse(_can_update(self.isd1))  # no core ASes yet
-        _create_AS(self.isd1, "ff00:0:111")
-        self.assertFalse(_can_update(self.isd1))  # no core ASes yet
-        _create_AS(self.isd1, "ff00:0:110", is_core=True)
-        self.assertTrue(_can_update(self.isd1))  # there is 1 voter, which >= prev.quorum
+        _create_TRC(self.isd1, 1, 1)
+        self.assertTrue(_can_update(self.isd1))  # only checks that there exists a prev. TRC
 
     def test_update_regular_possible(self):
         trc1 = _create_TRC(self.isd1, 1, 1)
@@ -157,7 +132,6 @@ class TRCUpdateTests(TestCase):
                    base_version=1, version_serial=6)
         trc6.save()
         self._reset_core_ases(trc6)
-        print(type(trc6.certificates.last()))
         trc6.certificateintrc_set.filter(certificate__key__usage=Key.ISSUING_ROOT).last().delete()
         self.assertTrue(trc6.update_regular_impossible())
         self.assertIn("different number", trc6.update_regular_impossible())
@@ -227,7 +201,7 @@ class TRCCreationTests(TestCase):
 
         check_scion_trc(self, trc.trc, trc.trc)
         self.assertEqual(trc.version_serial, trc.base_version)
-        self.assertEqual(trc._previous_trc_or_none(), trc)
+        self.assertEqual(trc.predecessor_trc_or_none(), trc)
         self.assertFalse(trc.votes.exists())
         self.assertEqual(trc.quorum, 2)
 
@@ -239,13 +213,14 @@ class TRCCreationTests(TestCase):
         check_scion_trc(self, trc.trc, prev.trc)
         self.assertEqual(trc.version_serial, prev.version_serial + 1)
         self.assertEqual(trc.base_version, prev.base_version)
-        self.assertEqual(trc._previous_trc_or_none(), prev)
+        self.assertEqual(trc.predecessor_trc_or_none(), prev)
         self.assertTrue(trc.votes.exists())
         self.assertEqual(trc.quorum, prev.quorum)
 
     def test_create_sensitive_update(self):
         self._create_ases()
         prev = TRC.objects.create(self.isd1)
+        # add another core AS. This forces a sensitive update.
         as4 = _create_AS(self.isd1, "ff00:0:4", is_core=True)
         Key.objects.create_core_keys(as4)
         Certificate.objects.create_core_certs(as4)
@@ -256,9 +231,25 @@ class TRCCreationTests(TestCase):
         check_scion_trc(self, trc.trc, prev.trc)
         self.assertEqual(trc.version_serial, prev.version_serial + 1)
         self.assertEqual(trc.base_version, prev.base_version)
-        self.assertEqual(trc._previous_trc_or_none(), prev)
+        self.assertEqual(trc.predecessor_trc_or_none(), prev)
         self.assertTrue(trc.votes.exists())
         self.assertEqual(trc.quorum, prev.quorum)
+
+    def test_create_less_core_ases(self):
+        self._create_ases()
+        prev = TRC.objects.create(self.isd1)
+        # leave only one core AS
+        AS.objects.exclude(pk=AS.objects.first().pk).delete()
+        # deleting core ASes triggers a generation of a TRC. Get that TRC:
+        trc = TRC.objects.latest()
+
+        # check it's a sensitive update
+        check_scion_trc(self, trc.trc, prev.trc)
+        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.base_version, prev.base_version)
+        self.assertEqual(trc.predecessor_trc_or_none(), prev)
+        self.assertTrue(trc.votes.exists())
+        self.assertNotEqual(trc.quorum, prev.quorum)
 
     def _create_ases(self):
         as1 = _create_AS(self.isd1, "ff00:0:1", is_core=True)
@@ -275,6 +266,65 @@ class TRCCreationTests(TestCase):
         Certificate.objects.create_as_cert(as1, issuer=as1)
         Certificate.objects.create_as_cert(as2, issuer=as2)
         Certificate.objects.create_as_cert(as3, issuer=as1)
+
+
+class ExpiredCertsTests(TestCase):
+    def test_create_with_expired_crypto_material(self):
+        # have the certificates expire before voting and signing.
+        isd1 = ISD.objects.create(isd_id=1, label='Test')
+        as1 = _create_AS(isd1, "ff00:0:1", is_core=True)
+        not_before = datetime.utcnow()
+        not_after = not_before + timedelta(seconds=2)
+        Key.objects.create_core_keys(as1, not_before, not_after)
+        Certificate.objects.create_core_certs(as1)
+        # CP AS key and cert, for core and non core:
+        Key.objects.create(as1, Key.CP_AS)
+        Certificate.objects.create_as_cert(as1, issuer=as1)
+        prev = TRC.objects.create(isd1)
+        # add another core AS.
+        as2 = _create_AS(isd1, "ff00:0:2", is_core=True)
+        Key.objects.create_core_keys(as2)
+        Certificate.objects.create_core_certs(as2)
+        Key.objects.create(as2, Key.CP_AS)
+        Certificate.objects.create_as_cert(as2, issuer=as2)
+        # wait until the current time is past the life of the as1 key
+        sleep((not_after - not_before).total_seconds() + .1)  # XXX(juagargi) flaky test?
+        trc = TRC.objects.create(isd1)
+
+        # despite being created with currently expired material, all is good:
+        check_scion_trc(self, trc.trc, prev.trc)
+        # and check this is just an update
+        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.base_version, prev.base_version)
+        self.assertEqual(trc.predecessor_trc_or_none(), prev)
+        self.assertTrue(trc.votes.exists())
+
+    def test_create_with_not_overlapping_crypto_material(self):
+        # create a prev. TRC and update it with a TRC whose validity doesn't overlap with prev.
+        isd1 = ISD.objects.create(isd_id=1, label='Test')
+        as1 = _create_AS(isd1, "ff00:0:1", is_core=True)
+        not_before = datetime.utcnow()
+        not_after = not_before + timedelta(days=1)
+        Key.objects.create_core_keys(as1, not_before, not_after)
+        Certificate.objects.create_core_certs(as1)
+        prev = TRC.objects.create(isd1)
+        # add another core AS.
+        as2 = _create_AS(isd1, "ff00:0:2", is_core=True)
+        not_before = not_after + timedelta(microseconds=100)
+        not_after = not_before + timedelta(days=1)
+        Key.objects.create_core_keys(as2, not_before=not_before, not_after=not_after)
+        Certificate.objects.create_core_certs(as2)
+        # and refresh the crypto material of as1
+        Key.objects.create_core_keys(as1, not_before, not_after)
+        Certificate.objects.create_core_certs(as1)
+        trc = TRC.objects.create(isd1)
+
+        # we should get a base TRC
+        check_scion_trc(self, trc.trc, trc.trc)
+        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.base_version, trc.version_serial)
+        self.assertEqual(trc.predecessor_trc_or_none(), trc)
+        self.assertFalse(trc.votes.exists())
 
 
 class OlderTests(TestCase):
