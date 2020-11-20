@@ -24,14 +24,12 @@ import toml
 from collections import namedtuple
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
-from tempfile import TemporaryDirectory, mktemp
-from typing import cast, Dict, List, Tuple, Optional
+from django.conf import settings
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from typing import Dict, List, Tuple, Optional
 
 from scionlab.scion import jws
 
-
-# TODO(juagargi) move this to a settings variable?
-SCION_CPPKI_COMMAND = "/home/juagargi/devel/ETH/scion.scionlab/bin/scion-pki"
 
 # XXX(matzf): maybe this entire thing would be a bit simpler if we keep usage as member of Key.
 # Then we dont need so many dicts and stuff.
@@ -55,7 +53,6 @@ def generate_trc(prev_trc, isd_id, base, serial,
     not_before = _utc_timestamp(not_before)
     not_after = _utc_timestamp(not_after)
 
-    # TODO(juagargi) check that the votes member gets populated
     conf = TRCConf(isd_id=isd_id,
                    base_version=base,
                    serial_version=serial,
@@ -64,8 +61,7 @@ def generate_trc(prev_trc, isd_id, base, serial,
                    not_after=not_after,
                    core_ases=primary_ases,
                    authoritative_ases=primary_ases,
-                   certificates={os.path.basename(mktemp()): c.encode("ascii")
-                                 for c in certificates},
+                   certificates=[c.encode("ascii") for c in certificates],  # from str to bytes
                    quorum=quorum,
                    votes=votes,
                    predecessor_trc=prev_trc)
@@ -300,8 +296,6 @@ class TRCConf:
 
     The combine step returns the bytes of the final TRC.
     """
-    # TODO(juagargi) certificates should just be a list of certificates;
-    # should create random file names on the fly
     def __init__(self,
                  isd_id: int,
                  base_version: int,
@@ -311,7 +305,7 @@ class TRCConf:
                  not_after: datetime,
                  authoritative_ases: List[str],
                  core_ases: List[str],
-                 certificates: Dict[str, bytes],
+                 certificates: List[bytes],
                  quorum: int = None,
                  votes: Optional[List[int]] = None,
                  predecessor_trc: Optional[bytes] = None):
@@ -328,6 +322,7 @@ class TRCConf:
         self.authoritative_ases = authoritative_ases
         self.core_ases = core_ases
         self.certificates = certificates
+        self.certificate_files = []  # will be populated on configure()
         self.quorum = quorum
         self.votes = votes
         self.predecessor_trc = predecessor_trc
@@ -337,14 +332,14 @@ class TRCConf:
     @contextmanager
     def configure(self):
         # create temp dir and temp files for certificates
-        try:
-            temp_dir = TemporaryDirectory()
+        with TemporaryDirectory() as temp_dir:
             self._temp_dir = temp_dir
+            saved_cert_filenames = self.certificate_files
             self._dump_certificates_to_files()
             yield self
-        finally:
-            temp_dir.cleanup()
-            self._temp_dir = temp_dir  # only needed if nested call to configure()
+        # only needed to allow nested call to configure():
+        self._temp_dir = temp_dir
+        self.certificate_files = saved_cert_filenames
 
     def gen_payload(self) -> None:
         conf = self._get_conf()
@@ -369,7 +364,7 @@ class TRCConf:
         CERT_FILENAME = "cert_file.crt"
         prev_cwd = os.getcwd()
         try:
-            os.chdir(self._temp_dir.name)
+            os.chdir(self._temp_dir)
             with open(KEY_FILENAME, "wb") as f:
                 f.write(key)
             with open(CERT_FILENAME, "wb") as f:
@@ -390,14 +385,14 @@ class TRCConf:
     def combine(self, *signed) -> bytes:
         """ returns the final TRC by combining the signed blocks and payload """
         for i in range(len(signed)):
-            with open(os.path.join(self._temp_dir.name, f"signed-{i}.der"), "wb") as f:
+            with open(os.path.join(self._temp_dir, f"signed-{i}.der"), "wb") as f:
                 f.write(signed[i])
         self._run_scion_cppki(
             "combine", "-p", self._payload_filename(),
             *(f"signed-{i}.der" for i in range(len(signed))),
-            "-o", os.path.join(self._temp_dir.name, self._trc_filename()),
+            "-o", os.path.join(self._temp_dir, self._trc_filename()),
         )
-        with open(os.path.join(self._temp_dir.name, self._trc_filename()), "rb") as f:
+        with open(os.path.join(self._temp_dir, self._trc_filename()), "rb") as f:
             return f.read()
 
     def is_update(self):
@@ -417,13 +412,6 @@ class TRCConf:
         if not self.certificates:
             raise ValueError("must provide sensitive voting, regular voting, and root certificates")
 
-        # check the certificate file names only contain file names and not paths.
-        # the rest of invalid file names will fail when configure() is called.
-        for fn in self.certificates.keys():
-            p = os.path.normpath(fn)  # not necessary, as we ask for filenames only and not paths
-            if os.path.dirname(p) or not os.path.basename(p) or p in {".", ".."}:
-                raise ValueError(f"certificate file name is invalid: {fn}")
-
     def _get_conf(self) -> Dict:
         return {
             "isd": self.isd_id,
@@ -434,10 +422,8 @@ class TRCConf:
             "grace_period": self._grace_period(),
             "authoritative_ases": self.authoritative_ases,
             "core_ases": self.core_ases,
-            "cert_files": list(self.certificates.keys()),
+            "cert_files": self.certificate_files,
             "no_trust_reset": False,
-            # TODO(juagargi) check we will fill the "votes" member later
-            # "votes": 1  # empty when updating only serial_version
             "validity": {
                 "not_before": int(self.not_before.timestamp()),
                 "validity": self._to_seconds(self.not_after - self.not_before),
@@ -456,18 +442,20 @@ class TRCConf:
             return self._to_seconds(self.grace_period)
 
     def _tmp_join(self, filename: str) -> str:
-        return os.path.join(self._temp_dir.name, filename)
+        return os.path.join(self._temp_dir, filename)
 
     def _dump_certificates_to_files(self) -> None:
-        for fn, c in self.certificates.items():
-            with open(self._tmp_join(fn), "wb") as f:
+        self.certificate_files = []
+        for c in self.certificates:
+            with NamedTemporaryFile("wb", dir=self._temp_dir, delete=False) as f:
                 f.write(c)
+                self.certificate_files.append(f.name)
 
     def _run_scion_cppki(self, *args) -> str:
         """ runs the binary scion-pki """
         prev_cwd = os.getcwd()
         try:
-            os.chdir(self._temp_dir.name)
+            os.chdir(self._temp_dir)
             ret = _raw_run_scion_cppki(*args)
         finally:
             os.chdir(prev_cwd)
@@ -498,5 +486,5 @@ class TRCConf:
 
 
 def _raw_run_scion_cppki(*args):
-    return subprocess.run([SCION_CPPKI_COMMAND, "trcs", *args],
+    return subprocess.run([settings.SCION_CPPKI_COMMAND, "trcs", *args],
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
