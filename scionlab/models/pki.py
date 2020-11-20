@@ -64,8 +64,8 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
 
 class KeyManager(models.Manager):
     def create_all_keys(self, AS, not_before=None, not_after=None):
-        return self.create_core_keys(AS, not_before, not_after) + [
-            self.create(AS, Key.CP_AS, not_before, not_after)]
+        return [self.create(AS, Key.CP_AS, not_before, not_after)] + ([
+        ] if not AS.is_core else self.create_core_keys(AS, not_before, not_after))
 
     def create_core_keys(self, AS, not_before=None, not_after=None):
         return [self.create(AS, usage, not_before, not_after) for usage in [
@@ -189,9 +189,13 @@ class Key(models.Model):
 
 class CertificateManager(models.Manager):
     def create_all_certs(self, subject, not_before=None, not_after=None):
-        certs = self.create_core_certs(subject, not_before, not_after)
-        assert certs[-1].key.usage == Key.ISSUING_CA
-        return certs + [self.create_as_cert(subject, certs[-1].key.AS, not_before, not_after)]
+        if subject.is_core:
+            core_certs = self.create_core_certs(subject, not_before, not_after)
+            issuer = subject
+        else:
+            core_certs = []
+            issuer = Key.objects.filter(AS__isd=subject.isd, AS__is_core=True).first().AS
+        return [self.create_as_cert(subject, issuer, not_before, not_after)] + core_certs
 
     def create_core_certs(self, subject, not_before=None, not_after=None):
         return [f(subject, not_before, not_after)
