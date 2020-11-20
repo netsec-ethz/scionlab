@@ -63,14 +63,16 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
 
 
 class KeyManager(models.Manager):
+    def create_all_keys(self, AS, not_before=None, not_after=None):
+        return self.create_core_keys(AS, not_before, not_after) + [
+            self.create(AS, Key.CP_AS, not_before, not_after)]
+
     def create_core_keys(self, AS, not_before=None, not_after=None):
-        keys = []
-        for usage in [Key.TRC_VOTING_SENSITIVE,
-                      Key.TRC_VOTING_REGULAR,
-                      Key.ISSUING_ROOT,
-                      Key.ISSUING_CA]:
-            keys.append(self.create(AS, usage, not_before, not_after))
-        return keys
+        return [self.create(AS, usage, not_before, not_after) for usage in [
+            Key.TRC_VOTING_SENSITIVE,
+            Key.TRC_VOTING_REGULAR,
+            Key.ISSUING_ROOT,
+            Key.ISSUING_CA]]
 
     def create(self, AS, usage, not_before=None, not_after=None):
         """
@@ -186,8 +188,11 @@ class Key(models.Model):
 
 
 class CertificateManager(models.Manager):
-    # TODO(juagargi) check if everytime we create a certificate, we also create a key.
-    # is it then the same entity in disguise?
+    def create_all_certs(self, subject, not_before=None, not_after=None):
+        certs = self.create_core_certs(subject, not_before, not_after)
+        assert certs[-1].key.usage == Key.ISSUING_CA
+        return certs + [self.create_as_cert(subject, certs[-1].key.AS, not_before, not_after)]
+
     def create_core_certs(self, subject, not_before=None, not_after=None):
         return [f(subject, not_before, not_after)
                 for f in [self.create_voting_sensitive_cert,
