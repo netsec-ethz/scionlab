@@ -18,15 +18,16 @@ from datetime import datetime, timedelta
 from django.db import models
 from django.test import TestCase
 
-from scionlab.models.core import ISD, AS
-from scionlab.models.pki import Key, Certificate
-from scionlab.models.trc import TRC, _can_update, _coreas_certificates
 from scionlab.defines import (
     DEFAULT_EXPIRATION_AS_KEYS,
     DEFAULT_EXPIRATION_CORE_KEYS,
     DEFAULT_TRC_GRACE_PERIOD,
 )
 from scionlab.scion import as_ids, keys, trcs, jws
+from scionlab.models.core import ISD, AS
+from scionlab.models.pki import Key, Certificate
+from scionlab.models.trc import TRC, _can_update, _coreas_certificates
+from scionlab.tests.utils import check_scion_trc
 
 
 _ASID_1 = 'ff00:0:1'
@@ -237,7 +238,17 @@ class TRCCreationTests(TestCase):
         Certificate.objects.create_as_cert(as2, issuer=as2)
         Certificate.objects.create_as_cert(as3, issuer=as1)
 
-        TRC.objects.create(self.isd1)
+        trc = TRC.objects.create(self.isd1)
+        check_scion_trc(self, trc.trc)
+        self.assertTrue(trc.version_serial == trc.base_version)
+        self.assertEqual(trc._previous_trc_or_none(), trc)
+        self.assertFalse(trc.votes.exists())
+
+    def test_create_regular_update(self):
+        pass
+
+    def test_create_sensitive_update(self):
+        pass
 
 
 class OlderTests(TestCase):
