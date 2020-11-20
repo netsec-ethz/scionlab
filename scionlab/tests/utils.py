@@ -22,13 +22,15 @@ import tarfile
 import logging
 
 from collections import namedtuple, Counter, OrderedDict
+from tempfile import mktemp
+
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
-from scionlab.models.pki import Key, Certificate, TRC
+from scionlab.models.pki import Key, Certificate
+from scionlab.models.trc import TRC
 from scionlab.models.user_as import UserAS
-
 from scionlab.scion import keys, jws
-
+from scionlab.scion.trcs import _raw_run_scion_cppki
 
 def check_topology(testcase):
     """
@@ -595,3 +597,15 @@ def basic_auth(username, password):
 
 def subprocess_call_log(*popenargs, timeout=None, **kwargs):
     logging.info("Command: %s; shell args: %s" % (" ".join(*popenargs), str(kwargs)))
+
+
+def check_scion_trc(testcase, trc, predec_trc_filename=None):
+    trc_file = mktemp()
+    with open(trc_file, "wb") as f:
+        f.write(trc)
+    if predec_trc_filename is None:
+        predec_trc_filename = mktemp()
+        with open(predec_trc_filename, "wb") as f:
+            f.write(trc)
+    ret = _raw_run_scion_cppki("verify", "--anchor", predec_trc_filename, trc_file)
+    testcase.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))

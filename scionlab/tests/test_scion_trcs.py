@@ -17,11 +17,11 @@ import subprocess
 import toml
 from django.test import TestCase
 from datetime import datetime, timedelta, timezone
-from tempfile import mktemp
 from typing import Any, Dict, List, Tuple
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
-from scionlab.scion.trcs import TRCConf, generate_trc, _raw_run_scion_cppki
+from scionlab.scion.trcs import TRCConf, generate_trc
+from scionlab.tests.utils import check_scion_trc
 
 _TESTDATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/test_scion_trcs")
 
@@ -70,12 +70,12 @@ class TRCCreation(TestCase):
         kwargs = _trcconf_args_dict()
         conf = TRCConf(**kwargs)
         temp_dir_name = ""
-        with conf.configure() as trc:
-            temp_dir_name = trc._temp_dir.name
+        with conf.configure() as c:
+            temp_dir_name = c._temp_dir.name
             # double call (nested in outer, should not happen) must also clean up
             temp_dir_name2 = ""
-            with conf.configure() as trc2:
-                temp_dir_name2 = trc2._temp_dir.name
+            with conf.configure() as c2:
+                temp_dir_name2 = c2._temp_dir.name
                 self.assertTrue(os.path.isdir(temp_dir_name2))
                 self.assertTrue(all(os.path.isfile(os.path.join(temp_dir_name2, f))
                                     for f in conf.certificates.keys()))
@@ -96,10 +96,10 @@ class TRCCreation(TestCase):
             toml_conf = toml.load(f)
         kwargs = _transform_toml_conf_to_trcconf_args(toml_conf)
         conf = TRCConf(**kwargs)
-        with conf.configure() as trc:
-            trc.gen_payload()
-            gen_conf = toml.loads(_readfile(trc._temp_dir.name, trc._conf_filename()).decode())
-            gen_payload = _readfile(trc._temp_dir.name, trc._payload_filename())
+        with conf.configure() as c:
+            c.gen_payload()
+            gen_conf = toml.loads(_readfile(c._temp_dir.name, c._conf_filename()).decode())
+            gen_payload = _readfile(c._temp_dir.name, c._payload_filename())
         self.assertEqual(gen_conf, toml_conf)
         self.assertEqual(gen_payload, _readfile(_TESTDATA_DIR, "payload-1.der"))
 
@@ -108,14 +108,14 @@ class TRCCreation(TestCase):
             toml_conf = toml.load(f)
         kwargs = _transform_toml_conf_to_trcconf_args(toml_conf)
         conf = TRCConf(**kwargs)
-        with conf.configure() as trc:
-            trc.gen_payload()
+        with conf.configure() as c:
+            c.gen_payload()
             base_filenames = ["voting-sensitive-ff00_0_110",
                               "voting-regular-ff00_0_210"]
             # zip the base filenames with the content to a list of (filename, cert, key):
             signers = zip(base_filenames, *zip(*_get_signers(base_filenames)))
             for (fn, cert, key) in signers:
-                signed = trc.sign_payload(cert, key)
+                signed = c.sign_payload(cert, key)
                 cert_fn = os.path.join(_TESTDATA_DIR, f"{fn}.crt")
                 cmd = ["openssl", "cms", "-verify",
                        "-inform", "der", "-certfile", cert_fn,
@@ -131,14 +131,13 @@ class TRCCreation(TestCase):
         with open(os.path.join(_TESTDATA_DIR, "payload-1-config.toml")) as f:
             conf = TRCConf(**_transform_toml_conf_to_trcconf_args(toml.load(f)))
         signed_payloads = []
-        with conf.configure() as trc:
-            trc.gen_payload()
+        with conf.configure() as c:
+            c.gen_payload()
             for (cert, key) in signers:
-                signed_payloads.append(trc.sign_payload(cert, key))
-            trc.combine(*signed_payloads)
+                signed_payloads.append(c.sign_payload(cert, key))
+            trc = c.combine(*signed_payloads)
             # verify the trc with a call to scion-pki (would raise if error)
-            trc_fn = os.path.join(trc._temp_dir.name, trc._trc_filename())
-            trc._run_scion_cppki("verify", "--anchor", trc_fn, trc_fn)
+            check_scion_trc(self, trc)
 
     def test_generate_trc(self):
         # generate a new TRC using the generate_trc function
@@ -162,11 +161,7 @@ class TRCCreation(TestCase):
                            signers_certs=[c.decode("ascii") for c in scerts],
                            signers_keys=[k.decode("ascii") for k in skeys])
         # test final trc
-        trc_file = mktemp()
-        with open(trc_file, "wb") as f:
-            f.write(trc)
-        ret = _raw_run_scion_cppki("verify", "--anchor", trc_file, trc_file)
-        self.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
+        check_scion_trc(self, trc)
 
 
 class TRCUpdate(TestCase):
@@ -179,14 +174,13 @@ class TRCUpdate(TestCase):
             _readfile(_TESTDATA_DIR, "payload-2-config.toml", text=True)))
         conf = TRCConf(**kwargs, predecessor_trc=_readfile(predec_trc_fn))
         signed_payloads = []
-        with conf.configure() as trc:
-            trc.gen_payload()
+        with conf.configure() as c:
+            c.gen_payload()
             for (cert, key) in signers:
-                signed_payloads.append(trc.sign_payload(cert, key))
-            trc.combine(*signed_payloads)
+                signed_payloads.append(c.sign_payload(cert, key))
+            trc = c.combine(*signed_payloads)
             # verify trc with the old trc as anchor
-            trc._run_scion_cppki("verify", "--anchor", predec_trc_fn,
-                                 os.path.join(trc._temp_dir.name, trc._trc_filename()))
+            check_scion_trc(self, trc, predec_trc_fn)
 
     def test_sensitive_update(self):
         # previous TRC in TESTDATA/trc-2.trc
@@ -199,14 +193,13 @@ class TRCUpdate(TestCase):
             kwargs = _transform_toml_conf_to_trcconf_args(toml.load(f))
         conf = TRCConf(**kwargs, predecessor_trc=_readfile(predec_trc_fn))
         signed_payloads = []
-        with conf.configure() as trc:
-            trc.gen_payload()
+        with conf.configure() as c:
+            c.gen_payload()
             for (cert, key) in signers:
-                signed_payloads.append(trc.sign_payload(cert, key))
-            trc.combine(*signed_payloads)
+                signed_payloads.append(c.sign_payload(cert, key))
+            trc = c.combine(*signed_payloads)
             # verify trc with the old trc as anchor
-            trc._run_scion_cppki("verify", "--anchor", predec_trc_fn,
-                                 os.path.join(trc._temp_dir.name, trc._trc_filename()))
+            check_scion_trc(self, trc, predec_trc_fn)
 
     def test_generate_trc_regular_update(self):
         # initial TRC in TESTDATA/trc-1.trc
@@ -231,12 +224,7 @@ class TRCUpdate(TestCase):
                            signers_certs=[c.decode("ascii") for c in scerts],
                            signers_keys=[k.decode("ascii") for k in skeys])
         # test final trc
-        trc_file = mktemp()
-        with open(trc_file, "wb") as f:
-            f.write(trc)
-        ret = _raw_run_scion_cppki("verify", trc_file)
-        ret = _raw_run_scion_cppki("verify", "--anchor", predec_trc_fn, trc_file)
-        self.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
+        check_scion_trc(self, trc, predec_trc_fn)
 
     def test_generate_trc_sensitive_update(self):
         # initial TRC in TESTDATA/trc-1.trc
@@ -263,12 +251,7 @@ class TRCUpdate(TestCase):
                            signers_certs=[c.decode("ascii") for c in scerts],
                            signers_keys=[k.decode("ascii") for k in skeys])
         # test final trc
-        trc_file = mktemp()
-        with open(trc_file, "wb") as f:
-            f.write(trc)
-        ret = _raw_run_scion_cppki("verify", trc_file)
-        ret = _raw_run_scion_cppki("verify", "--anchor", predec_trc_fn, trc_file)
-        self.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
+        check_scion_trc(self, trc, predec_trc_fn)
 
 
 def _trcconf_args_dict():
