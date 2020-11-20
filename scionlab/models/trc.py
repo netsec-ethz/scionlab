@@ -83,7 +83,7 @@ class TRCManager(models.Manager):
             # create a base TRC
             base = serial
             votes = []
-            signers = certificates.exclude(key__usage__in=[
+            signers = certificates.filter(key__usage__in=[
                 Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR])
 
         not_before, not_after = _validity(*[*certificates, *votes, *signers])
@@ -105,14 +105,15 @@ class TRCManager(models.Manager):
         )
         # TODO move downwards
         obj = super().create(isd=isd, version_serial=serial, base_version=base,
-                             not_before=not_before, not_after=not_after)
+                             not_before=not_before, not_after=not_after,
+                             trc=trc)
         obj.core_ases.set(core_ases)
         obj.add_certificates(certificates)
         obj.votes.set(votes)
         obj.signatures.set(signers)
 
 
-        return
+        return obj
 
         voting_offline = [k for k in all_keys if k.usage == Key.TRC_VOTING_OFFLINE]
 
@@ -289,6 +290,7 @@ class TRC(models.Model):
         return prev + 1
 
     def _previous_trc_or_none(self):
+        """ returns None if there is a gap in the TRC serial sequence """
         if self.base_version == self.version_serial:
             return self
         prev = TRC.objects.filter(isd=self.isd, version_serial=self.version_serial - 1)
