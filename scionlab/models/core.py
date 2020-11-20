@@ -90,14 +90,16 @@ class ISD(TimestampedModel):
         """
         Generate the TRC and all AS and Core AS Certificates and for all ASes in this ISD.
         Ensures that the certificates are updated in the correct order, i.e. Core AS certificates
-        first.
+        first, then AS certificates, then TRC.
         All updated objects are saved.
         """
         if not self.ases.filter(is_core=True).exists():
             return None
 
-        trc = self.trcs.create()
-        # TODO(juagargi) remove call
+        # TODO(juagargi) refactor function: callers to this function call when:
+        # - new core AS is created
+        # - core AS was deleted
+        # - core ASes get new keys
         for as_ in self.ases.filter(is_core=True).iterator():
             self._update_coreas_certificates(as_)
 
@@ -105,6 +107,7 @@ class ISD(TimestampedModel):
         for as_ in self.ases.filter(is_core=False).iterator():
             self._update_as_certificates(as_)
 
+        trc = self.trcs.create()
         return trc
 
     @staticmethod
@@ -228,7 +231,6 @@ class AS(TimestampedModel):
     master_as_key = models.CharField(max_length=_MAX_LEN_KEYS, null=True, blank=True)
 
     is_core = models.BooleanField(default=False)
-    # TODO(juagargi) cppki add is_issuer is_authoritative ?
 
     objects = ASManager()
 
