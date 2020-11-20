@@ -54,11 +54,6 @@ Name = List[Tuple[ObjectIdentifier, str]]
 Extensions = List[Tuple[ObjectIdentifier, bool]]
 
 
-def encode_certificate(cert: x509.Certificate) -> str:
-    # TODO(juagargi) change to return bytes
-    return cert.public_bytes(serialization.Encoding.PEM).decode("ascii")
-
-
 def _create_name(as_id: str, common_name: str) -> Name:
     return [(NameOID.COUNTRY_NAME, "CH"),
             (NameOID.STATE_OR_PROVINCE_NAME, "ZH"),
@@ -212,3 +207,7 @@ def generate_as_certificate(subject_id: str,
                               notvalidbefore=not_before,
                               notvalidafter=not_after,
                               extensions=_build_extensions_as(subject_key, issuer_key))
+
+
+def encode_certificate(cert: x509.Certificate) -> bytes:
+    return cert.public_bytes(serialization.Encoding.PEM)
