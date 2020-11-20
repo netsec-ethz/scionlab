@@ -237,7 +237,7 @@ class TRCCreationTests(TestCase):
         self._create_ases()
         prev = TRC.objects.create(self.isd1)
         # leave only one core AS
-        AS.objects.exclude(pk=AS.objects.first().pk).delete()
+        AS.objects.exclude(pk=AS.objects.filter(is_core=True).first().pk).delete()
         # deleting core ASes triggers a generation of a TRC. Get that TRC:
         trc = TRC.objects.latest()
 
