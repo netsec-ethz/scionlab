@@ -8,7 +8,7 @@
     is_staff: true
     is_active: true
     date_joined: 2019-10-02 03:00:00
-    password: pbkdf2_sha256$150000$2yW4Acq9GFz6$G9TK9qEhxdnOGNuis8TUtskIIvljUu/Dk+XurtvchSY=
+    password: pbkdf2_sha256$180000$2yW4Acq9GFz6$cARb71qvSqg3eCdR/phcrA7oL4j8RDXkupjKVPQkgB0=
     email: admin@scionlab.org
     organisation: ''
     groups: []
@@ -23,7 +23,7 @@
     is_staff: false
     is_active: true
     date_joined: 2019-10-02 03:00:00
-    password: pbkdf2_sha256$150000$Y1t9EwL56nGi$qZivteb7fW6M0XyFBOsVhXz1MJxvpJz+ENk4kwfZbkM=
+    password: pbkdf2_sha256$180000$Y1t9EwL56nGi$ZWmg4XCVWfNwYaZx1LTPzMst16c2mWV3x2ZXZgQkcok=
     email: scion@scionlab.org
     organisation: ''
     groups: []
@@ -38,7 +38,7 @@
     is_staff: false
     is_active: true
     date_joined: 2019-10-02 03:00:00
-    password: pbkdf2_sha256$150000$siWgNZq6ITZM$MgJf/farllz3k/FYrISgh0yIJEJc1puGrT3S0Z14dG4=
+    password: pbkdf2_sha256$180000$siWgNZq6ITZM$THAWZyHZC1MeAyps5yfBTpTIBbFgsYZX7uItVFHP6Q8=
     email: exbert@scionlab.org
     organisation: ''
     groups: []
@@ -48,888 +48,2501 @@
   fields:
     AS: 1
     _as_id_int: 281105609527553
-    usage: as-decrypt
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: eluV5Og3gSNII8EYnsxA/OiI+7TPmuYlTxm6EubZr1Q=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIIYteiHel4Xb1UFwtGMCYXXIqcOEve7AsMhxSUXSM7YioAoGCCqGSM49
+
+      AwEHoUQDQgAEB1qdt98JUS7/IjaVQnDGjs9RgqKYw4UGolw2FFD2g4hF6M1J5Xxo
+
+      kc672mmoJ5MhIAfVaDX6zsvz935SL0gD6A==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 2
   fields:
     AS: 1
     _as_id_int: 281105609527553
-    usage: as-signing
+    usage: sensitive-voting
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: eI8ZWm9QnKPpNPeNenHdhUIPzuuM6gMXuNdmtdPIq6A=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIPRMdo4d32aBdeIZdlsXYBBKd40SPOnmzHn0uJnNfHgooAoGCCqGSM49
+
+      AwEHoUQDQgAEfM/yB7ZLZ66J2c5ga/6Cd2q2lbmQeWHW07PfqEo2Yh8oIj+zWEeX
+
+      MPqKDzHLWegrmsWqcKOrcOwxmrW5U1TfkQ==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 3
   fields:
     AS: 1
     _as_id_int: 281105609527553
-    usage: as-cert-signing
+    usage: regular-voting
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    key: AJx+095VPrpTtN4QMOqROD3N9yTNi3IXFP5R4IL/7n0=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIAGhtcheTB3JNvz7wFMAOS6PBDVeqO3KxAWS4gpHHws6oAoGCCqGSM49
+
+      AwEHoUQDQgAEPuo8zTO9NZ5B9jGFaUuJQ5AjLtG8jP04s8wMtAcEXLeH/16z6J6n
+
+      7w7o4SpfDMmbTMshVE5AHb3LmQ6eKTBRDg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 4
   fields:
     AS: 1
     _as_id_int: 281105609527553
-    usage: trc-issuing-grant
+    usage: cp-root
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    key: G02NSrQfjFXQ7Io09syajJZJcReYzGJRkz1KLzDSLwg=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIAln7PcBt/oVUb6d9XFBkKZrYLly9d+0IqefwGwmXhv4oAoGCCqGSM49
+
+      AwEHoUQDQgAEaVRFcE/SL3hQtCDVBgp8RPPWd8+bGsxpIVADU2OJ0699iSxI1PJ6
+
+      KhV79I6LVlL3fP43/jY51E8FJcMfVMYkmg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 5
   fields:
     AS: 1
     _as_id_int: 281105609527553
-    usage: trc-voting-online
+    usage: cp-ca
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    key: nPuoQnkRFq3BIeAm7AnXFOWz7NSKrmTWtIZGhc882Tc=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIKLLYf/eV0XXmrcpaidslNKjX8iuMNsK/inKgkNgqMHWoAoGCCqGSM49
+
+      AwEHoUQDQgAEOo19VKV6urfR4kFWpIQiLtRCutaEdxJognrAlwNjL/FZJo7bXOCt
+
+      SP9tH8AXNt3sJtGcVfJ1vvStGOI3RXcWnw==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 6
   fields:
-    AS: 1
-    _as_id_int: 281105609527553
-    usage: trc-voting-offline
+    AS: 2
+    _as_id_int: 281105609527554
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: 5a2W0/NrlEZzfqmk/7Pq+8tbFVOcHXyWoVXYMD4Eu0U=
+    not_after: 2020-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIHPSxvp10jYRC0tZFbENCxiHiozzC5XZRTPyJRHHBSGloAoGCCqGSM49
+
+      AwEHoUQDQgAEjH5wpqXOADglOP82QoGTO0mA3uGeXDw8uM9+9Zc0+xhb0X2TEQ2x
+
+      24x9zsJeJ26/Xuo8itJQDU45zeEV38pPrA==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 7
   fields:
-    AS: 2
-    _as_id_int: 281105609527554
-    usage: as-decrypt
+    AS: 3
+    _as_id_int: 281105609527555
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: H3o1uswP760Fi2yeGdVCETgSpU1Zby4PgHcKmBmz/GQ=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIOU3AEI3SMhE1mjkf9+BjsbmYfd6waFgu8ugeh4FNCnYoAoGCCqGSM49
+
+      AwEHoUQDQgAEhTYILJVLQFmyPAlpM1DIEPuxtyNN4aXvmqAUW8P1niEY1UBVyzfD
+
+      EHhBSSQze11+qulxgbnBpBJF5b/YXMKpSg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 8
   fields:
-    AS: 2
-    _as_id_int: 281105609527554
-    usage: as-signing
+    AS: 4
+    _as_id_int: 281105609527559
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: M0Jb57t41ubrkSuyrDT3xA7JrSjYKVeHQB6Y63GqLAM=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIIltz/vRX/r8USgJzTQBlMIgJ4H/mF5fLEuURxMNDdOPoAoGCCqGSM49
+
+      AwEHoUQDQgAEr1NXKoH4n6+Rvqe4IoYLHYR2TXcaGM2zgEf1c7tnGQ8PgIgWwDfD
+
+      u+D5hbdQZQr63hzI6cLrNj9UuY8BRJaFqA==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 9
   fields:
-    AS: 3
-    _as_id_int: 281105609527555
-    usage: as-decrypt
+    AS: 5
+    _as_id_int: 281105609528065
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: atSmFACYMbJVKD05o3JgteCskd9qCGbfs5Frxam1Cyo=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIEZa7RJ8IYxoXQVywAUQVcRzxTaZAzkaCeLHxUa1RgCcoAoGCCqGSM49
+
+      AwEHoUQDQgAEvlem0HbqmCQbmi6smTVug49k2liSBwt+SKw+VjtDyjIMhB2S3tJy
+
+      DFsXPlyLBkbn6P4ppqf3gO4aCw/lMEkNNg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 10
   fields:
-    AS: 3
-    _as_id_int: 281105609527555
-    usage: as-signing
+    AS: 5
+    _as_id_int: 281105609528065
+    usage: sensitive-voting
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: chBCsyhyh+J86I+awQDiCX5TT9Z3DM/S4PnPajCM//Y=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIE4nILKvqefoF7K381M9Laf8KCFIJ1aC+O4EAowpHFRroAoGCCqGSM49
+
+      AwEHoUQDQgAE34V1VbOFZiHULxkH60jYZz7zhnHi0vRwuLsdDd5qlgZEx+9flIMk
+
+      r7LYYn006XJyxhErnzBCv4D6ofPjIOlyTg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 11
   fields:
-    AS: 4
-    _as_id_int: 281105609527559
-    usage: as-decrypt
+    AS: 5
+    _as_id_int: 281105609528065
+    usage: regular-voting
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: yh3cQSKnhdGmpVgd3ydH2QQKCjSuQo5Q8l3wkejZCtg=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEILzdYdfjs9t79L1cphQsJLNsKmR0AZAepz7XZLaKQzG7oAoGCCqGSM49
+
+      AwEHoUQDQgAEpfPueTBA2U20SVtwhhwkPS2I7NtoFHEpviCB9j0aotTQrZO0lSlw
+
+      s9E88oecqhvGztqmhEjdZy9eVklc7UVRlA==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 12
   fields:
-    AS: 4
-    _as_id_int: 281105609527559
-    usage: as-signing
+    AS: 5
+    _as_id_int: 281105609528065
+    usage: cp-root
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: v/azm6d+tqTndaNvX9+JLTVglkoCIyZFVVbKXrcXVsc=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIJqfuzw1MD8yHjcbdUtKDDmjLxVpK5Zf6wvkwadYbf7UoAoGCCqGSM49
+
+      AwEHoUQDQgAE27IsaAXYtMw05F7TQHhE7SfZsUuzvnlL7wcJffPHp7SccVtMf0T4
+
+      XDGpJuAZ8udMWzcReEhbTi3SZJri6OQC0A==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 13
   fields:
     AS: 5
     _as_id_int: 281105609528065
-    usage: as-decrypt
+    usage: cp-ca
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: s39tCU1VvK/kJ+sqoJBgzvn9oxYQzhUyvzgPYgIZZI4=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIA9tIv+JZVc1rHKTVFYThVA0tkO8B/UMylcLIaF+EreZoAoGCCqGSM49
+
+      AwEHoUQDQgAEEoyrKxH0zwz0rJDpYYNH5bTFoQvQYC3LDMKq8TnGMG37wqx7vmKy
+
+      OKLVkBcZ+gOdsPFgbkOjPm2lXzCOHFWJ6Q==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 14
   fields:
-    AS: 5
-    _as_id_int: 281105609528065
-    usage: as-signing
+    AS: 6
+    _as_id_int: 281105609528066
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: hEpy633JlbatN2wVXjj9/0KVxipuMVsdENLd2rMH54Y=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIOQBD8uwem/Ip+WsRB0ztp/HrGxNTGtk5RkWGsqBPImRoAoGCCqGSM49
+
+      AwEHoUQDQgAEOBXUbUx/E6qUYEn7kOi9iIafFN7WpeNJWg9gZ2Ua8WBFr1BoSahT
+
+      TtHVhMPD77QeRj030JBeedoC6fPlPyxUMQ==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 15
   fields:
-    AS: 5
-    _as_id_int: 281105609528065
-    usage: as-cert-signing
+    AS: 6
+    _as_id_int: 281105609528066
+    usage: sensitive-voting
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    key: c8CtMx5/ZUE1pAr/8sw3nyUaMnVgXIvTJhr9mPt8JZA=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIKStPZfWH8YKFPzqs6vTeH42gQsqZ67+GwBVT4RU7LmYoAoGCCqGSM49
+
+      AwEHoUQDQgAEfMk+xOkOSxvWJSZL877Is9b/hNVuzFeaNUYAdwyulyICv2PqjhBU
+
+      dJbAeZtewQGe8ktqUwj5aRNtCK/48jBwag==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 16
   fields:
-    AS: 5
-    _as_id_int: 281105609528065
-    usage: trc-issuing-grant
+    AS: 6
+    _as_id_int: 281105609528066
+    usage: regular-voting
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    key: Z6OubOCFfq3q41LVf/9/oqvfM4qc7jgCV7T2v+ZR0VI=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIJ7vXyKAskNikwm67uVNK9ocpWaJVWTY2icA0AGplEm/oAoGCCqGSM49
+
+      AwEHoUQDQgAEyZQrItqkLbsBtx8ewXb1RQmMdv3mAW5xiB8ENs5lBO6ETw/JL7Xb
+
+      bVXhTD6rMitG1ZOn+1LCLRPXRHDb7xQsjQ==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 17
   fields:
-    AS: 5
-    _as_id_int: 281105609528065
-    usage: trc-voting-online
+    AS: 6
+    _as_id_int: 281105609528066
+    usage: cp-root
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    key: CYYl30GayCfXYZVLt7TOeBDMFYTe6goQOSEKTAPC2HI=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIPcRWPmCDgqjvd65ZncWCSrkj9JgbCkwwmwbVw63bZ9zoAoGCCqGSM49
+
+      AwEHoUQDQgAEYGWMJXMNXTLZOsMXMu4jsVERbvaxesMVD4BwOYOxJ1O+qlLqEhyr
+
+      nQ0cJosB5ZmIpU7IancZPM0/1EFBw6mUow==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 18
   fields:
-    AS: 5
-    _as_id_int: 281105609528065
-    usage: trc-voting-offline
+    AS: 6
+    _as_id_int: 281105609528066
+    usage: cp-ca
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    key: VNwpzCbep3X3X4Fh5oeACJIXrcvOhMKZ/RO/befBNEo=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIJ/SrZ7Ml8YYkE5mlUg7PJC16/YbmVYpaZhauHCfMKkBoAoGCCqGSM49
+
+      AwEHoUQDQgAEhRuWe4zrxYfldJ+ivt3RAjhryq3VpkPRxsnuLyXG1gHRCSaWtMBA
+
+      ZL0YRyiocBMzZiUYPIG5X3NH79MKREFJTg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 19
   fields:
-    AS: 6
-    _as_id_int: 281105609528066
-    usage: as-decrypt
+    AS: 7
+    _as_id_int: 281105609528067
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: 1FUO8Ql7aiR9492atxSssibP/FppCZx3YnUMGXjHJgU=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIOtA10GmHEWb6t6g1fUgdvuCeWsBg1jPfyaC7PopqoQhoAoGCCqGSM49
+
+      AwEHoUQDQgAEFXZm1HjTqpTmI/QwkS5UwzQSNrrqUc/ss5I/P65vqPAxR3MZDyvF
+
+      snhYhJfEim3u2+C0r+fdjV8tb27hz8QLVQ==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 20
   fields:
-    AS: 6
-    _as_id_int: 281105609528066
-    usage: as-signing
+    AS: 8
+    _as_id_int: 281105609528068
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: CJmeIaFSGrOMplgxYsjGx30c4Q+cs3edoe9Wph/4rrY=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEICYReU7DuT9v6jOzF3qqwYWmlhMBHmndLlxfquYfFmtBoAoGCCqGSM49
+
+      AwEHoUQDQgAEti53RklUYnTCgUyGSYUJUD4zPXQjSKjuEwrF+Cx7p1SCY7475/F3
+
+      E68qFr/zUVOQHG8C45Qia8y4CohTRVOSrg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 21
   fields:
-    AS: 6
-    _as_id_int: 281105609528066
-    usage: as-cert-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: n0vJ2SD16WPMS+q+3/Wu+88fhNzJ/jAJyGRxX8EwdFs=
-- model: scionlab.key
-  pk: 22
-  fields:
-    AS: 6
-    _as_id_int: 281105609528066
-    usage: trc-issuing-grant
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: yqET9Avm7wp8QeYG8YWqkZLgNzoXxtHi46DHgLKGa4E=
-- model: scionlab.key
-  pk: 23
-  fields:
-    AS: 6
-    _as_id_int: 281105609528066
-    usage: trc-voting-online
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: TvIdJW3kkGzsFe8aahAZasYnu/QHynJur2oHf+vd9lM=
-- model: scionlab.key
-  pk: 24
-  fields:
-    AS: 6
-    _as_id_int: 281105609528066
-    usage: trc-voting-offline
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: uEAUWhIfW7EHWFktAtT5O9FdEpjkJDUANKisu/DmH78=
-- model: scionlab.key
-  pk: 25
-  fields:
-    AS: 7
-    _as_id_int: 281105609528067
-    usage: as-decrypt
+    AS: 9
+    _as_id_int: 281105609528069
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: zTlQgj48wS9KX2upC9whmQVkE7MSIWtMjGq97SSXbEw=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIIwhUC+2mxiJxTYoFtmEtLFMJNZQ6wx7WBScfpWT+FePoAoGCCqGSM49
+
+      AwEHoUQDQgAEv4Zq6HTHatIRBUK0P8VrvcPQimXp7Eaaj4osaafWFHt/Fni3qlYC
+
+      NXha7vCKQp+s6t3PRjke8+e1DeRX14oE9Q==
+
+      -----END EC PRIVATE KEY-----
+
+      '
+- model: scionlab.key
+  pk: 22
+  fields:
+    AS: 10
+    _as_id_int: 281105609528321
+    usage: cp-as
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEILEb/8bgatEc0hUuP0gv88B9LbNMgSrzkS3Q5/oVLC3xoAoGCCqGSM49
+
+      AwEHoUQDQgAE74pBSFxN9mrEaClw8TEXnWX1CVa2eJa9hRIYmUrp7BnZJutxxI1r
+
+      WylnpTrJKTeFqZDVID6scCpmtv5GaXY3vg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
+- model: scionlab.key
+  pk: 23
+  fields:
+    AS: 10
+    _as_id_int: 281105609528321
+    usage: sensitive-voting
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIG6XR9XEoA8UZk1K+cY/bUJlbnwNDnqsNWp/j4ywUEIuoAoGCCqGSM49
+
+      AwEHoUQDQgAEvKkpz5go7nekyejdaQsOYdOT3z+Cf8u/zfM6/0KA2gHt9HnjZzlt
+
+      K2OrHbFA/4SYt6oWrzeUtJcH+HIJzyQk1w==
+
+      -----END EC PRIVATE KEY-----
+
+      '
+- model: scionlab.key
+  pk: 24
+  fields:
+    AS: 10
+    _as_id_int: 281105609528321
+    usage: regular-voting
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIAEwENghVhVXpGSijPKgH2O/VmO6vsAwkcW2q+rGqz7poAoGCCqGSM49
+
+      AwEHoUQDQgAEtIFRD8yZRryODyqRbKsPoiS5X/femh1i+MMawsqCXh4F3bahHt0/
+
+      gmVXqLNGvpzLSU8l/GPMjNm8Dq5CntWD6w==
+
+      -----END EC PRIVATE KEY-----
+
+      '
+- model: scionlab.key
+  pk: 25
+  fields:
+    AS: 10
+    _as_id_int: 281105609528321
+    usage: cp-root
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEINy+41crQa5NYThmPCWPAadp9ZWXeCyajGoyUQ14fjqgoAoGCCqGSM49
+
+      AwEHoUQDQgAE8QMJmj9MxilF9JmaYxHp35+Lh0bnBLf+keKvgi48zPtTBCxfVacE
+
+      ywZ7eoTzbodcSIIq0MnhYB6C37cEg2S0yw==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 26
   fields:
-    AS: 7
-    _as_id_int: 281105609528067
-    usage: as-signing
+    AS: 10
+    _as_id_int: 281105609528321
+    usage: cp-ca
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: o1oVP3GhXqPyhw5gaAJq9rrmUnA0X0vzeBfzL8sbRhw=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIMgmdGjbUeJP14wweqQBFS7qz7ilnTKCZRb2JyybcBbQoAoGCCqGSM49
+
+      AwEHoUQDQgAEe45jnpkaUwNxJlEOWse1kKik03zed9ACaiqBqideyCuJjEUWyRQ8
+
+      0jlxuDYGFFhBeG9kaVHMN+bE+40xQe7/Zg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 27
   fields:
-    AS: 8
-    _as_id_int: 281105609528068
-    usage: as-decrypt
+    AS: 11
+    _as_id_int: 281105609528322
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: tMB4F61/wvU7i8NnR6H7BR5F4qsKAEFlhuOUtWVxGr8=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIPa4y4kGXVf7jWZu4eWUrtYoK8iCS5i6t6ZrY8jvR+1boAoGCCqGSM49
+
+      AwEHoUQDQgAEH9NLR7BBmoyqb/QuqO65xRtgWFr0caJy3FQuEAAixKr50+0/u+Tb
+
+      AoDy5s5NqEqxTnxhAJRHNi49q/36sw//cw==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 28
   fields:
-    AS: 8
-    _as_id_int: 281105609528068
-    usage: as-signing
+    AS: 11
+    _as_id_int: 281105609528322
+    usage: sensitive-voting
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: QFpI38Gs6DKYFQkSykNOiFceh9w/5OvDKRFq3EpIhSI=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIKPhWNlTylpbl2xLZB+DEcECTAUNL0W5nN8lZpwmUYL5oAoGCCqGSM49
+
+      AwEHoUQDQgAEQOu13/YPv83y2jwvreiBKLv4KE9jA9UVZpe5iqTpMfcP76Gis6uN
+
+      nzxnB18E6rz+NyUzWAxj7ctkYwbwpKPtPw==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 29
   fields:
-    AS: 9
-    _as_id_int: 281105609528069
-    usage: as-decrypt
+    AS: 11
+    _as_id_int: 281105609528322
+    usage: regular-voting
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: D3FMJL5+DeOfNwZaeGTj/gLYhvoRr90Ur/O97KtlAVw=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIBwf/fvzmINuO6oevaY6PSaNz+EbOkEt94xa2cdKlIQSoAoGCCqGSM49
+
+      AwEHoUQDQgAEW1+7Jq2wDVebfA0oWx4bXva3Fc6OORT5Td4n8R9BdgGCuN3HUWmq
+
+      gEI/JQa1Vr1ZWUyRWm02/5cI7rTQ3cZG2g==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 30
   fields:
-    AS: 9
-    _as_id_int: 281105609528069
-    usage: as-signing
+    AS: 11
+    _as_id_int: 281105609528322
+    usage: cp-root
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: Ch2eAP9F36OzSrrmOiTAkkkwGm91t1RiK1RrpeWvbyU=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEINnopFyaS+w+Jkrmp/0w+w+UEcX0bXm0+r+pOb3htsL1oAoGCCqGSM49
+
+      AwEHoUQDQgAElQttryMzMw8f4BZPyjchCHyg+hDDic/QZF/a6arXroBocjQuDfq/
+
+      SWRHWJKxPialDuQ0kL7G1mc+64x/Qdsd7w==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 31
   fields:
-    AS: 10
-    _as_id_int: 281105609528321
-    usage: as-decrypt
+    AS: 11
+    _as_id_int: 281105609528322
+    usage: cp-ca
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: tN6DwEjF4OJaaXUNobKEqvSm9IzuvO9ulHR9QbR5N1Y=
+    not_after: 2021-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIEbR5mXqEBGe1yxYrbNa4xItZW+JD2gPphJLcUblAK2zoAoGCCqGSM49
+
+      AwEHoUQDQgAEIzzuGHyaUmn6Fs+2RZsuwysj62cUdqUu2khtWOfR9/aNqVojLcjm
+
+      EVBo22bnbdeEcFE+MEqjNkzR61XCPbOBHg==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 32
   fields:
-    AS: 10
-    _as_id_int: 281105609528321
-    usage: as-signing
+    AS: 12
+    _as_id_int: 281105609528323
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: RAoLDSlZAEqnASMQyW2uOPibZY7rOHQxVpsam+IVy1E=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEII9CUwK2MZtowPYN9MCWAlw83HwH9kCsxJsRBUgOLe6JoAoGCCqGSM49
+
+      AwEHoUQDQgAEVuUwnAucuEyd8rurslxGCywCgNUYWrqH3T+wLjS/17y85IIjexvZ
+
+      RFC3E/It1rAblDO+2TQVqsXmzudSXczZog==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 33
   fields:
-    AS: 10
-    _as_id_int: 281105609528321
-    usage: as-cert-signing
+    AS: 13
+    _as_id_int: 281105609528324
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: Uol05FNBB4ULMF4UNd6GWDDWM0CsurxNT4TcYkF7WN8=
+    not_after: 2020-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIGfeJeM4hAtNZZIAl+jTSHQQ7ay8aD++xqMzbs2gqohAoAoGCCqGSM49
+
+      AwEHoUQDQgAEMlM2mU6q5w6rHXSvo2gVmhkn1aKzaZF3tGqW9crBoY8VDms98m42
+
+      Pg9vwtA1krzfcm1EZCMJAWSdWiCnpewQJA==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 34
   fields:
-    AS: 10
-    _as_id_int: 281105609528321
-    usage: trc-issuing-grant
+    AS: 14
+    _as_id_int: 281105609528325
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: tj0LTu+NEgJ1frlwDOrPafp+dXAeFRQ9GdPDJ2ni6zY=
+    not_after: 2020-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIGJCHLLL21plxi/t8EuyHPXBTYh4npBHZkoW5PyoEP7loAoGCCqGSM49
+
+      AwEHoUQDQgAE8z/xq18ZhQSwGGP6+aDK+x5QsgUPgIRW6uCoj1f82wnsR7WHaSzr
+
+      7T7G6aZgPIj+bhc+KpjGmvSV107Eu3jQng==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 35
   fields:
-    AS: 10
-    _as_id_int: 281105609528321
-    usage: trc-voting-online
+    AS: 15
+    _as_id_int: 281105609528326
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: cJwT0W2PweLUZAr1Lj99OCDX3kfvWlH+bxuO5kmcisk=
+    not_after: 2020-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIJjeFqAP3HkDevm0xPryLC0/yEPTLvyaUmAK6JDF0JW2oAoGCCqGSM49
+
+      AwEHoUQDQgAE/DCmLAEGvYknEuvbIsrJ/mz3CDMfvF/cL+kJlFSlhCyUYJ4tDtM0
+
+      EmHrRKjIAbpqLRWf38SPgS4RlzoNpWuMgA==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 36
   fields:
-    AS: 10
-    _as_id_int: 281105609528321
-    usage: trc-voting-offline
+    AS: 16
+    _as_id_int: 281105609588737
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: M7ZLx3GDmnaJokJFOwQenci2GSy7aj83SOG8/6gBvYk=
+    not_after: 2020-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIMiFk3tjtZVmqolGExKu6ETB1DonTxOQudqH/JaPPeVJoAoGCCqGSM49
+
+      AwEHoUQDQgAEwtLCajyQCAgJVjbn2eH6Puo4o3EODggik2Ddh/V9H9QKlmvUbkMN
+
+      8VlqJT1sffFJOFAslQAcx1CCZ3GIiivClQ==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 37
   fields:
-    AS: 11
-    _as_id_int: 281105609528322
-    usage: as-decrypt
+    AS: 17
+    _as_id_int: 281105609588738
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: IeBlJ/ktgv0TIsM0yOrGf5HEsvg2PLsh0DvCYlqblyE=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEICUronZYNTFGV/Hti0mboAjzLhceJbx9X0U2FW0VaxxCoAoGCCqGSM49
+
+      AwEHoUQDQgAE9D5gfnaZuoOcrKWK+8tlSgSCNsGw2kosBycIFpmOR2vZnrEbAGJD
+
+      yZIGfDuLWwG3DKudW1Lr1LAUU96fP67u1w==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 38
   fields:
-    AS: 11
-    _as_id_int: 281105609528322
-    usage: as-signing
+    AS: 18
+    _as_id_int: 281105609588739
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: oX/m6hud1QaGmFt9dE8D9TiOpymp4X7P9Lx7i1C02RQ=
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIEEBTBJHqO5ZaW+ddKZMGHcMl6nqlU5onulGSvy9p5dAoAoGCCqGSM49
+
+      AwEHoUQDQgAEauodQIp2xb6olxuQgTcLuogObwjo8J70uMGhd4xPYBL4BI29I44u
+
+      I1zYYI1dehg7kKvWDANQOJuREDdC4kx7Ww==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 39
   fields:
-    AS: 11
-    _as_id_int: 281105609528322
-    usage: as-cert-signing
+    AS: 19
+    _as_id_int: 281105609588740
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: QiOaZrQw0lHJSmLxDzUJULm/9j9X3HCruaioOUJYqyk=
+    not_after: 2020-10-01 11:07:41
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIGxevAZZ0sbgn8vAbpCurvv0a016DF2uCTxyaFJmY9WyoAoGCCqGSM49
+
+      AwEHoUQDQgAET+a5W5bBBUX99dApnv0/RkKqE8NZJkgq3UTD0CqYL7jBJs3VUHwd
+
+      R7iQavVIg0El0E7GxQRy/G1Tspww+GozDw==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.key
   pk: 40
   fields:
-    AS: 11
-    _as_id_int: 281105609528322
-    usage: trc-issuing-grant
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: TgRbkooOu6EmWgV9oA8GPQsDOfKnUxHSD1j4qWwi5Ow=
-- model: scionlab.key
-  pk: 41
-  fields:
-    AS: 11
-    _as_id_int: 281105609528322
-    usage: trc-voting-online
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: N3JvJFtPLaZUuvzJv2hhAmjkQ4iIzbz7r7R2wgqQ6x8=
-- model: scionlab.key
-  pk: 42
-  fields:
-    AS: 11
-    _as_id_int: 281105609528322
-    usage: trc-voting-offline
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    key: aPRjKwCAI5/eqYPXu7MlFFQ819TSLT/yBfTO5Su+ydY=
-- model: scionlab.key
-  pk: 43
-  fields:
-    AS: 12
-    _as_id_int: 281105609528323
-    usage: as-decrypt
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: ZANPh+ZJjHj6CMWIko1D768JdGW4HmdYfg0FRb3+CEE=
-- model: scionlab.key
-  pk: 44
-  fields:
-    AS: 12
-    _as_id_int: 281105609528323
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: rq6Us8btSv6vwzXDh4RXYvrV+EA1HZD7VM738ew+lqw=
-- model: scionlab.key
-  pk: 45
-  fields:
-    AS: 13
-    _as_id_int: 281105609528324
-    usage: as-decrypt
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: 8qrRqcdBv5wwEYzvbEfz1CyHKxCooyiUHPGBocuLmmI=
-- model: scionlab.key
-  pk: 46
-  fields:
-    AS: 13
-    _as_id_int: 281105609528324
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: wW9ET0gDbcf90bdH8kKJho1R/VcwtMhuyiTYAcCCJ8g=
-- model: scionlab.key
-  pk: 47
-  fields:
-    AS: 14
-    _as_id_int: 281105609528325
-    usage: as-decrypt
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: cjy+tnPdguXOz7QZ9TAqcOwQ7W2iZfBFQG/hwcZbnFM=
-- model: scionlab.key
-  pk: 48
-  fields:
-    AS: 14
-    _as_id_int: 281105609528325
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: F04HfgLDQDPDZWJvxqKgrGOy4dIJlXda1JEgkLVHU9I=
-- model: scionlab.key
-  pk: 49
-  fields:
-    AS: 15
-    _as_id_int: 281105609528326
-    usage: as-decrypt
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: IOQi6Xu0pLfDuQu60oUL0o6wvrKhY/MuWMyV0BUUjyw=
-- model: scionlab.key
-  pk: 50
-  fields:
-    AS: 15
-    _as_id_int: 281105609528326
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: 0EMzzEJTs7VAyEKE73T/6CfB5nKNJwmhlS2kgwjlwVA=
-- model: scionlab.key
-  pk: 51
-  fields:
-    AS: 16
-    _as_id_int: 281105609588737
-    usage: as-decrypt
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: WQUtZ52wp+UDUnTKjb7fsX55FNsNidxmysjb7EMHpYQ=
-- model: scionlab.key
-  pk: 52
-  fields:
-    AS: 16
-    _as_id_int: 281105609588737
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: GNbTFFVb9Bl49wgn6ISgzkn1CQBgVijxjLIlKSzH6yg=
-- model: scionlab.key
-  pk: 53
-  fields:
-    AS: 17
-    _as_id_int: 281105609588738
-    usage: as-decrypt
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: YckGa2+R6a9Vtj/sI12CN4hmEiFokKhZ9xhu5W8+eGE=
-- model: scionlab.key
-  pk: 54
-  fields:
-    AS: 17
-    _as_id_int: 281105609588738
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: OeplPaV7ZeuUEdVA/0bihl+KBZqcx3ngPEYKnFLezGQ=
-- model: scionlab.key
-  pk: 55
-  fields:
-    AS: 18
-    _as_id_int: 281105609588739
-    usage: as-decrypt
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: wA0y4PVBLbmVU0thogpKjW4IrmlEYLo1WCIhHJxbKgc=
-- model: scionlab.key
-  pk: 56
-  fields:
-    AS: 18
-    _as_id_int: 281105609588739
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: bpNldhOktbWuE8dsi7mNIysnNSo6B4Yi0X5b5uGfvEk=
-- model: scionlab.key
-  pk: 57
-  fields:
-    AS: 19
-    _as_id_int: 281105609588740
-    usage: as-decrypt
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: rvknJQGVmKK0++/hhBuyx6WyNJikmvuDHESwu50rYBU=
-- model: scionlab.key
-  pk: 58
-  fields:
-    AS: 19
-    _as_id_int: 281105609588740
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: ywkCHeRc0bh7URutc16VskCqfM/GOuwoj43T5RPH24I=
-- model: scionlab.key
-  pk: 59
-  fields:
     AS: 20
     _as_id_int: 281105609588741
-    usage: as-decrypt
+    usage: cp-as
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    key: EfYRemSQ82iOF0N7OtAcSyRczxgjqN0O0qojlo8yAQg=
-- model: scionlab.key
-  pk: 60
-  fields:
-    AS: 20
-    _as_id_int: 281105609588741
-    usage: as-signing
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    key: 3GeOs8GafbawG+55j1jfx1ffGK8BPTp/1vtPRjkCflo=
-- model: scionlab.trc
-  pk: 1
-  fields:
-    isd: 2
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    trc: '{"payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE3IChTd2l0emVybGFuZCkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE3LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTEwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWHpIUlF3WHJqMm5JNzNJZkhqRlFPeEhadlNNN1N3VG05N1ZuN05pK1ZIdz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiWlorODVGMGtrZTNTRm91Q2VORW1KQWFKUisvL2w0WGRQVGJNKzZBSVM1UT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiMW8rL3RMTmZDMCsyNDlQamppUm9IdWdGRnRnN0hwbmIwQzh0M29HRURjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjExMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAxfQ",
-      "signatures": [{"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "gZb3KXzvSt0UXfzOmsVkSnwRFLT0YcXoFZZvYreWtcYx_vVbhk06OThC002x4OgpK0BjBMJcrL_cn3blsh4UCQ"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "ePlI06GLjIBr8a28UC8MsdDi3sFZLFb0KYev7mt-aEAd-LEFKUXJcvUM9Dhz_huMkPFMJVFLZ9JffAovOZ5DDA"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTEwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-      "signature": "G8LhE9WyxIG0N7dLtMtGeGbnGzktTd-ogguIVubgU62K-fi_U-MQRGoDVwc3OHkWEYzs3SzxPOWQy67SzsZdDA"}]}'
-    voting_offline:
-    - 6
-- model: scionlab.trc
-  pk: 2
-  fields:
-    isd: 4
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    trc: '{"payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDE5IChFVSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDE5LCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTMwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiTWg2UlpOaXZVREdzQlUvR2RjYkRkUkJjeTh6VmtyMDRUV214OW5zT2NiZz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZmRpbC8yakVScEtacEVvVDgzaEpYdXhpWk94SmpkTzAyd1dFTnpqU0lIST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJuS2VjY0FZTEVaV3FxVlBSN3I1OTdoQjhDWUs1YzRGMXJ1YkliTkxxNzhrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTMwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiMVVJcVFpS0JHTWdVQWEzeS9uVTdDbEhFQURYdFJWZjRMWDd2OXJJeHRMRT0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAidVFDYkZyaHdNQTA2em5MZEVkbGNrMm5JN2NMaHAwZndtMklJemlCekh5az0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJXakIwRzl0RFRlTlVGTXpKNDMzREcrZjR6a3doSlZnNHZXbi9rYmRDODJJPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjEzMDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjEzMDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-      "signatures": [{"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "3YGYoxPTR8jgDGadWM5ac03jNC6eIyrYVYJ3IFL_0d6ESO1eDfaWhPpEJPjni_am5DM-BGTC_6dl4IM4i58vDg"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "mKhwMiacq-3sJOEkkQ_e92622gR6pnFTvrI829vdoC64lkieM-18HGbJANXVmi-Bpl_CcF0uQyMSswapax23BQ"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-      "signature": "IyAgvp-9ZOHOnnVkUXMqlS22nF-KO2VYP_bXd09AONuJHsWlsGXDjoxOmH6SN2FwPpSDc_hkXuskHCUrk76HCg"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "yBo9CKM5LgNk95QcjjK3UMdDVq3z0rsDIvvaWrKeWnbc1ejDpVK4IgM9hcpYLrRSt6y5sncFHw2Q1wTTlhSrDg"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "S0jmllXbdZL-1HQmT0C_29zIyuGnA03nKv2CiLpoeccWJN9sCoBc9AG9SaZQzasvJvEE7JNAHxrpNjB_j6bQCw"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTMwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-      "signature": "wV0ZrVAXx88EUvIuk673MJLIAXcqQ-iV4vCCH50LCs0tLx65cI7ps6a31PSgIAnbp3SEg1VerkhUxJTxzyhzAg"}]}'
-    voting_offline:
-    - 18
-    - 24
-- model: scionlab.trc
-  pk: 3
-  fields:
-    isd: 5
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    trc: '{"payload": "eyJiYXNlX3ZlcnNpb24iOiAxLCAiZGVzY3JpcHRpb24iOiAiU0NJT05MYWIgSVNEIDIwIChLb3JlYSkiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiZ3JhY2VfcGVyaW9kIjogMCwgImlzZCI6IDIwLCAicHJpbWFyeV9hc2VzIjogeyJmZmFhOjA6MTQwMSI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiekVia0Z5Mi9JWThxMTVNNXM5UCtIR0tGdzdYU2xVOHJMWDkzaEtYTG5odz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZjREK0pwTXB0OHAweUh2U1RxVzA4clB1a21lUXNSNmhkNmhNV1AxSzljST0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJWMGRSNEpkUE0yMHJFMzdwd1c4UDNFaXNMeWlTS0pidGhUbEVmeTNld2VjPSIsICJrZXlfdmVyc2lvbiI6IDF9fX0sICJmZmFhOjA6MTQwMiI6IHsiYXR0cmlidXRlcyI6IFsiYXV0aG9yaXRhdGl2ZSIsICJjb3JlIiwgImlzc3VpbmciLCAidm90aW5nIl0sICJrZXlzIjogeyJpc3N1aW5nX2dyYW50IjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAieEFCdSszK1NLQ0tXSlBIUklaYUQ4T3owRzMwUXVGRlZ2VXBOR1ZKQjVwcz0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vZmZsaW5lIjogeyJhbGdvcml0aG0iOiAiRWQyNTUxOSIsICJrZXkiOiAiZFhobXBhZnVPdktoZmFsU1F3TXdid0RCTzNydkQwWWk5UVBDRnBkanJyND0iLCAia2V5X3ZlcnNpb24iOiAxfSwgInZvdGluZ19vbmxpbmUiOiB7ImFsZ29yaXRobSI6ICJFZDI1NTE5IiwgImtleSI6ICJiQUNzNXo3SHNhS05RdGxvMG5POWZlNjhiVHh0UjFvUE1UdlBMcjBkSWFrPSIsICJrZXlfdmVyc2lvbiI6IDF9fX19LCAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiI6IHsiZmZhYTowOjE0MDEiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdLCAiZmZhYTowOjE0MDIiOiBbImlzc3VpbmdfZ3JhbnQiLCAidm90aW5nX29ubGluZSIsICJ2b3Rpbmdfb2ZmbGluZSJdfSwgInRyY192ZXJzaW9uIjogMSwgInRydXN0X3Jlc2V0X2FsbG93ZWQiOiBmYWxzZSwgInZhbGlkaXR5IjogeyJub3RfYWZ0ZXIiOiAxNjMzMDg2NDYxLCAibm90X2JlZm9yZSI6IDE1NzAwMTQ0NjF9LCAidm90ZXMiOiB7fSwgInZvdGluZ19xdW9ydW0iOiAyfQ",
-      "signatures": [{"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "lMflSxDL23pPZdxm4kCQrrExtho-3qWjBUGtFR9DCyADGjuhBBvJhUYXKCQgJmZwZKQ6sNvZhQrN650H7pXIAQ"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "IEQs-UKm_a0azRdYCBKgfytqLPKkC-KicEn8WyGNj_nJEpc6il5SvfUJkfv1TAUu2m5TK3Cwi_06dlKaOuacDQ"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMSIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-      "signature": "5x2TpKF5nJA3Z9gLdD45NZGm7nJZn8ndLaN8groZogAR9jW4y4qICkXuXz9ESYyA0JWVNLv_NsEEcaT33-hHBA"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJpc3N1aW5nX2dyYW50IiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "LdhZ-vIz-I2G2dPJ3genkYhOCFJxsB3fZ_JDkm8w-94n8pAfh4CzdkiVLFJkW5xjIdcH6v-M5SyF-_4vwaXNAg"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb25saW5lIiwgImtleV92ZXJzaW9uIjogMSwgInR5cGUiOiAicHJvb2Zfb2ZfcG9zc2Vzc2lvbiJ9",
-      "signature": "CMXlaUloufb05e0myd4-fICnAVzCHrgJ7-mDegDHjMqSi3QuE70Gm-Muf887Rey_OHV9x7woExKQ-NpjSaa8Cg"},
-      {"protected": "eyJhbGciOiAiRWQyNTUxOSIsICJhcyI6ICJmZmFhOjA6MTQwMiIsICJjcml0IjogWyJ0eXBlIiwgImtleV90eXBlIiwgImtleV92ZXJzaW9uIiwgImFzIl0sICJrZXlfdHlwZSI6ICJ2b3Rpbmdfb2ZmbGluZSIsICJrZXlfdmVyc2lvbiI6IDEsICJ0eXBlIjogInByb29mX29mX3Bvc3Nlc3Npb24ifQ",
-      "signature": "wdZ-vcrtMLvPFnTTp1367W2i9CNq-kDLtpRJyEp4G2bf5KhdqdW_gtuYFEArtW0oGZ4-tiIErM3ng9Rvv7EjDQ"}]}'
-    voting_offline:
-    - 36
-    - 42
+    key: '-----BEGIN EC PRIVATE KEY-----
+
+      MHcCAQEEIC06yTw4qlcOqaLM/HmLB/Z0ylP1oUQoCy/iUIb29sDooAoGCCqGSM49
+
+      AwEHoUQDQgAEr1BhyYTvFpMZQmrGcye4N7AhhCLwTr8lyEE+usyEM1U2HSBxrTHl
+
+      xDl+JyE1TbSwgPjV13HDuDotq9upBEKD1w==
+
+      -----END EC PRIVATE KEY-----
+
+      '
 - model: scionlab.certificate
   pk: 1
   fields:
-    AS: 1
-    type: issuer
+    key: 2
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    certificate: '{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"}'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICkTCCAjegAwIBAgIUBMMS76DNZBPrsMql29pnPAhmCsIwCgYIKoZIzj0EAwQw
+
+      gaUxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNDAyBgNVBAMMKzE3LWZm
+
+      YWE6MDoxMTAxIFNlbnNpdGl2ZSBWb3RpbmcgQ2VydGlmaWNhdGUxHzAdBgsrBgEE
+
+      AYOwHAECAQwOMTctZmZhYTowOjExMDEwHhcNMTkxMDAyMTEwNzQxWhcNMjExMDAx
+
+      MTEwNzQxWjCBpTELMAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMRAwDgYDVQQHDAda
+
+      w7xyaWNoMQ8wDQYDVQQKDAZOZXRzZWMxDzANBgNVBAsMBk5ldHNlYzE0MDIGA1UE
+
+      AwwrMTctZmZhYTowOjExMDEgU2Vuc2l0aXZlIFZvdGluZyBDZXJ0aWZpY2F0ZTEf
+
+      MB0GCysGAQQBg7AcAQIBDA4xNy1mZmFhOjA6MTEwMTBZMBMGByqGSM49AgEGCCqG
+
+      SM49AwEHA0IABHzP8ge2S2euidnOYGv+gndqtpW5kHlh1tOz36hKNmIfKCI/s1hH
+
+      lzD6ig8xy1noK5rFqnCjq3DsMZq1uVNU35GjQzBBMB0GA1UdDgQWBBTmlUNo58jF
+
+      4jk8mPObYt/UNo6u+DAgBgNVHSUEGTAXBgsrBgEEAYOwHAEDAQYIKwYBBQUHAwgw
+
+      CgYIKoZIzj0EAwQDSAAwRQIgCIHlr5TbkNIVpxr+c3aIKwzdnU6fNUNydOkniBZD
+
+      ufECIQCjC7S4jLTx87NURPiEH7w78O517GwGiauxW846PfrDyg==
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 2
   fields:
-    AS: 1
-    type: chain
+    key: 3
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJ5bmhIVjR6Q3Y3d0xRdTdVVDUvR3k4VVlVb0RWbm1IdWFwR2U4SVNkU0JjPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogImJUR2ZyQTVmRTN2MUR4eUNNMktGSnhaZGRBeFpFYUNFUWVheXZoMnFCWmM9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"HDDUIogKbvXG8b0RLwHRXAZXO6jhJv_j3iP9rCNxOlfw5mDkTxej_pdOS1M6kAUMEGelGjRJboylyEjrhiJ4Ag"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICjjCCAjOgAwIBAgIUb3UFCByQhSYB4Ww5Km4U5hNvU7owCgYIKoZIzj0EAwQw
+
+      gaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMMKTE3LWZm
+
+      YWE6MDoxMTAxIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYLKwYBBAGD
+
+      sBwBAgEMDjE3LWZmYWE6MDoxMTAxMB4XDTE5MTAwMjExMDc0MVoXDTIxMTAwMTEx
+
+      MDc0MVowgaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8
+
+      cmljaDEPMA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMM
+
+      KTE3LWZmYWE6MDoxMTAxIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYL
+
+      KwYBBAGDsBwBAgEMDjE3LWZmYWE6MDoxMTAxMFkwEwYHKoZIzj0CAQYIKoZIzj0D
+
+      AQcDQgAEPuo8zTO9NZ5B9jGFaUuJQ5AjLtG8jP04s8wMtAcEXLeH/16z6J6n7w7o
+
+      4SpfDMmbTMshVE5AHb3LmQ6eKTBRDqNDMEEwHQYDVR0OBBYEFMXr6oBrqyJhDuP2
+
+      cwb8eDF+JUJ0MCAGA1UdJQQZMBcGCysGAQQBg7AcAQMCBggrBgEFBQcDCDAKBggq
+
+      hkjOPQQDBANJADBGAiEA2CMxJ6a12SoIGjiNKW4SZdIeO71Mu57jobZcswP8dsQC
+
+      IQCQghZIq6Mg/dFWIHsvy3gHRBvFju3PSR7XwpjoYAciSg==
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 3
   fields:
-    AS: 2
-    type: chain
+    key: 4
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJZVy9RRmpETWpxSGpkRkJXamxyYVh3d0p2SWpVaklmYkJhdkpIcURhem1nPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogImwxS0FYai9aSmJNOU12TFJqR1dpUUpBclFuczFUZXdOYXpKd0hqU2ZYME09IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"gXhZWEnZrMxUUoMLQmzYPahYlmNybXkHO0eDmZMv1b9atzQgclJbyGN2HV_4tTh1ulTfWw5z-hmY_fNYjnJUAw"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICuTCCAl+gAwIBAgIUe6/AsPNDwARJC9bl50JhTP6J37YwCgYIKoZIzj0EAwQw
+
+      gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE3LWZm
+
+      YWE6MDoxMTAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
+
+      AQQBg7AcAQIBDA4xNy1mZmFhOjA6MTEwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMTEw
+
+      MDExMTA3NDFaMIGnMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
+
+      B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMTYwNAYD
+
+      VQQDDC0xNy1mZmFhOjA6MTEwMSBIaWdoIFNlY3VyaXR5IFJvb3QgQ2VydGlmaWNh
+
+      dGUxHzAdBgsrBgEEAYOwHAECAQwOMTctZmZhYTowOjExMDEwWTATBgcqhkjOPQIB
+
+      BggqhkjOPQMBBwNCAARpVEVwT9IveFC0INUGCnxE89Z3z5sazGkhUANTY4nTr32J
+
+      LEjU8noqFXv0jotWUvd8/jf+NjnUTwUlwx9UxiSao2cwZTASBgNVHRMBAf8ECDAG
+
+      AQH/AgEBMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUnS3OI6bClAroxfBFuTGI
+
+      bf3t8oowIAYDVR0lBBkwFwYLKwYBBAGDsBwBAwMGCCsGAQUFBwMIMAoGCCqGSM49
+
+      BAMEA0gAMEUCIQD7COlKnR0KSEgF7Q4TyagdNJ3xsh6Yu8HPlaG0riDEUQIgJNRm
+
+      kR61oBDK87MqHJWPO4y4YM8doE2HkS1nwSIRam4=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 4
   fields:
-    AS: 3
-    type: chain
+    key: 5
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJDVi9Gc0w5QlF5V0xwSGhEcFl6WWZ5VVAzeGhlbWtoRDUxYlFMb0MzVVdzPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIndDWUFSQXh4VTFkdUVpUlVOcVlNLytobFZ5NVYxSFcxL1ZicUUyMk5KQ1k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"pbz6Z7v5Bl0ZHpsX2rSM0XuCjwi3YIieiKISWiUGkJL8wE4aJFobDShF4sZYA14TIhFM2uqyU1nc-y7MlNKNDg"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUc+CaJUTzTLVp/D3sZXwxzcsd7O4wCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
+
+      YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xNy1mZmFhOjA6MTEwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMTEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xNy1m
+
+      ZmFhOjA6MTEwMSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xNy1m
+
+      ZmFhOjA6MTEwMTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDqNfVSlerq30eJB
+
+      VqSEIi7UQrrWhHcSaIJ6wJcDYy/xWSaO21zgrUj/bR/AFzbd7CbRnFXydb70rRji
+
+      N0V3Fp+jezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUrwZPquYIcUWuCynw
+
+      G5ZMOIvJv0YwHwYDVR0jBBgwFoAUnS3OI6bClAroxfBFuTGIbf3t8oowJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiEAzb+ufYmtVRTj1PkqKrQA4ICRB80JXewRnsfgNV+WEewCIBg53kgGbFQN
+
+      qnSmSxURSLZa/Jm9iYcvBn9kcxFSj5xR
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 5
   fields:
-    AS: 4
-    type: chain
+    key: 1
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtRFpwcGNWeDMrb29GcExSZ3VrQTFqcWYrcnZIQ0pzZTNJMkxYOC9xMTFZPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlpHSmNOOFFqdWRTMW12bG9meDB3NEtsSXZYQkRrVTdEc21Ecmw5Q1h2K0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwNyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"DwcEIl3hNOuXIibScIcMpEzrw6YWBVNDk5v21f55j6T6XyM-U29EY4G7lV-EV3hJ_aRRc1BK-BoxiF7xivI-BQ"}]'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICszCCAlqgAwIBAgIUZgLUcQBelybAyKCqiD9uIfjppuIwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
+
+      YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xNy1mZmFhOjA6MTEwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xNy1m
+
+      ZmFhOjA6MTEwMSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xNy1m
+
+      ZmFhOjA6MTEwMTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABAdanbffCVEu/yI2
+
+      lUJwxo7PUYKimMOFBqJcNhRQ9oOIRejNSeV8aJHOu9ppqCeTISAH1Wg1+s7L8/d+
+
+      Ui9IA+ijezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUznxAtUML5GcbdDjN
+
+      iORvMYGD540wHwYDVR0jBBgwFoAUrwZPquYIcUWuCynwG5ZMOIvJv0YwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANH
+
+      ADBEAiAkn/ndi/AdletNmxBFkXWRpOALkbo37sWrd0heLVFBTAIgLAx9R3NbVN+M
+
+      iXyzmJnLoi012fm67KEoZ2dlwu22ziA=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 6
   fields:
-    AS: 5
-    type: issuer
+    key: 6
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    certificate: '{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInV2WUJ6cVViQWM2L3Q1RG1jc2V1WnpweEFWdkhQZXh3dExEMXd6SE5NNkk9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"7ISZhs90PJVUcvPy0qWOypywxQ8afOF16masvBRDAW4R_AHkC4jGqnTcIQ3vSEOFkNMqXb30bONjlIinfiLiDA"}'
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtTCCAlqgAwIBAgIUNDFnsQeU0neQHqTdaiqHeIS9tRIwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
+
+      YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xNy1mZmFhOjA6MTEwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xNy1m
+
+      ZmFhOjA6MTEwMiBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xNy1m
+
+      ZmFhOjA6MTEwMjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABIx+cKalzgA4JTj/
+
+      NkKBkztJgN7hnlw8PLjPfvWXNPsYW9F9kxENsduMfc7CXiduv17qPIrSUA1OOc3h
+
+      Fd/KT6yjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUdFErr6Ojkkbv2Tmq
+
+      xnLIOt/cYBAwHwYDVR0jBBgwFoAUrwZPquYIcUWuCynwG5ZMOIvJv0YwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANJ
+
+      ADBGAiEAkAJgi5Y0LiRElRAeA1oYmHIKp28u0YuKegpuNNvlMWECIQDIMfzy8+ah
+
+      Nndxzh3mnMjxaxxJP55I1RBbIcpAjQcikA==
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 7
   fields:
-    AS: 5
-    type: chain
+    key: 7
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInV2WUJ6cVViQWM2L3Q1RG1jc2V1WnpweEFWdkhQZXh3dExEMXd6SE5NNkk9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"7ISZhs90PJVUcvPy0qWOypywxQ8afOF16masvBRDAW4R_AHkC4jGqnTcIQ3vSEOFkNMqXb30bONjlIinfiLiDA"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTktZmZhYTowOjEzMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJjTVhsSDFFaGtrcjcyeDRnYk1DM3BqWSttMUxLSGN6NVpuNlNISklVcDNvPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIkFvcnZaUFJCRnJ5dVNCOHNUUTA1NnZMM09XVVdoYjIvS0tVVkMxQjduZ289IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxOS1mZmFhOjA6MTMwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"kkdG3DDCt1eMn87dWwc3pjKX9i4eR3ji4CINIJL7vXz-9Xkc7ugx194xuV2mhKs0LwZcyjWoKoooRE5_hag9AQ"}]'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUPvHuzVuKVlkTZ/4tNITOO7E6hgwwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
+
+      YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xNy1mZmFhOjA6MTEwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xNy1m
+
+      ZmFhOjA6MTEwMyBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xNy1m
+
+      ZmFhOjA6MTEwMzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABIU2CCyVS0BZsjwJ
+
+      aTNQyBD7sbcjTeGl75qgFFvD9Z4hGNVAVcs3wxB4QUkkM3tdfqrpcYG5waQSReW/
+
+      2FzCqUqjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUrA8AvGfRUhIZbeGR
+
+      qn+EPtNPwmgwHwYDVR0jBBgwFoAUrwZPquYIcUWuCynwG5ZMOIvJv0YwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiBe/NMQqH0Ll7hiE1uvdCqQKP8DvKvgTKqsFu0Aje7okAIhAI03OUy/j6/h
+
+      8C/H0cRG5EyDzxYhZgpe/gfthcsRcsEk
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 8
   fields:
-    AS: 6
-    type: issuer
+    key: 8
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    certificate: '{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogImNLTlQ5d2RIY1ZBZTQzdWJRdks1ZUIwTzVveGRBOFZhWnR2T0xVanc1Mjg9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"GlcLEvvHwEKt5Z67UgBKoGnW6Qfp4Ng1zlkxcw1fOLv03pu4PgDKgzXrmZmyETvEcsiSNZtKHNqh2Tw0W639Aw"}'
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICszCCAlqgAwIBAgIUPGOTAoRMzxDQqQ1ZxlMsGLFkY2MwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
+
+      YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xNy1mZmFhOjA6MTEwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xNy1m
+
+      ZmFhOjA6MTEwNyBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xNy1m
+
+      ZmFhOjA6MTEwNzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABK9TVyqB+J+vkb6n
+
+      uCKGCx2Edk13GhjNs4BH9XO7ZxkPD4CIFsA3w7vg+YW3UGUK+t4cyOnC6zY/VLmP
+
+      AUSWhaijezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUA+dn/sNqlFm9ETMh
+
+      hPA69Veqn7cwHwYDVR0jBBgwFoAUrwZPquYIcUWuCynwG5ZMOIvJv0YwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANH
+
+      ADBEAiB8VcjmCAoHX83PePnFm3iWThtdpJ73v/3CF05rbbcWlQIgEw4nOjVkhPAY
+
+      XGfkr+o3cKbQgfXoAXpBh/h26dhaBOM=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 9
   fields:
-    AS: 6
-    type: chain
+    key: 10
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogImNLTlQ5d2RIY1ZBZTQzdWJRdks1ZUIwTzVveGRBOFZhWnR2T0xVanc1Mjg9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"GlcLEvvHwEKt5Z67UgBKoGnW6Qfp4Ng1zlkxcw1fOLv03pu4PgDKgzXrmZmyETvEcsiSNZtKHNqh2Tw0W639Aw"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTktZmZhYTowOjEzMDIifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJrYmlMK0xzdEMzUlRDdnAyUkNSQWZ5Skh0VzUxRUFMaisrdVNkdEFFWjNNPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogImt1R3kycG5HcEJoZ0JsMGs4Wm5TQUwrMmhYNlorNm9qb1pwQk9rbXJMNk09IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxOS1mZmFhOjA6MTMwMiIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"y8xCxTDymOBx1W-i1-mdNPs_u35HXja6GOckIvtl3F9jr9oI26Qfbjd8qG3hdB-415PSQRrOj9GhI9MX1U1MBQ"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICkDCCAjegAwIBAgIUPo5wh85Zu87Q96tTD/xXW0+l5OwwCgYIKoZIzj0EAwQw
+
+      gaUxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNDAyBgNVBAMMKzE5LWZm
+
+      YWE6MDoxMzAxIFNlbnNpdGl2ZSBWb3RpbmcgQ2VydGlmaWNhdGUxHzAdBgsrBgEE
+
+      AYOwHAECAQwOMTktZmZhYTowOjEzMDEwHhcNMTkxMDAyMTEwNzQxWhcNMjExMDAx
+
+      MTEwNzQxWjCBpTELMAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMRAwDgYDVQQHDAda
+
+      w7xyaWNoMQ8wDQYDVQQKDAZOZXRzZWMxDzANBgNVBAsMBk5ldHNlYzE0MDIGA1UE
+
+      AwwrMTktZmZhYTowOjEzMDEgU2Vuc2l0aXZlIFZvdGluZyBDZXJ0aWZpY2F0ZTEf
+
+      MB0GCysGAQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMTBZMBMGByqGSM49AgEGCCqG
+
+      SM49AwEHA0IABN+FdVWzhWYh1C8ZB+tI2Gc+84Zx4tL0cLi7HQ3eapYGRMfvX5SD
+
+      JK+y2GJ9NOlycsYRK58wQr+A+qHz4yDpck6jQzBBMB0GA1UdDgQWBBQ36vm6qB2a
+
+      mrK3oWbv248TzhfJGTAgBgNVHSUEGTAXBgsrBgEEAYOwHAEDAQYIKwYBBQUHAwgw
+
+      CgYIKoZIzj0EAwQDRwAwRAIgFfjFXjIgyXKAZDaK8dqKWIJfpjh78MhUnf+dP2kL
+
+      TMACIC7HknFxNYPuqspCZg3jzNRoniGklflECI4fUj0lu39h
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 10
   fields:
-    AS: 7
-    type: chain
+    key: 11
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInV2WUJ6cVViQWM2L3Q1RG1jc2V1WnpweEFWdkhQZXh3dExEMXd6SE5NNkk9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"7ISZhs90PJVUcvPy0qWOypywxQ8afOF16masvBRDAW4R_AHkC4jGqnTcIQ3vSEOFkNMqXb30bONjlIinfiLiDA"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTktZmZhYTowOjEzMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJuL3ZHaWcycWRMZ0EySG5YY3B5anlmWTU1cllmZG11d2NvR3YzVHdiRFM0PSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIkFqcHVqQ2w4Umdrcm5ZRWpSWXl1WWxZdUlnQkY4UFc3WDQyTHhLVTF4Z0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxOS1mZmFhOjA6MTMwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"DOpGCt8l8Br0tFmOuCR1CxlYHQUhKQmcg6ygRya5TzX6OAvZaMS4ERdIP4qnVJt0tdWyO7MoLLOrTd_CBmHnCg"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICjDCCAjOgAwIBAgIUEHr0seYl9V9v+td954/CbmT/GAQwCgYIKoZIzj0EAwQw
+
+      gaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMMKTE5LWZm
+
+      YWE6MDoxMzAxIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYLKwYBBAGD
+
+      sBwBAgEMDjE5LWZmYWE6MDoxMzAxMB4XDTE5MTAwMjExMDc0MVoXDTIxMTAwMTEx
+
+      MDc0MVowgaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8
+
+      cmljaDEPMA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMM
+
+      KTE5LWZmYWE6MDoxMzAxIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYL
+
+      KwYBBAGDsBwBAgEMDjE5LWZmYWE6MDoxMzAxMFkwEwYHKoZIzj0CAQYIKoZIzj0D
+
+      AQcDQgAEpfPueTBA2U20SVtwhhwkPS2I7NtoFHEpviCB9j0aotTQrZO0lSlws9E8
+
+      8oecqhvGztqmhEjdZy9eVklc7UVRlKNDMEEwHQYDVR0OBBYEFE/e6yXuZpvVWc3Y
+
+      vHhXKnA7CulNMCAGA1UdJQQZMBcGCysGAQQBg7AcAQMCBggrBgEFBQcDCDAKBggq
+
+      hkjOPQQDBANHADBEAiAfdid4tOzzSivlR4bO/++rSnHqCbe2Vi3b4ABQ2nXGJgIg
+
+      N22EZL0/nXBNxPW+F8FAwOyTBTomnTy0YQG/RGg5E3g=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 11
   fields:
-    AS: 8
-    type: chain
+    key: 12
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInV2WUJ6cVViQWM2L3Q1RG1jc2V1WnpweEFWdkhQZXh3dExEMXd6SE5NNkk9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"7ISZhs90PJVUcvPy0qWOypywxQ8afOF16masvBRDAW4R_AHkC4jGqnTcIQ3vSEOFkNMqXb30bONjlIinfiLiDA"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTktZmZhYTowOjEzMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJvcyswaXd5TzIvN3NlT1I5RERlMmZUeWNPVURDaGdET3RkRE40T1pQL3o0PSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogImlZNEhqY2lOVERsSWxPKzc0VlMwNHBvWkkyTDZjUlIwb0xDTlZLZk44V2s9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwNCIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxOS1mZmFhOjA6MTMwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"H0ChNfUo15vxWB6KRFKVAD4WXmHgDkZOmo8NovMcpjheWy_8JrUAH4zVNTjRexzVOLRiEp_nbrzs0UEmqMN1Bg"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICuTCCAl+gAwIBAgIUZDI4r+CYOi3lUIn6BfN3hT4g8wMwCgYIKoZIzj0EAwQw
+
+      gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE5LWZm
+
+      YWE6MDoxMzAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
+
+      AQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMTEw
+
+      MDExMTA3NDFaMIGnMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
+
+      B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMTYwNAYD
+
+      VQQDDC0xOS1mZmFhOjA6MTMwMSBIaWdoIFNlY3VyaXR5IFJvb3QgQ2VydGlmaWNh
+
+      dGUxHzAdBgsrBgEEAYOwHAECAQwOMTktZmZhYTowOjEzMDEwWTATBgcqhkjOPQIB
+
+      BggqhkjOPQMBBwNCAATbsixoBdi0zDTkXtNAeETtJ9mxS7O+eUvvBwl988entJxx
+
+      W0x/RPhcMakm4Bny50xbNxF4SFtOLdJkmuLo5ALQo2cwZTASBgNVHRMBAf8ECDAG
+
+      AQH/AgEBMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUgI+vc+WcvkFribol9Cab
+
+      3FeEwzYwIAYDVR0lBBkwFwYLKwYBBAGDsBwBAwMGCCsGAQUFBwMIMAoGCCqGSM49
+
+      BAMEA0gAMEUCIFBj1tHEXYOhTpZTa6WmktmCqZs6eXT8XwnCmA8hLQqAAiEAtxRH
+
+      7YABbeCFoOdJJ3ihHFF9WnnwFn5yE2+YG1WwuC8=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 12
   fields:
-    AS: 9
-    type: chain
+    key: 13
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInV2WUJ6cVViQWM2L3Q1RG1jc2V1WnpweEFWdkhQZXh3dExEMXd6SE5NNkk9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"7ISZhs90PJVUcvPy0qWOypywxQ8afOF16masvBRDAW4R_AHkC4jGqnTcIQ3vSEOFkNMqXb30bONjlIinfiLiDA"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTktZmZhYTowOjEzMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJOTnZTTlBzYjBsb1hRR1NSUEtVakdvbGQ0cDBMN1RWcFhsZXlpbUUzWXpNPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIk4yWlFGOUlZbzkvdkx6b2FveEJYQVJXZzhKY0N5cDhPYkNyWVRXRlhrOEE9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwNSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxOS1mZmFhOjA6MTMwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"Npq9fL375G7yJctaClk158UBNx45tdN4ubDSe35QnziqAjW7VGQei6-GvlxxCbFQoik4aMQi0bILw9DPs35bBg"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUeMLVSMlwG50L42jxcdBjwFlDNcAwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+
+      YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xOS1mZmFhOjA6MTMwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMTEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xOS1m
+
+      ZmFhOjA6MTMwMSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xOS1m
+
+      ZmFhOjA6MTMwMTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBKMqysR9M8M9KyQ
+
+      6WGDR+W0xaEL0GAtywzCqvE5xjBt+8Kse75isjii1ZAXGfoDnbDxYG5Doz5tpV8w
+
+      jhxViemjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUESX7cKYi2i7Xe8fL
+
+      SfwIV8JqUr8wHwYDVR0jBBgwFoAUgI+vc+WcvkFribol9Cab3FeEwzYwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiEAzHnGdaaUVFX6Pwu6qvNTW/m1HzyDop5ofRpQH3oEF8QCIHC5PX76mjez
+
+      ZMBtb/uBOpt71hDad+bmmeuXXSt59sGw
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 13
   fields:
-    AS: 10
-    type: issuer
+    key: 9
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2021-10-01 11:07:41
-    certificate: '{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlh3QjBPcDFrQTFVY0d6UHhVSWNwWDNqVmJ0eVJlNHJZMEM1bGpLK2dpNnc9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"Crzhv-xjoP_I2tka2vP7EvlyFfy8kku9yYTMX94oWxypOrHx_hWmD8hBCDFl81lonL49Z2v-AnCebH42KMZLCQ"}'
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUJ3kOkrbySDZ2CveNNQgMtWMT3fowCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+
+      YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xOS1mZmFhOjA6MTMwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xOS1m
+
+      ZmFhOjA6MTMwMSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xOS1m
+
+      ZmFhOjA6MTMwMTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABL5XptB26pgkG5ou
+
+      rJk1boOPZNpYkgcLfkisPlY7Q8oyDIQdkt7ScgxbFz5ciwZG5+j+Kaan94DuGgsP
+
+      5TBJDTajezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUzMt4wjwtOeiJch8u
+
+      g7I/1HlBLjMwHwYDVR0jBBgwFoAUESX7cKYi2i7Xe8fLSfwIV8JqUr8wJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiEAwrlVEVsNZ6XZ6y90j5uZN0ZF7azjCOwc6iqVujGgGwECIDoErFsAZv3n
+
+      z0Ei18EJ1mIRtiDEgPbMLpnJPLrVQXaO
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 14
   fields:
-    AS: 10
-    type: chain
-    version: 1
-    not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlh3QjBPcDFrQTFVY0d6UHhVSWNwWDNqVmJ0eVJlNHJZMEM1bGpLK2dpNnc9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"Crzhv-xjoP_I2tka2vP7EvlyFfy8kku9yYTMX94oWxypOrHx_hWmD8hBCDFl81lonL49Z2v-AnCebH42KMZLCQ"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMjAtZmZhYTowOjE0MDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJhUDRwZmVadFBEeHp1eGV5eWRqRXAyY2x2V09vVWtkcFJMcjJPRjQwL240PSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInI2aXdRRXo2WjkyMGJXUTEyYk1TWGxoSGdoRjUwWnAvem5iL3c5eHVUeE09IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIyMC1mZmFhOjA6MTQwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"g5TwW80e9T1yTsdY2ax3XYm2Zlw68-L6mvTrl8K19rbqzj91uN1-Wy8_KgD6FBS3REn8IBllwRAomoEkhZAVDw"}]'
-- model: scionlab.certificate
-  pk: 15
-  fields:
-    AS: 11
-    type: issuer
+    key: 15
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2021-10-01 11:07:41
-    certificate: '{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIm8wWGFkM1JUS0RLSFR2aVAzeStnNk5Ub2pDZXFuK3oydmU2KzFhNlk5V0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"lPVEzvg7La-hSGLPpiO7ZPMm-9C0MzfjXRkUL_Xi5zDFc8vLbK0XPbnybBMOG-MtrFfRI758kat_ZUlLsj55Cg"}'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICkTCCAjegAwIBAgIUA+U5N1e1A7/17vsp3CAKLQkPrdgwCgYIKoZIzj0EAwQw
+
+      gaUxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNDAyBgNVBAMMKzE5LWZm
+
+      YWE6MDoxMzAyIFNlbnNpdGl2ZSBWb3RpbmcgQ2VydGlmaWNhdGUxHzAdBgsrBgEE
+
+      AYOwHAECAQwOMTktZmZhYTowOjEzMDIwHhcNMTkxMDAyMTEwNzQxWhcNMjExMDAx
+
+      MTEwNzQxWjCBpTELMAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMRAwDgYDVQQHDAda
+
+      w7xyaWNoMQ8wDQYDVQQKDAZOZXRzZWMxDzANBgNVBAsMBk5ldHNlYzE0MDIGA1UE
+
+      AwwrMTktZmZhYTowOjEzMDIgU2Vuc2l0aXZlIFZvdGluZyBDZXJ0aWZpY2F0ZTEf
+
+      MB0GCysGAQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMjBZMBMGByqGSM49AgEGCCqG
+
+      SM49AwEHA0IABHzJPsTpDksb1iUmS/O+yLPW/4TVbsxXmjVGAHcMrpciAr9j6o4Q
+
+      VHSWwHmbXsEBnvJLalMI+WkTbQiv+PIwcGqjQzBBMB0GA1UdDgQWBBQssOsHkkNk
+
+      rcP3WHd4opHp7GGKZTAgBgNVHSUEGTAXBgsrBgEEAYOwHAEDAQYIKwYBBQUHAwgw
+
+      CgYIKoZIzj0EAwQDSAAwRQIgKzt4U4y4lj1TzrSZK89gHeHetGXUKqc1f7oHcApR
+
+      ztQCIQDCQhMqsfLdhwVNpXZXwgu5FceUVqCfpLVLyrUxPQ13YA==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 15
+  fields:
+    key: 16
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICjjCCAjOgAwIBAgIUA6wsloFqfJ3orolMchIagBpUVl0wCgYIKoZIzj0EAwQw
+
+      gaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMMKTE5LWZm
+
+      YWE6MDoxMzAyIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYLKwYBBAGD
+
+      sBwBAgEMDjE5LWZmYWE6MDoxMzAyMB4XDTE5MTAwMjExMDc0MVoXDTIxMTAwMTEx
+
+      MDc0MVowgaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8
+
+      cmljaDEPMA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMM
+
+      KTE5LWZmYWE6MDoxMzAyIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYL
+
+      KwYBBAGDsBwBAgEMDjE5LWZmYWE6MDoxMzAyMFkwEwYHKoZIzj0CAQYIKoZIzj0D
+
+      AQcDQgAEyZQrItqkLbsBtx8ewXb1RQmMdv3mAW5xiB8ENs5lBO6ETw/JL7XbbVXh
+
+      TD6rMitG1ZOn+1LCLRPXRHDb7xQsjaNDMEEwHQYDVR0OBBYEFJV/Xl7BtwRTQz2R
+
+      vBc68fi2FdiSMCAGA1UdJQQZMBcGCysGAQQBg7AcAQMCBggrBgEFBQcDCDAKBggq
+
+      hkjOPQQDBANJADBGAiEAholxMdhA5Eo//stjXWle4EtdQh8uQaBKR09kc4EVpicC
+
+      IQCHnpmiw4ZpDl846O4nesB4+EJFH1/NgJVt+UwC526Udg==
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 16
   fields:
-    AS: 11
-    type: chain
+    key: 17
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIm8wWGFkM1JUS0RLSFR2aVAzeStnNk5Ub2pDZXFuK3oydmU2KzFhNlk5V0E9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"lPVEzvg7La-hSGLPpiO7ZPMm-9C0MzfjXRkUL_Xi5zDFc8vLbK0XPbnybBMOG-MtrFfRI758kat_ZUlLsj55Cg"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMjAtZmZhYTowOjE0MDIifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJtNTg4OUFlQ01GMVVrL285Q1NPTzZsVmJENktyb1ZvSExOaUdVVlFMK0UwPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIkR4MjhjSm42N3lhUTAxd3NpdFJHKzhJd2ZzVWV5UUpOTFlNY3NkOTFpZEk9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIyMC1mZmFhOjA6MTQwMiIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"8v6BM5S-1J2lBX-9m9RRpgsiQMggkPeMZ-eLDdHfrNy3sBKSnbgoazrA-OMAh_QZpoM12somuJB-t4djD6a5CA"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICuDCCAl+gAwIBAgIUeHMP34Clr1gDd00d7ZIXug49LFowCgYIKoZIzj0EAwQw
+
+      gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE5LWZm
+
+      YWE6MDoxMzAyIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
+
+      AQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMjAeFw0xOTEwMDIxMTA3NDFaFw0yMTEw
+
+      MDExMTA3NDFaMIGnMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
+
+      B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMTYwNAYD
+
+      VQQDDC0xOS1mZmFhOjA6MTMwMiBIaWdoIFNlY3VyaXR5IFJvb3QgQ2VydGlmaWNh
+
+      dGUxHzAdBgsrBgEEAYOwHAECAQwOMTktZmZhYTowOjEzMDIwWTATBgcqhkjOPQIB
+
+      BggqhkjOPQMBBwNCAARgZYwlcw1dMtk6wxcy7iOxURFu9rF6wxUPgHA5g7EnU76q
+
+      UuoSHKudDRwmiwHlmYilTshqdxk8zT/UQUHDqZSjo2cwZTASBgNVHRMBAf8ECDAG
+
+      AQH/AgEBMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUNl8a2ZQqyTdh8+5m56rR
+
+      EVS5viowIAYDVR0lBBkwFwYLKwYBBAGDsBwBAwMGCCsGAQUFBwMIMAoGCCqGSM49
+
+      BAMEA0cAMEQCIBxdWYQFUQqUYw6mpkNJqjXyJPOre3dMaOsyf1aCg7VgAiBGoSYW
+
+      b6X9SWbQDCmmPrDZjS9zW6d5QKHtkAIUSsmN0w==
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 17
   fields:
-    AS: 12
-    type: chain
+    key: 18
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlh3QjBPcDFrQTFVY0d6UHhVSWNwWDNqVmJ0eVJlNHJZMEM1bGpLK2dpNnc9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"Crzhv-xjoP_I2tka2vP7EvlyFfy8kku9yYTMX94oWxypOrHx_hWmD8hBCDFl81lonL49Z2v-AnCebH42KMZLCQ"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMjAtZmZhYTowOjE0MDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJ0eHo5RzFSN2RxR0pYL1poL1B6Rm9ZNjNZZ0d6WXZmS3VnRy9sZjB6aWdjPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjBKS1ZLWWNTNDNIMFV0dmgrbW9kdWk3RnBiaUZtVTMzajNkeFJTMklGMGM9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIyMC1mZmFhOjA6MTQwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"xHOJATwknNm1P_JsX8olVh6ywIsjfhOlluNiAnIA8BnlnehARu9AxjAz1KLUNauhViu7251mi90yAd56uB3FDg"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUeqEQg/uariq8+qUl9/B6xtEpl8swCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+
+      YWE6MDoxMzAyIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xOS1mZmFhOjA6MTMwMjAeFw0xOTEwMDIxMTA3NDFaFw0yMTEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xOS1m
+
+      ZmFhOjA6MTMwMiBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xOS1m
+
+      ZmFhOjA6MTMwMjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABIUblnuM68WH5XSf
+
+      or7d0QI4a8qt1aZD0cbJ7i8lxtYB0QkmlrTAQGS9GEcoqHATM2YlGDyBuV9zR+/T
+
+      CkRBSU6jezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUJUiy33Z1DaTLqDkG
+
+      Y6CT0HjqYVswHwYDVR0jBBgwFoAUNl8a2ZQqyTdh8+5m56rREVS5viowJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiBkRO1h6Y3FIvS4fUHcHxGCPwPgsBK18YKaGAReMI85VAIhAI14N7RP5d0X
+
+      5Kf2LNDrCfFPb9/C1VhEtcfY3WJjfAQZ
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 18
   fields:
-    AS: 13
-    type: chain
+    key: 14
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlh3QjBPcDFrQTFVY0d6UHhVSWNwWDNqVmJ0eVJlNHJZMEM1bGpLK2dpNnc9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"Crzhv-xjoP_I2tka2vP7EvlyFfy8kku9yYTMX94oWxypOrHx_hWmD8hBCDFl81lonL49Z2v-AnCebH42KMZLCQ"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMjAtZmZhYTowOjE0MDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJZaTFnUnVvaXEvaVZRYXJqaDZsSFNuVmJacW16WnErRE93dHNrWTA0WndJPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogImNOcmpRRmR4VHZWcGIvZFVEU080VDV3SmkvT3hjSnM5ZHltY2pqQVZaNlU9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwNCIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIyMC1mZmFhOjA6MTQwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"PW5LwrJIPmoB0S0i23wsoz81VfCXoTVko9_O4imMTRzvWCTUAgYss7lCo-Ab9W2f6-hEKbEo1iGFSzD1dU0EBg"}]'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICszCCAlqgAwIBAgIUfwoNREonFDBykvkQZpyoQR8eYJcwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+
+      YWE6MDoxMzAyIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xOS1mZmFhOjA6MTMwMjAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xOS1m
+
+      ZmFhOjA6MTMwMiBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xOS1m
+
+      ZmFhOjA6MTMwMjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDgV1G1MfxOqlGBJ
+
+      +5DovYiGnxTe1qXjSVoPYGdlGvFgRa9QaEmoU07R1YTDw++0HkY9N9CQXnnaAunz
+
+      5T8sVDGjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUzYgeqZz+IazLUx2t
+
+      Ivke/x7PjLYwHwYDVR0jBBgwFoAUJUiy33Z1DaTLqDkGY6CT0HjqYVswJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANH
+
+      ADBEAiBq8e8tlxaFR9qk74R1fR4X2sfgYYdID4rzbYX9HpxWSwIgFu9WC/uOSY4d
+
+      Z55iSS91AQAwCcdpdRLTG1dgbAyQ/NY=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 19
   fields:
-    AS: 14
-    type: chain
+    key: 19
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlh3QjBPcDFrQTFVY0d6UHhVSWNwWDNqVmJ0eVJlNHJZMEM1bGpLK2dpNnc9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"Crzhv-xjoP_I2tka2vP7EvlyFfy8kku9yYTMX94oWxypOrHx_hWmD8hBCDFl81lonL49Z2v-AnCebH42KMZLCQ"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMjAtZmZhYTowOjE0MDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJTNThaV1FDdUZ1cFgxRUsxQU0wTVdqc3dFU2MxK1F1ZFRlbTAzWTRWT1FBPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjNCbzJqME9wYnBpcFNOREJrUFk4bTMyYU9VZG9iTnkrZ2g2eXJQejRuMDA9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwNSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIyMC1mZmFhOjA6MTQwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"ay2K6d3giWf7OGTG4DrlS3PZ1LyqZyc8E3bOJRxlQE8OuTHsa-yuQan1NU9AOdz5cM05LVxBO6MFh_o1E1sxCA"}]'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUJS+11IXuEMyCsgnZiRC1pkY1XvYwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+
+      YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xOS1mZmFhOjA6MTMwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xOS1m
+
+      ZmFhOjA6MTMwMyBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xOS1m
+
+      ZmFhOjA6MTMwMzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBV2ZtR406qU5iP0
+
+      MJEuVMM0Eja66lHP7LOSPz+ub6jwMUdzGQ8rxbJ4WISXxIpt7tvgtK/n3Y1fLW9u
+
+      4c/EC1WjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUsEqJAiN1hfi/ltZi
+
+      PmRz7L5kHqMwHwYDVR0jBBgwFoAUESX7cKYi2i7Xe8fLSfwIV8JqUr8wJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiEAibzvEkNAa9P3Y+YeBk5YZBfY++NqF+TvO4Vw0r/B560CIHHtSK9LgeVZ
+
+      EapljF7VeavUTgSEMh3StpawPSHBau+G
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 20
   fields:
-    AS: 15
-    type: chain
+    key: 20
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlh3QjBPcDFrQTFVY0d6UHhVSWNwWDNqVmJ0eVJlNHJZMEM1bGpLK2dpNnc9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"Crzhv-xjoP_I2tka2vP7EvlyFfy8kku9yYTMX94oWxypOrHx_hWmD8hBCDFl81lonL49Z2v-AnCebH42KMZLCQ"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMjAtZmZhYTowOjE0MDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICIyMU1ub2NxL0dkY2pqSzlOdVJTMHJVdVpCbzl4UExzWGRQeE9RSnU5akZzPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIkU3N1M4dUdNdnJWZEFPenhKOTV2M0NiMGx3dDRIa09BbklCWXZCSUtxaTg9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwNiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIyMC1mZmFhOjA6MTQwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"l69HeTOTzDN9GBgUKtbDd-9L7sGMNvO8mcrODFtBt1scYUJCu0yIS9AKtOA2Z1F8CKFJ2dUIcYROZpUN2R_PDw"}]'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUEku2JlGtCp+40K9R+UOHMDQBNXswCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+
+      YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xOS1mZmFhOjA6MTMwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xOS1m
+
+      ZmFhOjA6MTMwNCBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xOS1m
+
+      ZmFhOjA6MTMwNDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABLYud0ZJVGJ0woFM
+
+      hkmFCVA+Mz10I0io7hMKxfgse6dUgmO+O+fxdxOvKha/81FTkBxvAuOUImvMuAqI
+
+      U0VTkq6jezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUFEU/7TJAXOqgxPKL
+
+      /WPxj+BfjGAwHwYDVR0jBBgwFoAUESX7cKYi2i7Xe8fLSfwIV8JqUr8wJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiEA2QC11vG0R2Ei+krWxnYTaQl9U4m7IxBJ36jvVHOP2mMCIHN5NrNpw955
+
+      zOIinmNTi7/b95Ry7vbBsRFpnypUCpoE
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 21
   fields:
-    AS: 16
-    type: chain
+    key: 21
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJMNG54bnBGcjROTzBuM2pVZENLUlI0Y0NZR1NFSlA4Mk1WUjdhdXNZYVNRPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIm5tQ2FRODlqREtUMnZrR0laQVJBLzZtUjFWVjY1V1hEMGVhOUE5OUZCZjA9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjE6MSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"0LQt6mdKfo8pg-JlKQNDuaInTtMnKDhbyMqRJknp2M_opjKOi1pTH2-5dmek00G9464KFGh4wyExKlaHj1xVAA"}]'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICszCCAlqgAwIBAgIUXXMpOBovpfm8C/mX5Y2jDkdN2BMwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+
+      YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xOS1mZmFhOjA6MTMwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xOS1m
+
+      ZmFhOjA6MTMwNSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xOS1m
+
+      ZmFhOjA6MTMwNTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABL+Gauh0x2rSEQVC
+
+      tD/Fa73D0Ipl6exGmo+KLGmn1hR7fxZ4t6pWAjV4Wu7wikKfrOrdz0Y5HvPntQ3k
+
+      V9eKBPWjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQU7iOnK2kVMw7Fsl8a
+
+      o0teE4ubL8UwHwYDVR0jBBgwFoAUESX7cKYi2i7Xe8fLSfwIV8JqUr8wJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANH
+
+      ADBEAiBDf6u8+L8YNNTfYWbfUugWZLI7Css3lgZvSmXpyR+PpgIgCxrvQKy6sjSt
+
+      zkEA9OtPwVgSx25QDRC7RvSNxcg1Pfo=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 22
   fields:
-    AS: 17
-    type: chain
+    key: 23
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogInV2WUJ6cVViQWM2L3Q1RG1jc2V1WnpweEFWdkhQZXh3dExEMXd6SE5NNkk9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjA6MTMwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"7ISZhs90PJVUcvPy0qWOypywxQ8afOF16masvBRDAW4R_AHkC4jGqnTcIQ3vSEOFkNMqXb30bONjlIinfiLiDA"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTktZmZhYTowOjEzMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJxRDJabWc0MjdlZktVd2srTlhlNS8yZXdUYkFud0NteHFlTjVzeDJsOEZBPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjBUSHRXTkFrRHdrcGFKcFplamNqRmNCaDRkcUJIUHd4bXo0T0pIOVNRWk09IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxOS1mZmFhOjE6MiIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxOS1mZmFhOjA6MTMwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"nNKLU7Uct8zFQUmoJYmlky8HuAoiJEAkIkZo6sBi1QXIxxHQOQ-Hbaa4XzHfmygA9WFAn7isI6I9arjV5VGVDw"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICkjCCAjegAwIBAgIUZdm5drMX4jW3Fh/6uiv3wpItO1AwCgYIKoZIzj0EAwQw
+
+      gaUxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNDAyBgNVBAMMKzIwLWZm
+
+      YWE6MDoxNDAxIFNlbnNpdGl2ZSBWb3RpbmcgQ2VydGlmaWNhdGUxHzAdBgsrBgEE
+
+      AYOwHAECAQwOMjAtZmZhYTowOjE0MDEwHhcNMTkxMDAyMTEwNzQxWhcNMjExMDAx
+
+      MTEwNzQxWjCBpTELMAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMRAwDgYDVQQHDAda
+
+      w7xyaWNoMQ8wDQYDVQQKDAZOZXRzZWMxDzANBgNVBAsMBk5ldHNlYzE0MDIGA1UE
+
+      AwwrMjAtZmZhYTowOjE0MDEgU2Vuc2l0aXZlIFZvdGluZyBDZXJ0aWZpY2F0ZTEf
+
+      MB0GCysGAQQBg7AcAQIBDA4yMC1mZmFhOjA6MTQwMTBZMBMGByqGSM49AgEGCCqG
+
+      SM49AwEHA0IABLypKc+YKO53pMno3WkLDmHTk98/gn/Lv83zOv9CgNoB7fR542c5
+
+      bStjqx2xQP+EmLeqFq83lLSXB/hyCc8kJNejQzBBMB0GA1UdDgQWBBT9OqP+Ji1G
+
+      WIzivvFzweWo/KZTFzAgBgNVHSUEGTAXBgsrBgEEAYOwHAEDAQYIKwYBBQUHAwgw
+
+      CgYIKoZIzj0EAwQDSQAwRgIhAOIqrjztRRlt1WMnZVaV9PGegoZWUNwby/81keRD
+
+      tfk4AiEAn/BCwY8fUqbenREihhVY5HlUJ7+CCn1t85AWnKnCd9w=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 23
   fields:
-    AS: 18
-    type: chain
+    key: 24
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlh3QjBPcDFrQTFVY0d6UHhVSWNwWDNqVmJ0eVJlNHJZMEM1bGpLK2dpNnc9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"Crzhv-xjoP_I2tka2vP7EvlyFfy8kku9yYTMX94oWxypOrHx_hWmD8hBCDFl81lonL49Z2v-AnCebH42KMZLCQ"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMjAtZmZhYTowOjE0MDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJlWDAyTGlVNkErdS9vaDVORmx4eTExckMrWlRpQm5yd09XM3pGaUE2MGkwPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogImE3RGR6VlErWGJRSzd6MXE3OURKV3dhUnFwNlVqZEsyRDh3VnJyZ1RhWTA9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjE6MyIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIyMC1mZmFhOjA6MTQwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"RqSJCfje4nMDI4yCSBnzyJLEPnnJAEmQm-f36H1l1xHqmeTmfaXL5QYVWCL3K2h2KkkesuNxkWG5ANRT7y0RCA"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICjDCCAjOgAwIBAgIUUYs94JolgGpZOU87AJumDuJ9UKYwCgYIKoZIzj0EAwQw
+
+      gaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMMKTIwLWZm
+
+      YWE6MDoxNDAxIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYLKwYBBAGD
+
+      sBwBAgEMDjIwLWZmYWE6MDoxNDAxMB4XDTE5MTAwMjExMDc0MVoXDTIxMTAwMTEx
+
+      MDc0MVowgaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8
+
+      cmljaDEPMA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMM
+
+      KTIwLWZmYWE6MDoxNDAxIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYL
+
+      KwYBBAGDsBwBAgEMDjIwLWZmYWE6MDoxNDAxMFkwEwYHKoZIzj0CAQYIKoZIzj0D
+
+      AQcDQgAEtIFRD8yZRryODyqRbKsPoiS5X/femh1i+MMawsqCXh4F3bahHt0/gmVX
+
+      qLNGvpzLSU8l/GPMjNm8Dq5CntWD66NDMEEwHQYDVR0OBBYEFDY73xHI3ERnX+4v
+
+      UP9E8jWqoQb2MCAGA1UdJQQZMBcGCysGAQQBg7AcAQMCBggrBgEFBQcDCDAKBggq
+
+      hkjOPQQDBANHADBEAiBZXE0m92YMFfnoiC6dIyquw6+cfDUfzDwP129SWMmi/wIg
+
+      aqjIgcYnb60Guz20Ze2g8cmTuqgXztTGeAxqDjjkfkM=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 24
   fields:
-    AS: 19
-    type: chain
+    key: 25
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
-    not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIlh3QjBPcDFrQTFVY0d6UHhVSWNwWDNqVmJ0eVJlNHJZMEM1bGpLK2dpNnc9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjA6MTQwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"Crzhv-xjoP_I2tka2vP7EvlyFfy8kku9yYTMX94oWxypOrHx_hWmD8hBCDFl81lonL49Z2v-AnCebH42KMZLCQ"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMjAtZmZhYTowOjE0MDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICJwQk9wU0JMUm1rTVcraTBQSVM5T2R1eEV5alBPb285aTFGdmduNEdyRTBFPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIkJmSWxCUzk0OURzOHdkV3pHRGV4dGVZckVGblRHeUcybm8rL0RVYkN0TGs9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIyMC1mZmFhOjE6NCIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIyMC1mZmFhOjA6MTQwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"dqAaZzyA5Tuj19tlvNuc38L5W6WHtfUsH4S1gPmYpnWMonfX9CeU-liMFBuXBHZkwl0nk-hHdArd5qI21_qiDA"}]'
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICuDCCAl+gAwIBAgIURc2TtlpgPAvWv+F6ncXhs6PQ/YIwCgYIKoZIzj0EAwQw
+
+      gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTIwLWZm
+
+      YWE6MDoxNDAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
+
+      AQQBg7AcAQIBDA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMTEw
+
+      MDExMTA3NDFaMIGnMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
+
+      B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMTYwNAYD
+
+      VQQDDC0yMC1mZmFhOjA6MTQwMSBIaWdoIFNlY3VyaXR5IFJvb3QgQ2VydGlmaWNh
+
+      dGUxHzAdBgsrBgEEAYOwHAECAQwOMjAtZmZhYTowOjE0MDEwWTATBgcqhkjOPQIB
+
+      BggqhkjOPQMBBwNCAATxAwmaP0zGKUX0mZpjEenfn4uHRucEt/6R4q+CLjzM+1ME
+
+      LF9VpwTLBnt6hPNuh1xIgirQyeFgHoLftwSDZLTLo2cwZTASBgNVHRMBAf8ECDAG
+
+      AQH/AgEBMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUNks/MaGCLWsKaMe6N0Ny
+
+      d9VmYRswIAYDVR0lBBkwFwYLKwYBBAGDsBwBAwMGCCsGAQUFBwMIMAoGCCqGSM49
+
+      BAMEA0cAMEQCIEQpbodkMn4laTFHCzoUSkRuBDESWzW8ETNVGTUvVpOtAiBcWMHx
+
+      YjPGwNHH0fcEQNz4Ji/8GtneNgGvwikqdUmYvA==
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.certificate
   pk: 25
   fields:
-    AS: 20
-    type: chain
+    key: 26
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUDyLxVYUAILLDccpasriNX6AtJG8wCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMTEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0yMC1m
+
+      ZmFhOjA6MTQwMSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4yMC1m
+
+      ZmFhOjA6MTQwMTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHuOY56ZGlMDcSZR
+
+      DlrHtZCopNN83nfQAmoqgaonXsgriYxFFskUPNI5cbg2BhRYQXhvZGlRzDfmxPuN
+
+      MUHu/2ajezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQU/sIvUtGiPUe5cUqn
+
+      +4jFm13xrAEwHwYDVR0jBBgwFoAUNks/MaGCLWsKaMe6N0Nyd9VmYRswJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiEA2QwQEybdYmZjKxcNqkl8o2gsjpat3qXt/sE+gFfu/DgCIDDB1w5EY08O
+
+      9AMQHqFDNx9zi2Xr9eA6Ux1q6oPdFril
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 26
+  fields:
+    key: 22
+    ca_cert: null
     version: 1
     not_before: 2019-10-02 11:07:41
     not_after: 2020-10-01 11:07:41
-    certificate: '[{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImlzc3VlciIsICJkZXNjcmlwdGlvbiI6ICJJc3N1ZXIgY2VydGlmaWNhdGUiLCAiZm9ybWF0X3ZlcnNpb24iOiAxLCAiaXNzdWVyIjogeyJ0cmNfdmVyc2lvbiI6IDF9LCAia2V5cyI6IHsiaXNzdWluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIklsOGRqbHVkRXEyazRHNGxxY2gwWUZibmk2ZnF1MllId0p1YWUzTmJHN0k9IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjA6MTEwMSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYzMzA4NjQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjcml0IjogWyJ0eXBlIiwgInRyY192ZXJzaW9uIl0sICJ0cmNfdmVyc2lvbiI6IDEsICJ0eXBlIjogInRyYyJ9","signature":"w21oYonO1a92V7P9ypwkuVPBEH6NFCMseMkgYemgeCOvvtYRa_y0PKj7q7PJapJluUyJ35FNhzWmVxsmVrsYDg"},{"payload":"eyJjZXJ0aWZpY2F0ZV90eXBlIjogImFzIiwgImRlc2NyaXB0aW9uIjogIkFTIGNlcnRpZmljYXRlIiwgImZvcm1hdF92ZXJzaW9uIjogMSwgImlzc3VlciI6IHsiY2VydGlmaWNhdGVfdmVyc2lvbiI6IDEsICJpc2RfYXMiOiAiMTctZmZhYTowOjExMDEifSwgImtleXMiOiB7ImVuY3J5cHRpb24iOiB7ImFsZ29yaXRobSI6ICJjdXJ2ZTI1NTE5IiwgImtleSI6ICI4TGx0Tk1PdVNmRW4ydVE4NjRtM2NqdCtienc0TzZqQ0ZHNE5yRnFpYWdJPSIsICJrZXlfdmVyc2lvbiI6IDF9LCAic2lnbmluZyI6IHsiYWxnb3JpdGhtIjogIkVkMjU1MTkiLCAia2V5IjogIjhJUXVXeU5pZ3pXWmxJTTZpMnZ1bEdwOGJsS1RuN1IxVEhsTkVBOWFpTE09IiwgImtleV92ZXJzaW9uIjogMX19LCAib3B0aW9uYWxfZGlzdHJpYnV0aW9uX3BvaW50cyI6IFtdLCAic3ViamVjdCI6ICIxNy1mZmFhOjE6NSIsICJ2YWxpZGl0eSI6IHsibm90X2FmdGVyIjogMTYwMTU1MDQ2MSwgIm5vdF9iZWZvcmUiOiAxNTcwMDE0NDYxfSwgInZlcnNpb24iOiAxfQ","protected":"eyJhbGciOiAiRWQyNTUxOSIsICJjZXJ0aWZpY2F0ZV92ZXJzaW9uIjogMSwgImNyaXQiOiBbInR5cGUiLCAiY2VydGlmaWNhdGVfdmVyc2lvbiIsICJpc2RfYXMiXSwgImlzZF9hcyI6ICIxNy1mZmFhOjA6MTEwMSIsICJ0eXBlIjogImNlcnRpZmljYXRlIn0","signature":"cIeg8fYNYGq_kszOW5fMDaEgiPzJlllmrnG0B7BDSkeS7XOdEnMTQgsK5xlcJ63_FTlBLL2DBJyJw44seI34Bw"}]'
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICszCCAlqgAwIBAgIUYNZ0GUwKhIllIadEK49D7h/ydeEwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0yMC1m
+
+      ZmFhOjA6MTQwMSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4yMC1m
+
+      ZmFhOjA6MTQwMTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABO+KQUhcTfZqxGgp
+
+      cPExF51l9QlWtniWvYUSGJlK6ewZ2SbrccSNa1spZ6U6ySk3hamQ1SA+rHAqZrb+
+
+      Rml2N76jezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUTdPtgKBx5GqiUJcs
+
+      3hZQpaHibskwHwYDVR0jBBgwFoAU/sIvUtGiPUe5cUqn+4jFm13xrAEwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANH
+
+      ADBEAiBs/olXzz1tE+OX8npMMLQhcT0hCqphEfRqsRYI7VtTWgIgDU3cxVXc1J4n
+
+      JW3pcq7wmq/IiQGF1GY81uuNsc1NPLE=
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 27
+  fields:
+    key: 28
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICkTCCAjegAwIBAgIUFIi1biUkQpFJQtAaxA00+lFFs94wCgYIKoZIzj0EAwQw
+
+      gaUxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNDAyBgNVBAMMKzIwLWZm
+
+      YWE6MDoxNDAyIFNlbnNpdGl2ZSBWb3RpbmcgQ2VydGlmaWNhdGUxHzAdBgsrBgEE
+
+      AYOwHAECAQwOMjAtZmZhYTowOjE0MDIwHhcNMTkxMDAyMTEwNzQxWhcNMjExMDAx
+
+      MTEwNzQxWjCBpTELMAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMRAwDgYDVQQHDAda
+
+      w7xyaWNoMQ8wDQYDVQQKDAZOZXRzZWMxDzANBgNVBAsMBk5ldHNlYzE0MDIGA1UE
+
+      AwwrMjAtZmZhYTowOjE0MDIgU2Vuc2l0aXZlIFZvdGluZyBDZXJ0aWZpY2F0ZTEf
+
+      MB0GCysGAQQBg7AcAQIBDA4yMC1mZmFhOjA6MTQwMjBZMBMGByqGSM49AgEGCCqG
+
+      SM49AwEHA0IABEDrtd/2D7/N8to8L63ogSi7+ChPYwPVFWaXuYqk6TH3D++horOr
+
+      jZ88ZwdfBOq8/jclM1gMY+3LZGMG8KSj7T+jQzBBMB0GA1UdDgQWBBQ91gFBfw2L
+
+      /UjpmCB5n4yweSErqTAgBgNVHSUEGTAXBgsrBgEEAYOwHAEDAQYIKwYBBQUHAwgw
+
+      CgYIKoZIzj0EAwQDSAAwRQIgVlKxZ7X0GxDqqR2pwAnrls/Q1V9ISmGPf7QhV7id
+
+      qXsCIQDg10JOugfjivk1WuYnXU7eRePSkAsN1GQo+2EfPAx+Ng==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 28
+  fields:
+    key: 29
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICjDCCAjOgAwIBAgIUY/Pko6U4r8jQEZQP2Q8ws0u7kccwCgYIKoZIzj0EAwQw
+
+      gaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMMKTIwLWZm
+
+      YWE6MDoxNDAyIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYLKwYBBAGD
+
+      sBwBAgEMDjIwLWZmYWE6MDoxNDAyMB4XDTE5MTAwMjExMDc0MVoXDTIxMTAwMTEx
+
+      MDc0MVowgaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8
+
+      cmljaDEPMA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMM
+
+      KTIwLWZmYWE6MDoxNDAyIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYL
+
+      KwYBBAGDsBwBAgEMDjIwLWZmYWE6MDoxNDAyMFkwEwYHKoZIzj0CAQYIKoZIzj0D
+
+      AQcDQgAEW1+7Jq2wDVebfA0oWx4bXva3Fc6OORT5Td4n8R9BdgGCuN3HUWmqgEI/
+
+      JQa1Vr1ZWUyRWm02/5cI7rTQ3cZG2qNDMEEwHQYDVR0OBBYEFDo1XBoP8LFxIjtP
+
+      phaN2G1qnyVCMCAGA1UdJQQZMBcGCysGAQQBg7AcAQMCBggrBgEFBQcDCDAKBggq
+
+      hkjOPQQDBANHADBEAiBBt/gBlfz3pcD2SRAXvN+DJdl0c6lt5AE5KzspO6p3FwIg
+
+      Eyp4MNhGduDIgb9or9wV7SuSD//t94OTSoXL0z0I4Fg=
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 29
+  fields:
+    key: 30
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICuTCCAl+gAwIBAgIUVaYtULzfNRu9PtjAKL9Teoe4phIwCgYIKoZIzj0EAwQw
+
+      gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTIwLWZm
+
+      YWE6MDoxNDAyIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
+
+      AQQBg7AcAQIBDA4yMC1mZmFhOjA6MTQwMjAeFw0xOTEwMDIxMTA3NDFaFw0yMTEw
+
+      MDExMTA3NDFaMIGnMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
+
+      B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMTYwNAYD
+
+      VQQDDC0yMC1mZmFhOjA6MTQwMiBIaWdoIFNlY3VyaXR5IFJvb3QgQ2VydGlmaWNh
+
+      dGUxHzAdBgsrBgEEAYOwHAECAQwOMjAtZmZhYTowOjE0MDIwWTATBgcqhkjOPQIB
+
+      BggqhkjOPQMBBwNCAASVC22vIzMzDx/gFk/KNyEIfKD6EMOJz9BkX9rpqteugGhy
+
+      NC4N+r9JZEdYkrE+JqUO5DSQvsbWZz7rjH9B2x3vo2cwZTASBgNVHRMBAf8ECDAG
+
+      AQH/AgEBMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUJaQ568HsDQeq03Q5Lj89
+
+      MGQ6vjIwIAYDVR0lBBkwFwYLKwYBBAGDsBwBAwMGCCsGAQUFBwMIMAoGCCqGSM49
+
+      BAMEA0gAMEUCIQDCEvrXgwL4yC59VbqUhsK0vicf79p+MMQTI1oLuUJ3fgIgHDZp
+
+      qtm6mGHCM2BkT9L7Ua11GpXmhjUXRMRFdH1AdTA=
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 30
+  fields:
+    key: 31
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICszCCAlqgAwIBAgIUXz8G8c+bgy08MnH/AWxDfQjX7oowCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAyIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMjAeFw0xOTEwMDIxMTA3NDFaFw0yMTEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0yMC1m
+
+      ZmFhOjA6MTQwMiBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4yMC1m
+
+      ZmFhOjA6MTQwMjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABCM87hh8mlJp+hbP
+
+      tkWbLsMrI+tnFHalLtpIbVjn0ff2jalaIy3I5hFQaNtm523XhHBRPjBKozZM0etV
+
+      wj2zgR6jezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUT3o422OP9GAs4+Is
+
+      iCl9k8Uv95UwHwYDVR0jBBgwFoAUJaQ568HsDQeq03Q5Lj89MGQ6vjIwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANH
+
+      ADBEAiBZii7pQ6wqe8BggR1AkLRAUmsR/RomWokVKFcrjkRxDwIgLRoIwoi1zPvq
+
+      jcjfZU1UJNAaveiUpPrZOyX/iS0OmrU=
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 31
+  fields:
+    key: 27
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtDCCAlqgAwIBAgIUV/ne9lWygK4FDs8Af6Lv0dmlXXMwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAyIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMjAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0yMC1m
+
+      ZmFhOjA6MTQwMiBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4yMC1m
+
+      ZmFhOjA6MTQwMjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABB/TS0ewQZqMqm/0
+
+      LqjuucUbYFha9HGictxULhAAIsSq+dPtP7vk2wKA8ubOTahKsU58YQCURzYuPav9
+
+      +rMP/3OjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQU8becIrIPgfncFoiI
+
+      tAp2lrGs0lwwHwYDVR0jBBgwFoAUT3o422OP9GAs4+IsiCl9k8Uv95UwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+
+      ADBFAiA6g0ops4qDo5ZnRIhETfLaxWiZLX3Ocvhcs/rRvHWqFwIhALkJi3Wvr3rW
+
+      8soO5VhCVVmmWE4DDSspPW3w9P0GhAnP
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 32
+  fields:
+    key: 32
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtTCCAlqgAwIBAgIUHRJgSSSYDTe626oxFao10vLXt5IwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0yMC1m
+
+      ZmFhOjA6MTQwMyBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4yMC1m
+
+      ZmFhOjA6MTQwMzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABFblMJwLnLhMnfK7
+
+      q7JcRgssAoDVGFq6h90/sC40v9e8vOSCI3sb2URQtxPyLdawG5Qzvtk0FarF5s7n
+
+      Ul3M2aKjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUo315NAs+NJiychL6
+
+      7hP4pYsNECAwHwYDVR0jBBgwFoAU/sIvUtGiPUe5cUqn+4jFm13xrAEwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANJ
+
+      ADBGAiEAxw2Ay3Tja5hxByrYvzfqP03hjgDOPImYqJSWETXypCECIQDDkBeayREa
+
+      lCJGrT+qgsQh5ZEe/G/ya/OUfPUN3lBMgA==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 33
+  fields:
+    key: 33
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtTCCAlqgAwIBAgIUOXdaksMoEJr0l7is5X2xtuc+sd0wCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0yMC1m
+
+      ZmFhOjA6MTQwNCBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4yMC1m
+
+      ZmFhOjA6MTQwNDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDJTNplOqucOqx10
+
+      r6NoFZoZJ9Wis2mRd7RqlvXKwaGPFQ5rPfJuNj4Pb8LQNZK833JtRGQjCQFknVog
+
+      p6XsECSjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQU42wCXNQYVd5xWzA0
+
+      Akwj/TgFY0cwHwYDVR0jBBgwFoAU/sIvUtGiPUe5cUqn+4jFm13xrAEwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANJ
+
+      ADBGAiEA1VrJnDFt7DXJ24TjzvNfllRez/BVtz4OfQl0Vv90AecCIQDtp7u8pOMU
+
+      Hb6fkuS6KW2UpfVjaiPGJ9xT2bNSgFg5qg==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 34
+  fields:
+    key: 34
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICtTCCAlqgAwIBAgIUHGWZOHgaS1qGc7GEHdEK7xeuh18wCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0yMC1m
+
+      ZmFhOjA6MTQwNSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4yMC1m
+
+      ZmFhOjA6MTQwNTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABPM/8atfGYUEsBhj
+
+      +vmgyvseULIFD4CEVurgqI9X/NsJ7Ee1h2ks6+0+xummYDyI/m4XPiqYxpr0lddO
+
+      xLt40J6jezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUIUPvF9iW1sXAwejH
+
+      A0pgdT5kET0wHwYDVR0jBBgwFoAU/sIvUtGiPUe5cUqn+4jFm13xrAEwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANJ
+
+      ADBGAiEA6TSg+MloKEBwuwjuvTpw2aOpJHlOGOfKutbhvtt/tJECIQCFQ77Wijlt
+
+      iAVPEOxyuUkgVDq5c5Ff+HT87DMGhD49pw==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 35
+  fields:
+    key: 35
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICszCCAlqgAwIBAgIUUdaWHc4mTgtab0HgJGLwcS00uoYwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0yMC1m
+
+      ZmFhOjA6MTQwNiBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4yMC1m
+
+      ZmFhOjA6MTQwNjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABPwwpiwBBr2JJxLr
+
+      2yLKyf5s9wgzH7xf3C/pCZRUpYQslGCeLQ7TNBJh60SoyAG6ai0Vn9/Ej4EuEZc6
+
+      DaVrjICjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUAudNYabiOcD76jsa
+
+      oCRPH6Hxo8wwHwYDVR0jBBgwFoAU/sIvUtGiPUe5cUqn+4jFm13xrAEwJwYDVR0l
+
+      BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANH
+
+      ADBEAiApHCJxXIyJUIZ5Rk6NhMIddTlTSXjKQiz9Zl8UJVDMQQIgeW8iogfzoqLb
+
+      b+sdRQ2nd0Y7tTWH0F054l3DMtvd+Bs=
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 36
+  fields:
+    key: 36
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICrTCCAlSgAwIBAgIUJ8JuMSC9rG/bHoWnd8aJATq/XLgwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
+
+      YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xNy1mZmFhOjA6MTEwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGRMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoxNy1m
+
+      ZmFhOjE6MSBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsxNy1mZmFh
+
+      OjE6MTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABMLSwmo8kAgICVY259nh+j7q
+
+      OKNxDg4IIpNg3Yf1fR/UCpZr1G5DDfFZaiU9bH3xSThQLJUAHMdQgmdxiIorwpWj
+
+      ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQU26hhLJlF3bpQ19cciORL/zbQ
+
+      rnQwHwYDVR0jBBgwFoAUrwZPquYIcUWuCynwG5ZMOIvJv0YwJwYDVR0lBCAwHgYI
+
+      KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANHADBEAiBw
+
+      U44IXxEwj5O4x5MqCuOCpZAfoysIUd6uVwPx3Dp1/QIgXGHUoD5AUZkRs7tyvjF+
+
+      XPRXa6Q0VuCOprWl89QS5t8=
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 37
+  fields:
+    key: 37
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICrjCCAlSgAwIBAgIUZFsMll21H5ukcN5/1ADexMG27YYwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+
+      YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xOS1mZmFhOjA6MTMwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGRMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoxOS1m
+
+      ZmFhOjE6MiBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsxOS1mZmFh
+
+      OjE6MjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABPQ+YH52mbqDnKylivvLZUoE
+
+      gjbBsNpKLAcnCBaZjkdr2Z6xGwBiQ8mSBnw7i1sBtwyrnVtS69SwFFPenz+u7tej
+
+      ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUpaH4ORVflsyHGIUkN3d6AUmu
+
+      5cMwHwYDVR0jBBgwFoAUESX7cKYi2i7Xe8fLSfwIV8JqUr8wJwYDVR0lBCAwHgYI
+
+      KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANIADBFAiEA
+
+      jF9SGEGh7uXI5r/J8MQJzH5zSvu1gqsYfz9c9b/D9GECIDac6GF6yIGvC5w57ChT
+
+      sprQuIWE6qPdZoodHZ6lRZrF
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 38
+  fields:
+    key: 38
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICrzCCAlSgAwIBAgIUfJbBfomRYZpkdWM/yOJZfBseXZAwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGRMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoyMC1m
+
+      ZmFhOjE6MyBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsyMC1mZmFh
+
+      OjE6MzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGrqHUCKdsW+qJcbkIE3C7qI
+
+      Dm8I6PCe9LjBoXeMT2AS+ASNvSOOLiNc2GCNXXoYO5Cr1gwDUDibkRA3QuJMe1uj
+
+      ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUo8wEVyv9fbSEhSf9IuBIl/wC
+
+      OGowHwYDVR0jBBgwFoAU/sIvUtGiPUe5cUqn+4jFm13xrAEwJwYDVR0lBCAwHgYI
+
+      KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANJADBGAiEA
+
+      9ViKVRi9FgcSL7yw0b/WMqkPkGTUYhZE4CEDYdSp7qICIQCfVikOgplimdQo3KLQ
+
+      hN+JQfxybdSAO1NnBEXQGxgp+Q==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 39
+  fields:
+    key: 39
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICrzCCAlSgAwIBAgIUZKUxeIeahKhc3/sfq+44VdzUVBwwCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
+
+      YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4yMC1mZmFhOjA6MTQwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGRMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoyMC1m
+
+      ZmFhOjE6NCBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsyMC1mZmFh
+
+      OjE6NDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABE/muVuWwQVF/fXQKZ79P0ZC
+
+      qhPDWSZIKt1Ew9AqmC+4wSbN1VB8HUe4kGr1SINBJdBOxsUEcvxtU7KcMPhqMw+j
+
+      ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUNUW7RJKBFLJUiHYjgG6qpZWz
+
+      eQAwHwYDVR0jBBgwFoAU/sIvUtGiPUe5cUqn+4jFm13xrAEwJwYDVR0lBCAwHgYI
+
+      KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANJADBGAiEA
+
+      iQ2YLXGvd4ogvV2j1DdXLQ9zfbaJj3niyidAfIu+NlgCIQC5rTdxoTcpwn7iYqHk
+
+      1r7mRcbPgLCh+OtwM5pdJGE02w==
+
+      -----END CERTIFICATE-----
+
+      '
+- model: scionlab.certificate
+  pk: 40
+  fields:
+    key: 40
+    ca_cert: null
+    version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2020-10-01 11:07:41
+    certificate: '-----BEGIN CERTIFICATE-----
+
+      MIICrTCCAlSgAwIBAgIUNHoxlYBAEc/vVMHr3dmSiioea+owCgYIKoZIzj0EAwQw
+
+      gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
+
+      MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
+
+      YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+
+      DA4xNy1mZmFhOjA6MTEwMTAeFw0xOTEwMDIxMTA3NDFaFw0yMDEwMDExMTA3NDFa
+
+      MIGRMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
+
+      DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoxNy1m
+
+      ZmFhOjE6NSBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsxNy1mZmFh
+
+      OjE6NTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABK9QYcmE7xaTGUJqxnMnuDew
+
+      IYQi8E6/JchBPrrMhDNVNh0gca0x5cQ5fichNU20sID41ddxw7g6LavbqQRCg9ej
+
+      ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUNnmip6jAL5Bnl2oauEr87zP2
+
+      Sc4wHwYDVR0jBBgwFoAUrwZPquYIcUWuCynwG5ZMOIvJv0YwJwYDVR0lBCAwHgYI
+
+      KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANHADBEAiBq
+
+      Vre/FhEK/r1YYbH/clqMDHHhR3BioZSsLiU+GAfu+AIgVFy5JV0SQa6dPPDjGyzJ
+
+      IJgL8aRWW2X4515/kk3tGU4=
+
+      -----END CERTIFICATE-----
+
+      '
 - model: scionlab.isd
   pk: 1
   fields:
@@ -1024,7 +2637,7 @@
     label: ETHZ
     mtu: 1472
     owner: null
-    master_as_key: kx5kF17V+x0JmwUx9vgvtw==
+    master_as_key: eI8ZWm9QnKPpNPeNenHdhQ==
     is_core: false
 - model: scionlab.as
   pk: 3
@@ -1037,7 +2650,7 @@
     label: SWTH
     mtu: 1472
     owner: null
-    master_as_key: WpxJrFuX8uSi2p4ht09jvw==
+    master_as_key: Pc33JM2LchcU/lHggv/ufQ==
     is_core: false
 - model: scionlab.as
   pk: 4
@@ -1050,7 +2663,7 @@
     label: ETHZ-AP
     mtu: 1472
     owner: null
-    master_as_key: R7D6Lhl52uxloBQFRulzzA==
+    master_as_key: nPuoQnkRFq3BIeAm7AnXFA==
     is_core: false
 - model: scionlab.as
   pk: 5
@@ -1063,7 +2676,7 @@
     label: PV
     mtu: 1472
     owner: null
-    master_as_key: ahsZj+h7eVbXzPnPVx96HQ==
+    master_as_key: y1sVU5wdfJahVdgwPgS7RQ==
     is_core: true
 - model: scionlab.as
   pk: 6
@@ -1076,7 +2689,7 @@
     label: GEANT
     mtu: 1472
     owner: null
-    master_as_key: 8dNNxWhiz2IPKaTvID1Jug==
+    master_as_key: kx5kF17V+x0JmwUx9vgvtw==
     is_core: true
 - model: scionlab.as
   pk: 7
@@ -1089,7 +2702,7 @@
     label: Magdeburg
     mtu: 1472
     owner: null
-    master_as_key: olMvl/4UGoiUTihg5SXyIA==
+    master_as_key: M0Jb57t41ubrkSuyrDT3xA==
     is_core: false
 - model: scionlab.as
   pk: 8
@@ -1102,7 +2715,7 @@
     label: FR@Linode
     mtu: 1472
     owner: null
-    master_as_key: snKedgE3TB3E+qFNi5snbA==
+    master_as_key: j7ADdb0UVb0Li0ciPcP0ew==
     is_core: false
 - model: scionlab.as
   pk: 9
@@ -1115,7 +2728,7 @@
     label: Darmstadt
     mtu: 1472
     owner: null
-    master_as_key: q0xaoXm+ajd6fbGAUX6m9Q==
+    master_as_key: 4KyR32oIZt+zkWvFqbULKg==
     is_core: false
 - model: scionlab.as
   pk: 10
@@ -1128,7 +2741,7 @@
     label: K_core1
     mtu: 1472
     owner: null
-    master_as_key: O6IV3i9dDr6jrSw7nEycFg==
+    master_as_key: ovoV1rkh/ANm861qUAA2Aw==
     is_core: true
 - model: scionlab.as
   pk: 11
@@ -1141,7 +2754,7 @@
     label: K_core2
     mtu: 1472
     owner: null
-    master_as_key: oHpJlSsjzwONgVNdlaIGzw==
+    master_as_key: yh3cQSKnhdGmpVgd3ydH2Q==
     is_core: true
 - model: scionlab.as
   pk: 12
@@ -1154,7 +2767,7 @@
     label: K_L1
     mtu: 1472
     owner: null
-    master_as_key: SqsmdTyBWym8wGdWRc1+8Q==
+    master_as_key: NWCWSgIjJkVVVspetxdWxw==
     is_core: false
 - model: scionlab.as
   pk: 13
@@ -1167,7 +2780,7 @@
     label: K_AP1
     mtu: 1472
     owner: null
-    master_as_key: /CsAySSRC3EgV+0C8rh66A==
+    master_as_key: ahsZj+h7eVbXzPnPVx96HQ==
     is_core: false
 - model: scionlab.as
   pk: 14
@@ -1180,7 +2793,7 @@
     label: K_AP2
     mtu: 1472
     owner: null
-    master_as_key: fwS7vD+S5D1GL/HC7WsTkg==
+    master_as_key: hEpy633JlbatN2wVXjj9/w==
     is_core: false
 - model: scionlab.as
   pk: 15
@@ -1193,7 +2806,7 @@
     label: K_L3
     mtu: 1472
     owner: null
-    master_as_key: +/7DokZoqySYJWfdToIPKQ==
+    master_as_key: JRoydWBci9MmGv2Y+3wlkA==
     is_core: false
 - model: scionlab.as
   pk: 16
@@ -1206,7 +2819,7 @@
     label: ''
     mtu: 1472
     owner: 3
-    master_as_key: zXRpLgd0zUMw82MQWxgfBg==
+    master_as_key: 58E0SonmmWrT+HvYyvhjmw==
     is_core: false
 - model: scionlab.as
   pk: 17
@@ -1219,7 +2832,7 @@
     label: ''
     mtu: 1472
     owner: 3
-    master_as_key: 0lKCAAkMxuwckpwlxyesyQ==
+    master_as_key: Js/8WmkJnHdidQwZeMcmBQ==
     is_core: false
 - model: scionlab.as
   pk: 18
@@ -1232,7 +2845,7 @@
     label: ''
     mtu: 1472
     owner: 3
-    master_as_key: /t1Iw4Ac7l5YJKBbxHmhhA==
+    master_as_key: n0vJ2SD16WPMS+q+3/Wu+w==
     is_core: false
 - model: scionlab.as
   pk: 19
@@ -1245,7 +2858,7 @@
     label: ''
     mtu: 1472
     owner: 3
-    master_as_key: 4er+YFhj8niCTvZo/mjQGQ==
+    master_as_key: kuA3OhfG0eLjoMeAsoZrgQ==
     is_core: false
 - model: scionlab.as
   pk: 20
@@ -1258,7 +2871,7 @@
     label: ''
     mtu: 1472
     owner: 3
-    master_as_key: pWR5Qy46il0oTdqb1OokdA==
+    master_as_key: 5CQ1ADSorLvw5h+/AUtesA==
     is_core: false
 - model: scionlab.host
   pk: 1
@@ -1270,8 +2883,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.11
-    uid: 1db4385fcb2b456d900f19c825dab238
-    secret: 0bd192a2e8ef489aae12061fa2309bd4
+    uid: 7a5b95e4e83741238823c1189ecc40fc
+    secret: e888fbb4cf9a46258f19ba12e6d9af54
     config_version: 7
     config_version_deployed: 0
 - model: scionlab.host
@@ -1284,8 +2897,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.12
-    uid: 78ae68e691df42ea8fa65b63d6a84027
-    secret: 8fb00375bd1445bd8b8b47223dc3f47b
+    uid: 420fceeb8cea4317b8d766b5d3c8aba0
+    secret: 009c7ed3de554eba93b4de1030ea9138
     config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
@@ -1298,8 +2911,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.13
-    uid: a2fa15d6b9214c03a6f3ad6a50003603
-    secret: b7c100fad2ac479c99301e9ba632df4d
+    uid: 1b4d8d4ab41f4c5590ec8a34f6cc9a8c
+    secret: 9649711798cc4251933d4a2f30d22f08
     config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
@@ -1312,8 +2925,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.17
-    uid: 9e090a4529264b958a5c65fd8c214b1d
-    secret: 7abb3def0c4e4ddb85ba124d67d5544c
+    uid: e5b3ecd48aae44d6b4864685cf3cd937
+    secret: e5ad96d3f36b4446b37ea9a4ffb3eafb
     config_version: 10
     config_version_deployed: 0
 - model: scionlab.host
@@ -1326,8 +2939,8 @@
     label: null
     managed: true
     ssh_host: 172.31.0.110
-    uid: 89e6996ad3f84bd88af8639b963bd9dd
-    secret: cc05a8e200bd4e4d81914155107edc43
+    uid: 1db4385fcb2b456d900f19c825dab238
+    secret: 0bd192a2e8ef489aae12061fa2309bd4
     config_version: 8
     config_version_deployed: 0
 - model: scionlab.host
@@ -1340,8 +2953,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.32
-    uid: 014b5eb006ee4a3b9b242f741c7a58b5
-    secret: f5422107f7354c55b9f54a4befe0f58d
+    uid: 1f7a35bacc0f4fad858b6c9e19d54211
+    secret: 3812a54d596f4e0f80770a9819b3fc64
     config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
@@ -1354,8 +2967,8 @@
     label: null
     managed: true
     ssh_host: 172.31.0.111
-    uid: 8e9bb027cbb342eda62fc46b6e2c3ff5
-    secret: 7457ef85245a46a1a3167bc1344b00d4
+    uid: 0ec9ad28d8294787801e98eb71aa2c03
+    secret: 78ae68e691df42ea8fa65b63d6a84027
     config_version: 8
     config_version_deployed: 0
 - model: scionlab.host
@@ -1368,8 +2981,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.34
-    uid: 9285a035881a49f4a28b67bdc7e7c947
-    secret: 4a715f91a023481fb21e61669777238f
+    uid: 5a9c49ac5b9742e4a2da9e21b74f63bf
+    secret: 6ad4a614009841b295283d39a37260b5
     config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
@@ -1382,8 +2995,8 @@
     label: null
     managed: true
     ssh_host: 172.31.0.112
-    uid: 72eeb52586504135a92f7159cafb636d
-    secret: ce7d63ba38cb4270b03496b50ce76308
+    uid: 721042b3287247e2bce88f9ac100e209
+    secret: 7e534fd6770c4fd2a0f9cf6a308cfff6
     config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
@@ -1396,8 +3009,8 @@
     label: null
     managed: true
     ssh_host: 172.31.0.113
-    uid: 836ddb0c1f6245459ef8bc905b3aacb7
-    secret: b48ba94838bd44e6bd10844eac533b5f
+    uid: b7c100fad2ac479c99301e9ba632df4d
+    secret: 47b0fa2e19794aeca5a0140546e973cc
     config_version: 7
     config_version_deployed: 0
 - model: scionlab.host
@@ -1410,8 +3023,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.42
-    uid: af8f2bb7146d4ddd991a9ea075b5269d
-    secret: 9a0a4057cebc4b6086a0eee3097f165b
+    uid: 040a0a34ae424e50b25df091e8d90ad8
+    secret: bff6b39ba77e46a4a775a36f5fdf892d
     config_version: 7
     config_version_deployed: 0
 - model: scionlab.host
@@ -1424,8 +3037,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.43
-    uid: b888aee05a294adea62754d8bfd10295
-    secret: d00d9027f3584c4aa04b527ec867996e
+    uid: 9e090a4529264b958a5c65fd8c214b1d
+    secret: 7abb3def0c4e4ddb85ba124d67d5544c
     config_version: 7
     config_version_deployed: 0
 - model: scionlab.host
@@ -1438,8 +3051,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.44
-    uid: a9b3ecc890624c76b3098fe969a29dcc
-    secret: cdc23ae6045c47fbb028ae31a15aa0b3
+    uid: b37f6d094d554cafa427eb2aa09060ce
+    secret: f9fda31610ce4532bf380f620219648e
     config_version: 9
     config_version_deployed: 0
 - model: scionlab.host
@@ -1452,8 +3065,8 @@
     label: null
     managed: true
     ssh_host: 172.31.0.114
-    uid: 066579eb85224a1490dd585c011130b7
-    secret: 1cab8a780b504dd798f4f1065064e720
+    uid: 4295c62a6e314b1d90d2dddab307e786
+    secret: 73c0ad331e7f4541b5a40afff2cc379f
     config_version: 9
     config_version_deployed: 0
 - model: scionlab.host
@@ -1466,8 +3079,8 @@
     label: null
     managed: true
     ssh_host: 192.0.2.46
-    uid: d1f21231a5ca449cbdcf758528b555e9
-    secret: a72279c58e0e4b1592845700d0c6141a
+    uid: 67a3ae6ce0854eadaae352d57fff7fa2
+    secret: abdf338a9cee480297b4f6bfe651d152
     config_version: 6
     config_version_deployed: 0
 - model: scionlab.host
@@ -1480,8 +3093,8 @@
     label: null
     managed: false
     ssh_host: null
-    uid: a3ae3ef1e0ef4f54b2067bf5e3a0ad65
-    secret: 0b393da248544bf7bc5a3929e06b765d
+    uid: 963bd9ddcc0548e280bd2e4d81914155
+    secret: 107edc43f1d34dc5a862cf620f29a4ef
     config_version: 5
     config_version_deployed: 0
 - model: scionlab.host
@@ -1494,8 +3107,8 @@
     label: null
     managed: false
     ssh_host: null
-    uid: f6a01b88e0da4c24b66406c46bbbdef9
-    secret: 646eec1ab6754a76a92b5779692897eb
+    uid: 08999e21a1524ab38ca6583162c8c6c7
+    secret: 7d1ce10f9cb3479da1ef56a61ff8aeb6
     config_version: 4
     config_version_deployed: 0
 - model: scionlab.host
@@ -1508,8 +3121,8 @@
     label: null
     managed: false
     ssh_host: null
-    uid: b7cb55af1ecd46ea9ad668c5dc43e628
-    secret: 57a080f754884125a960fcbdbe8e4e3c
+    uid: cf1f84dcc9fe40098864715fc130745b
+    secret: caa113f40be64f0abc41e606f185aa91
     config_version: 4
     config_version_deployed: 0
 - model: scionlab.host
@@ -1522,8 +3135,8 @@
     label: null
     managed: false
     ssh_host: null
-    uid: ebe22b06d3a4492aa0fe84689ba93570
-    secret: b5af6743059642eba32be270900dea60
+    uid: 4ef21d256de4406cac15ef1a6a10196a
+    secret: c627bbf407ca426eaf6a077febddf653
     config_version: 5
     config_version_deployed: 0
 - model: scionlab.host
@@ -1536,8 +3149,8 @@
     label: null
     managed: false
     ssh_host: null
-    uid: f2f482ed5717434e926c39bd5ef661dc
-    secret: c2253b49ef334ec6bba8e1c85b48629c
+    uid: 06ee9a3bdb244f749c7a58b5f5422107
+    secret: f7355c5579f54a4bafe0f58da2532f97
     config_version: 4
     config_version_deployed: 0
 - model: scionlab.interface
@@ -2562,7 +4175,7 @@
       '
     cert: '-----BEGIN CERTIFICATE-----
 
-      MIIE5zCCAs+gAwIBAgIUNs2tSLmq6rBBrn5r7lEPESj2ApcwDQYJKoZIhvcNAQEL
+      MIIE5zCCAs+gAwIBAgIUBMMS76DNZBPrsMql29pnPAhmCsIwDQYJKoZIhvcNAQEL
 
       BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
 
@@ -2592,29 +4205,29 @@
 
       STAOBgNVHQ8BAf8EBAMCBaAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwEwDAYDVR0T
 
-      AQH/BAIwADANBgkqhkiG9w0BAQsFAAOCAgEAAtDnyDzjrghgpDGKVAWXOadDarwx
+      AQH/BAIwADANBgkqhkiG9w0BAQsFAAOCAgEAx3YV1cySh+ra9DaVtpE248yipSLh
 
-      G3S4J2wDjH8HEtQJo/zHneyHLEp6ef07Zl8+QDQV+YodItqzw+CnoKH3DRSeofu7
+      dlNQV3dfgmjevjX3Iraqa5Xnlzc/MMj6McWu8gRi89tXZRtWqkJhek6bBq8S67Yd
 
-      MHsU96pqrAJgDF/2Ck+6nxdLewmsOFA21AipMZgVcaXVx0PUE29oO/JHIv2r4dLw
+      YqI7wyVGbcrOdqhZ/BmKG5fFdK/tLKhvaTkLmu7vmDTS5NaGQezut9tKhQcVuxgy
 
-      PgI78dnSrXxZWHZUBlQgl02ZXqccKAF5AfSN+5oLj96d5BFruImDNLr1OB3/TMIU
+      4L0Hb2Hx9W7ReWFJSNXBNTgYSGgvjYNlPoRI0tqiQ6OmriRO9wCurhTJVYpTdmWB
 
-      Z00Vut6Zz0FWujwyUReyAjL57SRrQMh9p5FgmlsFyZCVqWkthuMYTliHzW3wC4tn
+      O2xibUHw5wDh3MUPs2q7eI6UgGjqHCZnKaxVPMBVW+8I0GTN/qM5mHL+8UL6YPkB
 
-      /LlAeHIr6BcSeorewPtiZVOrbCVYmxvn7dWgDYahXpXeh+N2BsOhSJqbsZhOWZkI
+      Y0fDK/lpdgSjwGd/hDWos67Cg9xt3DuL/oLwq08MwZNMYj4+7MKN3QMJtHPsmvx/
 
-      1xaMDJH6MqfXAbvfcHNZDgwTvsB9Be9+/wq2RNf5hN/dsNGY5oiRU9a/Y/zPi2pe
+      O9fceYyz2Zj4+3Nl5Db7/lP1kq07nXtLlcKGyFW6O4woe/OxsjaIcqnRlokBq8O9
 
-      +sX/mZez+AMr0DUb9ZgzRQLzmzLA0vZ5XUndSfM8cs0ttNb7QCV4e4+V+BO134Gf
+      qnpH3sDLVCdLIyqqSCjTh/H7t8m6qUKjHwCvNKOdWzYQ64FZzOMmvcTCm8VaHuW2
 
-      JK5KKZAN8pN6DjLcl7OCQ0kC5VZC2Qqn8DQcTG+kxaDhnR1bpBw8UJdxwpdyLsNr
+      gpnzefkHc/fPUWUT4YH5FQtbjZqZoNeewwK9l0Rn1cGy7wIpHrf8PBP2oC79HHQZ
 
-      KQEjx7lGA33sOIGxFCMjwAoAGJEISLCR7x0dCC9dIdrfWQBQdVjkQrbdXQaTruJU
+      q5VCC3LCgB1999P1QdqHFmmuANDAnH24Z+iY+FMZ36OPb/NWmuEAufwid3SnEAxS
 
-      O8ODIerXI3oUxsjbkGg2ozGTn3U71FYC/z28ceKspXDd/PZOmUOq6wGUR8jv+3Nl
+      6PKS5J2Keplda+q/lbqOLSj4KATH+GssaNe6i5cexcoM7NKiCUnfrJp8oRor8J2E
 
-      f+uNqaU1lL6hVMw=
+      qvododmtAZkctis=
 
       -----END CERTIFICATE-----
 
@@ -2659,7 +4272,7 @@
       '
     cert: '-----BEGIN CERTIFICATE-----
 
-      MIIE5zCCAs+gAwIBAgIUXZACK3FNmIW00ofZJ+Wx9IbM4mUwDQYJKoZIhvcNAQEL
+      MIIE5zCCAs+gAwIBAgIUb3UFCByQhSYB4Ww5Km4U5hNvU7owDQYJKoZIhvcNAQEL
 
       BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
 
@@ -2689,29 +4302,29 @@
 
       uzAOBgNVHQ8BAf8EBAMCBaAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwEwDAYDVR0T
 
-      AQH/BAIwADANBgkqhkiG9w0BAQsFAAOCAgEAJM4YqLtMgnmmv8CT0Exl/WKfujPP
+      AQH/BAIwADANBgkqhkiG9w0BAQsFAAOCAgEAcLxEBiK0zBPg+vCwEQ9F7cjJFcSV
 
-      Pns/Ds9xsXc5i4+kiGeh52mzecNTTjh9QRPhOJGMudfHIJGU6LaAWJI5iQbuhQ9g
+      Z1eqaANN0fmysnoAfZ7BxL3YHL4XZnn3IQ5+7S4C3N8l0KEpIcjtzCIkHxRU6ioH
 
-      zhq+S7ogPmzyjJZR/u9N37R1AiKZ08Wm2g1RIFHiViXXQbbwKh5ilTqtJ2oM3aZP
+      P8X1dWO5E3X/kjK0yrX8fjHjoStdd0SuTQM+cP8GI0iDUW0Dsmk9jWa0eYyshfLB
 
-      KfRQh9aoej54GMPvC1eml9iWYQa4A1QdSkuZXGrEfAoBJuEtopOL2dWKrz6PP7H6
+      dIiH3BvUwZZDR82g5cfSEd1H5hZCwPoor9y38BIde3OnKzCIa7XOou10yPYLqFAB
 
-      27WcEQyoHYow+k6MMKWhEJNXdqYeg5MuxsdAN1I+L8ehS150IMCFekj2gWox1Dun
+      TL2Wk53xR0PBnqzwe07iSR4zmG0X6S6Q2QaBz3GXwZuJ576Aw9N4tLpfiuC0zu68
 
-      l3fgzCbml2USAe5xrAQwj8qFrtf1acqjDWyclXgMCt6B2LzTOSSkVKN62KhewdDw
+      KKVwm/AH+2DGIfNWk/t84TXuG16UbNqRULTyaFHPgjMpP3D09AwJkaBGcNrdBSFF
 
-      DLDLUut9mU2ioWB5Ee2A8uoEPfsESF6enc3UhHCCKD9xiny0tjvIbOvn/kBPeGZx
+      0jFzc1GKchbz1p1tEtZ88Sr+HglvfENx9yFbqRB7TLw/bZ8ElRQFojd9vhtojaEy
 
-      xvPNmwNhkJ+NHoGznf4lm0LdY+4NekEtzVYxZLtq5vqn4pvzQ5vaoR3gNcKWBvcu
+      XVRPOCKdJVFG/VLN61Ho2kmAol1doEnJDGFy0U5o9+Ygd0ENNI03EeuuvIEIvANf
 
-      yqKdWvcWsXhwnVy/+waB6cy5GUB81cuVTiEpMlcCQ7fIasysmKH9QGSkEnR/r0gU
+      +vdwA0qceIKGDXJK6aswkWumysVvgwvSpLh3oD8hqQy2etkA2ASRIfZcIlHBJ64h
 
-      u5n2WpGT24hEIV6AV8S40hbom12rM0vIBULa++3k59qCo+W9c0OAY70qISSo6Q75
+      PTSvCQ6/B2ehpZ5h7eD8HQA5980NYHMSoMomIqM3TI5gZ3ki2t5AHGyBn3knyGcn
 
-      E2J/xZojNE4zz+XkmvQwO0Ue/OweDkww/uZuFr+1WBShhKEWkrlSpjaK8+8roR5O
+      JGbZJb9xoaZHeAiD56ObjulfDhKwhgokzYM3lhwcKw+D7epbFRCyFxjPOsCsRaNy
 
-      6Q+hYGeyam7hpLs=
+      dhLe77fAbUTnePI=
 
       -----END CERTIFICATE-----
 
@@ -2756,7 +4369,7 @@
       '
     cert: '-----BEGIN CERTIFICATE-----
 
-      MIIE6zCCAtOgAwIBAgIUWxWt9er2ibQGuC1Nc09goNYnyGwwDQYJKoZIhvcNAQEL
+      MIIE6zCCAtOgAwIBAgIUe6/AsPNDwARJC9bl50JhTP6J37YwDQYJKoZIhvcNAQEL
 
       BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
 
@@ -2786,29 +4399,29 @@
 
       qxmI3G0wDgYDVR0PAQH/BAQDAgWgMBYGA1UdJQEB/wQMMAoGCCsGAQUFBwMBMAwG
 
-      A1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADggIBAKCEFDuvG/8k1tyqbJq2gLi2
+      A1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADggIBAKdqKroD8k9XRBj6OogYaIz2
 
-      4Z1zTGqEBCK25RZZ7y4NEO2au8EtDtHGwcDaWW7ONRBrwXIR+sdKu5BPHjxj1FZJ
+      GfGNG6kjpVMEYMHt5fjP059bjRoxz9qNtIWpPiC8NUVNRJeBhPj6piPRaozjD5+1
 
-      P++qzJz7fDzWa11+2+L8/jx/GRWSNzMFyP4Uo0uN3k1+xnivAXqDoMd+5oriw0kw
+      Jl+KsLxU6z4l5xRAiV9z12xDfxPwUWcrHllNm0mBFRZ9hVOqhTjosUPPdNElSpNy
 
-      sbWxvY5sSfCgJ4Mhgz8QEw3ryHneo9TiJwxaMBrZ7BZBA2Qo1PK2A4mRLw7y/jkO
+      OaIWDkH68kS1PJudwnlqBbdDHb1w2pUt8ltokjSMIOrN+Ss/Vf+dS/zrSBkTDCXf
 
-      Z/TqyxHIwklozA65Iqvvoez+mr1UI3CDJocrvaqAeKfR/VyjN/7kwhb5o8qFNPVr
+      1P0oRd5jNBAG1ApyhFoBGJ+SZ7CyakecXoY7IlTqvh0UjyG34qXkJnN65Cumqc/x
 
-      0YmF2EURbB6UcWXE98f5rDe63cJLzV1uWmygxanab/+1sLNXnCOi2+aZGbes6MuZ
+      RXx5GP6Kni2jDSgiPUj2iqwpFwSGNiEnXd8asq1VcG23eaiIREm9yduZ1rCaS2Vv
 
-      1KcIvDI5Tf/BxzhU6Q1cvufJTM3Qf66ENs9yoSRfBUs+dzp1d48LgIZX8z8q9ul7
+      RTc9aHFG6Sql+8XUSb1DV1UM2PL0Rgjv9ZpsVaSGMURXc4uvSdb3Ii/BTs4j4c2c
 
-      poDLRoKpwT18HmQKH7IsSY8vVh4gwIzaYWGbFhIl2uzT2dHSY+FHpSjiQm1kpUvW
+      72FcDIMYPjm9Hq0YJytYQG1wvaj6EA+dTQ6qSlVku943cvSlFjnCw1U7K2rnC1ae
 
-      3qxvVRduw6B4wxI81ZW3San7EA7upTFOkq9nH3Uub8xdvOykb2gmK9VxU9mKuDJo
+      8SHhNkHGsBopgheHFM0xxoH27Af150beoNsLhb9dcx6AMuvYKm9O4JdTV4y9Itq8
 
-      gYcsJN58ygX1MfF6esddUx1pg4CY23de6KWvzVq/NJJ40JBtro+Y6ECbrVWc960m
+      Bgd2SXLIPNc2HbpPHQe4W2KVD7PTCjNTIKaB0jjy0CU8UQhb8WOCdfsGdSLzt3Cv
 
-      FHu7w0EN75MhbXqxyGZy34c8KZQq3t/N0+76b/u+6LWpXhG6HY4YtVYVcXWI6INS
+      S7OkFQe1npEMT4h8OsbjX20yYBurfvu7Au7Vw1M2GS/6mUIiJRJmo34rjI/VzK9u
 
-      Ptqg2mYRPcbQp3zP9iTy
+      Oykg3N8zwUkVzAxCrptt
 
       -----END CERTIFICATE-----
 
@@ -2853,7 +4466,7 @@
       '
     cert: '-----BEGIN CERTIFICATE-----
 
-      MIIE8TCCAtmgAwIBAgIUcEgRsUhigZT3SoDXsdvmln+TAgMwDQYJKoZIhvcNAQEL
+      MIIE8TCCAtmgAwIBAgIUEB6k3Woqh3iEvbUSPvHuzVuKVlkwDQYJKoZIhvcNAQEL
 
       BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
 
@@ -2883,29 +4496,29 @@
 
       cutV4dsQ6EIt4yowDgYDVR0PAQH/BAQDAgWgMBYGA1UdJQEB/wQMMAoGCCsGAQUF
 
-      BwMCMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADggIBAMqMixkwA9Hjrj9I
+      BwMCMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADggIBACkumkAYGOthb+ur
 
-      2tq8NhTZJcek6baZSEtFqqYNgU8geHmN3UFXSuUGhJru2IQs/tY2qA8KLziunQQ0
+      jXzaWfsy82REI1O73babExirsXeTKQduYni7M4JYa4rEf34UuMgR/tPVNYMHgXWn
 
-      j1pe5eaqYfZGdBsjN1yh81mSy8UTXfC3p0e2WWuCF53xJkamUoGvTx6eeezdqXFe
+      3N2oNd1DiIquR7qWXzWpJA2jRN7TFlZYSpkiPO1P6oC/8zN9YqBGdKHub6K7tZQp
 
-      3Yre5N0LRhNJ71H6LqOtAMAGzdhODROfM6UqGWfce+Ob58W1//4YRbWaCmODzkWa
+      uHPNdsTHmx0hNZ24rMUSZkk5wB9kpVOtbI2MdJ9VDcMP91SlSkGFrxAEew5b2zN3
 
-      csnkq+aCuU3QEWUkIgDAh7Nug1uFmMwc0SFaOW4QGTh/4j58H+5vPs3UqJ1ClydQ
+      fzO2VZBar/cUe2GP9Z8DMBUCXKT/lIFqHryPI32ioz0WypDtoxLYqoXN6zir1tMW
 
-      um2ONPfgtkV7oYkdAZTkNjH0ltBcpIp6r6l+82jbu3HX2RZNWTE0F4b5ZJHa3k6f
+      ffyUNIdF7rrds67ID9xauwgmKc17k71IRmmgWlxLYR6yPq0cV/skv2leWKH0vr9L
 
-      7eSy8OR79KwDNAITozquhHi993swlEKxECniBhVCt1asMVMzi/gfnVWONuFh2IF3
+      UXkofEiOOeLogQWssfS3fA7rkWspf1gwD6WKjJaLzzLktsTmcRiLx9N+Qfw6kJax
 
-      Kuyc9EtGJYN6aQaLPZBlh7t/isbpuGQWzp9223Op9obhXKdbqVxpJkvafDUVREtK
+      PKBjeqYDYb3I2a5gDKj5lqk3czBONbHbgFT7DB7accl5v685c4kJsa8pN8aT+rji
 
-      HoAPtgh4YEZWNmGV44JOFC3psLVZ3rLQ0nPvhhvx4Qj6bPEYAAlX0rtN0RQ/f9sK
+      KImwLSi/28YQfxk4557mu3TQIPtw9by8MnLukbirGPK4OlGRrl3SyTwzufkqv9eh
 
-      3b1ClrmYJybUE3OguzaMfJo9RT4oApZY2ccg56NYHWN9QCs9MmMWn1x48KSSw+ES
+      3RQGHC0pRWtgD/zPkGH1Th/lOoovM/xI0NlQKn+M0qCvWM9+03TzuLZbz74dHPhK
 
-      3MMwRaF6/t4oA00/StY2dPk851jR0VdSVVQ3HTH2X7GpFdNig8E1wHReOsMxtouC
+      WOyi7glBA0cG4fG28nchyRQt3Zd+8xOyEEpI3cXp9zvynrR+mN+P4brd31XYnZzn
 
-      610+p+KxQgobBVcyuqI7R5MDxkny
+      O0kPFMy52JhoU9HWCLCYOJMYYNef
 
       -----END CERTIFICATE-----
 
@@ -2950,7 +4563,7 @@
       '
     cert: '-----BEGIN CERTIFICATE-----
 
-      MIIE8TCCAtmgAwIBAgIUduaLUkszqp3A77oFPU8NImrAvsYwDQYJKoZIhvcNAQEL
+      MIIE8TCCAtmgAwIBAgIUXCAKLQkPrdiDrCyWgWp8neiuiUwwDQYJKoZIhvcNAQEL
 
       BQAwgZYxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEPMA0GA1UEBwwGWnVyaWNo
 
@@ -2980,29 +4593,29 @@
 
       Y/fWXYGB7M3pIYIwDgYDVR0PAQH/BAQDAgWgMBYGA1UdJQEB/wQMMAoGCCsGAQUF
 
-      BwMCMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADggIBAJMWbZmFtBLvq115
+      BwMCMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADggIBAFNKLOhE4KRQOiMM
 
-      kg8UEcOgSOOXiBVtqrzngtzbh7G7eJRlLCrkI/FznNwuwrDL436QIMVq8z3gho8n
+      /YFDY2KoPABWQqHIHVPNCc2N8aBHtcl+BXj816rUofy/mvOltixPogpbvoUGUEi6
 
-      NEbm/CJOSqT+vP87R2TP/5OpKgNIbkg19jgfwyqAFKyCF1m3ZplpweSv1387s3gz
+      VtGAVD6nrxCDi0O33hWsat72F3KznkneJsfUjgWbaTlDhZ7KxI7qhwrLxIoXWGy0
 
-      tucR9H0wwosIGrtUNuuCZ34yQ07k2gc6SzrJQVuVaLeuCt9yvyTBREp2RsLXposH
+      +9/jWjyfkjgCpaSEB/TZiC4OL7gObYSaPqlqjPLqvHRoS3wOIOKVVGt+ureMmt81
 
-      lSst9tfoj0v0V5j5H+BF0nY57CreejxcUMlGzFkYplUg/TnPB7VuOLROWb0yvAdN
+      NLkmxNyYLYYwVYpLh1O3mD/rDylN3c6aetyY/ZIy5XCC74PfJAkkPQQLPAdxvrMO
 
-      AXodjHkJFy+HI0K9u2t30wf6dPo3zcnAIckYUaybK7ZYTV4B9dSexH6JpQUPDrmC
+      oLmDrtMP8r8bC2Ze7zWLU3P7cO32sR+CiIsAzy8K98KJ4YJTuh5IPrrRctWjAxlW
 
-      i8qJaSc3gU+i0WWw2ztREBCP78M9rTZ8XtVtjzlk+jQhnkh89/dBKBgj11FG/H10
+      oblL4svRQyOZ7Nhcz/GpzdxFCUS+ggIrviUJlofhZLNl+y7FXcv5+Um/tWYEWNoa
 
-      d58APPPZnBoyRLP05xDaN5JUQbnU+xFCwpagM9Sef1VwmYSuUEHzrrHpac8HH0PP
+      lOb5IqBrTl9p1SEUGsG06FAcHKu8A+ZbeYn/sc3zEy9MerVOksRlpLYkqyHyOlbZ
 
-      XCNJ0ctm6VwEHhNSvlFD2KjF8Wco92BjHFnJV1zFJyi2YX9jXa4X6qrQ7/n1QS1z
+      JdlJmqMRK33bd3pFRtTWbuWIpwcv3AHEyx2kNetewFLdxhpXSE5crFApw+3g0rX1
 
-      A+1cRUbbxIwt2D0OBggaKKwcV1ZrF7N79MTk2+PZKKN9V19uHxiHuXALW1AIC4o1
+      nibs3UfVq0pNpvshsMB/4WlgAfaW8weCEZ8u4hM3RvNU+aHfqtau/UcnPCKFtXB7
 
-      X1tKthBDGMQ2jy3+LM6XsVYb9yRY80Y0MZF1S7B4r6AZKpVWsJBXe6a29yPlIfS+
+      +ZrJB3qE3t+dWyXzcwxZwCzzctUDXJCYE+Z0sH4TZc8lJBGgzRDwGYUKUdDccFpy
 
-      4mzG2Dx3iaK6vaNcPWGUjA9gTpt7
+      YRTaAJXhNFNeeQHU07uhmJxT2n5y
 
       -----END CERTIFICATE-----
 
@@ -3047,3 +4660,147 @@
   fields:
     AS: 14
     vpn: 3
+- model: scionlab.trc
+  pk: 1
+  fields:
+    isd: 2
+    version_serial: 1
+    base_version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    quorum: 1
+    trc: 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
+    core_ases:
+    - 1
+    votes: []
+    signatures:
+    - 1
+    - 2
+- model: scionlab.trc
+  pk: 2
+  fields:
+    isd: 4
+    version_serial: 1
+    base_version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    quorum: 2
+    trc: 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
+    core_ases:
+    - 5
+    - 6
+    votes: []
+    signatures:
+    - 9
+    - 10
+    - 14
+    - 15
+- model: scionlab.trc
+  pk: 3
+  fields:
+    isd: 5
+    version_serial: 1
+    base_version: 1
+    not_before: 2019-10-02 11:07:41
+    not_after: 2021-10-01 11:07:41
+    quorum: 2
+    trc: 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
+    core_ases:
+    - 10
+    - 11
+    votes: []
+    signatures:
+    - 22
+    - 23
+    - 27
+    - 28
+- model: scionlab.certificateintrc
+  pk: 1
+  fields:
+    certificate: 1
+    trc: 1
+    index: 0
+- model: scionlab.certificateintrc
+  pk: 2
+  fields:
+    certificate: 2
+    trc: 1
+    index: 1
+- model: scionlab.certificateintrc
+  pk: 3
+  fields:
+    certificate: 3
+    trc: 1
+    index: 2
+- model: scionlab.certificateintrc
+  pk: 4
+  fields:
+    certificate: 9
+    trc: 2
+    index: 0
+- model: scionlab.certificateintrc
+  pk: 5
+  fields:
+    certificate: 10
+    trc: 2
+    index: 1
+- model: scionlab.certificateintrc
+  pk: 6
+  fields:
+    certificate: 11
+    trc: 2
+    index: 2
+- model: scionlab.certificateintrc
+  pk: 7
+  fields:
+    certificate: 14
+    trc: 2
+    index: 3
+- model: scionlab.certificateintrc
+  pk: 8
+  fields:
+    certificate: 15
+    trc: 2
+    index: 4
+- model: scionlab.certificateintrc
+  pk: 9
+  fields:
+    certificate: 16
+    trc: 2
+    index: 5
+- model: scionlab.certificateintrc
+  pk: 10
+  fields:
+    certificate: 22
+    trc: 3
+    index: 0
+- model: scionlab.certificateintrc
+  pk: 11
+  fields:
+    certificate: 23
+    trc: 3
+    index: 1
+- model: scionlab.certificateintrc
+  pk: 12
+  fields:
+    certificate: 24
+    trc: 3
+    index: 2
+- model: scionlab.certificateintrc
+  pk: 13
+  fields:
+    certificate: 27
+    trc: 3
+    index: 3
+- model: scionlab.certificateintrc
+  pk: 14
+  fields:
+    certificate: 28
+    trc: 3
+    index: 4
+- model: scionlab.certificateintrc
+  pk: 15
+  fields:
+    certificate: 29
+    trc: 3
+    index: 5
