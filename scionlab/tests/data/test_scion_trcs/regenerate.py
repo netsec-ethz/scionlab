@@ -31,8 +31,8 @@ def regenerate_voting_certs(asid) -> None:
     cert = _build_certificate(subject=(
         key, _create_name(f"1-{asid}", f"1-{asid} Sensitive Voting Certificate")),
                               issuer=None,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_before + timedelta(days=1),
+                              not_before=not_before,
+                              not_after=not_before + timedelta(days=1),
                               extensions=_build_extensions_voting(key, OID_SENSITIVE_KEY))
     with open(f"voting-sensitive-{fasid}.key", "wb") as f:
         f.write(encode_key(key))
@@ -43,8 +43,8 @@ def regenerate_voting_certs(asid) -> None:
     cert = _build_certificate(subject=(
         key, _create_name(f"1-{asid}", f"1-{asid} Regular Voting Certificate")),
                               issuer=None,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_before + timedelta(days=1),
+                              not_before=not_before,
+                              not_after=not_before + timedelta(days=1),
                               extensions=_build_extensions_voting(key, OID_REGULAR_KEY))
     with open(f"voting-regular-{fasid}.key", "wb") as f:
         f.write(encode_key(key))
@@ -60,8 +60,8 @@ def regenerate_ca(asid):
     root_issuer = (key, _create_name(f"1-{asid}", f"1-{asid} High Security Root Certificate"))
     cert = _build_certificate(subject=root_issuer,
                               issuer=None,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_before + timedelta(days=1),
+                              not_before=not_before,
+                              not_after=not_before + timedelta(days=1),
                               extensions=_build_extensions_root(key))
     with open(f"root-{fasid}.key", "wb") as f:
         f.write(encode_key(key))
@@ -72,8 +72,8 @@ def regenerate_ca(asid):
     ca_issuer = (key, _create_name(f"1-{asid}", f"1-{asid} Secure CA Certificate"))
     cert = _build_certificate(subject=ca_issuer,
                               issuer=root_issuer,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_before + timedelta(days=1),
+                              not_before=not_before,
+                              not_after=not_before + timedelta(days=1),
                               extensions=_build_extensions_ca(key, root_issuer[0]))
     with open(f"ca-{fasid}.key", "wb") as f:
         f.write(encode_key(key))
@@ -91,8 +91,8 @@ def regenerate_ases():
         key = generate_key()
         cert = _build_certificate(subject=(key, _create_name(asid, f"Regular AS {asid}")),
                                   issuer=issuer,
-                                  notvalidbefore=datetime.utcnow(),
-                                  notvalidafter=datetime.utcnow() + timedelta(days=1),
+                                  not_before=datetime.utcnow(),
+                                  not_after=datetime.utcnow() + timedelta(days=1),
                                   extensions=_build_extensions_as(key, issuer[0]))
         fasid = asid.replace(":", "_")
         with open(f"as{fasid}.key", "wb") as f:

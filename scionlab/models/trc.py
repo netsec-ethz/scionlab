@@ -95,7 +95,7 @@ class TRCManager(models.Manager):
 
         trc = trcs.generate_trc(
             prev_trc=prev.trc if prev else None,
-            isd_id=isd.id,
+            isd_id=isd.isd_id,
             base=base,
             serial=serial,
             primary_ases=[c.as_id for c in core_ases],

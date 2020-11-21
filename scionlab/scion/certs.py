@@ -66,8 +66,8 @@ def _create_name(as_id: str, common_name: str) -> Name:
 
 def _build_certificate(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
                        issuer: Optional[Tuple[ec.EllipticCurvePrivateKey, Name]],
-                       notvalidbefore: datetime,
-                       notvalidafter: datetime,
+                       not_before: datetime,
+                       not_after: datetime,
                        extensions: Extensions) -> x509.Certificate:
     """ Builds a certificate from the parameters. The certificate is signed by the issuer. """
     issuer = issuer or subject
@@ -83,9 +83,9 @@ def _build_certificate(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
     ).serial_number(
         x509.random_serial_number()
     ).not_valid_before(
-        notvalidbefore
+        not_before
     ).not_valid_after(
-        notvalidafter
+        not_after
     )
     for p in extensions:
         cert_builder = cert_builder.add_extension(p[0], p[1])
@@ -142,8 +142,8 @@ def generate_voting_sensitive_certificate(subject_id: str,
     subject = (subject_key, _create_name(subject_id, CN_VOTING_SENSITIVE))
     return _build_certificate(subject=subject,
                               issuer=None,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_after,
+                              not_before=not_before,
+                              not_after=not_after,
                               extensions=_build_extensions_voting(subject_key, OID_SENSITIVE_KEY))
 
 
@@ -154,8 +154,8 @@ def generate_voting_regular_certificate(subject_id: str,
     subject = (subject_key, _create_name(subject_id, CN_VOTING_REGULAR))
     return _build_certificate(subject=subject,
                               issuer=None,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_after,
+                              not_before=not_before,
+                              not_after=not_after,
                               extensions=_build_extensions_voting(subject_key, OID_REGULAR_KEY))
 
 
@@ -169,8 +169,8 @@ def generate_issuer_root_certificate(subject_id: str,
     subject = (subject_key, _create_name(subject_id, CN_ISSUER_ROOT))
     return _build_certificate(subject=subject,
                               issuer=None,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_after,
+                              not_before=not_before,
+                              not_after=not_after,
                               extensions=_build_extensions_root(subject_key))
 
 
@@ -189,8 +189,8 @@ def generate_issuer_ca_certificate(subject_id: str,
     issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_ROOT))
     return _build_certificate(subject=subject,
                               issuer=issuer,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_after,
+                              not_before=not_before,
+                              not_after=not_after,
                               extensions=_build_extensions_ca(subject_key, issuer_key))
 
 
@@ -204,8 +204,8 @@ def generate_as_certificate(subject_id: str,
     issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_CA))
     return _build_certificate(subject=subject,
                               issuer=issuer,
-                              notvalidbefore=not_before,
-                              notvalidafter=not_after,
+                              not_before=not_before,
+                              not_after=not_after,
                               extensions=_build_extensions_as(subject_key, issuer_key))
 
 
