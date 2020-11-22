@@ -12,23 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+import base64
 import json
 import os
 import random
-import datetime
 from contextlib import ExitStack
 from unittest.mock import patch
 from scionlab.fixtures import testtopo, testuser, testuseras
 from scionlab.openvpn_config import _generate_private_key
 from scionlab.scion.keys import generate_key
 from scionlab.scion.certs import _build_certificate
+from scionlab.scion.trcs import generate_trc
 
 
 def create_testdata():
     random.seed(0)
     with patch_os_urandom(), patch_django_utils_crypto_random(), \
             patch_time(), patch_datetime(), patch_generate_vpn_private_key(), \
-            patch_generate_as_private_key(), patch_build_certificate():
+            patch_generate_as_private_key(), patch_build_certificate(), patch_generate_trc():
         testuser.create_testusers()
         testtopo.create_testtopo()
         testuseras.create_testuserases()
@@ -101,7 +103,49 @@ def patch_build_certificate():
     fixture_dir = os.path.dirname(os.path.abspath(__file__))
     cert_file = os.path.join(fixture_dir, 'testdata-as-certs.json')
 
-    return CertPatcher(cert_file)
+    def key_fun(*args, **kwargs):
+        # computes the dictionary key, when called mocking _build_certificate
+        return ' | '.join([str(kwargs['subject'][1][5][1]),
+                           str(kwargs['issuer'][1][5][1]) if kwargs['issuer'] else 'None',
+                           str(kwargs['not_before']),
+                           str(kwargs['not_after'])])
+
+    def encode_cert(cert):
+        from cryptography.hazmat.primitives import serialization
+        return cert.public_bytes(serialization.Encoding.PEM).decode('ascii')
+
+    def decode_cert(cert):
+        from cryptography import x509
+        from cryptography.hazmat.backends import default_backend
+        return x509.load_pem_x509_certificate(cert.encode('ascii'), default_backend())
+
+    return ObjectCacher(cert_file, _build_certificate, key_fun, encode_cert, decode_cert)
+
+
+def patch_generate_trc():
+    fixture_dir = os.path.dirname(os.path.abspath(__file__))
+    trc_file = os.path.join(fixture_dir, 'testdata-trcs.json')
+
+    def key_fun(*args, **kwargs):
+        # computes the dictionary key, when called mocking generate_trc
+        return ' | '.join([str(kwargs['isd_id']),
+                           str(kwargs['base']),
+                           str(kwargs['serial']),
+                           str(kwargs['primary_ases']),
+                           str(kwargs['quorum']),
+                           str(kwargs['votes']),
+                           str(kwargs['grace_period']),
+                           str(kwargs['not_before']),
+                           str(kwargs['not_after'])])
+
+    def encode_trc(trc):
+        # these are simply bytes
+        return base64.b64encode(trc).decode('ascii')
+
+    def decode_trc(trc):
+        return base64.b64decode(trc.encode('ascii'))
+
+    return ObjectCacher(trc_file, generate_trc, key_fun, encode_trc, decode_trc)
 
 
 def _load_or_create_vpn_keys():
@@ -149,12 +193,18 @@ def _dump_keys(keys, path):
             f.write(base64.b64encode(k_der).decode() + '\n')
 
 
-class CertPatcher:
-    def __init__(self, filename):
+class ObjectCacher:
+    def __init__(self, filename, generate_fun, key_fun, encode_fun, decode_fun):
         self.filename = filename
-        self.certs = self._load()
+        self.generate_fun = generate_fun
+        self.key_fun = key_fun
+        self.encode_fun = encode_fun
+        self.decode_fun = decode_fun
+
+        self.objs = self._load()
         self.dirty = False
-        self.patched = patch('scionlab.scion.certs._build_certificate', side_effect=self.get_cert)
+        self.patched = patch(f"{generate_fun.__module__}.{generate_fun.__name__}",
+                             side_effect=self.mock_generate_fun)
 
     def __enter__(self):
         self.patched.__enter__()
@@ -162,50 +212,34 @@ class CertPatcher:
     def __exit__(self, *exc_info):
         if self.dirty:
             self._save()
-            print("Certificates file HAS CHANGED!")
+            print(f"{self.filename} file HAS CHANGED!")
         self.patched.__exit__(*exc_info)
 
-    def get_cert(self, subject, issuer, not_before, not_after, extensions):
-        key = ' | '.join([str(subject[1][5][1]),
-                          str(issuer[1][5][1]) if issuer else 'None',
-                          str(not_before),
-                          str(not_after)])
-
-        c = self.certs.setdefault(key, None)
+    def mock_generate_fun(self, *args, **kwargs):
+        key = self.key_fun(*args, **kwargs)
+        c = self.objs.get(key, None)
         if c is None:
             self.dirty = True
-            c = _build_certificate(subject, issuer, not_before, not_after, extensions)
-            self.certs[key] = c
+            c = self.generate_fun(*args, **kwargs)
+            self.objs[key] = c
 
         return c
 
     def _load(self):
         if os.path.exists(self.filename):
             with open(self.filename) as f:
-                return self._decode_certs(json.load(f))
+                encoded = json.load(f)
+            raw = {}
+            for k, v in encoded.items():
+                raw[k] = self.decode_fun(v)
+            return raw
         else:
             return {}
 
     def _save(self):
-        # encode all certs
+        # encode all objs
+        encoded = {}
+        for k, v in self.objs.items():
+            encoded[k] = self.encode_fun(v)
         with open(self.filename, 'w') as f:
-            json.dump(self._encode_certs(self.certs), f, sort_keys=True, indent=2)
-
-    @staticmethod
-    def _encode_certs(certs):
-        from cryptography.hazmat.primitives import serialization
-
-        serialized = {}
-        for k, v in certs.items():
-            serialized[k] = v.public_bytes(serialization.Encoding.PEM).decode('ascii')
-        return serialized
-
-    @staticmethod
-    def _decode_certs(certs):
-        from cryptography import x509
-        from cryptography.hazmat.backends import default_backend
-
-        raw = {}
-        for k, v in certs.items():
-            raw[k] = x509.load_pem_x509_certificate(v.encode('ascii'), default_backend())
-        return raw
+            json.dump(encoded, f, sort_keys=True, indent=2)
