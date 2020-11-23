@@ -54,7 +54,7 @@ class TRCManager(models.Manager):
         :param isd ISD object.
         """
         prev = isd.trcs.latest_or_none()
-        serial = prev.version_serial + 1 if prev else 1
+        serial = prev.serial_version + 1 if prev else 1
         core_ases = AS.objects.filter(isd=isd, is_core=True)
         quorum = len(core_ases) // 2 + 1
         certificates = _coreas_certificates(isd)
@@ -108,7 +108,7 @@ class TRCManager(models.Manager):
             signers_certs=[s.certificate for s in signers],
             signers_keys=[s.key.key for s in signers],
         )
-        obj = super().create(isd=isd, version_serial=serial, base_version=base,
+        obj = super().create(isd=isd, serial_version=serial, base_version=base,
                              not_before=not_before, not_after=not_after,
                              quorum=quorum, trc=trcs.encode_trc(trc))
         obj.core_ases.set(core_ases)
@@ -121,7 +121,7 @@ class TRCManager(models.Manager):
     def latest(self):
         """ there could be more than one TRC with the same serial, but the latest is the one
         that has its base the further in the sequence """
-        return super().latest("version_serial", "base_version")
+        return super().latest("serial_version", "base_version")
 
     def latest_or_none(self):
         try:
@@ -139,7 +139,7 @@ class TRC(models.Model):
     )
 
     # the serial version should be incremented monotonically.
-    version_serial = models.PositiveIntegerField(editable=False, default=1)
+    serial_version = models.PositiveIntegerField(editable=False, default=1)
     # the base version points at the serial which represents the anchor of an update chain.
     # when the base version is equal to the serial version, this TRC is the anchor, and
     # there is no update, but a creation from scratch.
@@ -192,7 +192,7 @@ class TRC(models.Model):
     class Meta:
         verbose_name = 'TRC'
         verbose_name_plural = 'TRCs'
-        unique_together = ('isd', 'version_serial', 'base_version')
+        unique_together = ('isd', 'serial_version', 'base_version')
 
     def add_core_as(self, AS):
         """ adds the AS to the core ases list, and its certificates to the cert. list """
@@ -242,7 +242,7 @@ class TRC(models.Model):
         return self.filename()
 
     def filename(self) -> str:
-        return f"ISD{self.isd.isd_id}-B{self.base_version}-S{self.version_serial}"
+        return f"ISD{self.isd.isd_id}-B{self.base_version}-S{self.serial_version}"
 
     def update_regular_impossible(self):
         """
@@ -287,9 +287,9 @@ class TRC(models.Model):
         Finds and returns the predecessor (anchor) TRC. If this is a base TRC, it returns "self".
         Returns None iff there is a gap in the TRC serial sequence.
         """
-        if self.base_version == self.version_serial:
+        if self.base_version == self.serial_version:
             return self
-        prev = TRC.objects.filter(isd=self.isd, version_serial=self.version_serial - 1)
+        prev = TRC.objects.filter(isd=self.isd, serial_version=self.serial_version - 1)
         return prev.get() if prev.exists() else None
 
 

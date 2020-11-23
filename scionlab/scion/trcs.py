@@ -21,6 +21,7 @@ import base64
 import os
 import subprocess
 import toml
+import yaml
 
 from collections import namedtuple
 from contextlib import contextmanager
@@ -45,6 +46,17 @@ def encode_trc(trc: bytes) -> str:
 
 def decode_trc(trc: str) -> bytes:
     return base64.b64decode(trc.encode('ascii'))
+
+
+def trc_to_dict(trc: bytes) -> dict:
+    with NamedTemporaryFile('wb') as f:
+        f.write(trc)
+        f.flush()
+        ret = _raw_run_scion_cppki("human", "--format", "yaml", f.name)
+    stdout = ret.stdout.decode("utf-8")
+    if ret.returncode != 0:
+        raise Exception(f"{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}")
+    return yaml.safe_load(stdout)
 
 
 def generate_trc(prev_trc: bytes,

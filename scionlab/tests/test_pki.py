@@ -125,8 +125,6 @@ class CertificateTests(TestCase):
         self.assertEqual(cert.ca_cert, cert)  # self signed
         self.assertEqual(cert.not_before, datetime.fromtimestamp(11))  # valid intersection
         self.assertEqual(cert.not_after, datetime.fromtimestamp(12))
-        with open("/tmp/cert.crt", "wb") as f:
-            f.write(cert.certificate.encode("ascii"))
 
     def test_create_voting_regular_cert(self):
         k = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_REGULAR,
@@ -315,6 +313,6 @@ def _create_AS(isd, as_id, is_core=False):
 def _create_TRC(isd, serial, base):
     # avoid using the create methods from the TRCManager
     trc = TRC(isd=isd, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-              base_version=base, version_serial=serial)
+              base_version=base, serial_version=serial)
     trc.save()
     return trc

@@ -278,6 +278,10 @@ class AS(TimestampedModel):
         """
         return self.isd_as_str().replace(":", "_")
 
+    def certificates(self):
+        """ returns a queryset of all of this AS' certificates """
+        return Certificate.objects.filter(key__AS=self)
+
     def init_keys(self):
         """
         Create the control plane AS private key for this AS.
@@ -373,8 +377,8 @@ class AS(TimestampedModel):
         # Keep versions increasing (by generating new cert before deleting old ones); in case we
         # move back to the original ISD, we need to have a version number different from the
         # original certificate.
-        latest = self.certificates.latest(Certificate.CHAIN)
-        self.certificates.exclude(id=latest.pk).delete()
+        latest = self.certificates().latest(Key.CP_AS)
+        self.certificates().exclude(id=latest.pk).delete()
 
         self.hosts.bump_config()
 

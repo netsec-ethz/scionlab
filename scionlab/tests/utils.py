@@ -22,15 +22,15 @@ import tarfile
 import logging
 
 from collections import namedtuple, Counter, OrderedDict
-from tempfile import mktemp
+from tempfile import NamedTemporaryFile
 
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
 from scionlab.models.pki import Key, Certificate
 from scionlab.models.trc import TRC
 from scionlab.models.user_as import UserAS
-from scionlab.scion import keys, jws
-from scionlab.scion.trcs import _raw_run_scion_cppki
+from scionlab.scion import trcs
+
 
 def check_topology(testcase):
     """
@@ -274,20 +274,20 @@ def _check_keys_for_usage(testcase, as_, key_usage):
 
 def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_version=None):
     """
-    Check the ISD's TRC and return it as a TRC object.
-    Check that the current TRC can be verified with `prev_trc`.
+    Check the ISD's TRC.
     Check the certificates for all ASes in the ISD.
 
     :param int isd_id:
     :param [str] expected_core_ases: ISD-AS strings for all core ases
-    :param int expected_version: optional, expected version for current TRC.
+    :param (int, int) expected_version: optional, expected (serial, base) for current TRC.
     """
     isd = ISD.objects.get(isd_id=isd_id)
     check_trc(testcase, isd, expected_core_ases, expected_version)
     for as_ in isd.ases.iterator():
         check_cert_chain(testcase, as_.certificates.latest(Certificate.CHAIN))
         if as_.is_core:
-            check_issuer_cert(testcase, as_.certificates.latest(Certificate.ISSUER),
+            # TODO:
+            check_issuer_cert(testcase, as_.certificates().latest(Key.ISSUING_CA),
                               expected_trc_version=expected_version)
 
 
@@ -296,7 +296,7 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     Check the ISD's latest TRC
     :param ISD isd:
     :param [str] expected_core_ases: optional, ISD-AS strings for all core ases
-    :param int expected_version: optional, expected version for current TRC.
+    :param (int, int) expected_version: optional, expected (serial, base) for current TRC.
     """
     if expected_core_ases is None:
         expected_core_ases = set(as_.as_id for as_ in isd.ases.filter(is_core=True))
@@ -305,25 +305,23 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     if len(expected_core_ases) > 0:
         testcase.assertIsNotNone(trc)
     if expected_version is not None:
-        testcase.assertEqual(trc.version, expected_version)
+        testcase.assertEqual(trc.serial_version, expected_version[0])
+        testcase.assertEqual(trc.base_version, expected_version[1])
     if trc is None:
         return
 
-    trc_pld = jws.decode_payload(trc.trc)
-    testcase.assertEqual(trc_pld['trc_version'], trc.version)
-    testcase.assertEqual(set(trc_pld['primary_ases'].keys()), set(expected_core_ases))
+    # trc_pld = jws.decode_payload(trc.trc)
+    trc_pld = trcs.decode_trc(trc.trc)
+    trc_dict = trcs.trc_to_dict(trc_pld)
+    testcase.assertEqual(trc_dict['id']['serial_number'], trc.serial_version)
+    testcase.assertEqual(trc_dict['id']['base_number'], trc.base_version)
+    testcase.assertEqual(set(trc_dict['primary_ases']), set(expected_core_ases))
 
     if trc.version > 1:
         # Check that TRC update is valid
-        prev_trc = isd.trcs.get(version=trc.version-1)
-        prev_trc_pld = jws.decode_payload(prev_trc.trc)
-        # Minimal check:
-        voters = set(trc_pld['votes'].keys())
-        allowed_voters = set(prev_trc_pld['primary_ases'].keys())
-        testcase.assertTrue(voters.issubset(allowed_voters))
-        testcase.assertGreaterEqual(len(trc_pld['votes']), prev_trc_pld['voting_quorum'])
-        # TODO(matzf): how to verify votes & signatures without re-implementing the logic?
-        # Would be nice to use `scion-pki trcs verify` for this. But how?
+        prev_trc = isd.trcs.get(serial_version=trc.serial_version-1)
+        prev_trc_pld = trcs.decode_trc(prev_trc.trc)
+        check_scion_trc(testcase, trc_pld, prev_trc_pld)
 
 
 def check_core_as_certs(testcase, isd):
@@ -587,11 +585,11 @@ def subprocess_call_log(*popenargs, timeout=None, **kwargs):
 
 
 def check_scion_trc(testcase, trc, anchor_trc):
-    trc_file = mktemp()
-    with open(trc_file, "wb") as f:
-        f.write(trc)
-    anchor_file = mktemp()
-    with open(anchor_file, "wb") as f:
-        f.write(anchor_trc)
-    ret = _raw_run_scion_cppki("verify", "--anchor", anchor_file, trc_file)
-    testcase.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
+    with NamedTemporaryFile('wb') as trc_file, NamedTemporaryFile('wb') as anchor_file:
+        trc_file.write(trc)
+        trc_file.flush()
+        anchor_file.write(anchor_trc)
+        anchor_file.flush()
+
+        ret = trcs._raw_run_scion_cppki("verify", "--anchor", anchor_file.name, trc_file.name)
+        testcase.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
