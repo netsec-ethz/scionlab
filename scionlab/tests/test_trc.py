@@ -199,7 +199,7 @@ class TRCCreationTests(TestCase):
         self._create_ases()
         trc = TRC.objects.create(self.isd1)
 
-        check_scion_trc(self, trc.trc, trc.trc)
+        check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(trc.trc))
         self.assertEqual(trc.version_serial, trc.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), trc)
         self.assertFalse(trc.votes.exists())
@@ -210,7 +210,7 @@ class TRCCreationTests(TestCase):
         prev = TRC.objects.create(self.isd1)
         trc = TRC.objects.create(self.isd1)
 
-        check_scion_trc(self, trc.trc, prev.trc)
+        check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(prev.trc))
         self.assertEqual(trc.version_serial, prev.version_serial + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
@@ -226,7 +226,7 @@ class TRCCreationTests(TestCase):
         Certificate.objects.create_all_certs(as4)
         trc = TRC.objects.create(self.isd1)
 
-        check_scion_trc(self, trc.trc, prev.trc)
+        check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(prev.trc))
         self.assertEqual(trc.version_serial, prev.version_serial + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
@@ -242,7 +242,7 @@ class TRCCreationTests(TestCase):
         trc = TRC.objects.latest()
 
         # check it's a sensitive update
-        check_scion_trc(self, trc.trc, prev.trc)
+        check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(prev.trc))
         self.assertEqual(trc.version_serial, prev.version_serial + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
@@ -279,7 +279,7 @@ class ExpiredCertsTests(TestCase):
         trc = TRC.objects.create(isd1)
 
         # despite being created with currently expired material, all is good:
-        check_scion_trc(self, trc.trc, prev.trc)
+        check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(prev.trc))
         # and check this is just an update
         self.assertEqual(trc.version_serial, prev.version_serial + 1)
         self.assertEqual(trc.base_version, prev.base_version)
@@ -307,7 +307,7 @@ class ExpiredCertsTests(TestCase):
         trc = TRC.objects.create(isd1)
 
         # we should get a base TRC
-        check_scion_trc(self, trc.trc, trc.trc)
+        check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(trc.trc))
         self.assertEqual(trc.version_serial, prev.version_serial + 1)
         self.assertEqual(trc.base_version, trc.version_serial)
         self.assertEqual(trc.predecessor_trc_or_none(), trc)

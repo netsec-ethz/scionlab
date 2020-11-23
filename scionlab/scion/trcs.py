@@ -17,6 +17,7 @@
 ===========================================
 """
 
+import base64
 import os
 import subprocess
 import toml
@@ -38,12 +39,21 @@ CoreKeys = namedtuple('CoreKeys', ['issuing_grant', 'voting_online', 'voting_off
 CoreKeySet = Dict[str, Key]
 
 
-def generate_trc(prev_trc, isd_id, base, serial,
-                 primary_ases, quorum, votes,
-                 grace_period, not_before, not_after,
+def encode_trc(trc: bytes) -> str:
+    return base64.b64encode(trc).decode('ascii')
+
+
+def decode_trc(trc: str) -> bytes:
+    return base64.b64decode(trc.encode('ascii'))
+
+
+def generate_trc(prev_trc: bytes,
+                 isd_id: int, base: int, serial: int,
+                 primary_ases: List[str], quorum: int, votes: List[int],
+                 grace_period: timedelta, not_before: datetime, not_after: datetime,
                  certificates: List[str],
                  signers_certs: List[str],
-                 signers_keys: List[str]):
+                 signers_keys: List[str]) -> bytes:
     """
     Generate a new TRC.
     This method is the interface between the DB objects and the scion PKI ones.

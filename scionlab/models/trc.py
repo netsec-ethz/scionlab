@@ -94,7 +94,7 @@ class TRCManager(models.Manager):
         votes_idx = prev.get_certificate_indices(votes) if prev else []
 
         trc = trcs.generate_trc(
-            prev_trc=prev.trc if prev else None,
+            prev_trc=trcs.decode_trc(prev.trc) if prev else None,
             isd_id=isd.isd_id,
             base=base,
             serial=serial,
@@ -110,7 +110,7 @@ class TRCManager(models.Manager):
         )
         obj = super().create(isd=isd, version_serial=serial, base_version=base,
                              not_before=not_before, not_after=not_after,
-                             quorum=quorum, trc=trc)
+                             quorum=quorum, trc=trcs.encode_trc(trc))
         obj.core_ases.set(core_ases)
         obj.add_certificates(certificates)
         obj.votes.set(votes)
@@ -185,7 +185,7 @@ class TRC(models.Model):
         related_name="trc_signatures",
     )
 
-    trc = models.BinaryField()  # in binary DER format
+    trc = models.TextField(editable=False)  # in DER format, base64 encoded
 
     objects = TRCManager()
 

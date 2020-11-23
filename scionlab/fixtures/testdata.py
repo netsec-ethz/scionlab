@@ -138,11 +138,11 @@ def patch_generate_trc():
                            str(kwargs['not_before']),
                            str(kwargs['not_after'])])
 
-    def encode_trc(trc):
+    def encode_trc(trc: bytes) -> str:
         # these are simply bytes
         return base64.b64encode(trc).decode('ascii')
 
-    def decode_trc(trc):
+    def decode_trc(trc: str) -> bytes:
         return base64.b64decode(trc.encode('ascii'))
 
     return ObjectCacher(trc_file, generate_trc, key_fun, encode_trc, decode_trc)
@@ -167,7 +167,6 @@ def _load_or_create_as_keys():
 
 
 def _load_keys(path):
-    import base64
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.backends import default_backend
     with open(path) as f:
@@ -181,7 +180,6 @@ def _load_keys(path):
 
 
 def _dump_keys(keys, path):
-    import base64
     from cryptography.hazmat.primitives import serialization
     with open(path, 'w') as f:
         for key in keys:
