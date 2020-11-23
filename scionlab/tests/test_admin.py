@@ -154,3 +154,9 @@ class LinkAdminViewTests(WebTest):
 
         link = Link.objects.get()
         self.assertEqual(link.type, Link.PROVIDER)
+
+        # The variable `ases` is a  generator and it will be closed on it being garbage collected.
+        # Its contains a reference to a cursor, that will attempt to work with the DB (closing
+        # the query), when being deallocated.
+        # Avoid that by closing it beforehand:
+        ases = None

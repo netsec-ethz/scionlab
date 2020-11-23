@@ -210,8 +210,8 @@ class TRC(models.Model):
 
     def add_certificates(self, certs):
         count = self.certificates.count()
-        for i in range(len(certs)):
-            CertificateInTRC.objects.create(trc=self, certificate=certs[i],
+        for i, c in enumerate(certs):
+            CertificateInTRC.objects.create(trc=self, certificate=c,
                                             index=count + i)
 
     def set_certificates(self, certs):
