@@ -20,13 +20,13 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Tuple
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
-from scionlab.scion.trcs import TRCConf, generate_trc
+from scionlab.scion.trcs import TRCConf, generate_trc, trc_to_dict
 from scionlab.tests.utils import check_scion_trc
 
 _TESTDATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/test_scion_trcs")
 
 
-class TRCCreation(TestCase):
+class TRCCreationTests(TestCase):
     """ tests the correct behavior of the TRCConf class """
     def test_validate(self):
         kwargs = _trcconf_args_dict()
@@ -123,8 +123,8 @@ class TRCCreation(TestCase):
             for (cert, key) in signers:
                 signed_payloads.append(c.sign_payload(cert, key))
             trc = c.combine(*signed_payloads)
-            # verify the trc with a call to scion-pki (would raise if error)
-            check_scion_trc(self, trc, trc)
+        # verify the trc with a call to scion-pki (would raise if error)
+        check_scion_trc(self, trc, trc)
 
     def test_generate_trc(self):
         # generate a new TRC using the generate_trc function
@@ -237,6 +237,35 @@ class TRCUpdate(TestCase):
                            signers_keys=[k.decode("ascii") for k in skeys])
         # test final trc
         check_scion_trc(self, trc, predec_trc)
+
+
+class TRCTests(TestCase):
+    def test_trc_to_dict(self):
+        with open(os.path.join(_TESTDATA_DIR, "trc-3.trc"), 'rb') as f:
+            trc = f.read()
+        d = trc_to_dict(trc)
+
+        # important keys present:
+        for k in ['id', 'validity', 'votes', 'core_ases', 'certificates', 'signatures']:
+            self.assertTrue(k in d)
+        # check the id fields:
+        for k in ['isd', 'base_number', 'serial_number']:
+            self.assertTrue(k in d['id'], f'key {k} not present in {d["id"]}')
+        # check validity:
+        for k in ['not_before', 'not_after']:
+            self.assertTrue(k in d['validity'], f'key {k} not present in {d["validity"]}')
+        # check votes
+        iter(d['votes'])  # it should be iterable (e.g. list). Exception otherwise.
+        # check core_ases
+        iter(d['core_ases'])  # exception if not iterable
+        # check certificates format. Should be a collection of certificates.
+        certs = next(iter(d['certificates']))  # exception if not iterable
+        for k in ['type', 'common_name', 'validity', 'serial_number']:
+            self.assertTrue(k in certs, f'key {k} not present in {certs}')
+        # signatures:
+        signatures = next(iter(d['signatures']))
+        for k in ['common_name', 'isd_as', 'serial_number', 'signing_time']:
+            self.assertTrue(k in signatures, f'key {k} not present in {signatures}')
 
 
 def _trcconf_args_dict():

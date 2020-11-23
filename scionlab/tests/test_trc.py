@@ -90,7 +90,7 @@ class TRCUpdateTests(TestCase):
         Certificate.objects.create_core_certs(as1)
         self._reset_core_ases(trc1)
         trc2 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-                   base_version=1, version_serial=2)
+                   base_version=1, serial_version=2)
         trc2.save()
         self._reset_core_ases(trc2)
         self.assertFalse(trc2.update_regular_impossible())
@@ -109,27 +109,27 @@ class TRCUpdateTests(TestCase):
         trc2.save()
         # sanity check
         trc3 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-                   base_version=1, version_serial=3)
+                   base_version=1, serial_version=3)
         trc3.save()
         self._reset_core_ases(trc3)
         self.assertFalse(trc3.update_regular_impossible())
         # change sensitive voting cert (only the cert suffices)
         Certificate.objects.create_voting_sensitive_cert(as1)
         trc4 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-                   base_version=1, version_serial=4)
+                   base_version=1, serial_version=4)
         trc4.save()
         self._reset_core_ases(trc4)
         self.assertTrue(trc4.update_regular_impossible())  # sensitive voting different
         self.assertIn("sensitive vote", trc4.update_regular_impossible())
         # sanity check
         trc5 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-                   base_version=1, version_serial=5)
+                   base_version=1, serial_version=5)
         trc5.save()
         self._reset_core_ases(trc5)
         self.assertFalse(trc5.update_regular_impossible())
         # change number of included certificates
         trc6 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-                   base_version=1, version_serial=6)
+                   base_version=1, serial_version=6)
         trc6.save()
         self._reset_core_ases(trc6)
         trc6.certificateintrc_set.filter(certificate__key__usage=Key.ISSUING_ROOT).last().delete()
@@ -138,7 +138,7 @@ class TRCUpdateTests(TestCase):
         # change regular voting certificate, not part of voters
         self._reset_core_ases(trc6)
         trc7 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-                   base_version=1, version_serial=7)
+                   base_version=1, serial_version=7)
         trc7.save()
         self._reset_core_ases(trc7)
         self.assertFalse(trc7.update_regular_impossible())
@@ -157,7 +157,7 @@ class TRCUpdateTests(TestCase):
 
         # change root certificate, not part of voters
         trc8 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-                   base_version=1, version_serial=8)
+                   base_version=1, serial_version=8)
         trc8.save()
         self._reset_core_ases(trc8)
         self.assertFalse(trc8.update_regular_impossible())
@@ -200,7 +200,7 @@ class TRCCreationTests(TestCase):
         trc = TRC.objects.create(self.isd1)
 
         check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(trc.trc))
-        self.assertEqual(trc.version_serial, trc.base_version)
+        self.assertEqual(trc.serial_version, trc.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), trc)
         self.assertFalse(trc.votes.exists())
         self.assertEqual(trc.quorum, 2)
@@ -211,7 +211,7 @@ class TRCCreationTests(TestCase):
         trc = TRC.objects.create(self.isd1)
 
         check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(prev.trc))
-        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
         self.assertTrue(trc.votes.exists())
@@ -227,7 +227,7 @@ class TRCCreationTests(TestCase):
         trc = TRC.objects.create(self.isd1)
 
         check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(prev.trc))
-        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
         self.assertTrue(trc.votes.exists())
@@ -243,7 +243,7 @@ class TRCCreationTests(TestCase):
 
         # check it's a sensitive update
         check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(prev.trc))
-        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
         self.assertTrue(trc.votes.exists())
@@ -281,7 +281,7 @@ class ExpiredCertsTests(TestCase):
         # despite being created with currently expired material, all is good:
         check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(prev.trc))
         # and check this is just an update
-        self.assertEqual(trc.version_serial, prev.version_serial + 1)
+        self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
         self.assertTrue(trc.votes.exists())
@@ -308,8 +308,8 @@ class ExpiredCertsTests(TestCase):
 
         # we should get a base TRC
         check_scion_trc(self, trcs.decode_trc(trc.trc), trcs.decode_trc(trc.trc))
-        self.assertEqual(trc.version_serial, prev.version_serial + 1)
-        self.assertEqual(trc.base_version, trc.version_serial)
+        self.assertEqual(trc.serial_version, prev.serial_version + 1)
+        self.assertEqual(trc.base_version, trc.serial_version)
         self.assertEqual(trc.predecessor_trc_or_none(), trc)
         self.assertFalse(trc.votes.exists())
 
@@ -496,7 +496,7 @@ def _create_AS(isd, as_id, is_core=False):
 def _create_TRC(isd, serial, base):
     # avoid using the create methods from the TRCManager
     trc = TRC(isd=isd, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
-              base_version=base, version_serial=serial)
+              base_version=base, serial_version=serial)
     trc.save()
     return trc
 

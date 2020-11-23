@@ -32,7 +32,7 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
         as1_id = 'ffaa:0:101'
         as2_id = 'ffaa:0:102'
         AS.objects.create(isd, as1_id, is_core=True)
-        utils.check_trc_and_certs(self, 1, {as1_id}, expected_version=1)
+        utils.check_trc_and_certs(self, 1, {as1_id}, expected_version=(1, 1))
 
         AS.objects.create(isd, as2_id, is_core=True)
         utils.check_trc_and_certs(self, 1, {as1_id, as2_id}, expected_version=2)
