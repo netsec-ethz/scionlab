@@ -384,9 +384,9 @@ class TRCConf:
 
     def combine(self, *signed) -> bytes:
         """ returns the final TRC by combining the signed blocks and payload """
-        for i in range(len(signed)):
+        for i, s in enumerate(signed):
             with open(os.path.join(self._temp_dir, f"signed-{i}.der"), "wb") as f:
-                f.write(signed[i])
+                f.write(s)
         self._run_scion_cppki(
             "combine", "-p", self._payload_filename(),
             *(f"signed-{i}.der" for i in range(len(signed))),

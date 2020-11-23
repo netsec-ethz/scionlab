@@ -243,11 +243,8 @@ def check_as_keys(testcase, as_):
     """
     testcase.assertIsNotNone(as_)
 
-    _check_keys_for_usage(testcase, as_, Key.SIGNING)
-    _check_keys_for_usage(testcase, as_, Key.DECRYPT)
-
+    _check_keys_for_usage(testcase, as_, Key.CP_AS)
     testcase.assertIsNotNone(as_.master_as_key)
-    _sanity_check_base64(testcase, as_.master_as_key)
 
 
 def check_as_core_keys(testcase, as_):
@@ -257,10 +254,10 @@ def check_as_core_keys(testcase, as_):
     :param scionlab.models.AS as_: The AS with the key-pairs to check
     """
     testcase.assertIsNotNone(as_)
-    _check_keys_for_usage(testcase, as_, Key.CERT_SIGNING)
-    _check_keys_for_usage(testcase, as_, Key.TRC_ISSUING_GRANT)
-    _check_keys_for_usage(testcase, as_, Key.TRC_VOTING_ONLINE)
-    _check_keys_for_usage(testcase, as_, Key.TRC_VOTING_OFFLINE)
+    _check_keys_for_usage(testcase, as_, Key.ISSUING_CA)
+    _check_keys_for_usage(testcase, as_, Key.ISSUING_ROOT)
+    _check_keys_for_usage(testcase, as_, Key.TRC_VOTING_REGULAR)
+    _check_keys_for_usage(testcase, as_, Key.TRC_VOTING_SENSITIVE)
 
 
 def _check_keys_for_usage(testcase, as_, key_usage):
@@ -272,17 +269,7 @@ def _check_keys_for_usage(testcase, as_, key_usage):
     for i, key in enumerate(ks):
         testcase.assertEqual(key.version, i+1)
         testcase.assertGreater(len(key.key), 0)
-        testcase.assertIsNotNone(keys.Base64StringEncoder.decode(key.key))
-
-
-def _sanity_check_base64(testcase, s):
-    """
-    Check that string s looks like base64 encoded data
-    """
-    base64_pattern = re.compile(
-        r"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
-    )
-    testcase.assertTrue(base64_pattern.match(s))
+        testcase.assertIsNotNone(key.key)
 
 
 def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_version=None):
