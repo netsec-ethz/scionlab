@@ -81,8 +81,8 @@ class UserASManager(models.Manager):
             master_as_key=AS._make_master_as_key()
         )
 
-        user_as.init_keys()
-        user_as.generate_certificate_chain()
+        user_as.generate_keys()
+        user_as.generate_certs()
         user_as.init_default_services()
 
         return user_as
