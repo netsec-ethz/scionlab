@@ -195,7 +195,7 @@ class CertificateManager(models.Manager):
         else:
             core_certs = []
             issuer = Key.objects.filter(AS__isd=subject.isd, AS__is_core=True).first().AS
-        return [self.create_as_cert(subject, issuer, not_before, not_after)] + core_certs
+        return [self.create_cp_as_cert(subject, issuer, not_before, not_after)] + core_certs
 
     def create_core_certs(self, subject, not_before=None, not_after=None):
         return [f(subject, not_before, not_after)
@@ -229,7 +229,7 @@ class CertificateManager(models.Manager):
         return self._create_cert(
             certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
 
-    def create_as_cert(self, subject, issuer, not_before=None, not_after=None):
+    def create_cp_as_cert(self, subject, issuer, not_before=None, not_after=None):
         """ An AS cert is signed by the CA cert of the issuer """
         subject_key = subject.keys.latest(usage=Key.CP_AS)
         issuer_key = issuer.keys.latest(usage=Key.ISSUING_CA)
@@ -237,8 +237,11 @@ class CertificateManager(models.Manager):
         return self._create_cert(
             certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
 
-    def latest(self, usage):
-        return self.filter(key__usage=usage).latest('version')
+    def latest(self, usage, AS=None):
+        certs = self.filter(key__usage=usage)
+        if AS:
+            certs = certs.filter(key__AS=AS)
+        return certs.latest('version')
 
     def _create_self_signed_cert(self, subject, not_before, not_after, usage, fcn):
         key = subject.keys.latest(usage=usage)
@@ -272,6 +275,7 @@ class CertificateManager(models.Manager):
             certificate=certs.encode_certificate(cert).decode("ascii"),  # PEM encoded
         )
         cert.ca_cert = issuer_key.certificates.latest(issuer_key.usage) if issuer_key else cert
+        cert.save()
         return cert
 
 

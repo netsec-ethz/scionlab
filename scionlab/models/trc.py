@@ -75,7 +75,7 @@ class TRCManager(models.Manager):
                 added_core_certs = certificates.filter(key__usage__in=[
                     Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR]).difference(
                         prev.certificates.filter())
-                signers = votes | added_core_certs
+                signers = votes.union(added_core_certs)
             # prepare to check that there exists a non-empty validity window:
             not_before, not_after = _validity(*[*certificates, *signers])
             if (not_after - not_before).total_seconds() <= 0:
@@ -198,7 +198,7 @@ class TRC(models.Model):
         """ adds the AS to the core ases list, and its certificates to the cert. list """
         certs = []
         for usage in [Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]:
-            certs.append(AS.keys.latest(usage).certificates.latest(usage))
+            certs.append(Certificate.objects.latest(usage, AS))
         self.core_ases.add(AS)
         self.add_certificates(certs)
         self.quorum = self.core_ases.count() // 2 + 1
