@@ -56,7 +56,7 @@ def check_as(testcase, as_):
 
     check_as_services(testcase, as_)
     check_as_keys(testcase, as_)
-    check_cert_chains(testcase, as_)
+    check_as_certs(testcase, as_)
     if as_.is_core:
         check_as_core_keys(testcase, as_)
         check_issuer_certs(testcase, as_)
@@ -284,10 +284,9 @@ def check_trc_and_certs(testcase, isd_id, expected_core_ases=None, expected_vers
     isd = ISD.objects.get(isd_id=isd_id)
     check_trc(testcase, isd, expected_core_ases, expected_version)
     for as_ in isd.ases.iterator():
-        check_cert_chain(testcase, as_.certificates.latest(Certificate.CHAIN))
+        check_as_cert(testcase, Certificate.objects.latest(Key.CP_AS, as_))
         if as_.is_core:
-            # TODO:
-            check_issuer_cert(testcase, as_.certificates().latest(Key.ISSUING_CA),
+            check_issuer_cert(testcase, Certificate.objects.latest(Key.ISSUING_CA, as_),
                               expected_trc_version=expected_version)
 
 
@@ -315,27 +314,13 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     trc_dict = trcs.trc_to_dict(trc_pld)
     testcase.assertEqual(trc_dict['id']['serial_number'], trc.serial_version)
     testcase.assertEqual(trc_dict['id']['base_number'], trc.base_version)
-    testcase.assertEqual(set(trc_dict['primary_ases']), set(expected_core_ases))
+    testcase.assertEqual(set(trc_dict['core_ases']), set(expected_core_ases))
 
-    if trc.version > 1:
+    if trc.serial_version > 1:
         # Check that TRC update is valid
         prev_trc = isd.trcs.get(serial_version=trc.serial_version-1)
         prev_trc_pld = trcs.decode_trc(prev_trc.trc)
         check_scion_trc(testcase, trc_pld, prev_trc_pld)
-
-
-def check_core_as_certs(testcase, isd):
-    """
-    Check all certificates for the core ASes.
-    """
-
-
-def check_noncore_as_certs(testcase, isd):
-    """
-    Check all certificates for the non-core ASes.
-    """
-    for as_ in isd.ases.filter(is_core=False).iterator():
-        check_cert_chains(testcase, as_)
 
 
 def check_issuer_certs(testcase, as_):
@@ -360,72 +345,43 @@ def check_issuer_cert(testcase, issuer_cert, expected_trc_version=None):
     Check that the certificate is issued by the expected_trc_version, if set.
     """
     testcase.assertIsNotNone(issuer_cert)
+    testcase.assertEqual(issuer_cert.key.usage, Key.ISSUING_CA)
+    # check root certificate:
+    root_cert = issuer_cert.ca_cert
+    testcase.assertIsNotNone(root_cert)
+
+    # the current TRC _must_ be able to validate this root certificate
+    trc = TRC.objects.latest()
+    testcase.assertEqual(trc.certificates.filter(pk=root_cert.pk).count(), 1)
 
     cert = issuer_cert.certificate
-    cert_pld = jws.decode_payload(cert)
-
-    testcase.assertEqual(cert_pld["version"], issuer_cert.version)
-    testcase.assertEqual(cert_pld["subject"], issuer_cert.AS.isd_as_str())
-
-    subject_ia = cert_pld["subject"]
-    subject_as = subject_ia.split('-')[1]
-    trc_version = cert_pld["issuer"]["trc_version"]
-    if expected_trc_version is not None:
-        testcase.assertEqual(trc_version, expected_trc_version)
-
-    trc = TRC.objects.get(isd=issuer_cert.AS.isd, version=trc_version)
-    trc_pld = jws.decode_payload(trc.trc)
-    issuing_grant_pub_key = trc_pld["primary_ases"][subject_as]["keys"]["issuing_grant"]["key"]
-    sig_valid = jws.verify(cert["payload"], cert["protected"], cert["signature"],
-                           issuing_grant_pub_key)
-
-    testcase.assertTrue(sig_valid)
+    testcase.assertIsNotNone(cert)
+    # TODO(juagargi) validate this certificate
 
 
-def check_cert_chains(testcase, as_):
+def check_as_certs(testcase, as_):
     """
     Check that the AS has an AS certificate (-chain) and that all existing certificate chains
     can be verified with the issuer certificate.
     """
-    cert_chains = as_.certificates.filter(type=Certificate.CHAIN).order_by('version')
-    testcase.assertGreaterEqual(len(cert_chains), 1)
-    first_version = cert_chains[0].version
+    certs = as_.certificates.filter(type=Certificate.CHAIN).order_by('version')
+    testcase.assertGreaterEqual(len(certs), 1)
+    first_version = certs[0].version
     testcase.assertGreaterEqual(first_version, 1)  # Sequence starts at >1 when AS changed ISD
-    for i, cert_chain in enumerate(cert_chains):
-        testcase.assertEqual(cert_chain.version, first_version + i)
-        check_cert_chain(testcase, cert_chain)
+    for i, cert in enumerate(certs):
+        testcase.assertEqual(cert.version, first_version + i)
+        check_as_cert(testcase, cert)
 
 
-def check_cert_chain(testcase, cert_chain):
+def check_as_cert(testcase, cert):
     """
-    Check that the AS's certificate chain can be verified with the issuer certificate.
+    Check that the AS's CP certificate can be verified with the issuer certificate.
     """
-    testcase.assertIsNotNone(cert_chain)
+    testcase.assertIsNotNone(cert)
 
-    leaf = cert_chain.certificate[1]
-    leaf_pld = jws.decode_payload(leaf)
-
-    testcase.assertEqual(leaf_pld["version"], cert_chain.version)
-    testcase.assertEqual(leaf_pld["subject"], cert_chain.AS.isd_as_str())
-
-    issuer = leaf_pld["issuer"]
-    issuer_ia = issuer["isd_as"]
-    issuer_as = issuer_ia.split('-')[1]
-    issuer_ver = issuer["certificate_version"]
-
-    # Check that the issuer certificate in the chain is identical to the issuer cert in the DB:
-    issuer_cert = Certificate.objects.get(type=Certificate.ISSUER,
-                                          AS__as_id=issuer_as,
-                                          version=issuer_ver)
-    testcase.assertEqual(issuer_cert.certificate, cert_chain.certificate[0])
-
-    # Verify the signature
-    issuer_pld = jws.decode_payload(issuer_cert.certificate)
-    issuer_pub_key = issuer_pld["keys"]["issuing"]["key"]
-    sig_valid = jws.verify(leaf["payload"], leaf["protected"], leaf["signature"], issuer_pub_key)
-    testcase.assertTrue(sig_valid)
-
-    # Note: not checking issuer cert, assume that we check that separately.
+    testcase.assertIsNotNone(cert.ca_cert)
+    testcase.assertEqual(cert.ca_cert.key.usage, Key.ISSUING_CA)
+    # TODO(juagargi) validate signature
 
 
 def check_tarball_user_as(testcase, response, user_as):

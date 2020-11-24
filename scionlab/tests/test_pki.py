@@ -76,7 +76,7 @@ class KeyTests(TestCase):
         Certificate.objects.create_core_certs(self.AS)
         # just the cp as key and certificate:
         Key.objects.create(self.AS, Key.CP_AS)
-        Certificate.objects.create_as_cert(self.AS, issuer=self.AS)
+        Certificate.objects.create_cp_as_cert(self.AS, issuer=self.AS)
 
         k_as = Key.objects.get(usage=Key.CP_AS)
         k_ca = Key.objects.get(usage=Key.ISSUING_CA)
@@ -112,6 +112,28 @@ class CertificateTests(TestCase):
         self.isd = ISD.objects.create(isd_id=1, label='Test')
         # bypass ASManager.create to avoid initializing keys
         self.AS = _create_AS(self.isd, 'ff00:0:110', is_core=True)
+
+    def test_latest(self):
+        Key.objects.create_all_keys(self.AS)
+        Certificate.objects.create_all_certs(self.AS)
+        root = Certificate.objects.get(key__usage=Key.ISSUING_ROOT)
+        latest = Certificate.objects.latest(usage=Key.ISSUING_ROOT)  # without AS
+        self.assertEqual(latest, root)
+        # create another AS
+        as2 = _create_AS(self.isd, 'ff00:0:111', is_core=True)
+        Key.objects.create(AS=as2, usage=Key.ISSUING_ROOT)
+        root2 = Certificate.objects.create_issuer_root_cert(subject=as2)
+        latest = Certificate.objects.latest(usage=Key.ISSUING_ROOT, AS=as2)
+        self.assertEqual(latest, root2)
+        root3 = Certificate.objects.create_issuer_root_cert(subject=as2)
+        latest = Certificate.objects.latest(usage=Key.ISSUING_ROOT, AS=as2)
+        self.assertEqual(latest, root3)
+        # manager on the keys
+        latest = as2.keys.latest(Key.ISSUING_ROOT).certificates.latest(Key.ISSUING_ROOT)
+        self.assertEqual(latest, root3)
+        # query the first AS again
+        latest = Certificate.objects.latest(usage=Key.ISSUING_ROOT, AS=self.AS)
+        self.assertEqual(latest, root)
 
     def test_create_voting_sensitive_cert(self):
         k = Key.objects.create(AS=self.AS, usage=Key.TRC_VOTING_SENSITIVE,
@@ -185,7 +207,7 @@ class CertificateTests(TestCase):
         self.assertEqual(cert_ca.not_before, datetime.fromtimestamp(11))
         self.assertEqual(cert_ca.not_after, datetime.fromtimestamp(12))
 
-    def test_create_as_cert(self):
+    def test_create_cp_as_cert(self):
         Key.objects.create(
             AS=self.AS, usage=Key.ISSUING_ROOT,
             not_before=datetime.fromtimestamp(10),
@@ -201,29 +223,30 @@ class CertificateTests(TestCase):
             not_before=datetime.fromtimestamp(11),
             not_after=datetime.fromtimestamp(12))
         self.assertRaises(Key.DoesNotExist,  # no CA key
-                          Certificate.objects.create_as_cert,
+                          Certificate.objects.create_cp_as_cert,
                           self.AS, self.AS, datetime.fromtimestamp(11), datetime.fromtimestamp(12))
         Key.objects.create(
             AS=self.AS, usage=Key.ISSUING_CA,
             not_before=datetime.fromtimestamp(10),
             not_after=datetime.fromtimestamp(12))
         self.assertRaises(Certificate.DoesNotExist,  # no CA cert
-                          Certificate.objects.create_as_cert,
+                          Certificate.objects.create_cp_as_cert,
                           self.AS, self.AS, datetime.fromtimestamp(11), datetime.fromtimestamp(12))
 
         cert_ca = Certificate.objects.create_issuer_ca_cert(
             subject=self.AS,
             not_before=datetime.fromtimestamp(10),
             not_after=datetime.fromtimestamp(12))
-        cert = Certificate.objects.create_as_cert(
+        cert = Certificate.objects.create_cp_as_cert(
             subject=self.AS,
             issuer=self.AS,
             not_before=datetime.fromtimestamp(11),
             not_after=datetime.fromtimestamp(12))
         self.assertEqual(cert.key, subject_key)
         self.assertEqual(cert.ca_cert, cert_ca)
+        self.assertEqual(Certificate.objects.get(pk=cert.pk).ca_cert, cert_ca)
 
-    def test_as_certificate_another_issuer(self):
+    def test_cp_as_certificate_another_issuer(self):
         Key.objects.create(
             AS=self.AS, usage=Key.ISSUING_ROOT,
             not_before=datetime.fromtimestamp(10),
@@ -246,7 +269,7 @@ class CertificateTests(TestCase):
             usage=Key.CP_AS,
             not_before=datetime.fromtimestamp(11),
             not_after=datetime.fromtimestamp(12))
-        cert = Certificate.objects.create_as_cert(
+        cert = Certificate.objects.create_cp_as_cert(
             subject=subject,
             issuer=self.AS,
             not_before=datetime.fromtimestamp(11),
@@ -283,7 +306,7 @@ class CertificateTests(TestCase):
             self.AS, datetime.utcnow(), datetime.utcnow())
         self.assertEqual(cert_ca.certificate.count("-----BEGIN CERTIFICATE-----"), 1)
         Key.objects.create(self.AS, Key.CP_AS)
-        cert = Certificate.objects.create_as_cert(
+        cert = Certificate.objects.create_cp_as_cert(
             self.AS, self.AS, datetime.utcnow(), datetime.utcnow())
         output = cert.format_certfile()
         self.assertEqual(output.count("-----BEGIN CERTIFICATE-----"), 2)  # own cert and issuer

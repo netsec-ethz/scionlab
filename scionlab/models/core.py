@@ -100,28 +100,29 @@ class ISD(TimestampedModel):
         # - new core AS is created
         # - core AS was deleted
         # - core ASes get new keys
-        for as_ in self.ases.filter(is_core=True).iterator():
-            self._update_coreas_certificates(as_)
 
-        # since the issuer could have been deleted, regenerate AS certificates:
-        for as_ in self.ases.filter(is_core=False).iterator():
-            self._update_as_certificates(as_)
+        # regenerate certificates for every AS: non core ASes could need regeneration due to
+        # a replaced issuer core AS.
+        # TODO(juagargi) core ASes don't need to regenerate certificates
+        for as_ in self.ases.iterator():
+            as_.update_certs()
 
         trc = self.trcs.create()
         return trc
 
-    @staticmethod
-    def _update_as_certificates(as_):
-        as_.generate_certificate_chain()
-        as_.hosts.bump_config()
-        as_.save()
+    # TODO(juagargi) cleanup whole file
+    # @staticmethod
+    # def _update_as_certificates(as_):
+    #     # as_.generate_cp_as_certificate()
+    #     as_.hosts.bump_config()
+    #     as_.save()
 
-    @staticmethod
-    def _update_coreas_certificates(as_):
-        as_.generate_core_certificates()
-        as_.generate_certificate_chain()
-        as_.hosts.bump_config()
-        as_.save()
+    # @staticmethod
+    # def _update_coreas_certificates(as_):
+    #     as_.generate_core_certificates()
+    #     as_.generate_cp_as_certificate()
+    #     as_.hosts.bump_config()
+    #     as_.save()
 
 
 class ASManager(models.Manager):
@@ -148,12 +149,14 @@ class ASManager(models.Manager):
             master_as_key=AS._make_master_as_key()
         )
 
-        as_.init_keys()
+        as_.generate_keys()
         if init_certificates:
+            as_.generate_certs()
             if is_core:
-                isd.update_trc_and_certificates()
-            else:
-                as_.generate_certificate_chain()
+                isd.trcs.create()
+                # isd.update_trc_and_certificates()
+            # else:
+            #     as_.generate_cp_as_certificate()
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
@@ -282,25 +285,39 @@ class AS(TimestampedModel):
         """ returns a queryset of all of this AS' certificates """
         return Certificate.objects.filter(key__AS=self)
 
-    def init_keys(self):
-        """
-        Create the control plane AS private key for this AS.
-        If the AS is core, also the sensitive and regular voting keys, the root and CA keys.
+    def generate_keys(self):
+        Key.objects.create_all_keys(self, not_before=datetime.utcnow())
 
-        Note: does not set master_as_key.
-        """
-        valid_not_before = datetime.utcnow()
-        self._gen_keys(valid_not_before)
-        if self.is_core:
-            self._gen_core_keys(valid_not_before)
+    def generate_certs(self):
+        Certificate.objects.create_all_certs(self, not_before=datetime.utcnow())
 
-    def update_keys(self):
+    # def init_keys(self):
+    #     """
+    #     Create the control plane AS private key for this AS.
+    #     If the AS is core, also the sensitive and regular voting keys, the root and CA keys.
+
+    #     Note: does not set master_as_key.
+    #     """
+    #     # valid_not_before = datetime.utcnow()
+    #     # self._gen_keys(valid_not_before)
+    #     # if self.is_core:
+    #     #     self._gen_core_keys(valid_not_before)
+    #     Key.objects.create_all_keys(self, not_before=datetime.utcnow())
+
+    def update_certs(self):
+        self.generate_certs()
+        self.hosts.bump_config()
+        self.save()
+
+    def update_keys_certs(self):
         """
-        Generate new AS signing and encryption keys. Update the certificate.
+        Generate new keys and certificates (core and non core).
         Bumps the configuration version on all affected hosts.
         """
-        self._gen_keys(valid_not_before=datetime.utcnow())
-        self.generate_certificate_chain()
+        self.generate_keys()
+        self.generate_certs()
+        # self._gen_keys(valid_not_before=datetime.utcnow())
+        # self.generate_cp_as_certificate()
         self.hosts.bump_config()
         self.save()
 
@@ -308,33 +325,38 @@ class AS(TimestampedModel):
     def update_core_as_keys(queryset):
         """
         For all ASes in the given queryset, generate new core AS signing key pairs.
-        Update the TRC and subsequently all core certificates.
+        Update the TRC and all core certificates.
         Bumps the configuration version on all affected hosts.
         """
         isds = set()
-        valid_not_before = datetime.utcnow()
+        not_before = datetime.utcnow()
         for as_ in queryset.filter(is_core=True):
             isds.add(as_.isd)
-            as_._gen_core_keys(valid_not_before)
+            # as_._gen_core_keys(valid_not_before)
+            Key.objects.create_core_keys(as_, not_before)
             as_.save()
 
         for isd in isds:
             isd.update_trc_and_certificates()
 
-    def generate_certificate_chain(self):
-        """
-        Create or update the AS Certificate chain.
+    # def generate_certificates(self):
+    #     """ Generates all certificates for this AS """
+    #     Certificate.objects.create_all_certs(self, not_before=datetime.utcnow())
 
-        Requires that a Core AS in this ISD with existing/up to date Root Certificate exists;
-        for core ASes, `generate_core_certificate` needs to be called first.
-        """
-        issuer = self if self.is_core else self.isd.ases.filter(is_core=True).first()
-        if issuer:  # Skip if failed to find a core AS as issuer
-            Certificate.objects.create_as_cert(self, issuer)
+    # def generate_cp_as_certificate(self):
+    #     """
+    #     Create or update the AS Certificate chain.
 
-    def generate_core_certificates(self):
-        """ Create or update the Core AS Certificate. """
-        Certificate.objects.create_core_certs(self)
+    #     Requires that a Core AS in this ISD with existing/up to date Root Certificate exists;
+    #     for core ASes, `generate_core_certificate` needs to be called first.
+    #     """
+    #     issuer = self if self.is_core else self.isd.ases.filter(is_core=True).first()
+    #     if issuer:  # Skip if failed to find a core AS as issuer
+    #         Certificate.objects.create_cp_as_cert(self, issuer)
+
+    # def generate_core_certificates(self):
+    #     """ Create or update the Core AS Certificate. """
+    #     Certificate.objects.create_core_certs(self)
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """
@@ -372,31 +394,33 @@ class AS(TimestampedModel):
             raise NotImplementedError
 
         self.isd = isd
-        self.generate_certificate_chain()
+        # self.generate_cp_as_certificate()
+        self.generate_certificates()
         # Drop all previous certificates; these were created in a different ISD and would confuse.
         # Keep versions increasing (by generating new cert before deleting old ones); in case we
         # move back to the original ISD, we need to have a version number different from the
         # original certificate.
-        latest = self.certificates().latest(Key.CP_AS)
+
+        latest = Certificate.objects.latest(usage=Key.CP_AS, AS=self)
         self.certificates().exclude(id=latest.pk).delete()
 
         self.hosts.bump_config()
 
-    def _gen_keys(self, valid_not_before):
-        """
-        Generate signing and encryption key pairs.
-        """
-        self.keys.create(AS=self, usage=Key.CP_AS, not_before=valid_not_before)
+    # def _gen_keys(self, valid_not_before):
+    #     """
+    #     Generate signing and encryption key pairs.
+    #     """
+    #     self.keys.create(AS=self, usage=Key.CP_AS, not_before=valid_not_before)
 
-    def _gen_core_keys(self, valid_not_before):
-        """
-        Generate voting sensitive, regular, root and CA keys.
-        """
-        for usage in [Key.TRC_VOTING_SENSITIVE,
-                      Key.TRC_VOTING_REGULAR,
-                      Key.ISSUING_ROOT,
-                      Key.ISSUING_CA]:
-            self.keys.create(usage=usage, not_before=valid_not_before)
+    # def _gen_core_keys(self, valid_not_before):
+    #     """
+    #     Generate voting sensitive, regular, root and CA keys.
+    #     """
+    #     for usage in [Key.TRC_VOTING_SENSITIVE,
+    #                   Key.TRC_VOTING_REGULAR,
+    #                   Key.ISSUING_ROOT,
+    #                   Key.ISSUING_CA]:
+    #         self.keys.create(usage=usage, not_before=valid_not_before)
 
     @staticmethod
     def _make_master_as_key():

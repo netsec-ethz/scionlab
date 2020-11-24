@@ -35,13 +35,13 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
         utils.check_trc_and_certs(self, 1, {as1_id}, expected_version=(1, 1))
 
         AS.objects.create(isd, as2_id, is_core=True)
-        utils.check_trc_and_certs(self, 1, {as1_id, as2_id}, expected_version=2)
+        utils.check_trc_and_certs(self, 1, {as1_id, as2_id}, expected_version=(2, 1))
 
         AS.objects.filter(as_id=as1_id).delete()
-        utils.check_trc_and_certs(self, 1, {as2_id}, expected_version=3)
+        utils.check_trc_and_certs(self, 1, {as2_id}, expected_version=(3, 1))
 
         AS.objects.create(isd, as1_id, is_core=True)
-        utils.check_trc_and_certs(self, 1, {as1_id, as2_id}, expected_version=4)
+        utils.check_trc_and_certs(self, 1, {as1_id, as2_id}, expected_version=(4, 1))
 
     def test_random_mutations(self):
         NUM_MUTATIONS = 66
@@ -54,7 +54,7 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
 
         ISD.objects.create(isd_id=isd_id, label='some')
 
-        expected_version = 1
+        expected_serial_version = 1
         expected_set = set()
 
         for i in range(NUM_MUTATIONS):
@@ -78,8 +78,8 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
                 utils.check_trc_and_certs(self,
                                           isd_id,
                                           expected_set,
-                                          expected_version=expected_version)
-                expected_version += 1
+                                          expected_version=(expected_serial_version, 1))
+                expected_serial_version += 1
 
 
 class TRCAndCoreASCertificateTestsISD19(TestCase):
