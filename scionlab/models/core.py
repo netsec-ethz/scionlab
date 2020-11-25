@@ -401,7 +401,7 @@ class AS(TimestampedModel):
 
         self.isd = isd
         # self.generate_cp_as_certificate()
-        self.generate_certificates()
+        self.generate_certs()
         # Drop all previous certificates; these were created in a different ISD and would confuse.
         # Keep versions increasing (by generating new cert before deleting old ones); in case we
         # move back to the original ISD, we need to have a version number different from the
