@@ -452,7 +452,6 @@ def _check_tarball_etc_scion(testcase, tar, host):
     expected += [
         "br-%i.toml" % r._br_idx() for r in host.border_routers.all()
     ]
-    print(tar_ls(tar, 'etc/scion'))
     testcase.assertEqual(sorted(expected), tar_ls(tar, 'etc/scion'))
 
 
