@@ -30,7 +30,7 @@ def create_testdata():
     random.seed(0)
     with patch_os_urandom(), patch_django_utils_crypto_random(), \
             patch_time(), patch_datetime(), patch_generate_vpn_private_key(), \
-            patch_generate_as_private_key(), patch_build_certificate(), patch_generate_trc():
+            patch_generate_as_private_key(), patch_certificate_and_trc():
         testuser.create_testusers()
         testtopo.create_testtopo()
         testuseras.create_testuserases()
@@ -99,7 +99,21 @@ def patch_generate_as_private_key():
     return patch('scionlab.scion.keys.generate_key', side_effect=get_precomputed_key)
 
 
-def patch_build_certificate():
+def patch_certificate_and_trc():
+    # creates the certificate and trc patchers. The certificate patcher needs a
+    # reference to the trc one.
+    trc_cacher = _patch_generate_trc()
+    ctxs = [_patch_build_certificate(trc_cacher), trc_cacher]  # the order in the list is important
+    stack = ExitStack()
+    for ctx in ctxs:
+        stack.enter_context(ctx)
+    return stack
+
+
+def _patch_build_certificate(trc_cacher):
+    # patches the _build_certificate function; because the trc generation depends on
+    # this function, the object cacher keeps track of any change done to the certificates
+    # and complains if the trc didn't change. See also patch_certificate_and_trc
     fixture_dir = os.path.dirname(os.path.abspath(__file__))
     cert_file = os.path.join(fixture_dir, 'testdata-as-certs.json')
 
@@ -119,10 +133,11 @@ def patch_build_certificate():
         from cryptography.hazmat.backends import default_backend
         return x509.load_pem_x509_certificate(cert.encode('ascii'), default_backend())
 
-    return ObjectCacher(cert_file, _build_certificate, key_fun, encode_cert, decode_cert)
+    return ObjectCacher(cert_file, _build_certificate, key_fun, encode_cert, decode_cert,
+                        dependents=[trc_cacher])
 
 
-def patch_generate_trc():
+def _patch_generate_trc():
     fixture_dir = os.path.dirname(os.path.abspath(__file__))
     trc_file = os.path.join(fixture_dir, 'testdata-trcs.json')
 
@@ -161,7 +176,7 @@ def _load_or_create_as_keys():
     fixture_dir = os.path.dirname(os.path.abspath(__file__))
     keys_file = os.path.join(fixture_dir, 'testdata-as-keys.txt')
     if not os.path.exists(keys_file):
-        keys = [generate_key() for _ in range(60)]
+        keys = [generate_key() for _ in range(100)]
         _dump_keys(keys, keys_file)
     return _load_keys(keys_file)
 
@@ -192,7 +207,7 @@ def _dump_keys(keys, path):
 
 
 class ObjectCacher:
-    def __init__(self, filename, generate_fun, key_fun, encode_fun, decode_fun):
+    def __init__(self, filename, generate_fun, key_fun, encode_fun, decode_fun, dependents=[]):
         self.filename = filename
         self.generate_fun = generate_fun
         self.key_fun = key_fun
@@ -201,16 +216,30 @@ class ObjectCacher:
 
         self.objs = self._load()
         self.dirty = False
-        self.patched = patch(f"{generate_fun.__module__}.{generate_fun.__name__}",
+        self.entered = False
+        self.patched = patch(f'{generate_fun.__module__}.{generate_fun.__name__}',
                              side_effect=self.mock_generate_fun)
+
+        self.dependents = dependents  # other ObjectCacher objects that depend on this
 
     def __enter__(self):
         self.patched.__enter__()
+        assert not any((d.entered for d in self.dependents)), \
+            f'{self._basename()} must enter before, and exit after their dependents'
+        self.entered = True
 
     def __exit__(self, *exc_info):
         if self.dirty:
+            print(f'{self._basename()} file HAS CHANGED!')
+            # complain if this was not modified, but some of the dependencies were
+            unmodified = filter(lambda d: not d.dirty, self.dependents)
+            unmodified = [m._basename() for m in unmodified]
+            if unmodified:
+                raise RuntimeError(f'This file was modified: {self._basename()}; ' +
+                                   f'but these were not: {", ".join(unmodified)}' +
+                                   '\nDelete them and run again.')
+            # all the dependents look good, save
             self._save()
-            print(f"{self.filename} file HAS CHANGED!")
         self.patched.__exit__(*exc_info)
 
     def mock_generate_fun(self, *args, **kwargs):
@@ -220,7 +249,6 @@ class ObjectCacher:
             self.dirty = True
             c = self.generate_fun(*args, **kwargs)
             self.objs[key] = c
-
         return c
 
     def _load(self):
@@ -241,3 +269,6 @@ class ObjectCacher:
             encoded[k] = self.encode_fun(v)
         with open(self.filename, 'w') as f:
             json.dump(encoded, f, sort_keys=True, indent=2)
+
+    def _basename(self):
+        return os.path.basename(self.filename)
