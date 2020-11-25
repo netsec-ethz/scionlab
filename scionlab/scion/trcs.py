@@ -182,7 +182,13 @@ class TRCConf:
                        "-inform", "der", "-md", "sha512", "-signer", CERT_FILENAME,
                        "-inkey", KEY_FILENAME, "-nodetach", "-nocerts", "-nosmimecap",
                        "-binary", "-outform", "der", "-out", "trc-signed.der"]
-            subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
+            ret = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                 check=False)
+            stdout = ret.stdout.decode("utf-8")
+            if ret.returncode != 0:
+                raise Exception(
+                    f"{stdout}\n\nExecuting {command}: bad return code: {ret.returncode}")
+
             # remove they key, although it should be deleted when the temporary dir is cleaned up
             os.remove(KEY_FILENAME)
             # read the signed trc and return it
