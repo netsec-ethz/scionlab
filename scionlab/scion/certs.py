@@ -33,7 +33,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding, serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 
-from pkcs7 import PKCS7Encoder
+# from pkcs7 import PKCS7Encoder
 from typing import cast, List, Tuple, NamedTuple, Optional
 
 
