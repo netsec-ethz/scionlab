@@ -21,9 +21,9 @@ from collections import defaultdict
 from django.db import models
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
-from scionlab.models.core import AS, ISD
-from scionlab.models.pki import Certificate, Key, _validity
-from scionlab.scion import as_ids, keys, trcs
+from scionlab.models.core import AS
+from scionlab.models.pki import Certificate, Key, validity
+from scionlab.scion import trcs
 
 
 class TRCManager(models.Manager):
@@ -77,7 +77,7 @@ class TRCManager(models.Manager):
                         prev.certificates.filter())
                 signers = votes.union(added_core_certs)
             # prepare to check that there exists a non-empty validity window:
-            not_before, not_after = _validity(*[*certificates, *signers])
+            not_before, not_after = validity(*[*certificates, *signers])
             if (not_after - not_before).total_seconds() <= 0:
                 # fall back to a base TRC
                 base = serial
@@ -89,7 +89,7 @@ class TRCManager(models.Manager):
             votes = Certificate.objects.none()
             signers = certificates.filter(key__usage__in=[
                 Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR])
-            not_before, not_after = _validity(*[*certificates])  # "certificates" covers everything
+            not_before, not_after = validity(*[*certificates])  # "certificates" covers everything
 
         votes_idx = prev.get_certificate_indices(votes) if prev else []
 

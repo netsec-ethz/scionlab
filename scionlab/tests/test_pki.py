@@ -12,28 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-from collections import defaultdict
-from datetime import datetime, timedelta
-from django.db import models
+from datetime import datetime
 from django.test import TestCase
 
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key, Certificate
-from scionlab.models.trc import TRC, _can_update
+from scionlab.models.trc import TRC
 from scionlab.defines import (
     DEFAULT_EXPIRATION_AS_KEYS,
-    DEFAULT_EXPIRATION_CORE_KEYS,
-    DEFAULT_TRC_GRACE_PERIOD,
 )
-from scionlab.scion import as_ids, keys, trcs, jws
+from scionlab.scion import as_ids
 
 
 class KeyTests(TestCase):
 
     def setUp(self):
         self.isd = ISD.objects.create(isd_id=1, label='Test')
-        # bypass ASManager.create to avoid initializing keys
         self.AS = _create_AS(self.isd, 'ff00:0:110')
 
     def test_generate_regular_as_key(self):
@@ -110,7 +104,6 @@ class KeyTests(TestCase):
 class CertificateTests(TestCase):
     def setUp(self):
         self.isd = ISD.objects.create(isd_id=1, label='Test')
-        # bypass ASManager.create to avoid initializing keys
         self.AS = _create_AS(self.isd, 'ff00:0:110', is_core=True)
 
     def test_latest(self):
@@ -328,6 +321,7 @@ class CertificateTests(TestCase):
 
 
 def _create_AS(isd, as_id, is_core=False):
+    # bypass ASManager.create to avoid initializing keys
     as_ = AS(isd=isd, as_id=as_id, as_id_int=as_ids.parse(as_id), is_core=is_core)
     as_.save()
     return as_

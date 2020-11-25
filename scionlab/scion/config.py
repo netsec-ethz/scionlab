@@ -17,7 +17,7 @@ import os
 from collections import OrderedDict
 
 from scionlab.models.core import Service
-from scionlab.models.pki import Certificate, Key
+from scionlab.models.pki import Key
 from scionlab.models.trc import TRC
 from scionlab.scion.topology import TopologyInfo
 

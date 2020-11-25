@@ -59,7 +59,7 @@ class TRCCreationTests(TestCase):
         temp_dir_name = ""
         with conf.configure() as c:
             temp_dir_name = c._temp_dir
-            # double call (nested in outer, should not happen) must also clean up
+            # nested call must also clean up (although should never be used like this)
             temp_dir_name2 = ""
             with conf.configure() as c2:
                 temp_dir_name2 = c2._temp_dir
@@ -83,8 +83,8 @@ class TRCCreationTests(TestCase):
         conf = TRCConf(**kwargs)
         with conf.configure() as c:
             c.gen_payload()
-            gen_conf = toml.loads(_readfile(c._temp_dir, c._conf_filename()).decode())
-            gen_payload = _readfile(c._temp_dir, c._payload_filename())
+            gen_conf = toml.loads(_readfile(c._temp_dir, c.CONFIG_FILENAME).decode())
+            gen_payload = _readfile(c._temp_dir, c.PAYLOAD_FILENAME)
         # gen_conf contains random certificate filenames. Replace them before comparing:
         gen_conf["cert_files"] = toml_conf["cert_files"]
         self.assertEqual(gen_conf, toml_conf)
