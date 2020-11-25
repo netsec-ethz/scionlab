@@ -105,7 +105,7 @@ class ISD(TimestampedModel):
         # a replaced issuer core AS.
         # TODO(juagargi) core ASes don't need to regenerate certificates
         for as_ in self.ases.iterator():
-            as_.update_certs()
+            as_.update_keys_certs()
 
         trc = self.trcs.create()
         return trc
@@ -289,7 +289,7 @@ class AS(TimestampedModel):
         Key.objects.create_all_keys(self, not_before=datetime.utcnow())
 
     def generate_certs(self):
-        Certificate.objects.create_all_certs(self, not_before=datetime.utcnow())
+        Certificate.objects.create_all_certs(self)
 
     # def init_keys(self):
     #     """
@@ -304,14 +304,20 @@ class AS(TimestampedModel):
     #     #     self._gen_core_keys(valid_not_before)
     #     Key.objects.create_all_keys(self, not_before=datetime.utcnow())
 
-    def update_certs(self):
-        self.generate_certs()
-        self.hosts.bump_config()
-        self.save()
+    # def update_certs(self):
+    #     # TODO(juagargi) this should never be used: it creates certs without updating the keys, which
+    #     # can lead to a null intersection of validity ranges;
+    #     # e.g. issuer keys ten years ago, and subject keys for this year.
+    #     self.generate_certs()
+    #     self.hosts.bump_config()
+    #     self.save()
 
     def update_keys_certs(self):
         """
         Generate new keys and certificates (core and non core).
+        The keys and certs have to be updated simultaneously to avoid getting a nil validity range
+        when signing a CP AS certificate; e.g. the subject has keys valid during a year, but the
+        issuer's keys are valid only until last year.
         Bumps the configuration version on all affected hosts.
         """
         self.generate_keys()
