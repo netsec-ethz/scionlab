@@ -54,8 +54,6 @@ def ordered_dump(data, stream=None, Dumper=yaml.SafeDumper, **kwds):
 
 
 def main(argv):
-    # TODO(juagargi) do we still need this sorting procedure?
-    return
     filename = argv[1]
     with open(filename) as f:
         data = ordered_load(f)
