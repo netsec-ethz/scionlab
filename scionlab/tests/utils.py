@@ -309,7 +309,6 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     if trc is None:
         return
 
-    # trc_pld = jws.decode_payload(trc.trc)
     trc_pld = trcs.decode_trc(trc.trc)
     trc_dict = trcs.trc_to_dict(trc_pld)
     testcase.assertEqual(trc_dict['id']['serial_number'], trc.serial_version)

@@ -17,27 +17,18 @@
 ================================================================================
 """
 
-import textwrap
-import jsonfield
 from collections import namedtuple
-from datetime import datetime, timezone
-from typing import List
-
+from datetime import datetime
 from django.db import models
-from django.db.models import Q
 
 from scionlab.defines import (
     DEFAULT_EXPIRATION_CORE_KEYS,
     DEFAULT_EXPIRATION_AS_KEYS,
-    DEFAULT_TRC_GRACE_PERIOD,
 )
-from scionlab.scion import as_ids, keys, trcs, certs
-from scionlab.util import flatten
+from scionlab.scion import as_ids, keys, certs
 
 _MAX_LEN_CHOICES_DEFAULT = 32
 """ Max length value for choices fields without specific requirements to max length """
-
-Validity = namedtuple("Validity", ["not_before", "not_after"])
 
 
 def _key_set_null_or_cascade(collector, field, sub_objs, using):
@@ -228,7 +219,7 @@ class CertificateManager(models.Manager):
         """ A CA cert is signed by a root cert. For now, always from the same AS """
         subject_key = subject.keys.latest(usage=Key.ISSUING_CA)
         issuer_key = subject.keys.latest(usage=Key.ISSUING_ROOT)
-        not_before, not_after = _validity(Validity(not_before, not_after), subject_key, issuer_key)
+        not_before, not_after = validity(Validity(not_before, not_after), subject_key, issuer_key)
         return self._create_cert(
             certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
 
@@ -236,7 +227,7 @@ class CertificateManager(models.Manager):
         """ An AS cert is signed by the CA cert of the issuer """
         subject_key = subject.keys.latest(usage=Key.CP_AS)
         issuer_key = issuer.keys.latest(usage=Key.ISSUING_CA)
-        not_before, not_after = _validity(Validity(not_before, not_after), subject_key, issuer_key)
+        not_before, not_after = validity(Validity(not_before, not_after), subject_key, issuer_key)
         return self._create_cert(
             certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
 
@@ -248,7 +239,7 @@ class CertificateManager(models.Manager):
 
     def _create_self_signed_cert(self, subject, not_before, not_after, usage, fcn):
         key = subject.keys.latest(usage=usage)
-        not_before, not_after = _validity(Validity(not_before, not_after), key)
+        not_before, not_after = validity(Validity(not_before, not_after), key)
         return self._create_cert(fcn, key, not_before, not_after)
 
     def _create_cert(self, fcn, subject_key, not_before, not_after, issuer_key=None):
@@ -257,10 +248,10 @@ class CertificateManager(models.Manager):
         :param Key issuer_key If it is None, then self signed.
         """
         subject_id = subject_key.AS.isd_as_str()
-        not_before, not_after = _validity(Validity(not_before, not_after), subject_key)
+        not_before, not_after = validity(Validity(not_before, not_after), subject_key)
         kwargs = {}
         if issuer_key is not None:
-            not_before, not_after = _validity(Validity(not_before, not_after), issuer_key)
+            not_before, not_after = validity(Validity(not_before, not_after), issuer_key)
             kwargs = {"issuer_key": keys.decode_key(issuer_key.key.encode("ascii")),
                       "issuer_id": issuer_key.AS.isd_as_str()}
 
@@ -325,7 +316,7 @@ class Certificate(models.Model):
             suffix = ".ca.crt"
         else:
             suffix = ".pem"
-        # _key_set_null_or_cascade can set the AS to None. Check:
+        # _key_set_null_or_cascade can set the AS to None. Check it:
         if not self.key.AS:
             return f"UnknownISD-UnknownAS{suffix}"
         return f"ISD{self.key.AS.isd.isd_id}-AS{self.key.AS.as_path_str()}{suffix}"
@@ -344,7 +335,10 @@ class Certificate(models.Model):
         return prev + 1
 
 
-def _validity(*vs):
+Validity = namedtuple("Validity", ["not_before", "not_after"])
+
+
+def validity(*vs):
     """
     Return the intersection of the validity periods for the given inputs.
     :param vs: iterable of objects with `not_before` and `not_after` datetime members

@@ -17,24 +17,13 @@
 ====================================================================================
 """
 
-import hashlib
-import subprocess
-import toml
-
-from collections import namedtuple
-from datetime import datetime, timedelta
-from scionlab.scion import keys, jws
-from scionlab.scion.as_ids import parse
-from scionlab.scion.keys import encode_key, generate_key
-from scionlab.scion.trcs import _utc_timestamp
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ObjectIdentifier
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import padding, serialization, hashes
+from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import ec
-
-# from pkcs7 import PKCS7Encoder
-from typing import cast, List, Tuple, NamedTuple, Optional
+from datetime import datetime
+from typing import List, Tuple, Optional
 
 
 OID_ISD_AS = ObjectIdentifier("1.3.6.1.4.1.55324.1.2.1")
@@ -52,6 +41,84 @@ CN_AS = "AS Certificate"
 # some type aliases:
 Name = List[Tuple[ObjectIdentifier, str]]
 Extensions = List[Tuple[ObjectIdentifier, bool]]
+
+
+def encode_certificate(cert: x509.Certificate) -> bytes:
+    return cert.public_bytes(serialization.Encoding.PEM)
+
+
+def generate_voting_sensitive_certificate(subject_id: str,
+                                          subject_key: ec.EllipticCurvePrivateKey,
+                                          not_before: datetime,
+                                          not_after: datetime) -> x509.Certificate:
+    subject = (subject_key, _create_name(subject_id, CN_VOTING_SENSITIVE))
+    return _build_certificate(subject=subject,
+                              issuer=None,
+                              not_before=not_before,
+                              not_after=not_after,
+                              extensions=_build_extensions_voting(subject_key, OID_SENSITIVE_KEY))
+
+
+def generate_voting_regular_certificate(subject_id: str,
+                                        subject_key: ec.EllipticCurvePrivateKey,
+                                        not_before: datetime,
+                                        not_after: datetime) -> x509.Certificate:
+    subject = (subject_key, _create_name(subject_id, CN_VOTING_REGULAR))
+    return _build_certificate(subject=subject,
+                              issuer=None,
+                              not_before=not_before,
+                              not_after=not_after,
+                              extensions=_build_extensions_voting(subject_key, OID_REGULAR_KEY))
+
+
+def generate_issuer_root_certificate(subject_id: str,
+                                     subject_key: ec.EllipticCurvePrivateKey,
+                                     not_before: datetime,
+                                     not_after: datetime) -> x509.Certificate:
+    """
+    Generates an issuer root certificate. Issuer Root Certificates are used to sign CA certificates.
+    """
+    subject = (subject_key, _create_name(subject_id, CN_ISSUER_ROOT))
+    return _build_certificate(subject=subject,
+                              issuer=None,
+                              not_before=not_before,
+                              not_after=not_after,
+                              extensions=_build_extensions_root(subject_key))
+
+
+def generate_issuer_ca_certificate(subject_id: str,
+                                   subject_key: ec.EllipticCurvePrivateKey,
+                                   issuer_id: str,
+                                   issuer_key: ec.EllipticCurvePrivateKey,
+                                   not_before: datetime,
+                                   not_after: datetime) -> x509.Certificate:
+    """
+    Generates an issuer CA certificate.
+    CA certificates are used to sign AS certificates.
+    CA certificates are signed by Root certificates.
+    """
+    subject = (subject_key, _create_name(subject_id, CN_ISSUER_CA))
+    issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_ROOT))
+    return _build_certificate(subject=subject,
+                              issuer=issuer,
+                              not_before=not_before,
+                              not_after=not_after,
+                              extensions=_build_extensions_ca(subject_key, issuer_key))
+
+
+def generate_as_certificate(subject_id: str,
+                            subject_key: ec.EllipticCurvePrivateKey,
+                            issuer_id: str,
+                            issuer_key: ec.EllipticCurvePrivateKey,
+                            not_before: datetime,
+                            not_after: datetime) -> x509.Certificate:
+    subject = (subject_key, _create_name(subject_id, CN_AS))
+    issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_CA))
+    return _build_certificate(subject=subject,
+                              issuer=issuer,
+                              not_before=not_before,
+                              not_after=not_after,
+                              extensions=_build_extensions_as(subject_key, issuer_key))
 
 
 def _create_name(as_id: str, common_name: str) -> Name:
@@ -133,81 +200,3 @@ def _build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
             (x509.ExtendedKeyUsage([x509.ExtendedKeyUsageOID.SERVER_AUTH,
                                     x509.ExtendedKeyUsageOID.CLIENT_AUTH,
                                     x509.ExtendedKeyUsageOID.TIME_STAMPING]), False)]
-
-
-def generate_voting_sensitive_certificate(subject_id: str,
-                                          subject_key: ec.EllipticCurvePrivateKey,
-                                          not_before: datetime,
-                                          not_after: datetime) -> x509.Certificate:
-    subject = (subject_key, _create_name(subject_id, CN_VOTING_SENSITIVE))
-    return _build_certificate(subject=subject,
-                              issuer=None,
-                              not_before=not_before,
-                              not_after=not_after,
-                              extensions=_build_extensions_voting(subject_key, OID_SENSITIVE_KEY))
-
-
-def generate_voting_regular_certificate(subject_id: str,
-                                        subject_key: ec.EllipticCurvePrivateKey,
-                                        not_before: datetime,
-                                        not_after: datetime) -> x509.Certificate:
-    subject = (subject_key, _create_name(subject_id, CN_VOTING_REGULAR))
-    return _build_certificate(subject=subject,
-                              issuer=None,
-                              not_before=not_before,
-                              not_after=not_after,
-                              extensions=_build_extensions_voting(subject_key, OID_REGULAR_KEY))
-
-
-def generate_issuer_root_certificate(subject_id: str,
-                                     subject_key: ec.EllipticCurvePrivateKey,
-                                     not_before: datetime,
-                                     not_after: datetime) -> x509.Certificate:
-    """
-    Generates an issuer root certificate. Issuer Root Certificates are used to sign CA certificates.
-    """
-    subject = (subject_key, _create_name(subject_id, CN_ISSUER_ROOT))
-    return _build_certificate(subject=subject,
-                              issuer=None,
-                              not_before=not_before,
-                              not_after=not_after,
-                              extensions=_build_extensions_root(subject_key))
-
-
-def generate_issuer_ca_certificate(subject_id: str,
-                                   subject_key: ec.EllipticCurvePrivateKey,
-                                   issuer_id: str,
-                                   issuer_key: ec.EllipticCurvePrivateKey,
-                                   not_before: datetime,
-                                   not_after: datetime) -> x509.Certificate:
-    """
-    Generates an issuer CA certificate.
-    CA certificates are used to sign AS certificates.
-    CA certificates are signed by Root certificates.
-    """
-    subject = (subject_key, _create_name(subject_id, CN_ISSUER_CA))
-    issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_ROOT))
-    return _build_certificate(subject=subject,
-                              issuer=issuer,
-                              not_before=not_before,
-                              not_after=not_after,
-                              extensions=_build_extensions_ca(subject_key, issuer_key))
-
-
-def generate_as_certificate(subject_id: str,
-                            subject_key: ec.EllipticCurvePrivateKey,
-                            issuer_id: str,
-                            issuer_key: ec.EllipticCurvePrivateKey,
-                            not_before: datetime,
-                            not_after: datetime) -> x509.Certificate:
-    subject = (subject_key, _create_name(subject_id, CN_AS))
-    issuer = (issuer_key, _create_name(issuer_id, CN_ISSUER_CA))
-    return _build_certificate(subject=subject,
-                              issuer=issuer,
-                              not_before=not_before,
-                              not_after=not_after,
-                              extensions=_build_extensions_as(subject_key, issuer_key))
-
-
-def encode_certificate(cert: x509.Certificate) -> bytes:
-    return cert.public_bytes(serialization.Encoding.PEM)
