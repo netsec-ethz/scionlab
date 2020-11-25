@@ -24,7 +24,7 @@ from scionlab.defines import (
     SD_TCP_PORT,
 )
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
-from scionlab.models.pki import Certificate
+from scionlab.models.pki import Certificate, Key
 from scionlab.fixtures import testtopo
 from scionlab.tests import utils
 
@@ -75,7 +75,7 @@ class InitASTests(TestCase):
         utils.check_as_keys(self, as_)
         utils.check_as_core_keys(self, as_)
         utils.check_issuer_certs(self, as_)
-        utils.check_cert_chains(self, as_)
+        utils.check_as_certs(self, as_)
 
     def test_create_as_with_default_services(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
@@ -106,17 +106,17 @@ class UpdateASKeysTests(TestCase):
 
         as_ = AS.objects.first()
 
-        prev_certificate_chain = as_.certificates.latest(type=Certificate.CHAIN)
+        prev_certificate = Certificate.objects.latest(Key.CP_AS, as_)
 
-        as_.update_keys()
+        as_.update_keys_certs()
 
-        new_certificate_chain = as_.certificates.latest(type=Certificate.CHAIN)
+        new_certificate = Certificate.objects.latest(Key.CP_AS, as_)
 
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
             list(as_.hosts.all())
         )
-        self.assertEqual(new_certificate_chain.version, prev_certificate_chain.version + 1)
+        self.assertEqual(new_certificate.version, prev_certificate.version + 1)
 
 
 class LinkModificationTests(TestCase):

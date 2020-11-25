@@ -328,15 +328,12 @@ def check_issuer_certs(testcase, as_):
     Check that the AS's issuer certificates can be verified with a TRC.
     Check that the latest issuer certificate was issued by the latest TRC version.
     """
-    issuer_certs = as_.certificates.filter(type=Certificate.ISSUER).order_by('version')
+    issuer_certs = as_.certificates().filter(key__usage=Key.ISSUING_CA).order_by('version')
     testcase.assertGreaterEqual(len(issuer_certs), 1)
     for i, issuer_cert in enumerate(issuer_certs):
         testcase.assertEqual(issuer_cert.version, i+1)
-        if i < len(issuer_certs)-1:
-            check_issuer_cert(testcase, issuer_cert)
-        else:
-            expected_trc_version = as_.isd.trcs.latest().version
-            check_issuer_cert(testcase, issuer_cert, expected_trc_version)
+        expected_version = as_.isd.trcs.latest().version if i < len(issuer_certs) - 1 else None
+        check_issuer_cert(testcase, issuer_cert, expected_version)
 
 
 def check_issuer_cert(testcase, issuer_cert, expected_trc_version=None):
@@ -364,7 +361,7 @@ def check_as_certs(testcase, as_):
     Check that the AS has an AS certificate (-chain) and that all existing certificate chains
     can be verified with the issuer certificate.
     """
-    certs = as_.certificates.filter(type=Certificate.CHAIN).order_by('version')
+    certs = as_.certificates().filter(key__usage=Key.CP_AS).order_by('version')
     testcase.assertGreaterEqual(len(certs), 1)
     first_version = certs[0].version
     testcase.assertGreaterEqual(first_version, 1)  # Sequence starts at >1 when AS changed ISD

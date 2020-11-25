@@ -190,12 +190,15 @@ class Key(models.Model):
 class CertificateManager(models.Manager):
     def create_all_certs(self, subject, not_before=None, not_after=None):
         if subject.is_core:
-            core_certs = self.create_core_certs(subject, not_before, not_after)
+            certs = self.create_core_certs(subject, not_before, not_after)
             issuer = subject
         else:
-            core_certs = []
-            issuer = Key.objects.filter(AS__isd=subject.isd, AS__is_core=True).first().AS
-        return [self.create_cp_as_cert(subject, issuer, not_before, not_after)] + core_certs
+            certs = []
+            issuer_key = Key.objects.filter(AS__isd=subject.isd, AS__is_core=True).first()
+            issuer = issuer_key.AS if issuer_key else None
+        if issuer:
+            certs = [self.create_cp_as_cert(subject, issuer, not_before, not_after)] + certs
+        return certs
 
     def create_core_certs(self, subject, not_before=None, not_after=None):
         return [f(subject, not_before, not_after)
