@@ -319,7 +319,9 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
         # Check that TRC update is valid
         prev_trc = isd.trcs.get(serial_version=trc.serial_version-1)
         prev_trc_pld = trcs.decode_trc(prev_trc.trc)
-        check_scion_trc(testcase, trc_pld, prev_trc_pld)
+    else:
+        prev_trc_pld = trc_pld
+    check_scion_trc(testcase, trc_pld, prev_trc_pld)
 
 
 def check_issuer_certs(testcase, as_):

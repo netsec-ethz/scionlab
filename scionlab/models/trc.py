@@ -69,7 +69,7 @@ class TRCManager(models.Manager):
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
                 changed_root_certs = certificates.filter(key__usage=Key.ISSUING_ROOT)\
                     .difference(prev.certificates.all())
-                signers = votes | changed_root_certs
+                signers = votes.union(changed_root_certs)
             else:
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
                 added_core_certs = certificates.filter(key__usage__in=[
