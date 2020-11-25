@@ -351,7 +351,7 @@ def check_issuer_cert(testcase, issuer_cert, expected_trc_version=None):
     testcase.assertIsNotNone(root_cert)
 
     # the current TRC _must_ be able to validate this root certificate
-    trc = TRC.objects.latest()
+    trc = issuer_cert.key.AS.isd.trcs.latest_or_none()
     testcase.assertEqual(trc.certificates.filter(pk=root_cert.pk).count(), 1)
 
     cert = issuer_cert.certificate
