@@ -23,11 +23,11 @@ import subprocess
 import toml
 import yaml
 
-from contextlib import contextmanager
+# from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from tempfile import NamedTemporaryFile, TemporaryDirectory
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 def encode_trc(trc: bytes) -> str:
@@ -68,6 +68,7 @@ def generate_trc(prev_trc: bytes,
     """
     assert (base >= 1 and serial >= 1)
     assert (prev_trc is None) == (base == serial)
+    assert len(signers_certs) == len(signers_keys)
 
     conf = TRCConf(isd_id=isd_id,
                    base_version=base,
@@ -78,16 +79,12 @@ def generate_trc(prev_trc: bytes,
                    core_ases=primary_ases,
                    authoritative_ases=primary_ases,
                    certificates=[c.encode('ascii') for c in certificates],  # from str to bytes
+                   signers=zip([c.encode('ascii') for c in signers_certs],  # from str to bytes
+                               [k.encode('ascii') for k in signers_keys]),
                    quorum=quorum,
                    votes=votes,
                    predecessor_trc=prev_trc)
-
-    with conf.configure() as trc:
-        trc.gen_payload()
-        signed_payload = []
-        for c, k in zip(signers_certs, signers_keys):
-            signed_payload.append(trc.sign_payload(c.encode('ascii'), k.encode('ascii')))
-        return trc.combine(*signed_payload)
+    return conf.generate()
 
 
 class TRCConf:
@@ -119,6 +116,7 @@ class TRCConf:
                  authoritative_ases: List[str],
                  core_ases: List[str],
                  certificates: List[bytes],
+                 signers: List[Tuple[bytes, bytes]],
                  quorum: int = None,
                  votes: Optional[List[int]] = None,
                  predecessor_trc: Optional[bytes] = None):
@@ -139,37 +137,35 @@ class TRCConf:
         self.core_ases = core_ases
         self.certificates = certificates
         self.certificate_files = []  # will be populated on configure()
+        self.signers = signers
         self.quorum = quorum
         self.votes = votes
         self.predecessor_trc = predecessor_trc
 
         self._validate()
 
-    @contextmanager
-    def configure(self):
-        # create temp dir and temp files for certificates
+    def generate(self) -> bytes:
         with TemporaryDirectory() as temp_dir:
-            self._temp_dir = temp_dir
-            saved_cert_filenames = self.certificate_files
-            self._dump_certificates_to_files()
-            yield self
-        # only needed to allow nested call to configure():
-        self._temp_dir = temp_dir
-        self.certificate_files = saved_cert_filenames
+            self._dump_certificates_to_files(temp_dir)
+            self._gen_payload(temp_dir)
+            signed_payloads = []
+            for (cert, key) in self.signers:
+                signed_payloads.append(self._sign_payload(temp_dir, cert, key))
+            return self._combine(temp_dir, *signed_payloads)
 
-    def gen_payload(self) -> None:
+    def _gen_payload(self, temp_dir: TemporaryDirectory) -> None:
         conf = self._get_conf()
-        with open(self._tmp_join(self.CONFIG_FILENAME), 'w') as f:
+        with open(os.path.join(temp_dir, self.CONFIG_FILENAME), 'w') as f:
             f.write(toml.dumps(conf))
         args = ['payload', '-t', self.CONFIG_FILENAME, '-o', self.PAYLOAD_FILENAME]
         if self.predecessor_trc:
-            predecessor_fn = self._tmp_join(self.PRED_TRC_FILENAME)
-            with open(predecessor_fn, 'wb') as f:
+            pred_filename = os.path.join(temp_dir, self.PRED_TRC_FILENAME)
+            with open(pred_filename, 'wb') as f:
                 f.write(self.predecessor_trc)
-            args.extend(['-p', predecessor_fn])
-        self._run_scion_cppki(*args)
+            args.extend(['-p', pred_filename])
+        self._run_scion_cppki(temp_dir, *args)
 
-    def sign_payload(self, cert: bytes, key: bytes) -> bytes:
+    def _sign_payload(self, temp_dir: TemporaryDirectory, cert: bytes, key: bytes) -> bytes:
         # TODO(juagargi) replace the execution of openssl with a library call !!.
         # XXX(juagargi): I don't find a nice way to encode CMS in python.
         # There seems to be some possibilities:
@@ -179,38 +175,39 @@ class TRCConf:
         KEY_FILENAME = 'key_file.key'
         CERT_FILENAME = 'cert_file.crt'
 
-        with open(os.path.join(self._temp_dir, KEY_FILENAME), 'wb') as f:
+        with open(os.path.join(temp_dir, KEY_FILENAME), 'wb') as f:
             f.write(key)
-        with open(os.path.join(self._temp_dir, CERT_FILENAME), 'wb') as f:
+        with open(os.path.join(temp_dir, CERT_FILENAME), 'wb') as f:
             f.write(cert)
         command = ['openssl', 'cms', '-sign', '-in', self.PAYLOAD_FILENAME,
                    '-inform', 'der', '-md', 'sha512', '-signer', CERT_FILENAME,
                    '-inkey', KEY_FILENAME, '-nodetach', '-nocerts', '-nosmimecap',
                    '-binary', '-outform', 'der', '-out', 'trc-signed.der']
         ret = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             check=False, cwd=self._temp_dir)
+                             check=False, cwd=temp_dir)
         stdout = ret.stdout.decode('utf-8')
         if ret.returncode != 0:
             raise Exception(
                 f'{stdout}\n\nExecuting {command}: bad return code: {ret.returncode}')
 
         # remove they key, although it should be deleted when the temporary dir is cleaned up
-        os.remove(os.path.join(self._temp_dir, KEY_FILENAME))
+        os.remove(os.path.join(temp_dir, KEY_FILENAME))
         # read the signed trc and return it
-        with open(os.path.join(self._temp_dir, 'trc-signed.der'), 'rb') as f:
+        with open(os.path.join(temp_dir, 'trc-signed.der'), 'rb') as f:
             return f.read()
 
-    def combine(self, *signed) -> bytes:
+    def _combine(self, temp_dir: TemporaryDirectory, *signed) -> bytes:
         """ returns the final TRC by combining the signed blocks and payload """
         for i, s in enumerate(signed):
-            with open(os.path.join(self._temp_dir, f'signed-{i}.der'), 'wb') as f:
+            with open(os.path.join(temp_dir, f'signed-{i}.der'), 'wb') as f:
                 f.write(s)
         self._run_scion_cppki(
+            temp_dir,
             'combine', '-p', self.PAYLOAD_FILENAME,
             *(f'signed-{i}.der' for i in range(len(signed))),
-            '-o', os.path.join(self._temp_dir, self.TRC_FILENAME),
+            '-o', os.path.join(temp_dir, self.TRC_FILENAME),
         )
-        with open(os.path.join(self._temp_dir, self.TRC_FILENAME), 'rb') as f:
+        with open(os.path.join(temp_dir, self.TRC_FILENAME), 'rb') as f:
             return f.read()
 
     def is_update(self):
@@ -259,19 +256,16 @@ class TRCConf:
         else:
             return self._to_seconds(self.grace_period)
 
-    def _tmp_join(self, filename: str) -> str:
-        return os.path.join(self._temp_dir, filename)
-
-    def _dump_certificates_to_files(self) -> None:
+    def _dump_certificates_to_files(self, temp_dir) -> None:
         self.certificate_files = []
         for c in self.certificates:
-            with NamedTemporaryFile('wb', dir=self._temp_dir, delete=False) as f:
+            with NamedTemporaryFile('wb', dir=temp_dir, delete=False) as f:
                 f.write(c)
                 self.certificate_files.append(f.name)
 
-    def _run_scion_cppki(self, *args) -> str:
+    def _run_scion_cppki(self, temp_dir, *args) -> str:
         """ runs the binary scion-pki """
-        ret = _raw_run_scion_cppki(*args, cwd=self._temp_dir)
+        ret = _raw_run_scion_cppki(*args, cwd=temp_dir)
         stdout = ret.stdout.decode('utf-8')
         if ret.returncode != 0:
             raise Exception(f'{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}')
