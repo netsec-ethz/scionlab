@@ -26,16 +26,16 @@ from datetime import datetime
 from typing import List, Tuple, Optional
 
 
-OID_ISD_AS = ObjectIdentifier("1.3.6.1.4.1.55324.1.2.1")
-OID_SENSITIVE_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.1")
-OID_REGULAR_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.2")
-OID_ROOT_KEY = ObjectIdentifier("1.3.6.1.4.1.55324.1.3.3")  # ca root key
+OID_ISD_AS = ObjectIdentifier('1.3.6.1.4.1.55324.1.2.1')
+OID_SENSITIVE_KEY = ObjectIdentifier('1.3.6.1.4.1.55324.1.3.1')
+OID_REGULAR_KEY = ObjectIdentifier('1.3.6.1.4.1.55324.1.3.2')
+OID_ROOT_KEY = ObjectIdentifier('1.3.6.1.4.1.55324.1.3.3')  # ca root key
 
-CN_VOTING_SENSITIVE = "Sensitive Voting Certificate"
-CN_VOTING_REGULAR = "Regular Voting Certificate"
-CN_ISSUER_ROOT = "High Security Root Certificate"
-CN_ISSUER_CA = "Secure CA Certificate"
-CN_AS = "AS Certificate"
+CN_VOTING_SENSITIVE = 'Sensitive Voting Certificate'
+CN_VOTING_REGULAR = 'Regular Voting Certificate'
+CN_ISSUER_ROOT = 'High Security Root Certificate'
+CN_ISSUER_CA = 'Secure CA Certificate'
+CN_AS = 'AS Certificate'
 
 
 # some type aliases:
@@ -126,12 +126,12 @@ def generate_as_certificate(subject_id: str,
 
 
 def _create_name(as_id: str, common_name: str) -> Name:
-    return [(NameOID.COUNTRY_NAME, "CH"),
-            (NameOID.STATE_OR_PROVINCE_NAME, "ZH"),
-            (NameOID.LOCALITY_NAME, "Zürich"),
-            (NameOID.ORGANIZATION_NAME, "Netsec"),
-            (NameOID.ORGANIZATIONAL_UNIT_NAME, "Netsec"),
-            (NameOID.COMMON_NAME, f"{as_id} {common_name}"),
+    return [(NameOID.COUNTRY_NAME, 'CH'),
+            (NameOID.STATE_OR_PROVINCE_NAME, 'ZH'),
+            (NameOID.LOCALITY_NAME, 'Zürich'),
+            (NameOID.ORGANIZATION_NAME, 'Netsec'),
+            (NameOID.ORGANIZATIONAL_UNIT_NAME, 'Netsec'),
+            (NameOID.COMMON_NAME, f'{as_id} {common_name}'),
             (OID_ISD_AS, as_id)]
 
 

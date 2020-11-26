@@ -37,7 +37,7 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
         - SET_NULL for keys that have a cert sensitive signing a TRC
         - CASCADE for all others
 
-    This "trick" is required to be able to use voting sensitive keys for the creation of a new TRC
+    This 'trick' is required to be able to use voting sensitive keys for the creation of a new TRC
     after an AS has been deleted.
     We use the callback on the Key.on_delete because Key is an intermediate model between
     Certificate and AS, and simplifies checking membership on the cert.trc_voted_sensitive.
@@ -76,7 +76,7 @@ class KeyManager(models.Manager):
         not_before = not_before or datetime.utcnow()
         not_after = not_after or not_before + Key.default_expiration(usage)
 
-        key = keys.encode_key(keys.generate_key()).decode("ascii")
+        key = keys.encode_key(keys.generate_key()).decode('ascii')
         return super().create(
             AS=AS,
             _as_id_int=AS.as_id_int,
@@ -95,11 +95,11 @@ class KeyManager(models.Manager):
 
 
 class Key(models.Model):
-    TRC_VOTING_SENSITIVE = "sensitive-voting"
-    TRC_VOTING_REGULAR = "regular-voting"
-    ISSUING_ROOT = "cp-root"
-    ISSUING_CA = "cp-ca"
-    CP_AS = "cp-as"  # control plane AS regular chain certificate
+    TRC_VOTING_SENSITIVE = 'sensitive-voting'
+    TRC_VOTING_REGULAR = 'regular-voting'
+    ISSUING_ROOT = 'cp-root'
+    ISSUING_CA = 'cp-ca'
+    CP_AS = 'cp-as'  # control plane AS regular chain certificate
 
     USAGES = (
         TRC_VOTING_SENSITIVE,
@@ -118,7 +118,7 @@ class Key(models.Model):
     )
     _as_id_int = models.BigIntegerField(
         editable=False,
-        help_text="Copy of AS.as_id_int."
+        help_text='Copy of AS.as_id_int.'
     )
 
     usage = models.CharField(
@@ -139,7 +139,7 @@ class Key(models.Model):
         unique_together = ('AS', 'usage', 'version')
 
     def __str__(self):
-        return f"{self.as_id}={self.usage}-{self.version}"
+        return f'{self.as_id}={self.usage}-{self.version}'
 
     @property
     def as_id(self) -> str:
@@ -151,7 +151,7 @@ class Key(models.Model):
         return as_ids.format(self._as_id_int)
 
     def filename(self):
-        return f"{self.usage}.key"
+        return f'{self.usage}.key'
 
     def format_keyfile(self) -> str:
         """
@@ -252,11 +252,11 @@ class CertificateManager(models.Manager):
         kwargs = {}
         if issuer_key is not None:
             not_before, not_after = validity(Validity(not_before, not_after), issuer_key)
-            kwargs = {"issuer_key": keys.decode_key(issuer_key.key.encode("ascii")),
-                      "issuer_id": issuer_key.AS.isd_as_str()}
+            kwargs = {'issuer_key': keys.decode_key(issuer_key.key.encode('ascii')),
+                      'issuer_id': issuer_key.AS.isd_as_str()}
 
         cert = fcn(subject_id=subject_id,
-                   subject_key=keys.decode_key(subject_key.key.encode("ascii")),
+                   subject_key=keys.decode_key(subject_key.key.encode('ascii')),
                    not_before=not_before,
                    not_after=not_after,
                    **kwargs)
@@ -266,7 +266,7 @@ class CertificateManager(models.Manager):
             version=version,
             not_before=not_before,
             not_after=not_after,
-            certificate=certs.encode_certificate(cert).decode("ascii"),  # PEM encoded
+            certificate=certs.encode_certificate(cert).decode('ascii'),  # PEM encoded
         )
         cert.ca_cert = issuer_key.certificates.latest(issuer_key.usage) if issuer_key else cert
         cert.save()
@@ -276,12 +276,12 @@ class CertificateManager(models.Manager):
 class Certificate(models.Model):
     key = models.ForeignKey(
         Key,
-        related_name="certificates",
+        related_name='certificates',
         null=True,
         on_delete=models.CASCADE,
     )
     ca_cert = models.ForeignKey(  # the CA. If self signed, it will point to itself.
-        "self",
+        'self',
         related_name='issued_certificates',
         on_delete=models.SET_NULL,  # if null, we know the CA cert was deleted
         null=True,
@@ -294,7 +294,7 @@ class Certificate(models.Model):
     objects = CertificateManager()
 
     class Meta:
-        unique_together = ("key", "version")
+        unique_together = ('key', 'version')
 
     def AS(self):
         return self.key.AS
@@ -307,26 +307,26 @@ class Certificate(models.Model):
 
     def filename(self):
         if self.usage() == Key.TRC_VOTING_SENSITIVE:
-            suffix = ".sensitive.crt"
+            suffix = '.sensitive.crt'
         elif self.usage() == Key.TRC_VOTING_REGULAR:
-            suffix = ".regular.crt"
+            suffix = '.regular.crt'
         elif self.usage() == Key.ISSUING_ROOT:
-            suffix = ".root.crt"
+            suffix = '.root.crt'
         elif self.usage() == Key.ISSUING_CA:
-            suffix = ".ca.crt"
+            suffix = '.ca.crt'
         else:
-            suffix = ".pem"
+            suffix = '.pem'
         # _key_set_null_or_cascade can set the AS to None. Check it:
         if not self.key.AS:
-            return f"UnknownISD-UnknownAS{suffix}"
-        return f"ISD{self.key.AS.isd.isd_id}-AS{self.key.AS.as_path_str()}{suffix}"
+            return f'UnknownISD-UnknownAS{suffix}'
+        return f'ISD{self.key.AS.isd.isd_id}-AS{self.key.AS.as_path_str()}{suffix}'
 
     def format_certfile(self) -> str:
         """
         Create the PEM file content for this certificate.
         AS certificates will return the whole chain: first the subject cert, then the issuer's one.
         """
-        return self.certificate + (self.ca_cert.certificate if self.key.usage == Key.CP_AS else "")
+        return self.certificate + (self.ca_cert.certificate if self.key.usage == Key.CP_AS else '')
 
     @staticmethod
     def next_version(as_, usage):
@@ -335,7 +335,7 @@ class Certificate(models.Model):
         return prev + 1
 
 
-Validity = namedtuple("Validity", ["not_before", "not_after"])
+Validity = namedtuple('Validity', ['not_before', 'not_after'])
 
 
 def validity(*vs):
