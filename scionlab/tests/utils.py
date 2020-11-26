@@ -503,7 +503,6 @@ def _check_tarball_etc_scion(testcase, tar, host):
         'beacon_policy.yaml',
         'certs',
         'keys',
-        'sd.toml',
         'topology.json',
     ]
     expected += [
@@ -544,7 +543,7 @@ def _check_tarball_info(testcase, tar, host):
           for _ in host.services.filter(type=Service.BW)]
 
     expected_services = br + cs + bw + [
-        "scion-daemon@sd.service",
+        "scion-daemon.service",
         "scion-dispatcher.service",
     ]
 
