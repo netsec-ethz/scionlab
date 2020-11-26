@@ -443,6 +443,7 @@ def _check_tarball_etc_scion(testcase, tar, host):
     expected = [
         'beacon_policy.yaml',
         'certs',
+        'crypto',
         'keys',
         'topology.json',
     ]
