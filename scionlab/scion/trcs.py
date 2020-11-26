@@ -42,17 +42,23 @@ def trc_to_dict(trc: bytes) -> dict:
     with NamedTemporaryFile('wb') as f:
         f.write(trc)
         f.flush()
-        ret = _raw_run_scion_cppki("human", "--format", "yaml", f.name)
-    stdout = ret.stdout.decode("utf-8")
+        ret = _raw_run_scion_cppki('human', '--format', 'yaml', f.name)
+    stdout = ret.stdout.decode('utf-8')
     if ret.returncode != 0:
-        raise Exception(f"{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}")
+        raise Exception(f'{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}')
     return yaml.safe_load(stdout)
 
 
 def generate_trc(prev_trc: bytes,
-                 isd_id: int, base: int, serial: int,
-                 primary_ases: List[str], quorum: int, votes: List[int],
-                 grace_period: timedelta, not_before: datetime, not_after: datetime,
+                 isd_id: int,
+                 base: int,
+                 serial: int,
+                 primary_ases: List[str],
+                 quorum: int,
+                 votes: List[int],
+                 grace_period: timedelta,
+                 not_before: datetime,
+                 not_after: datetime,
                  certificates: List[str],
                  signers_certs: List[str],
                  signers_keys: List[str]) -> bytes:
@@ -71,7 +77,7 @@ def generate_trc(prev_trc: bytes,
                    not_after=not_after,
                    core_ases=primary_ases,
                    authoritative_ases=primary_ases,
-                   certificates=[c.encode("ascii") for c in certificates],  # from str to bytes
+                   certificates=[c.encode('ascii') for c in certificates],  # from str to bytes
                    quorum=quorum,
                    votes=votes,
                    predecessor_trc=prev_trc)
@@ -80,7 +86,7 @@ def generate_trc(prev_trc: bytes,
         trc.gen_payload()
         signed_payload = []
         for c, k in zip(signers_certs, signers_keys):
-            signed_payload.append(trc.sign_payload(c.encode("ascii"), k.encode("ascii")))
+            signed_payload.append(trc.sign_payload(c.encode('ascii'), k.encode('ascii')))
         return trc.combine(*signed_payload)
 
 
@@ -153,14 +159,14 @@ class TRCConf:
 
     def gen_payload(self) -> None:
         conf = self._get_conf()
-        with open(self._tmp_join(self.CONFIG_FILENAME), "w") as f:
+        with open(self._tmp_join(self.CONFIG_FILENAME), 'w') as f:
             f.write(toml.dumps(conf))
-        args = ["payload", "-t", self.CONFIG_FILENAME, "-o", self.PAYLOAD_FILENAME]
+        args = ['payload', '-t', self.CONFIG_FILENAME, '-o', self.PAYLOAD_FILENAME]
         if self.predecessor_trc:
             predecessor_fn = self._tmp_join(self.PRED_TRC_FILENAME)
-            with open(predecessor_fn, "wb") as f:
+            with open(predecessor_fn, 'wb') as f:
                 f.write(self.predecessor_trc)
-            args.extend(["-p", predecessor_fn])
+            args.extend(['-p', predecessor_fn])
         self._run_scion_cppki(*args)
 
     def sign_payload(self, cert: bytes, key: bytes) -> bytes:
@@ -170,41 +176,41 @@ class TRCConf:
         # pkcs7.PKCS7Encoder()
         # https://github.com/vbwagner/ctypescrypto
         # or maybe the new cryptography >= 3.2 ?
-        KEY_FILENAME = "key_file.key"
-        CERT_FILENAME = "cert_file.crt"
+        KEY_FILENAME = 'key_file.key'
+        CERT_FILENAME = 'cert_file.crt'
 
-        with open(os.path.join(self._temp_dir, KEY_FILENAME), "wb") as f:
+        with open(os.path.join(self._temp_dir, KEY_FILENAME), 'wb') as f:
             f.write(key)
-        with open(os.path.join(self._temp_dir, CERT_FILENAME), "wb") as f:
+        with open(os.path.join(self._temp_dir, CERT_FILENAME), 'wb') as f:
             f.write(cert)
-        command = ["openssl", "cms", "-sign", "-in", self.PAYLOAD_FILENAME,
-                   "-inform", "der", "-md", "sha512", "-signer", CERT_FILENAME,
-                   "-inkey", KEY_FILENAME, "-nodetach", "-nocerts", "-nosmimecap",
-                   "-binary", "-outform", "der", "-out", "trc-signed.der"]
+        command = ['openssl', 'cms', '-sign', '-in', self.PAYLOAD_FILENAME,
+                   '-inform', 'der', '-md', 'sha512', '-signer', CERT_FILENAME,
+                   '-inkey', KEY_FILENAME, '-nodetach', '-nocerts', '-nosmimecap',
+                   '-binary', '-outform', 'der', '-out', 'trc-signed.der']
         ret = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              check=False, cwd=self._temp_dir)
-        stdout = ret.stdout.decode("utf-8")
+        stdout = ret.stdout.decode('utf-8')
         if ret.returncode != 0:
             raise Exception(
-                f"{stdout}\n\nExecuting {command}: bad return code: {ret.returncode}")
+                f'{stdout}\n\nExecuting {command}: bad return code: {ret.returncode}')
 
         # remove they key, although it should be deleted when the temporary dir is cleaned up
         os.remove(os.path.join(self._temp_dir, KEY_FILENAME))
         # read the signed trc and return it
-        with open(os.path.join(self._temp_dir, "trc-signed.der"), "rb") as f:
+        with open(os.path.join(self._temp_dir, 'trc-signed.der'), 'rb') as f:
             return f.read()
 
     def combine(self, *signed) -> bytes:
         """ returns the final TRC by combining the signed blocks and payload """
         for i, s in enumerate(signed):
-            with open(os.path.join(self._temp_dir, f"signed-{i}.der"), "wb") as f:
+            with open(os.path.join(self._temp_dir, f'signed-{i}.der'), 'wb') as f:
                 f.write(s)
         self._run_scion_cppki(
-            "combine", "-p", self.PAYLOAD_FILENAME,
-            *(f"signed-{i}.der" for i in range(len(signed))),
-            "-o", os.path.join(self._temp_dir, self.TRC_FILENAME),
+            'combine', '-p', self.PAYLOAD_FILENAME,
+            *(f'signed-{i}.der' for i in range(len(signed))),
+            '-o', os.path.join(self._temp_dir, self.TRC_FILENAME),
         )
-        with open(os.path.join(self._temp_dir, self.TRC_FILENAME), "rb") as f:
+        with open(os.path.join(self._temp_dir, self.TRC_FILENAME), 'rb') as f:
             return f.read()
 
     def is_update(self):
@@ -212,35 +218,35 @@ class TRCConf:
 
     def _validate(self) -> None:
         if any(x <= 0 for x in [self.isd_id, self.base_version, self.serial_version]):
-            raise ValueError("isd_id, base_version and serial_version must be >= 0")
+            raise ValueError('isd_id, base_version and serial_version must be >= 0')
         if self.base_version > self.serial_version:
-            raise ValueError("base version should refer to this or older serial version")
+            raise ValueError('base version should refer to this or older serial version')
         if self.is_update() and self.votes is None:
-            raise ValueError("must provide votes when updating")
+            raise ValueError('must provide votes when updating')
         if self.is_update() and self.predecessor_trc is None:
-            raise ValueError("must provide predecessor TRC when updating")
+            raise ValueError('must provide predecessor TRC when updating')
         if self.not_after <= self.not_before:
-            raise ValueError("not_before must precede not_after")
+            raise ValueError('not_before must precede not_after')
         if not self.certificates:
-            raise ValueError("must provide sensitive voting, regular voting, and root certificates")
+            raise ValueError('must provide sensitive voting, regular voting, and root certificates')
 
     def _get_conf(self) -> Dict:
         return {
-            "isd": self.isd_id,
-            "description": f"SCIONLab TRC for ISD {self.isd_id}",
-            "base_version": self.base_version,
-            "serial_version": self.serial_version,
-            "voting_quorum": self._voting_quorum(),
-            "grace_period": self._grace_period(),
-            "authoritative_ases": self.authoritative_ases,
-            "core_ases": self.core_ases,
-            "cert_files": self.certificate_files,
-            "no_trust_reset": False,
-            "validity": {
-                "not_before": int(self.not_before.timestamp()),
-                "validity": self._to_seconds(self.not_after - self.not_before),
+            'isd': self.isd_id,
+            'description': f'SCIONLab TRC for ISD {self.isd_id}',
+            'base_version': self.base_version,
+            'serial_version': self.serial_version,
+            'voting_quorum': self._voting_quorum(),
+            'grace_period': self._grace_period(),
+            'authoritative_ases': self.authoritative_ases,
+            'core_ases': self.core_ases,
+            'cert_files': self.certificate_files,
+            'no_trust_reset': False,
+            'validity': {
+                'not_before': int(self.not_before.timestamp()),
+                'validity': self._to_seconds(self.not_after - self.not_before),
             },
-            "votes": self.votes,
+            'votes': self.votes,
         }
 
     def _voting_quorum(self) -> int:
@@ -249,7 +255,7 @@ class TRCConf:
     def _grace_period(self) -> str:
         # must be zero for base TRCs
         if self.base_version == self.serial_version:
-            return "0s"
+            return '0s'
         else:
             return self._to_seconds(self.grace_period)
 
@@ -259,23 +265,23 @@ class TRCConf:
     def _dump_certificates_to_files(self) -> None:
         self.certificate_files = []
         for c in self.certificates:
-            with NamedTemporaryFile("wb", dir=self._temp_dir, delete=False) as f:
+            with NamedTemporaryFile('wb', dir=self._temp_dir, delete=False) as f:
                 f.write(c)
                 self.certificate_files.append(f.name)
 
     def _run_scion_cppki(self, *args) -> str:
         """ runs the binary scion-pki """
         ret = _raw_run_scion_cppki(*args, cwd=self._temp_dir)
-        stdout = ret.stdout.decode("utf-8")
+        stdout = ret.stdout.decode('utf-8')
         if ret.returncode != 0:
-            raise Exception(f"{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}")
+            raise Exception(f'{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}')
         return stdout
 
     @staticmethod
     def _to_seconds(d: timedelta) -> str:
-        return f"{int(d.total_seconds())}s"
+        return f'{int(d.total_seconds())}s'
 
 
 def _raw_run_scion_cppki(*args, cwd=None):
-    return subprocess.run([settings.SCION_CPPKI_COMMAND, "trcs", *args],
+    return subprocess.run([settings.SCION_CPPKI_COMMAND, 'trcs', *args],
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, cwd=cwd)
