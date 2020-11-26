@@ -288,6 +288,7 @@ def _transform_toml_conf_to_trcconf_args(toml_dict: Dict) -> Dict[str, Any]:
     """
     # adapt the dictionary to be used with the TRCConf class
     not_before = datetime.fromtimestamp(toml_dict["validity"]["not_before"], tz=timezone.utc)
+    not_before = not_before.replace(tzinfo=None)  # expected in UTC without timezone
     certificates = [_readfile(_TESTDATA_DIR, f) for f in toml_dict["cert_files"]]
     return {
         "isd_id": toml_dict["isd"],

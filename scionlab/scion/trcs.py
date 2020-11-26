@@ -62,8 +62,6 @@ def generate_trc(prev_trc: bytes,
     """
     assert (base >= 1 and serial >= 1)
     assert (prev_trc is None) == (base == serial)
-    not_before = _utc_timestamp(not_before)
-    not_after = _utc_timestamp(not_after)
 
     conf = TRCConf(isd_id=isd_id,
                    base_version=base,
@@ -122,12 +120,15 @@ class TRCConf:
         authoritative_ases ASes are those that know which TRC version an ISD has
         certificates is a map filename: content, of certificates that will be included in the TRC
         """
+        assert not_before.tzinfo is None
+        assert not_after.tzinfo is None
+
         self.isd_id = isd_id
         self.base_version = base_version
         self.serial_version = serial_version
         self.grace_period = grace_period
-        self.not_before = not_before
-        self.not_after = not_after
+        self.not_before = not_before.replace(tzinfo=timezone.utc)
+        self.not_after = not_after.replace(tzinfo=timezone.utc)
         self.authoritative_ases = authoritative_ases
         self.core_ases = core_ases
         self.certificates = certificates
@@ -273,12 +274,6 @@ class TRCConf:
     @staticmethod
     def _to_seconds(d: timedelta) -> str:
         return f"{int(d.total_seconds())}s"
-
-
-def _utc_timestamp(dt: datetime) -> datetime:
-    """ Return the utc datetime for a naive datetime """
-    assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
-    return dt.replace(tzinfo=timezone.utc)
 
 
 def _raw_run_scion_cppki(*args, cwd=None):
