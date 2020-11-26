@@ -12,15 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 from datetime import datetime, timedelta
 from django.test import TestCase
 
-from scionlab.defines import (
-    DEFAULT_EXPIRATION_CORE_KEYS,
-    DEFAULT_TRC_GRACE_PERIOD,
-)
-from scionlab.scion import as_ids, keys, trcs
+from scionlab.scion import as_ids, trcs
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key, Certificate
 from scionlab.models.trc import TRC, _can_update, _coreas_certificates
