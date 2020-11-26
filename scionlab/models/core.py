@@ -98,7 +98,11 @@ class ISD(TimestampedModel):
 
         # regenerate certificates for every AS: non core ASes could need regeneration due to
         # a replaced issuer core AS.
-        for as_ in self.ases.iterator():
+        # First core ASes
+        for as_ in self.ases.filter(is_core=True):
+            as_.update_keys_certs()
+        # Then non-core (which need a core with a CA cert)
+        for as_ in self.ases.filter(is_core=False):
             as_.update_keys_certs()
 
         trc = self.trcs.create()
