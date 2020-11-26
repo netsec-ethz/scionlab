@@ -27,7 +27,6 @@ from scionlab.defines import (
     DISPATCHER_PROM_PORT,
     CS_QUIC_PORT,
     CS_PROM_PORT,
-    SD_TCP_PORT,
     SD_PROM_PORT,
     SCION_CONFIG_DIR,
     SCION_VAR_DIR,
