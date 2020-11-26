@@ -242,7 +242,7 @@ class TRC(models.Model):
         return self.filename()
 
     def filename(self) -> str:
-        return f'ISD{self.isd.isd_id}-B{self.base_version}-S{self.serial_version}'
+        return f'ISD{self.isd.isd_id}-B{self.base_version}-S{self.serial_version}.trc'
 
     def format_trcfile(self) -> bytes:
         return trcs.decode_trc(self.trc)
