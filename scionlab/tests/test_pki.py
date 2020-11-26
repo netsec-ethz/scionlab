@@ -60,7 +60,6 @@ class KeyTests(TestCase):
 
     def test_key_format(self):
         k = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
-        self.assertEqual(k.format_keyfile(), k.key)
         first_line = k.key.splitlines()[0]
         self.assertEqual(first_line, '-----BEGIN EC PRIVATE KEY-----')
 
