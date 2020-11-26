@@ -221,9 +221,6 @@ class TRCUpdate(TestCase):
                        ('serial', 'serial_version'),
                        ('primary_ases', 'authoritative_ases'),
                        ('primary_ases', 'core_ases')])
-        # dates in DB have no timezone (all UTC)
-        kwargs['not_before'] = kwargs['not_before'].replace(tzinfo=None)
-        kwargs['not_after'] = kwargs['not_after'].replace(tzinfo=None)
         kwargs['certificates'] = [c.decode('ascii') for c in kwargs['certificates']]
         del kwargs['signers']
         trc = generate_trc(prev_trc=predec_trc, **kwargs,
@@ -248,9 +245,6 @@ class TRCUpdate(TestCase):
                        ('serial', 'serial_version'),
                        ('primary_ases', 'authoritative_ases'),
                        ('primary_ases', 'core_ases')])
-        # dates in DB have no timezone (all UTC)
-        kwargs['not_before'] = kwargs['not_before'].replace(tzinfo=None)
-        kwargs['not_after'] = kwargs['not_after'].replace(tzinfo=None)
         kwargs['certificates'] = [c.decode('ascii') for c in kwargs['certificates']]
         del kwargs['signers']
         trc = generate_trc(prev_trc=predec_trc, **kwargs,

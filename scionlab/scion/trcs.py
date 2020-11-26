@@ -124,8 +124,8 @@ class TRCConf:
         authoritative_ases ASes are those that know which TRC version an ISD has
         certificates is a map filename: content, of certificates that will be included in the TRC
         """
-        assert not_before.tzinfo is None
-        assert not_after.tzinfo is None
+        assert not_before.tzinfo is None, 'expecting timestamps from DB in naive UTC datetime'
+        assert not_after.tzinfo is None, 'expecting timestamps from DB in naive UTC datetime'
 
         self.isd_id = isd_id
         self.base_version = base_version
