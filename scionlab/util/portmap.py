@@ -104,35 +104,3 @@ class PortMap:
         """
         assert all(isinstance(port, int) for port in ports)
         self.ports.setdefault(ip, set()).update(ports)
-
-
-class LazyPortMap:
-    """
-    Lazy Proxy for PortMap. Unfortuntely there doesn't seem to be a generic implementation for
-    this in the standard library (third party libraries exist).
-
-    To keep this simple and obvious, this is verbose rather than fancy.
-    """
-    def __init__(self, factory):
-        self._factory = factory
-        self.instance = None
-
-    def _wrapped(self):
-        if self.instance is None:
-            self.instance = self._factory()
-        return self.instance
-
-    def get_port(self, *args, **kwargs):
-        return self._wrapped().get_port(*args, **kwargs)
-
-    def is_free(self, *args, **kwargs):
-        return self._wrapped().is_free(*args, **kwargs)
-
-    def is_used(self, *args, **kwargs):
-        return self._wrapped().is_used(*args, **kwargs)
-
-    def add(self, *args, **kwargs):
-        return self._wrapped().add(*args, **kwargs)
-
-    def update(self, *args, **kwargs):
-        return self._wrapped().update(*args, **kwargs)

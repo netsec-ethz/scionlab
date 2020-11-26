@@ -131,7 +131,7 @@ def _topo_add_control_services(topo_dict, services):
     control_services = (s for s in services if s.type in Service.CONTROL_SERVICE_TYPES)
     for service in control_services:
         service_instance_entry = {
-            "addr": _join_host_port(service.host.internal_ip, service.port()),
+            "addr": _join_host_port(service.host.internal_ip, service.port),
         }
         service_type_entry = topo_dict.setdefault(TYPES_TO_KEYS[service.type], {})
         service_type_entry[service.instance_name] = service_instance_entry

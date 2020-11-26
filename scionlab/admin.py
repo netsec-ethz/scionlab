@@ -301,15 +301,11 @@ class BorderRouterAdminForm(_CreateUpdateModelForm):
     def create(self):
         return BorderRouter.objects.create(
             host=self.cleaned_data['host'],
-            internal_port=self.cleaned_data['internal_port'],
-            control_port=self.cleaned_data['control_port']
         )
 
     def update(self):
         self.instance.update(
             host=self.cleaned_data['host'],
-            internal_port=self.cleaned_data['internal_port'],
-            control_port=self.cleaned_data['control_port']
         )
 
 
@@ -317,7 +313,7 @@ class BorderRouterInline(admin.TabularInline):
     model = BorderRouter
     extra = 0
     form = BorderRouterAdminForm
-    fields = ('host', 'internal_port', 'control_port')
+    fields = ('host',)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "host":

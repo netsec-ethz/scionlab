@@ -137,7 +137,7 @@ etc/scion/br-1.toml: |
   reconnect_to_dispatcher = true
 
   [metrics]
-  prometheus = "127.0.0.1:30442"
+  prometheus = "127.0.0.1:30401"
 
   [log.console]
   level = "debug"
@@ -148,7 +148,7 @@ etc/scion/br-2.toml: |
   reconnect_to_dispatcher = true
 
   [metrics]
-  prometheus = "127.0.0.1:30443"
+  prometheus = "127.0.0.1:30402"
 
   [log.console]
   level = "debug"
@@ -504,7 +504,7 @@ etc/scion/topology.json: |-
     "attributes": [],
     "border_routers": {
       "br-1": {
-        "ctrl_addr": "127.0.0.1:30242",
+        "ctrl_addr": "127.0.0.1:30201",
         "interfaces": {
           "1": {
             "bandwidth": 1000,
@@ -517,10 +517,10 @@ etc/scion/topology.json: |-
             }
           }
         },
-        "internal_addr": "127.0.0.1:30042"
+        "internal_addr": "127.0.0.1:30001"
       },
       "br-2": {
-        "ctrl_addr": "127.0.0.1:30243",
+        "ctrl_addr": "127.0.0.1:30202",
         "interfaces": {
           "2": {
             "bandwidth": 1000,
@@ -543,7 +543,7 @@ etc/scion/topology.json: |-
             }
           }
         },
-        "internal_addr": "127.0.0.1:30043"
+        "internal_addr": "127.0.0.1:30002"
       }
     },
     "control_service": {
@@ -565,8 +565,8 @@ scionlab-config.json: |-
       "etc/openvpn/ccd/exbert@scionlab.org_ffaa_1_1": "72a44b475588d54d168220d99cb1d5b26a39decd",
       "etc/openvpn/server.conf": "97ea92112ee068f1843ae7691382c5fc2e76e977",
       "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
-      "etc/scion/br-1.toml": "176ed3483535e5fa6b5bee83a786e978ae4ec081",
-      "etc/scion/br-2.toml": "34e0d88c394f36115029ac19c40399806c95ef97",
+      "etc/scion/br-1.toml": "3940948bd3850f080ccf24922a8e1c4862129f1d",
+      "etc/scion/br-2.toml": "27fb7b6e1996b6d85a600f61598255706f72542c",
       "etc/scion/certs/ISD17-B1-S1.trc": "69955adde1383f6996656cf0b41d07c485a5a4fc",
       "etc/scion/certs/ISD19-B1-S1.trc": "8a82241f811eb1d68bae427a3821ea7a9c7d40c0",
       "etc/scion/certs/ISD20-B1-S1.trc": "bc54e36782e4a472bc47b4b0586d516b68c45c33",
@@ -575,7 +575,7 @@ scionlab-config.json: |-
       "etc/scion/cs-1.toml": "0ef56839347bcb4cdef6c814ff2e1af86cbe8c89",
       "etc/scion/keys/master0.key": "77ed94fae8197e32b7e56a3b8804551d781b6663",
       "etc/scion/keys/master1.key": "77ed94fae8197e32b7e56a3b8804551d781b6663",
-      "etc/scion/topology.json": "5a642776686c4167e4e57726cc5de7fa902699c8"
+      "etc/scion/topology.json": "6e46bdf5f1692c7e6b4ba258560c330023e54a59"
     },
     "host_id": "8cea74ca0f9c49e1ba71d2a1592a51bd",
     "host_secret": "22622eb19298433988b2dd5c10a5e2ba",

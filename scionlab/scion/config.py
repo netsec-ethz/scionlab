@@ -23,11 +23,9 @@ from scionlab.scion.topology import TopologyInfo
 from scionlab.defines import (
     PROPAGATE_TIME_CORE,
     PROPAGATE_TIME_NONCORE,
-    BR_PROM_PORT_OFFSET,
-    DISPATCHER_PROM_PORT,
+    DISPATCHER_METRICS_PORT,
     CS_QUIC_PORT,
-    CS_PROM_PORT,
-    SD_PROM_PORT,
+    SD_METRICS_PORT,
     SCION_CONFIG_DIR,
     SCION_VAR_DIR,
 )
@@ -274,7 +272,7 @@ class _ConfigBuilder:
         # Note: this is only used in the supervisord setup;
         # in the systemd setup, the dispatcher.toml file is installed with the package.
         logging_conf = self._build_logging_conf('dispatcher')
-        metrics_conf = self._build_metrics_conf(DISPATCHER_PROM_PORT)
+        metrics_conf = self._build_metrics_conf(DISPATCHER_METRICS_PORT)
         conf = _chain_dicts(logging_conf, metrics_conf)
         conf.update({
             'dispatcher': {
@@ -287,7 +285,7 @@ class _ConfigBuilder:
     def build_br_conf(self, router):
         general_conf = self._build_general_conf(router.instance_name)
         logging_conf = self._build_logging_conf(router.instance_name)
-        metrics_conf = self._build_metrics_conf(router.control_port + BR_PROM_PORT_OFFSET)
+        metrics_conf = self._build_metrics_conf(router.metrics_port)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         return conf
 
@@ -297,7 +295,7 @@ class _ConfigBuilder:
 
         general_conf = self._build_general_conf(service.instance_name)
         logging_conf = self._build_logging_conf(service.instance_name)
-        metrics_conf = self._build_metrics_conf(CS_PROM_PORT)
+        metrics_conf = self._build_metrics_conf(service.metrics_port)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
             'beaconing': {
@@ -338,7 +336,7 @@ class _ConfigBuilder:
         instance_name = 'sd'
         general_conf = self._build_general_conf(instance_name)
         logging_conf = self._build_logging_conf(instance_name)
-        metrics_conf = self._build_metrics_conf(SD_PROM_PORT)
+        metrics_conf = self._build_metrics_conf(SD_METRICS_PORT)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
             # Note, using default address:

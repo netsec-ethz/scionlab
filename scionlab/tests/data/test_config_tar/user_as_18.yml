@@ -10,7 +10,7 @@ etc/scion/br-1.toml: |
   reconnect_to_dispatcher = true
 
   [metrics]
-  prometheus = "127.0.0.1:30442"
+  prometheus = "127.0.0.1:30401"
 
   [log.console]
   level = "debug"
@@ -366,7 +366,7 @@ etc/scion/topology.json: |-
     "attributes": [],
     "border_routers": {
       "br-1": {
-        "ctrl_addr": "127.0.0.1:30242",
+        "ctrl_addr": "127.0.0.1:30201",
         "interfaces": {
           "1": {
             "bandwidth": 1000,
@@ -379,7 +379,7 @@ etc/scion/topology.json: |-
             }
           }
         },
-        "internal_addr": "127.0.0.1:30042"
+        "internal_addr": "127.0.0.1:30001"
       }
     },
     "control_service": {
@@ -405,7 +405,7 @@ scionlab-config.json: |-
   {
     "files": {
       "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
-      "etc/scion/br-1.toml": "176ed3483535e5fa6b5bee83a786e978ae4ec081",
+      "etc/scion/br-1.toml": "3940948bd3850f080ccf24922a8e1c4862129f1d",
       "etc/scion/certs/ISD17-B1-S1.trc": "69955adde1383f6996656cf0b41d07c485a5a4fc",
       "etc/scion/certs/ISD19-B1-S1.trc": "8a82241f811eb1d68bae427a3821ea7a9c7d40c0",
       "etc/scion/certs/ISD20-B1-S1.trc": "bc54e36782e4a472bc47b4b0586d516b68c45c33",
@@ -414,7 +414,7 @@ scionlab-config.json: |-
       "etc/scion/cs-1.toml": "0ef56839347bcb4cdef6c814ff2e1af86cbe8c89",
       "etc/scion/keys/master0.key": "2601ba8e8bbc7e9344e2d5a2a09c4e9ba9ac3bb7",
       "etc/scion/keys/master1.key": "2601ba8e8bbc7e9344e2d5a2a09c4e9ba9ac3bb7",
-      "etc/scion/topology.json": "a1c013186e3d405564853fd55255573db812a895"
+      "etc/scion/topology.json": "8bd681097537472c8e750c0eefd2f6a32413c674"
     },
     "host_id": "fad7c71baf5d4a4491bfb65e71966576",
     "host_secret": "c47a09a57f764b209afa8ad0093d1972",
