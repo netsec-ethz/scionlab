@@ -10,7 +10,7 @@ gen/ASffaa_1_5/br-1.toml: |
   reconnect_to_dispatcher = true
 
   [metrics]
-  prometheus = "127.0.0.1:30442"
+  prometheus = "127.0.0.1:30401"
 
   [log.console]
   level = "debug"
@@ -383,7 +383,7 @@ gen/ASffaa_1_5/topology.json: |-
     "attributes": [],
     "border_routers": {
       "br-1": {
-        "ctrl_addr": "127.0.0.1:30242",
+        "ctrl_addr": "127.0.0.1:30201",
         "interfaces": {
           "1": {
             "bandwidth": 1000,
@@ -396,7 +396,7 @@ gen/ASffaa_1_5/topology.json: |-
             }
           }
         },
-        "internal_addr": "127.0.0.1:30042"
+        "internal_addr": "127.0.0.1:30001"
       }
     },
     "control_service": {

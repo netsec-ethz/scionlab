@@ -20,7 +20,7 @@ from ipaddress import ip_address, ip_network
 from unittest.mock import patch
 from parameterized import parameterized
 from django.test import TestCase
-from scionlab.models.core import Host, Link
+from scionlab.models.core import AS, Host, Link
 from scionlab.models.pki import Certificate, Key
 from scionlab.models.user_as import (
     AttachmentPoint,
@@ -40,6 +40,7 @@ from scionlab.fixtures.testtopo import ASdef
 from scionlab.fixtures.testuser import get_testuser
 from scionlab.tests import utils
 from scionlab.util import flatten
+from scionlab.util.django import value_set
 
 testtopo_num_attachment_points = sum(1 for as_def in testtopo.ases if as_def.is_ap)
 testtopo_vpns_as_ids = [vpn.as_id for vpn in testtopo.vpns]
@@ -752,20 +753,32 @@ class UpdateUserASTests(TestCase):
             else:
                 vpn_client_ips_per_ap[att_confs[0].attachment_point.pk] = vpn_client.ip
 
-    def test_cycle_ap_vpn_no_clash(self):
+    def test_change_ap_vpn_no_clash(self):
         """ attaches a user AS with VPN from one AP to another AP, checks port clashes """
         seed = 6
-        ap1_id = testtopo_vpns_as_ids[0]
-        ap2_id = testtopo_vpns_as_ids[1]
-        user_as, att_confs = create_and_check_random_useras(self, seed, [ap1_id], VPNChoice.ALL)
-        # attach other user ASes to AP2 until AP2 uses the same port as AP1 is using
-        prev_port = att_confs[0].link.interfaceA.public_port
-        while not ap_from_id(ap2_id).vpn.server.interfaces.exclude(
-                public_ip=None).filter(public_port=prev_port).exists():
-            create_and_check_random_useras(self, seed, [ap2_id], VPNChoice.ALL)
-        # attach to AP2 and check correctness of topology
-        att_confs[0].attachment_point = ap_from_id(ap2_id)
-        update_useras(self, user_as, att_confs)
+        ap1 = AS.objects.get(as_id=testtopo_vpns_as_ids[0])
+        ap2 = AS.objects.get(as_id=testtopo_vpns_as_ids[1])
+
+        # create two user ases:
+        user_as1, att_confs1 = create_and_check_random_useras(self, seed+1, [ap1.as_id],
+                                                              VPNChoice.ALL)
+        user_as2,          _ = create_and_check_random_useras(self, seed+2, [ap2.as_id],
+                                                              VPNChoice.ALL)
+
+        # ensure that we use the same public port on the server side:
+        ap_public_port = 55555
+        # unlikely to already be in use, check anyway (testing the test):
+        assert ap_public_port not in value_set(ap1.hosts.get().interfaces, 'public_port')
+        assert ap_public_port not in value_set(ap2.hosts.get().interfaces, 'public_port')
+        # now set the public port on AP side for both user-AS - AP links.
+        user_as1.interfaces.get().remote_interface().update(public_port=ap_public_port)
+        user_as2.interfaces.get().remote_interface().update(public_port=ap_public_port)
+
+        # switch user_as1 from AP1 to AP2 and check the correctness of the topology,
+        # in particular, the ports must not clash.
+        att_confs1[0].attachment_point = ap2.attachment_point_info
+        att_confs1[0].link.refresh_from_db()
+        update_useras(self, user_as1, att_confs1)
 
     def test_cycle_ap_vpn_delete(self):
         seed = 6
