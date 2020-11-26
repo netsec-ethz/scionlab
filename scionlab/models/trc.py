@@ -74,7 +74,7 @@ class TRCManager(models.Manager):
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
                 added_core_certs = certificates.filter(key__usage__in=[
                     Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR]).difference(
-                        prev.certificates.filter())
+                        prev.certificates.all())
                 signers = votes.union(added_core_certs)
             # prepare to check that there exists a non-empty validity window:
             not_before, not_after = validity(*[*certificates, *signers])
