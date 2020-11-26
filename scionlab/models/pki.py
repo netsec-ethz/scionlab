@@ -153,11 +153,8 @@ class Key(models.Model):
     def filename(self):
         return f'{self.usage}.key'
 
-    def format_keyfile(self) -> str:
-        """
-        Create the PEM file content for this key.
-        """
-        return self.key  # already in PEM format
+    def subdir(self):
+        return Key.usage_subdir(self.usage)
 
     @staticmethod
     def next_version(as_, usage):
@@ -176,6 +173,15 @@ class Key(models.Model):
             return DEFAULT_EXPIRATION_CORE_KEYS
         else:
             return DEFAULT_EXPIRATION_AS_KEYS
+
+    @staticmethod
+    def usage_subdir(usage):
+        if usage in [Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR]:
+            return "voting"
+        elif usage in [Key.ISSUING_ROOT, Key.ISSUING_CA]:
+            return "ca"
+        else:
+            return "as"
 
 
 class CertificateManager(models.Manager):
@@ -320,6 +326,9 @@ class Certificate(models.Model):
         if not self.key.AS:
             return f'UnknownISD-UnknownAS{suffix}'
         return f'ISD{self.key.AS.isd.isd_id}-AS{self.key.AS.as_path_str()}{suffix}'
+
+    def subdir(self):
+        return Key.usage_subdir(self.usage())
 
     def format_certfile(self) -> str:
         """
