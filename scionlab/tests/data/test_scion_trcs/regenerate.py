@@ -142,7 +142,7 @@ def regenerate_regular_updated_trc():
 
 
 def regenerate_sensitive_update_trc():
-    ''' it adds a new AS 1-ff00:0:210 as core, authoritative, and voter '''
+    """ it adds a new AS 1-ff00:0:210 as core, authoritative, and voter """
     # 1. gen payload. Use payload-3-config.toml, that declares a sensitive update
     _run_scion_cppki('payload', '-t', 'payload-3-config.toml', '-p', 'trc-2.trc',
                      '-o', 'payload-3.der')

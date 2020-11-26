@@ -40,7 +40,7 @@ class TRCTests(TestCase):
         self.assertIsNone(trc4.predecessor_trc_or_none())
 
     def test_get_voters_indices(self):
-        as110 = _create_AS(self.isd1, "ff00:0:110", is_core=True)
+        as110 = _create_AS(self.isd1, 'ff00:0:110', is_core=True)
         Key.objects.create_core_keys(as110)
         Certificate.objects.create_core_certs(as110)
         prev = _create_TRC(self.isd1, 1, 1)
@@ -77,8 +77,8 @@ class TRCUpdateTests(TestCase):
     def test_update_regular_possible(self):
         trc1 = _create_TRC(self.isd1, 1, 1)
         self.assertTrue(trc1.update_regular_impossible())  # no previous TRC
-        self.assertIn("no previous", trc1.update_regular_impossible())
-        as1 = _create_AS(self.isd1, "ff00:0:110", is_core=True)
+        self.assertIn('no previous', trc1.update_regular_impossible())
+        as1 = _create_AS(self.isd1, 'ff00:0:110', is_core=True)
         Key.objects.create_core_keys(as1)
         Certificate.objects.create_core_certs(as1)
         self._reset_core_ases(trc1)
@@ -88,16 +88,16 @@ class TRCUpdateTests(TestCase):
         self._reset_core_ases(trc2)
         self.assertFalse(trc2.update_regular_impossible())
         # create new voter
-        as2 = _create_AS(self.isd1, "ff00:0:210", is_core=True)
+        as2 = _create_AS(self.isd1, 'ff00:0:210', is_core=True)
         Key.objects.create_core_keys(as2)
         Certificate.objects.create_core_certs(as2)
         self._reset_core_ases(trc2)
         self.assertTrue(trc2.update_regular_impossible())  # quorum changed
-        self.assertIn("quorum", trc2.update_regular_impossible())
+        self.assertIn('quorum', trc2.update_regular_impossible())
         trc2.quorum = trc1.quorum  # force quorum to be the same
         trc2.save()
         self.assertTrue(trc2.update_regular_impossible())  # core section changed
-        self.assertIn("core section", trc2.update_regular_impossible())
+        self.assertIn('core section', trc2.update_regular_impossible())
         trc2.quorum += 1  # reinstate the correct quorum
         trc2.save()
         # sanity check
@@ -113,7 +113,7 @@ class TRCUpdateTests(TestCase):
         trc4.save()
         self._reset_core_ases(trc4)
         self.assertTrue(trc4.update_regular_impossible())  # sensitive voting different
-        self.assertIn("sensitive vote", trc4.update_regular_impossible())
+        self.assertIn('sensitive vote', trc4.update_regular_impossible())
         # sanity check
         trc5 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
                    base_version=1, serial_version=5)
@@ -127,7 +127,7 @@ class TRCUpdateTests(TestCase):
         self._reset_core_ases(trc6)
         trc6.certificateintrc_set.filter(certificate__key__usage=Key.ISSUING_ROOT).last().delete()
         self.assertTrue(trc6.update_regular_impossible())
-        self.assertIn("different number", trc6.update_regular_impossible())
+        self.assertIn('different number', trc6.update_regular_impossible())
         # change regular voting certificate, not part of voters
         self._reset_core_ases(trc6)
         trc7 = TRC(isd=self.isd1, not_before=datetime.utcnow(), not_after=datetime.utcnow(),
@@ -142,8 +142,8 @@ class TRCUpdateTests(TestCase):
         trc7.add_certificates([Certificate.objects.create_voting_regular_cert(as_)])
         trc7.save()
         self.assertTrue(trc7.update_regular_impossible())
-        self.assertIn("regular voting certificate", trc7.update_regular_impossible())
-        self.assertIn("not part of voters", trc7.update_regular_impossible())
+        self.assertIn('regular voting certificate', trc7.update_regular_impossible())
+        self.assertIn('not part of voters', trc7.update_regular_impossible())
         # change regular voting certificate, make it part of voters
         trc7.votes.add(cert.certificate)
         self.assertFalse(trc7.update_regular_impossible())
@@ -162,8 +162,8 @@ class TRCUpdateTests(TestCase):
         trc8.add_certificates([cert])
         trc8.save()
         self.assertTrue(trc8.update_regular_impossible())
-        self.assertIn("root certificate", trc8.update_regular_impossible())
-        self.assertIn("not sign", trc8.update_regular_impossible())
+        self.assertIn('root certificate', trc8.update_regular_impossible())
+        self.assertIn('not sign', trc8.update_regular_impossible())
 
         # change root certificate, make it part of voters
         trc8.signatures.add(cert)
@@ -214,7 +214,7 @@ class TRCCreationTests(TestCase):
         self._create_ases()
         prev = TRC.objects.create(self.isd1)
         # add another core AS. This forces a sensitive update.
-        as4 = _create_AS(self.isd1, "ff00:0:4", is_core=True)
+        as4 = _create_AS(self.isd1, 'ff00:0:4', is_core=True)
         Key.objects.create_all_keys(as4)
         Certificate.objects.create_all_certs(as4)
         trc = TRC.objects.create(self.isd1)
@@ -243,9 +243,9 @@ class TRCCreationTests(TestCase):
         self.assertNotEqual(trc.quorum, prev.quorum)
 
     def _create_ases(self):
-        as1 = _create_AS(self.isd1, "ff00:0:1", is_core=True)
-        as2 = _create_AS(self.isd1, "ff00:0:2", is_core=True)
-        as3 = _create_AS(self.isd1, "ff00:0:3", is_core=False)
+        as1 = _create_AS(self.isd1, 'ff00:0:1', is_core=True)
+        as2 = _create_AS(self.isd1, 'ff00:0:2', is_core=True)
+        as3 = _create_AS(self.isd1, 'ff00:0:3', is_core=False)
         Key.objects.create_all_keys(as1)
         Key.objects.create_all_keys(as2)
         Key.objects.create_all_keys(as3)
@@ -257,7 +257,7 @@ class TRCCreationTests(TestCase):
 class WithExpiredCertsTests(TestCase):
     def setUp(self):
         self.isd1 = ISD.objects.create(isd_id=1, label='Test')
-        self.as1 = _create_AS(self.isd1, "ff00:0:1", is_core=True)
+        self.as1 = _create_AS(self.isd1, 'ff00:0:1', is_core=True)
 
     def test_create_with_expired_crypto_material(self):
         # have the certificates expire before voting and signing.
@@ -268,7 +268,7 @@ class WithExpiredCertsTests(TestCase):
         prev = TRC.objects.create(self.isd1)
 
         # add another core AS.
-        as2 = _create_AS(self.isd1, "ff00:0:2", is_core=True)
+        as2 = _create_AS(self.isd1, 'ff00:0:2', is_core=True)
         Key.objects.create_all_keys(as2, not_before, not_after)
         Certificate.objects.create_all_certs(as2)
         trc = TRC.objects.create(self.isd1)
@@ -289,7 +289,7 @@ class WithExpiredCertsTests(TestCase):
         Certificate.objects.create_core_certs(self.as1)
         prev = TRC.objects.create(self.isd1)
         # add another core AS.
-        as2 = _create_AS(self.isd1, "ff00:0:2", is_core=True)
+        as2 = _create_AS(self.isd1, 'ff00:0:2', is_core=True)
         not_before = not_after + timedelta(microseconds=100)
         not_after = not_before + timedelta(days=1)
         Key.objects.create_core_keys(as2, not_before=not_before, not_after=not_after)
@@ -310,7 +310,7 @@ class WithExpiredCertsTests(TestCase):
 class WithNewCoreASesTests(TestCase):
     def test_delete_all_core_ases(self):
         isd1 = ISD.objects.create(isd_id=1, label='Test')
-        as1 = _create_AS(isd1, "ff00:0:1", is_core=True)
+        as1 = _create_AS(isd1, 'ff00:0:1', is_core=True)
         as1.update_keys_certs()
         trc1 = TRC.objects.create(isd1)
         self.assertIsNotNone(trc1)
@@ -318,7 +318,7 @@ class WithNewCoreASesTests(TestCase):
         _check_trc(self, trc1, trc1)
         # delete all ASes in the ISD, and then create new ones with different ID
         AS.objects.filter(isd=isd1).delete()
-        as2 = _create_AS(isd1, "ff00:0:2", is_core=True)
+        as2 = _create_AS(isd1, 'ff00:0:2', is_core=True)
         as2.update_keys_certs()
         trc2 = TRC.objects.create(isd1)
         self.assertIsNotNone(trc2)

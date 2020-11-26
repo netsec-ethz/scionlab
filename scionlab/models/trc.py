@@ -59,7 +59,7 @@ class TRCManager(models.Manager):
         quorum = len(core_ases) // 2 + 1
         certificates = _coreas_certificates(isd)
         if len(core_ases) == 0:
-            raise RuntimeError("no core ASes found")
+            raise RuntimeError('no core ASes found')
 
         if _can_update(isd):
             base = prev.base_version
@@ -89,7 +89,7 @@ class TRCManager(models.Manager):
             votes = Certificate.objects.none()
             signers = certificates.filter(key__usage__in=[
                 Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR])
-            not_before, not_after = validity(*[*certificates])  # "certificates" covers everything
+            not_before, not_after = validity(*[*certificates])  # 'certificates' covers everything
 
         votes_idx = prev.get_certificate_indices(votes) if prev else []
 
@@ -121,7 +121,7 @@ class TRCManager(models.Manager):
     def latest(self):
         """ there could be more than one TRC with the same serial, but the latest is the one
         that has its base the further in the sequence """
-        return super().latest("serial_version", "base_version")
+        return super().latest('serial_version', 'base_version')
 
     def latest_or_none(self):
         try:
@@ -151,7 +151,7 @@ class TRC(models.Model):
     # in scionlab, core ASes == authoritative ASes.
     core_ases = models.ManyToManyField(
         AS,
-        related_name="trcs_attesting_core_as"
+        related_name='trcs_attesting_core_as'
     )
 
     # List of sensitive, regular, and root certificates.
@@ -161,8 +161,8 @@ class TRC(models.Model):
     # See also _key_set_null_or_cascade
     certificates = models.ManyToManyField(
         Certificate,
-        through="CertificateInTRC",
-        related_name="trc_included",
+        through='CertificateInTRC',
+        related_name='trc_included',
     )
 
     quorum = models.PositiveIntegerField(
@@ -173,7 +173,7 @@ class TRC(models.Model):
     # Every voter must also include their signature in the final TRC.
     votes = models.ManyToManyField(
         Certificate,
-        related_name="trc_votes",
+        related_name='trc_votes',
     )
 
     # certificates signing this TRC. They could be sensitive or regular.
@@ -182,7 +182,7 @@ class TRC(models.Model):
     # See also can_update_regular
     signatures = models.ManyToManyField(
         Certificate,
-        related_name="trc_signatures",
+        related_name='trc_signatures',
     )
 
     trc = models.TextField(editable=False)  # in DER format, base64 encoded
@@ -206,7 +206,7 @@ class TRC(models.Model):
     def get_certificates(self):
         """ returns the list of certificates ordered by their index """
         return (cert_in_trc.certificate for cert_in_trc in
-                self.certificateintrc_set.order_by("index"))
+                self.certificateintrc_set.order_by('index'))
 
     def add_certificates(self, certs):
         count = self.certificates.count()
@@ -236,13 +236,13 @@ class TRC(models.Model):
     def get_certificate_indices(self, certs):
         """ returns the indices of the certs argument """
         return list(self.certificateintrc_set.filter(certificate__in=certs)
-                    .order_by("index").values_list("index", flat=True))
+                    .order_by('index').values_list('index', flat=True))
 
     def __str__(self):
         return self.filename()
 
     def filename(self) -> str:
-        return f"ISD{self.isd.isd_id}-B{self.base_version}-S{self.serial_version}"
+        return f'ISD{self.isd.isd_id}-B{self.base_version}-S{self.serial_version}'
 
     def update_regular_impossible(self):
         """
@@ -265,7 +265,7 @@ class TRC(models.Model):
         """
         prev = self.predecessor_trc_or_none()
         if prev is None or prev == self:
-            return "no previous TRC"
+            return 'no previous TRC'
         msg = _is_regular_update_prevented(prev, self.quorum, self.core_ases, self.certificates)
         if msg is not None:
             return msg
@@ -284,7 +284,7 @@ class TRC(models.Model):
 
     def predecessor_trc_or_none(self):
         """
-        Finds and returns the predecessor (anchor) TRC. If this is a base TRC, it returns "self".
+        Finds and returns the predecessor (anchor) TRC. If this is a base TRC, it returns 'self'.
         Returns None iff there is a gap in the TRC serial sequence.
         """
         if self.base_version == self.serial_version:
@@ -314,7 +314,7 @@ def _can_update(isd):
     - noTrustReset must not change.
     - Votes must belong to sensitive or regular certificates present in the previous TRC.
     - The number of votes >= previous TRC votingQuorum.
-    - Every "sensitive voting cert" and "regular voting cert" that are new in
+    - Every 'sensitive voting cert' and 'regular voting cert' that are new in
         this TRC, attach a signature to the TRC.
 
     In SCIONLab we only need to worry about the previous TRC.
@@ -345,10 +345,10 @@ def _is_regular_update_prevented(prev_trc, quorum, core_ases, certificates):
     See also update_regular_impossible
     """
     if prev_trc.quorum != quorum:
-        return "different quorum"
+        return 'different quorum'
     # check core, authoritative ASes section (they are treated the same in SCIONLab):
     if set(prev_trc.core_ases.all()) != set(core_ases.all()):
-        return "different core section"
+        return 'different core section'
     # number of sensitive, regular and root certificates is the same
     msg = _validate_compatible_certificates(prev_trc.certificates, certificates)
     if msg is not None:
@@ -357,7 +357,7 @@ def _is_regular_update_prevented(prev_trc, quorum, core_ases, certificates):
     prev_sensitive = prev_trc.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
     if prev_sensitive.intersection(certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE
                                                        )).count() != prev_sensitive.count():
-        return "different sensitive voters certificates"
+        return 'different sensitive voters certificates'
     return None
 
 
@@ -367,24 +367,24 @@ def _validate_compatible_certificates(prev_certs, this_certs):
         prev = prev_certs.filter(key__usage=usage)
         this = this_certs.filter(key__usage=usage)
         if prev.count() != this.count():
-            return f"different number of certificates for {usage}"
-        prev_ases = AS.objects.filter(pk__in=prev.values("key__AS")).order_by("pk")
-        this_ases = AS.objects.filter(pk__in=this.values("key__AS")).order_by("pk")
+            return f'different number of certificates for {usage}'
+        prev_ases = AS.objects.filter(pk__in=prev.values('key__AS')).order_by('pk')
+        this_ases = AS.objects.filter(pk__in=this.values('key__AS')).order_by('pk')
         if list(prev_ases) != list(this_ases):
-            return f"different distinguished name in certs. for {usage}"
+            return f'different distinguished name in certs. for {usage}'
 
 
 def _validate_old_regular_votes(prev, this):
     diff = prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR).difference(
         this.certificates.all())
     if this.votes.intersection(diff).count() != diff.count():
-        return "regular voting certificate changed and old one not part of voters"
+        return 'regular voting certificate changed and old one not part of voters'
 
 
 def _validate_compatible_root(prev, this):
     diff = this.certificates.filter(key__usage=Key.ISSUING_ROOT).difference(prev.certificates.all())
     if this.signatures.all().intersection(diff).count() != diff.count():
-        return "changed root certificates are not signing the TRC"
+        return 'changed root certificates are not signing the TRC'
 
 
 def _coreas_certificates(isd):

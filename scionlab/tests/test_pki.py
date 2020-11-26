@@ -51,8 +51,8 @@ class KeyTests(TestCase):
 
     def test_latest(self):
         for as_ in [self.AS,
-                    _create_AS(self.isd, "ff00:0:111"),
-                    _create_AS(self.isd, "ff00:0:112")]:
+                    _create_AS(self.isd, 'ff00:0:111'),
+                    _create_AS(self.isd, 'ff00:0:112')]:
             Key.objects.create(AS=as_, usage=Key.CP_AS)
         self.assertEqual(Key.objects.exclude(version=1).count(), 0)
         k = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
@@ -62,7 +62,7 @@ class KeyTests(TestCase):
         k = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
         self.assertEqual(k.format_keyfile(), k.key)
         first_line = k.key.splitlines()[0]
-        self.assertEqual(first_line, "-----BEGIN EC PRIVATE KEY-----")
+        self.assertEqual(first_line, '-----BEGIN EC PRIVATE KEY-----')
 
     def test_delete_as(self):
         # sensitive, regular, root, and ca keys and certificates:
@@ -78,7 +78,7 @@ class KeyTests(TestCase):
         k_regular = Key.objects.get(usage=Key.TRC_VOTING_REGULAR)
         k_sensitive = Key.objects.get(usage=Key.TRC_VOTING_SENSITIVE)
 
-        AS2 = _create_AS(self.isd, "ff00:0:111", is_core=True)
+        AS2 = _create_AS(self.isd, 'ff00:0:111', is_core=True)
         Key.objects.create_core_keys(AS2)
         Certificate.objects.create_core_certs(AS2)
 
@@ -94,7 +94,7 @@ class KeyTests(TestCase):
         self.assertFalse(AS.objects.filter(pk=self.AS.pk).exists())      # the AS was removed.
 
         # the keys and certs for the other AS are removed
-        old_certs = Certificate.objects.filter(key__AS=AS2).values_list("pk", flat=True)
+        old_certs = Certificate.objects.filter(key__AS=AS2).values_list('pk', flat=True)
         AS2.delete()
         self.assertFalse(Certificate.objects.filter(pk__in=old_certs).exists())
         self.assertEqual(Certificate.objects.count(), 1)
@@ -256,7 +256,7 @@ class CertificateTests(TestCase):
             subject=self.AS,
             not_before=datetime.fromtimestamp(10),
             not_after=datetime.fromtimestamp(12))
-        subject = _create_AS(self.isd, "ff00:0:111")
+        subject = _create_AS(self.isd, 'ff00:0:111')
         subject_key = Key.objects.create(
             AS=subject,
             usage=Key.CP_AS,
@@ -290,20 +290,20 @@ class CertificateTests(TestCase):
             subject=self.AS,
             not_before=datetime.utcnow(),
             not_after=datetime.utcnow())
-        self.assertEqual(cert.certificate.splitlines()[0], "-----BEGIN CERTIFICATE-----")  # PEM
-        self.assertEqual(cert.certificate.count("-----BEGIN CERTIFICATE-----"), 1)
+        self.assertEqual(cert.certificate.splitlines()[0], '-----BEGIN CERTIFICATE-----')  # PEM
+        self.assertEqual(cert.certificate.count('-----BEGIN CERTIFICATE-----'), 1)
         # AS certificates should contain a chain, with the subject certificate first,
         # and the CA second. The rest is only one certificate.
         Key.objects.create(self.AS, Key.ISSUING_CA)
         cert_ca = Certificate.objects.create_issuer_ca_cert(
             self.AS, datetime.utcnow(), datetime.utcnow())
-        self.assertEqual(cert_ca.certificate.count("-----BEGIN CERTIFICATE-----"), 1)
+        self.assertEqual(cert_ca.certificate.count('-----BEGIN CERTIFICATE-----'), 1)
         Key.objects.create(self.AS, Key.CP_AS)
         cert = Certificate.objects.create_cp_as_cert(
             self.AS, self.AS, datetime.utcnow(), datetime.utcnow())
         output = cert.format_certfile()
-        self.assertEqual(output.count("-----BEGIN CERTIFICATE-----"), 2)  # own cert and issuer
-        index = output.find("-----BEGIN CERTIFICATE-----", 1)
+        self.assertEqual(output.count('-----BEGIN CERTIFICATE-----'), 2)  # own cert and issuer
+        index = output.find('-----BEGIN CERTIFICATE-----', 1)
         self.assertEqual(output[0:index], cert.certificate)  # own certificate
         self.assertEqual(output[index:], cert_ca.certificate)  # issuer
 
