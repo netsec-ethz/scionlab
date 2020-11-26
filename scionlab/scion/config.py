@@ -30,12 +30,10 @@ from scionlab.defines import (
     SD_TCP_PORT,
     SD_PROM_PORT,
     SCION_CONFIG_DIR,
-    SCION_LOG_DIR,
     SCION_VAR_DIR,
 )
 
 GEN = "gen"
-GEN_CERTS = "gen-certs"
 GEN_CACHE = "gen-cache"
 CERT_DIR = "certs"
 KEY_DIR = "keys"
@@ -57,9 +55,10 @@ BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 
 CMDS = {
     Service.CS: 'cs',
-    TYPE_BR: 'border',
+    TYPE_BR: 'posix-router',
     TYPE_SD: 'sciond',
 }
+CMD_DISPATCHER = 'dispatcher'
 
 
 def generate_systemd_scion_config(host, archive, with_sig_dummy_entry=False):
@@ -108,9 +107,6 @@ class _ConfigGeneratorBase:
             assert service.type == Service.CS
             self.archive.write_toml((config_dir, f'{service.instance_name}.toml'),
                                     cb.build_cs_conf(service))
-
-        self.archive.write_toml((config_dir, 'sd.toml'),
-                                cb.build_sciond_conf(self.host))
 
         self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
         self._write_topo(config_dir)
@@ -165,11 +161,9 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
 
     def generate(self):
         config_builder = _ConfigBuilder(config_dir=SCION_CONFIG_DIR,
-                                        log_dir=SCION_LOG_DIR,
-                                        var_dir=SCION_VAR_DIR,
-                                        tls_certs_dir=os.path.join(SCION_CONFIG_DIR, GEN_CERTS))
+                                        var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
-        # dispatcher config is installed with the package
+        # dispatcher and sciond config files are installed with the package
 
     def systemd_units(self):
         units = ["scion-border-router@%s.service" % router.instance_name
@@ -179,7 +173,7 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
         # XXX(matzf) drop this!
         units += ["%s.service" % SERVICES_TO_SYSTEMD_NAMES[service.type]
                   for service in self._extra_services()]
-        units.append('scion-daemon@sd.service')
+        units.append('scion-daemon.service')
         units.append('scion-dispatcher.service')
         return units
 
@@ -191,21 +185,22 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
     def generate(self):
         # build AS service config into gen/AS<AS_ID>
         config_builder = _ConfigBuilder(config_dir=self._as_dir(),
-                                        log_dir='logs',
-                                        var_dir=GEN_CACHE,
-                                        tls_certs_dir=GEN_CERTS)
+                                        var_dir=GEN_CACHE)
         self._write_as_config(config_builder)
 
         # the dispatcher directory is outside the AS subdirectory
         self.archive.write_toml((self._disp_dir(), 'disp.toml'),
                                 config_builder.build_disp_conf())
 
+        self.archive.write_toml((self._as_dir(), 'sd.toml'),
+                                config_builder.build_sciond_conf(self.host))
+
         self._write_supervisord_file()
 
     def _write_supervisord_file(self):
         def _cmd(binary_name, config_dir, config_file):
             """ helper to create the command string for BR, CS, sciond and dispatcher """
-            return f'bin/{binary_name} -config {config_dir}/{config_file}'
+            return f'bin/{binary_name} --config {config_dir}/{config_file}'
 
         as_dir = self._as_dir()
         config = configparser.ConfigParser()
@@ -241,7 +236,7 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
         _add_supervisord_program_conf(
             config,
             disp_prog_id,
-            _cmd('godispatcher', self._disp_dir(), 'disp.toml'),
+            _cmd(CMD_DISPATCHER, self._disp_dir(), 'disp.toml'),
             env=DEFAULT_ENV,
             priority=50,
             startsecs=1
@@ -261,13 +256,13 @@ class _ConfigBuilder:
     Helper object for `_ConfigGenerator`
     Builds the *.toml-configuration for the SCION services.
     """
-    def __init__(self, config_dir, log_dir, var_dir, tls_certs_dir):
+    def __init__(self, config_dir, var_dir):
         self.config_dir = config_dir
-        self.log_dir = log_dir
         self.var_dir = var_dir
-        self.tls_certs_dir = tls_certs_dir
 
     def build_disp_conf(self):
+        # Note: this is only used in the supervisord setup;
+        # in the systemd setup, the dispatcher.toml file is installed with the package.
         logging_conf = self._build_logging_conf('dispatcher')
         metrics_conf = self._build_metrics_conf(DISPATCHER_PROM_PORT)
         conf = _chain_dicts(logging_conf, metrics_conf)
@@ -301,47 +296,47 @@ class _ConfigBuilder:
                 'rev_ttl': '20s',
                 'rev_overlap': '5s',
                 'policies': {
-                    'Propagation': os.path.join(self.config_dir, 'beacon_policy.yaml')
+                    'propagation': os.path.join(self.config_dir, 'beacon_policy.yaml')
                 }
             },
             'path_db': {
-                'backend': 'sqlite',
                 'connection': '%s.path.db' % os.path.join(self.var_dir, service.instance_name),
             },
             'beacon_db': {
-                'backend': 'sqlite',
                 'connection': '%s.beacon.db' % os.path.join(self.var_dir, service.instance_name),
             },
             'trust_db': {
-                'backend': 'sqlite',
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, service.instance_name),
             },
             'quic': {
                 'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
-                'key_file':  os.path.join(self.tls_certs_dir, 'tls.key'),
-                'cert_file': os.path.join(self.tls_certs_dir, 'tls.pem'),
-                'resolution_fraction': 0.4,
             },
         })
+        if service.AS.is_core:
+            conf.update({
+                'renewal_db': {
+                    'connection': '%s.renewal.db' % os.path.join(self.var_dir,
+                                                                 service.instance_name),
+                },
+            })
+
         return conf
 
     def build_sciond_conf(self, host):
+        # Note: this is only used in the supervisord setup;
+        # in the systemd setup, the sciond.toml file is installed with the package.
         instance_name = 'sd'
-
         general_conf = self._build_general_conf(instance_name)
         logging_conf = self._build_logging_conf(instance_name)
         metrics_conf = self._build_metrics_conf(SD_PROM_PORT)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
         conf.update({
-            'sd': {
-                'address': _join_host_port('127.0.0.1', SD_TCP_PORT),
-            },
+            # Note, using default address:
+            # sd.address = 127.0.0.1:30255 (SD_TCP_PORT)
             'path_db': {
-                'backend': 'sqlite',
                 'connection': '%s.path.db' % os.path.join(self.var_dir, instance_name),
             },
             'trust_db': {
-                'backend': 'sqlite',
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
             },
         })
@@ -362,6 +357,7 @@ class _ConfigBuilder:
                 # Note: this has performance impacts (for BR, only control plane)
                 'reconnect_to_dispatcher': True,
             },
+            # XXX: enable header v2 in features? or better flip the default in our builds?
         }
 
     def _build_metrics_conf(self, prometheus_port):
@@ -377,11 +373,8 @@ class _ConfigBuilder:
         """ Builds the 'logging' configuration section common to all services """
         return {
             'log': {
-                'file': {
-                    'path': '%s.log' % os.path.join(self.log_dir, instance_name),
+                'console': {
                     'level': 'debug',
-                    'max_age': 3,
-                    'max_backups': 1,
                 },
             },
         }

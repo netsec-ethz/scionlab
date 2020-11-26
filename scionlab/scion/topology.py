@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ipaddress
-
-from scionlab.defines import SIG_PORT
+from scionlab.defines import SIG_CTRL_PORT, SIG_DATA_PORT
 from scionlab.models.core import Service, Link
 
-KEY_BR = 'BorderRouters'
-KEY_CS = 'ControlService'
+KEY_BR = 'border_routers'
+KEY_CS = 'control_service'
+KEY_DS = 'discovery_service'
 
 TYPES_TO_KEYS = {
     "CS": KEY_CS,
@@ -40,7 +39,6 @@ class TopologyInfo:
     scionlab.models.core.BorderRouter/Service objects, marked up with the additional attributes
         `instance_name`
         `instance_id`
-
     """
 
     def __init__(self, as_, with_sig_dummy_entry=False):
@@ -51,22 +49,17 @@ class TopologyInfo:
         self.routers = _fetch_routers(self.AS)
         self.services = _fetch_services(self.AS)
 
-        # get overlay type inside AS from IPs used by hosts
-        address_type = _get_ip_type_str(self.AS.hosts.first().internal_ip)
-        overlay_type = "UDP/" + address_type
-
         # AS wide entries
         self.topo = {}
-        self.topo["ISD_AS"] = self.AS.isd_as_str()
-        self.topo["MTU"] = self.AS.mtu
-        self.topo["Attributes"] = CORE_ATTRIBUTES if self.AS.is_core else []
-        self.topo["Overlay"] = overlay_type
+        self.topo["isd_as"] = self.AS.isd_as_str()
+        self.topo["mtu"] = self.AS.mtu
+        self.topo["attributes"] = CORE_ATTRIBUTES if self.AS.is_core else []
 
-        _topo_add_routers(self.topo, self.routers, address_type)
-        _topo_add_control_services(self.topo, self.services, address_type)
+        _topo_add_routers(self.topo, self.routers)
+        _topo_add_control_services(self.topo, self.services)
 
         if with_sig_dummy_entry:
-            _topo_add_sig_dummy_entry(self.topo, self.AS.hosts.first(), address_type)
+            _topo_add_sig_dummy_entry(self.topo, self.AS.hosts.first())
 
 
 def _fetch_routers(as_):
@@ -89,7 +82,7 @@ def _fetch_services(as_):
     return services
 
 
-def _topo_add_routers(topo_dict, routers, as_address_type):
+def _topo_add_routers(topo_dict, routers):
     """
     Add entries for border routers to topology dict
     """
@@ -100,31 +93,17 @@ def _topo_add_routers(topo_dict, routers, as_address_type):
         if not interfaces:
             continue
 
-        router_entry = _topo_add_router_entry(topo_dict, router, as_address_type)
+        router_entry = _topo_add_router_entry(topo_dict, router)
 
         for interface in interfaces:
             _topo_add_interface(router_entry, interface)
 
 
-def _topo_add_router_entry(topo_dict, router, as_address_type):
+def _topo_add_router_entry(topo_dict, router):
     return topo_dict[KEY_BR].setdefault(router.instance_name, {
-        "InternalAddrs": {
-            as_address_type: {
-                "PublicOverlay": {
-                    "Addr": router.host.internal_ip,
-                    "OverlayPort": router.internal_port
-                }
-            }
-        },
-        "CtrlAddr": {
-            as_address_type: {
-                "Public": {
-                    "Addr": router.host.internal_ip,
-                    "L4Port": router.control_port
-                }
-            }
-        },
-        "Interfaces": {}
+        "internal_addr": _join_host_port(router.host.internal_ip, router.internal_port),
+        "ctrl_addr": _join_host_port(router.host.internal_ip, router.control_port),
+        "interfaces": {},
     })
 
 
@@ -134,63 +113,42 @@ def _topo_add_interface(router_entry, interface):
     """
     remote_interface = interface.remote_interface()
 
-    address_type = _get_ip_type_str(interface.get_public_ip())
-    link_overlay = "UDP/" + address_type
-
     interface_entry = {
-        "ISD_AS": remote_interface.AS.isd_as_str(),
-        "LinkTo": _get_linkto_relation(interface),
-        "Bandwidth": interface.link().bandwidth,
-        "PublicOverlay": {
-            "Addr": interface.get_public_ip(),
-            "OverlayPort": interface.public_port
+        "isd_as": remote_interface.AS.isd_as_str(),
+        "link_to": _get_linkto_relation(interface),
+        "mtu": interface.link().mtu,
+        "bandwidth": interface.link().bandwidth,
+        "underlay": {
+            "public": _join_host_port(interface.get_public_ip(), interface.public_port),
+            "remote": _join_host_port(remote_interface.get_public_ip(),
+                                      remote_interface.public_port),
         },
-        "MTU": interface.link().mtu,
-        "RemoteOverlay": {
-            "Addr": remote_interface.get_public_ip(),
-            "OverlayPort": remote_interface.public_port
-        },
-        "Overlay": link_overlay
     }
     if interface.get_bind_ip():
-        interface_entry.update({
-            "BindOverlay": {
-                "Addr": interface.get_bind_ip(),
-                "OverlayPort": interface.bind_port or interface.public_port
-            }
+        interface_entry["underlay"].update({
+            "bind": _join_host_port(interface.get_bind_ip(),
+                                    interface.bind_port or interface.public_port)
         })
-    router_entry["Interfaces"][interface.interface_id] = interface_entry
+    router_entry["interfaces"][interface.interface_id] = interface_entry
 
 
-def _topo_add_control_services(topo_dict, services, as_address_type):
+def _topo_add_control_services(topo_dict, services):
     control_services = (s for s in services if s.type in Service.CONTROL_SERVICE_TYPES)
     for service in control_services:
+        service_instance_entry = {
+            "addr": _join_host_port(service.host.internal_ip, service.port()),
+        }
         service_type_entry = topo_dict.setdefault(TYPES_TO_KEYS[service.type], {})
-        addrs = {
-            "Public": {
-                "Addr": service.host.internal_ip,
-                "L4Port": service.port()
-            }
-        }
-        # XXX(matzf): use optional bind_ip, but only if the internal_ip matches public_ip;
-        #   the reason is that the bind_ip is only really defined for the public_ip. If the
-        #   internal_ip is different from public_ip, e.g. if it's 127.0.0.1, then it doesn't make
-        #   sense to use bind_ip.
-        #   We'd need an internal_bind_ip to represent this correctly -- luckily we don't seem to
-        #   need this.
-        if service.host.bind_ip and service.host.internal_ip == service.host.public_ip:
-            addrs["Bind"] = {
-                "Addr": service.host.bind_ip,
-                "L4Port": service.port(),
-            }
-        service_type_entry[service.instance_name] = {
-            "Addrs": {
-                as_address_type: addrs
-            }
-        }
+        service_type_entry[service.instance_name] = service_instance_entry
+        # Add discovery service, as copy of control service (because the control service implements
+        # the discovery service, but there is still a separate entry in the topology file. Gee...).
+        if service.type == Service.CS:
+            ds_entry = topo_dict.setdefault(KEY_DS, {})
+            instance_name = f"ds-{service.instance_id}"
+            ds_entry[instance_name] = service_instance_entry
 
 
-def _topo_add_sig_dummy_entry(topo_dict, host, as_address_type):
+def _topo_add_sig_dummy_entry(topo_dict, host):
     """
     Add a "dummy" entry for the SIG in the topology.json, with localhost address and default
     port.
@@ -200,37 +158,26 @@ def _topo_add_sig_dummy_entry(topo_dict, host, as_address_type):
     Note: this entry allows the border router to resolve SIG service address; this changes the
     error behaviour slighly when receiving packets addressed to the SIG without the SIG running.
     """
-    topo_dict["SIG"] = {
+    topo_dict["sigs"] = {
         "sig-1": {  # id is irrelevant, not used for anything
-            "Addrs": {
-                as_address_type: {
-                    "Public": {
-                        "Addr": host.internal_ip,
-                        "L4Port": SIG_PORT,
-                    }
-                }
-            }
+            "ctrl_addr": _join_host_port(host.internal_ip, SIG_CTRL_PORT),
+            "data_addr": _join_host_port(host.internal_ip, SIG_DATA_PORT),
+            # 'allow_interfaces': [...], unused for now, not setting anything
         }
     }
 
 
-def _get_ip_type_str(ip):
+def _join_host_port(host, port):
     """
-    Return the type of the given IP address as string to be used in the scion topology
-    files; returns either "IPv4" or "IPv6"
-    :param str ip: IP address
-    :return str: "IPv4" or "IPv6"
+    Returns joined host:port, wrapping host in brackets if it looks like an IPv6 address
+    :param str host:
+    :param int port:
+        :return str:
     """
-    ip = ipaddress.ip_address(ip)
-    if isinstance(ip, ipaddress.IPv6Address):
-        return "IPv6"
+    if ':' in host:
+        return '[%s]:%s' % (host, port)
     else:
-        return "IPv4"
-
-
-def _get_link_overlay_type_str(interface):
-    ip_type = _get_ip_type_str(interface.get_public_ip())
-    return "UDP/" + ip_type
+        return '%s:%s' % (host, port)
 
 
 def _get_linkto_relation(interface):

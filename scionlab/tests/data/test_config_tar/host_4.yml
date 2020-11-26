@@ -139,11 +139,8 @@ etc/scion/br-1.toml: |
   [metrics]
   prometheus = "127.0.0.1:30442"
 
-  [log.file]
+  [log.console]
   level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/br-1.log"
 etc/scion/br-2.toml: |
   [general]
   config_dir = "/etc/scion"
@@ -153,11 +150,8 @@ etc/scion/br-2.toml: |
   [metrics]
   prometheus = "127.0.0.1:30443"
 
-  [log.file]
+  [log.console]
   level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/br-2.log"
 etc/scion/certs/ISD17-ASffaa_0_1107-V1.crt: |-
   [
     {
@@ -251,7 +245,6 @@ etc/scion/certs/ISD20-V1.trc: |-
   }
 etc/scion/cs-1.toml: |
   [beacon_db]
-  backend = "sqlite"
   connection = "/var/lib/scion/cs-1.beacon.db"
 
   [beaconing]
@@ -269,27 +262,19 @@ etc/scion/cs-1.toml: |
   prometheus = "127.0.0.1:30454"
 
   [path_db]
-  backend = "sqlite"
   connection = "/var/lib/scion/cs-1.path.db"
 
   [quic]
   address = "127.0.0.1:30354"
-  cert_file = "/etc/scion/gen-certs/tls.pem"
-  key_file = "/etc/scion/gen-certs/tls.key"
-  resolution_fraction = 0.4
 
   [trust_db]
-  backend = "sqlite"
   connection = "/var/lib/scion/cs-1.trust.db"
 
   [beaconing.policies]
-  Propagation = "/etc/scion/beacon_policy.yaml"
+  propagation = "/etc/scion/beacon_policy.yaml"
 
-  [log.file]
+  [log.console]
   level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/cs-1.log"
 etc/scion/keys/as-decrypt-v1.key: |
   -----BEGIN PRIVATE KEY-----
   algorithm: curve25519xsalsa20poly1305
@@ -316,136 +301,65 @@ etc/scion/keys/master0.key: |-
   R7D6Lhl52uxloBQFRulzzA==
 etc/scion/keys/master1.key: |-
   R7D6Lhl52uxloBQFRulzzA==
-etc/scion/sd.toml: |
-  [general]
-  config_dir = "/etc/scion"
-  id = "sd"
-  reconnect_to_dispatcher = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30455"
-
-  [path_db]
-  backend = "sqlite"
-  connection = "/var/lib/scion/sd.path.db"
-
-  [sd]
-  address = "127.0.0.1:30255"
-
-  [trust_db]
-  backend = "sqlite"
-  connection = "/var/lib/scion/sd.trust.db"
-
-  [log.file]
-  level = "debug"
-  max_age = 3
-  max_backups = 1
-  path = "/var/log/scion/sd.log"
 etc/scion/topology.json: |-
   {
-    "Attributes": [],
-    "BorderRouters": {
+    "attributes": [],
+    "border_routers": {
       "br-1": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30242
-            }
-          }
-        },
-        "Interfaces": {
+        "ctrl_addr": "127.0.0.1:30242",
+        "interfaces": {
           "1": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:0:1102",
-            "LinkTo": "PARENT",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "192.0.2.12",
-              "OverlayPort": 50001
+            "bandwidth": 1000,
+            "isd_as": "17-ffaa:0:1102",
+            "link_to": "PARENT",
+            "mtu": 1472,
+            "underlay": {
+              "public": "192.0.2.17:50000",
+              "remote": "192.0.2.12:50001"
             }
           }
         },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30042
-            }
-          }
-        }
+        "internal_addr": "127.0.0.1:30042"
       },
       "br-2": {
-        "CtrlAddr": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30243
-            }
-          }
-        },
-        "Interfaces": {
+        "ctrl_addr": "127.0.0.1:30243",
+        "interfaces": {
           "2": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:1",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "10.0.8.1",
-              "OverlayPort": 50000
-            },
-            "RemoteOverlay": {
-              "Addr": "10.0.0.1",
-              "OverlayPort": 54321
+            "bandwidth": 1000,
+            "isd_as": "17-ffaa:1:1",
+            "link_to": "CHILD",
+            "mtu": 1472,
+            "underlay": {
+              "public": "10.0.8.1:50000",
+              "remote": "10.0.0.1:54321"
             }
           },
           "3": {
-            "Bandwidth": 1000,
-            "ISD_AS": "17-ffaa:1:5",
-            "LinkTo": "CHILD",
-            "MTU": 1472,
-            "Overlay": "UDP/IPv4",
-            "PublicOverlay": {
-              "Addr": "192.0.2.17",
-              "OverlayPort": 50001
-            },
-            "RemoteOverlay": {
-              "Addr": "172.31.0.200",
-              "OverlayPort": 54321
+            "bandwidth": 1000,
+            "isd_as": "17-ffaa:1:5",
+            "link_to": "CHILD",
+            "mtu": 1472,
+            "underlay": {
+              "public": "192.0.2.17:50001",
+              "remote": "172.31.0.200:54321"
             }
           }
         },
-        "InternalAddrs": {
-          "IPv4": {
-            "PublicOverlay": {
-              "Addr": "127.0.0.1",
-              "OverlayPort": 30043
-            }
-          }
-        }
+        "internal_addr": "127.0.0.1:30043"
       }
     },
-    "ControlService": {
+    "control_service": {
       "cs-1": {
-        "Addrs": {
-          "IPv4": {
-            "Public": {
-              "Addr": "127.0.0.1",
-              "L4Port": 30254
-            }
-          }
-        }
+        "addr": "127.0.0.1:30254"
       }
     },
-    "ISD_AS": "17-ffaa:0:1107",
-    "MTU": 1472,
-    "Overlay": "UDP/IPv4"
+    "discovery_service": {
+      "ds-1": {
+        "addr": "127.0.0.1:30254"
+      }
+    },
+    "isd_as": "17-ffaa:0:1107",
+    "mtu": 1472
   }
 scionlab-config.json: |-
   {
@@ -453,19 +367,18 @@ scionlab-config.json: |-
       "etc/openvpn/ccd/exbert@scionlab.org_ffaa_1_1": "72a44b475588d54d168220d99cb1d5b26a39decd",
       "etc/openvpn/server.conf": "94b139e770cf95e62b57596c2b363c9af4ed4ff8",
       "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
-      "etc/scion/br-1.toml": "2df19de492ec1257d6cf3a244ead625c3fe3e102",
-      "etc/scion/br-2.toml": "7fd1b53d6c64cd2eff87c6c70d91990eb8909bcc",
+      "etc/scion/br-1.toml": "176ed3483535e5fa6b5bee83a786e978ae4ec081",
+      "etc/scion/br-2.toml": "34e0d88c394f36115029ac19c40399806c95ef97",
       "etc/scion/certs/ISD17-ASffaa_0_1107-V1.crt": "89bb64b0a92a9efc6d84e47ce1b2ab9c98bccf47",
       "etc/scion/certs/ISD17-V1.trc": "ed4f99c371b544e3bd6b4293e14396fd40b0b657",
       "etc/scion/certs/ISD19-V1.trc": "087f805b006e0ff52e8f4fbab3dcd63d27498601",
       "etc/scion/certs/ISD20-V1.trc": "df94e1688f2c88dd9648fa4c003f895b546467ab",
-      "etc/scion/cs-1.toml": "0c31ad123b489e233f616393faad56d4a7e93b5d",
+      "etc/scion/cs-1.toml": "0ef56839347bcb4cdef6c814ff2e1af86cbe8c89",
       "etc/scion/keys/as-decrypt-v1.key": "70b7a82e6d8ebbff8018b4f2deb251c308ac2e3b",
       "etc/scion/keys/as-signing-v1.key": "d79601ba79eea4161cc6b3f074f9d9e1df32bc5f",
       "etc/scion/keys/master0.key": "d3061b379b7044f794e598e1910f3a95dac95040",
       "etc/scion/keys/master1.key": "d3061b379b7044f794e598e1910f3a95dac95040",
-      "etc/scion/sd.toml": "6094e9c83d36e8ff82a188880b7612d4fb0f5c07",
-      "etc/scion/topology.json": "cb3d7a4480ec834dcf53201465034af672826b1c"
+      "etc/scion/topology.json": "5a642776686c4167e4e57726cc5de7fa902699c8"
     },
     "host_id": "9e090a4529264b958a5c65fd8c214b1d",
     "host_secret": "7abb3def0c4e4ddb85ba124d67d5544c",
@@ -474,7 +387,7 @@ scionlab-config.json: |-
       "scion-border-router@br-2.service",
       "scion-control-service@cs-1.service",
       "scion-bwtestserver.service",
-      "scion-daemon@sd.service",
+      "scion-daemon.service",
       "scion-dispatcher.service"
     ],
     "url": "http://localhost:8000",
