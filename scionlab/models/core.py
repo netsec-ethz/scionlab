@@ -105,8 +105,10 @@ class ISD(TimestampedModel):
         for as_ in self.ases.filter(is_core=False):
             as_.update_keys_certs()
 
-        trc = self.trcs.create()
-        return trc
+        return self.update_trc()
+
+    def update_trc(self):
+        return self.trcs.create()
 
 
 class ASManager(models.Manager):
@@ -267,13 +269,13 @@ class AS(TimestampedModel):
         """ returns a queryset of all of this AS' certificates """
         return Certificate.objects.filter(key__AS=self)
 
-    def generate_keys(self):
-        Key.objects.create_all_keys(self, not_before=datetime.utcnow())
+    def generate_keys(self, not_before=None):
+        Key.objects.create_all_keys(self, not_before=not_before)
 
     def generate_certs(self):
         Certificate.objects.create_all_certs(self)
 
-    def update_keys_certs(self):
+    def update_keys_certs(self, not_before=None):
         """
         Generate new keys and certificates (core and non core).
         The keys and certs have to be updated simultaneously to avoid getting a nil validity range
@@ -281,7 +283,7 @@ class AS(TimestampedModel):
         issuer's keys are valid only until last year.
         Bumps the configuration version on all affected hosts.
         """
-        self.generate_keys()
+        self.generate_keys(not_before)
         self.generate_certs()
         self.hosts.bump_config()
         self.save()
@@ -289,18 +291,13 @@ class AS(TimestampedModel):
     @staticmethod
     def update_core_as_keys(queryset):
         """
-        For all ASes in the given queryset, generate new core AS signing key pairs.
-        Update the TRC and all core certificates.
-        Bumps the configuration version on all affected hosts.
+        All the ASes in the queryset must update their keys and certificates.
+        Since this some of these ASes could act as CA for other, non-core ASes,
+        we must re-issue all certificates in that ISD.
+        So in this function, we just update keys, certificates and TRCs for all
+        core ASes in all ISDs that are touched by the given queryset.
         """
-        isds = set()
-        not_before = datetime.utcnow()
-        for as_ in queryset.filter(is_core=True):
-            isds.add(as_.isd)
-            Key.objects.create_core_keys(as_, not_before)
-            as_.save()
-
-        for isd in isds:
+        for isd in ISD.objects.filter(pk__in=queryset.values('isd')):
             isd.update_trc_and_certificates()
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
