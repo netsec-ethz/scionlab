@@ -20,6 +20,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Tuple
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
+from scionlab.scion import certs, keys
 from scionlab.scion.trcs import TRCConf, generate_trc, trc_to_dict
 from scionlab.tests.utils import check_scion_trc
 
@@ -110,6 +111,42 @@ class TRCCreationTests(TestCase):
                        "-purpose", "any", "-no_check_time"]
                 subprocess.run(cmd, input=signed, check=True,
                                stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
+    def test_sign_other_certificate(self):
+        # list of (cert, key)
+        signers = _get_signers(["voting-sensitive-ff00_0_110",
+                                "voting-regular-ff00_0_110"])
+
+        # replace the first certificate with a new, valid, one, generated from the key
+        key = signers[0][1]  # key at index 1, cert at index 0
+        orig_cert = certs.decode_certificate(signers[0][0])
+        cert = certs.generate_voting_sensitive_certificate(
+            '1-ff00:0:110',
+            keys.decode_key(key),
+            not_before=orig_cert.not_valid_before,
+            not_after=orig_cert.not_valid_after)
+        # sanity check for the new certificate:
+        self.assertEqual(cert.subject, orig_cert.subject)
+        self.assertEqual(cert.issuer, orig_cert.issuer)
+        self.assertEqual(cert.not_valid_before, orig_cert.not_valid_before)
+        self.assertEqual(cert.not_valid_after, orig_cert.not_valid_after)
+        self.assertNotEqual(cert.serial_number, orig_cert.serial_number)
+        self.assertNotEqual(cert.signature, orig_cert.signature)
+        # actually replace the certificate in the signers list, keep the key
+        signers[0] = (certs.encode_certificate(cert),
+                      signers[0][1])
+        # and go on as usual
+
+        with open(os.path.join(_TESTDATA_DIR, "payload-1-config.toml")) as f:
+            conf = TRCConf(**_transform_toml_conf_to_trcconf_args(toml.load(f)))
+        signed_payloads = []
+        with conf.configure() as c:
+            c.gen_payload()
+            for (cert, key) in signers:
+                signed_payloads.append(c.sign_payload(cert, key))
+            trc = c.combine(*signed_payloads)
+        # this TRC with a different certificate should be invalid
+        check_scion_trc(self, trc, trc, expected_failure=True)
 
     def test_combine(self):
         # list of (cert, key)

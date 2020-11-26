@@ -47,6 +47,10 @@ def encode_certificate(cert: x509.Certificate) -> bytes:
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
+def decode_certificate(pem: bytes) -> x509.Certificate:
+    return x509.load_pem_x509_certificate(pem, default_backend())
+
+
 def generate_voting_sensitive_certificate(subject_id: str,
                                           subject_key: ec.EllipticCurvePrivateKey,
                                           not_before: datetime,
