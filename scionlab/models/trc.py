@@ -244,6 +244,9 @@ class TRC(models.Model):
     def filename(self) -> str:
         return f'ISD{self.isd.isd_id}-B{self.base_version}-S{self.serial_version}'
 
+    def format_trcfile(self) -> bytes:
+        return trcs.decode_trc(self.trc)
+
     def update_regular_impossible(self):
         """
         Check if this TRC could do a regular TRC update (as opposed to a sensitive one).

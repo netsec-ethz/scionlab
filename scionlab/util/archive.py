@@ -47,6 +47,13 @@ class BaseArchiveWriter:
         """
         raise NotImplementedError()
 
+    def write_bytes(self, path, content):
+        """
+        Write content to file at given path.
+        :param bytes content:
+        """
+        raise NotImplementedError()
+
     def write_json(self, path, content):
         """
         Format dict as json and write to file at given path.
@@ -128,6 +135,11 @@ class FileArchiveWriter(BaseArchiveWriter):
         filepath.parent.mkdir(parents=True, exist_ok=True)
         filepath.write_text(content)
 
+    def write_bytes(self, path, content):
+        filepath = pathlib.Path(self.root, self._normalize_path(path))
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        filepath.write_bytes(content)
+
     def add(self, path, src):
         filepath = pathlib.Path(self.root, self._normalize_path(path))
         filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -152,7 +164,11 @@ class TarWriter(BaseArchiveWriter):
 
     def write_text(self, path, content):
         path = self._normalize_path(path)
-        tar_add_textfile(self.tar, path, content)
+        tar_add_text_file(self.tar, path, content)
+
+    def write_bytes(self, path, content):
+        path = self._normalize_path(path)
+        tar_add_binary_file(self.tar, path, content)
 
     def add(self, path, src):
         path = self._normalize_path(path)
@@ -163,18 +179,28 @@ class TarWriter(BaseArchiveWriter):
         tar_add_dir(self.tar, path)
 
 
-def tar_add_textfile(tar, path, content):
+def tar_add_text_file(tar, path, content):
     """
     Helper for tarfile: add a text-file at `path` with the given `content` to a tarfile `tar`.
     :param TarFile tar: an open tarfile.TarFile
     :param str path: name/path for the file in the tarfile
     :param str content: file content
     """
-    m = tarfile.TarInfo(path)
     content_bytes = content.encode()
-    m.size = len(content_bytes)
+    tar_add_binary_file(tar, path, content_bytes)
+
+
+def tar_add_binary_file(tar, path, content):
+    """
+    Helper for tarfile: add a binary file at `path` with the given `content` to a tarfile `tar`.
+    :param TarFile tar: an open tarfile.TarFile
+    :param str path: name/path for the file in the tarfile
+    :param bytes content: file content
+    """
+    m = tarfile.TarInfo(path)
+    m.size = len(content)
     m.mtime = time.time()
-    tar.addfile(m, io.BytesIO(content_bytes))
+    tar.addfile(m, io.BytesIO(content))
 
 
 def tar_add_dir(tar, path, mode=0o755):
@@ -205,6 +231,10 @@ class DictWriter(BaseArchiveWriter):
         path = self._normalize_path(path)
         self.dict[path] = content
 
+    def write_bytes(self, path, content):
+        path = self._normalize_path(path)
+        self.dict[path] = content
+
     def add(self, path, src):
         self.write_text(path, pathlib.Path(src).read_text())
 
@@ -223,8 +253,12 @@ class HashedArchiveWriter(BaseArchiveWriter):
         self.hashes = {}
 
     def write_text(self, path, content):
-        self._add_checksum(path, content)
+        self._add_checksum(path, content.encode())
         self._archive.write_text(path, content)
+
+    def write_bytes(self, path, content):
+        self._add_checksum(path, content)
+        self._archive.write_bytes(path, content)
 
     def add(self, path, src):
         self.write_text(path, pathlib.Path(src).read_text())
@@ -234,4 +268,4 @@ class HashedArchiveWriter(BaseArchiveWriter):
 
     def _add_checksum(self, path, content):
         path = self._normalize_path(path)
-        self.hashes[path] = hashlib.sha1(content.encode()).hexdigest()
+        self.hashes[path] = hashlib.sha1(content).hexdigest()

@@ -124,7 +124,7 @@ class _ConfigGeneratorBase:
         #   As there are no big disadvantages in always including all versions, that's what we do
         #   for now.
         for trc in TRC.objects.all():
-            self.archive.write_text((dir, CERT_DIR, trc.filename()), trc.trc)
+            self.archive.write_bytes((dir, CERT_DIR, trc.filename()), trc.format_trcfile())
 
     def _write_certs(self, dir):
         for cert in self.AS.certificates().all():
