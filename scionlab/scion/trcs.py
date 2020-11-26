@@ -171,31 +171,27 @@ class TRCConf:
         # or maybe the new cryptography >= 3.2 ?
         KEY_FILENAME = "key_file.key"
         CERT_FILENAME = "cert_file.crt"
-        prev_cwd = os.getcwd()
-        try:
-            os.chdir(self._temp_dir)
-            with open(KEY_FILENAME, "wb") as f:
-                f.write(key)
-            with open(CERT_FILENAME, "wb") as f:
-                f.write(cert)
-            command = ["openssl", "cms", "-sign", "-in", self.PAYLOAD_FILENAME,
-                       "-inform", "der", "-md", "sha512", "-signer", CERT_FILENAME,
-                       "-inkey", KEY_FILENAME, "-nodetach", "-nocerts", "-nosmimecap",
-                       "-binary", "-outform", "der", "-out", "trc-signed.der"]
-            ret = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                 check=False)
-            stdout = ret.stdout.decode("utf-8")
-            if ret.returncode != 0:
-                raise Exception(
-                    f"{stdout}\n\nExecuting {command}: bad return code: {ret.returncode}")
 
-            # remove they key, although it should be deleted when the temporary dir is cleaned up
-            os.remove(KEY_FILENAME)
-            # read the signed trc and return it
-            with open("trc-signed.der", "rb") as f:
-                return f.read()
-        finally:
-            os.chdir(prev_cwd)
+        with open(os.path.join(self._temp_dir, KEY_FILENAME), "wb") as f:
+            f.write(key)
+        with open(os.path.join(self._temp_dir, CERT_FILENAME), "wb") as f:
+            f.write(cert)
+        command = ["openssl", "cms", "-sign", "-in", self.PAYLOAD_FILENAME,
+                   "-inform", "der", "-md", "sha512", "-signer", CERT_FILENAME,
+                   "-inkey", KEY_FILENAME, "-nodetach", "-nocerts", "-nosmimecap",
+                   "-binary", "-outform", "der", "-out", "trc-signed.der"]
+        ret = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             check=False, cwd=self._temp_dir)
+        stdout = ret.stdout.decode("utf-8")
+        if ret.returncode != 0:
+            raise Exception(
+                f"{stdout}\n\nExecuting {command}: bad return code: {ret.returncode}")
+
+        # remove they key, although it should be deleted when the temporary dir is cleaned up
+        os.remove(os.path.join(self._temp_dir, KEY_FILENAME))
+        # read the signed trc and return it
+        with open(os.path.join(self._temp_dir, "trc-signed.der"), "rb") as f:
+            return f.read()
 
     def combine(self, *signed) -> bytes:
         """ returns the final TRC by combining the signed blocks and payload """
@@ -268,12 +264,7 @@ class TRCConf:
 
     def _run_scion_cppki(self, *args) -> str:
         """ runs the binary scion-pki """
-        prev_cwd = os.getcwd()
-        try:
-            os.chdir(self._temp_dir)
-            ret = _raw_run_scion_cppki(*args)
-        finally:
-            os.chdir(prev_cwd)
+        ret = _raw_run_scion_cppki(*args, cwd=self._temp_dir)
         stdout = ret.stdout.decode("utf-8")
         if ret.returncode != 0:
             raise Exception(f"{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}")
@@ -290,6 +281,6 @@ def _utc_timestamp(dt: datetime) -> datetime:
     return dt.replace(tzinfo=timezone.utc)
 
 
-def _raw_run_scion_cppki(*args):
+def _raw_run_scion_cppki(*args, cwd=None):
     return subprocess.run([settings.SCION_CPPKI_COMMAND, "trcs", *args],
-                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, cwd=cwd)
