@@ -537,7 +537,7 @@ def subprocess_call_log(*popenargs, timeout=None, **kwargs):
     logging.info("Command: %s; shell args: %s" % (" ".join(*popenargs), str(kwargs)))
 
 
-def check_scion_trc(testcase, trc, anchor_trc):
+def check_scion_trc(testcase, trc, anchor_trc, expected_failure=False):
     with NamedTemporaryFile('wb') as trc_file, NamedTemporaryFile('wb') as anchor_file:
         trc_file.write(trc)
         trc_file.flush()
@@ -545,4 +545,5 @@ def check_scion_trc(testcase, trc, anchor_trc):
         anchor_file.flush()
 
         ret = trcs._raw_run_scion_cppki("verify", "--anchor", anchor_file.name, trc_file.name)
-        testcase.assertEqual(ret.returncode, 0, ret.stdout.decode("utf-8"))
+        fcn = testcase.assertNotEqual if expected_failure else testcase.assertEqual
+        fcn(ret.returncode, 0, ret.stdout.decode("utf-8"))
