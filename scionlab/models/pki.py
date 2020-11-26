@@ -227,7 +227,7 @@ class CertificateManager(models.Manager):
         issuer_key = subject.keys.latest(usage=Key.ISSUING_ROOT)
         not_before, not_after = validity(Validity(not_before, not_after), subject_key, issuer_key)
         return self._create_cert(
-            certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
+            certs.generate_issuer_ca_certificate, subject_key, not_before, not_after, issuer_key)
 
     def create_cp_as_cert(self, subject, issuer, not_before=None, not_after=None):
         """ An AS cert is signed by the CA cert of the issuer """
