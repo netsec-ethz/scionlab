@@ -40,7 +40,7 @@ Vagrantfile: |
   Unattended-Upgrade::Automatic-Reboot-Time "02:00";' > /etc/apt/apt.conf.d/51unattended-upgrades-security
 
       # Fetch configuration from coordinator and start SCION
-      scionlab-config --host-id=d3191018a8af448e8d0f42de92c1a793 --host-secret=a2d837b3dcb8457da2af36ee95e23442 --url=http://localhost:8000
+      scionlab-config --host-id=72356ca6dbe24145a8d6e234f5571bd1 --host-secret=c9eea385840346a89b739aa68b221a2d --url=http://localhost:8000
 
       # TODO(juagargi): install scion-apps
       echo "SCIONLab VM ready"
