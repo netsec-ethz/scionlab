@@ -36,7 +36,7 @@ def encode_key(key: ec.EllipticCurvePrivateKeyWithSerialization) -> bytes:
     """ Returns the key as a PEM formatted string """
     return key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption())
 
 

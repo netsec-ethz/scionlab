@@ -61,7 +61,7 @@ class KeyTests(TestCase):
     def test_key_format(self):
         k = Key.objects.create(AS=self.AS, usage=Key.CP_AS)
         first_line = k.key.splitlines()[0]
-        self.assertEqual(first_line, '-----BEGIN EC PRIVATE KEY-----')
+        self.assertEqual(first_line, '-----BEGIN PRIVATE KEY-----')
 
     def test_delete_as(self):
         # sensitive, regular, root, and ca keys and certificates:
