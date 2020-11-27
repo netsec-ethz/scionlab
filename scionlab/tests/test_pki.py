@@ -87,17 +87,18 @@ class KeyTests(TestCase):
 
         self.assertFalse(Key.objects.filter(pk=k_as.pk).exists())    # Delete should cascade here,
         self.assertFalse(Key.objects.filter(pk=k_ca.pk).exists())    # ... and here too.
-        self.assertFalse(Key.objects.filter(pk=k_root.pk).exists())  # ... and here too.
-        self.assertFalse(Key.objects.filter(pk=k_regular.pk).exists())   # ... and here too.
+        self.assertTrue(Key.objects.filter(pk=k_root.pk).exists())       # Should still exist!
+        self.assertTrue(Key.objects.filter(pk=k_regular.pk).exists())    # Should still exist!
         self.assertTrue(Key.objects.filter(pk=k_sensitive.pk).exists())  # Should still exist!
-        self.assertFalse(AS.objects.filter(pk=self.AS.pk).exists())      # the AS was removed.
+        self.assertFalse(AS.objects.filter(pk=self.AS.pk).exists())  # the AS was removed.
 
         # the keys and certs for the other AS are removed
         old_certs = Certificate.objects.filter(key__AS=AS2).values_list('pk', flat=True)
         AS2.delete()
         self.assertFalse(Certificate.objects.filter(pk__in=old_certs).exists())
-        self.assertEqual(Certificate.objects.count(), 1)
-        self.assertEqual(Key.objects.count(), 1)
+        # only remaining keys and certs from the other AS:
+        self.assertEqual(Certificate.objects.count(), 3)
+        self.assertEqual(Key.objects.count(), 3)
 
 
 class CertificateTests(TestCase):

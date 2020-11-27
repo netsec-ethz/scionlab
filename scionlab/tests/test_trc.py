@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from datetime import datetime, timedelta
+from django.db import transaction
 from django.test import TestCase
 
 from scionlab.scion import as_ids, trcs
@@ -63,6 +64,37 @@ class TRCTests(TestCase):
         trc.votes.add(c4)
         trc.votes.add(c1)
         self.assertEqual(trc.get_voters_indices(), [1, 3, 4])
+
+    def test_certificates_indices_after_delete(self):
+        as110 = _create_AS(self.isd1, 'ff00:0:110', is_core=True)
+        as210 = _create_AS(self.isd1, 'ff00:0:210', is_core=True)
+        Key.objects.create_core_keys(as110)
+        Key.objects.create_core_keys(as210)
+        Certificate.objects.create_core_certs(as110)
+        Certificate.objects.create_core_certs(as210)
+
+        prev = _create_TRC(self.isd1, 1, 1)
+        c0 = Certificate.objects.create_voting_sensitive_cert(as110)
+        c1 = Certificate.objects.create_voting_regular_cert(as110)
+        c2 = Certificate.objects.create_issuer_root_cert(as110)
+        c3 = Certificate.objects.create_voting_sensitive_cert(as210)
+        c4 = Certificate.objects.create_voting_regular_cert(as210)
+        c5 = Certificate.objects.create_issuer_root_cert(as210)
+        prev.certificates.add(c0, c1, c2, c3, c4, c5)
+        prev.save()
+
+        trc = _create_TRC(self.isd1, 2, 1)
+        trc.certificates.add(c0, c1, c2, c3, c4)
+        trc.votes.add(c0, c1, c3, c4)
+        trc.save()
+        self.assertEqual(trc.get_voters_indices(), [0, 1, 3, 4])  # normal
+        for c in [c0, c1, c2, c3, c4, c5]:
+            with transaction.atomic():  # transaction of the test would be broken otherwise
+                self.assertRaises(RuntimeError, c.delete)
+        # and the indices of the voters never changed
+        self.assertEqual(trc.get_voters_indices(), [0, 1, 3, 4])
+        prev.delete()
+        c5.delete()  # does not raise exception, not part of a TRC anymore
 
 
 class TRCUpdateTests(TestCase):

@@ -334,7 +334,6 @@ class AS(TimestampedModel):
         """
         if self.is_core:
             raise NotImplementedError
-
         self.isd = isd
         self.generate_certs()
 
@@ -342,6 +341,9 @@ class AS(TimestampedModel):
         # Keep versions increasing (by generating new cert before deleting old ones); in case we
         # move back to the original ISD, we need to have a version number different from the
         # original certificate.
+        # Preserve last certificate and those that were part of TRCs.
+        # See also: pki._key_set_null_or_cascade
+        # Since this function checks that the AS is non-core, it contains no certs. part of TRCs.
         latest = Certificate.objects.latest(usage=Key.CP_AS, AS=self)
         self.certificates().exclude(id=latest.pk).delete()
 

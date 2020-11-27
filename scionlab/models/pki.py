@@ -20,6 +20,8 @@
 from collections import namedtuple
 from datetime import datetime
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 from scionlab.defines import (
     DEFAULT_EXPIRATION_CORE_KEYS,
@@ -37,18 +39,27 @@ def _key_set_null_or_cascade(collector, field, sub_objs, using):
         - SET_NULL for keys that have a cert sensitive signing a TRC
         - CASCADE for all others
 
-    This 'trick' is required to be able to use voting sensitive keys for the creation of a new TRC
-    after an AS has been deleted.
-    We use the callback on the Key.on_delete because Key is an intermediate model between
-    Certificate and AS, and simplifies checking membership on the cert.trc_voted_sensitive.
-    See also: test_pki:CertificateTests.test_delete_while_sensitive_voted
-    """
-    sensitive = [key for key in sub_objs if key.certificates.exclude(trc_included__isnull=True)
-                 .filter(key__usage=Key.TRC_VOTING_SENSITIVE)]
-    others = [key for key in sub_objs if key not in sensitive]
+    Certificates include votes, that are references to certificates included in previous TRCs.
+    The votes are specified via indices to the previous TRC `certificates` field (e.g.
+    votes = [0, 3] means the first and 4th certificate in the list of certificates from the
+    previous TRC). We need to preserve the possible voters in the previous TRCs, so making
+    the `certificates` effectively immutable.
 
-    if sensitive:
-        models.SET_NULL(collector, field, sensitive, using)
+    Furthermore, we need to preserve keys and certificates for possible signers of future
+    TRCs. These are sensitive and regular keys/certificates.
+
+    In summary: we preserve keys whose certificates are part of TRCs.
+    We use the callback on the Key.on_delete because Key is an intermediate model between
+    Certificate and AS, and simplifies checking membership on the cert.trc_included.
+    See also:
+        - test_pki:CertificateTests.test_delete_while_sensitive_voted
+        - pki.Certificate._pre_delete
+    """
+    preserve = [key for key in sub_objs if key.certificates.exclude(trc_included__isnull=True)]
+    others = [key for key in sub_objs if key not in preserve]
+
+    if preserve:
+        models.SET_NULL(collector, field, preserve, using)
     if others:
         models.CASCADE(collector, field, others, using)
 
@@ -337,11 +348,24 @@ class Certificate(models.Model):
         """
         return self.certificate + (self.ca_cert.certificate if self.key.usage == Key.CP_AS else '')
 
+    def _pre_delete(self):
+        # cannot allow removal of certificates if they are part of a TRC.
+        # See also _key_set_null_or_cascade
+        if self.trc_included.exists():
+            trcs = [str(trc) for trc in self.trc_included.iterator()]
+            raise RuntimeError(f'Attempt to delete Certificate id={self.id} {str(self)} ' +
+                               f'part of {len(trcs)} TRCs: {", ".join(trcs)}')
+
     @staticmethod
     def next_version(as_, usage):
         prev = Certificate.objects.filter(key__AS=as_, key__usage=usage).aggregate(
             models.Max('version'))['version__max'] or 0
         return prev + 1
+
+
+@receiver(pre_delete, sender=Certificate, dispatch_uid='certificate_delete_callback')
+def _interface_pre_delete(sender, instance, using, **kwargs):
+    instance._pre_delete()
 
 
 Validity = namedtuple('Validity', ['not_before', 'not_after'])
