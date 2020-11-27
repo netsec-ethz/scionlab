@@ -112,7 +112,7 @@ class TRCManager(models.Manager):
                              not_before=not_before, not_after=not_after,
                              quorum=quorum, trc=trcs.encode_trc(trc))
         obj.core_ases.set(core_ases)
-        obj.add_certificates(certificates)
+        obj.certificates.add(*certificates)
         obj.votes.set(votes)
         obj.signatures.set(signers)
 
@@ -161,7 +161,6 @@ class TRC(models.Model):
     # See also _key_set_null_or_cascade
     certificates = models.ManyToManyField(
         Certificate,
-        through='CertificateInTRC',
         related_name='trc_included',
     )
 
@@ -200,31 +199,12 @@ class TRC(models.Model):
         for usage in [Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR, Key.ISSUING_ROOT]:
             certs.append(Certificate.objects.latest(usage, AS))
         self.core_ases.add(AS)
-        self.add_certificates(certs)
+        self.certificates.add(*certs)
         self.quorum = self.core_ases.count() // 2 + 1
 
     def get_certificates(self):
         """ returns the list of certificates ordered by their index """
-        return (cert_in_trc.certificate for cert_in_trc in
-                self.certificateintrc_set.order_by('index'))
-
-    def add_certificates(self, certs):
-        count = self.certificates.count()
-        for i, c in enumerate(certs):
-            CertificateInTRC.objects.create(trc=self, certificate=c,
-                                            index=count + i)
-
-    def set_certificates(self, certs):
-        self.certificates.clear()
-        self.add_certificates(certs)
-
-    def del_certificates(self, certs):
-        # simply reset the certificate list:
-        self.set_certificates([c for c in self.get_certificates() if c not in set(certs)])
-
-    def add_vote(self, cert_in_prev_trc):
-        """ cert_in_prev_trc must be an object in the prev_trc.certificates """
-        self.votes.add(cert_in_prev_trc)
+        return self.certificates.order_by('pk')
 
     def get_voters_indices(self):
         """ uses the certificate indices of the previous TRC to indicate who voted """
@@ -235,8 +215,13 @@ class TRC(models.Model):
 
     def get_certificate_indices(self, certs):
         """ returns the indices of the certs argument """
-        return list(self.certificateintrc_set.filter(certificate__in=certs)
-                    .order_by('index').values_list('index', flat=True))
+        sought = set(c.pk for c in certs)
+        indices = []
+        present = self.get_certificates().values_list('pk', flat=True)
+        for index, pk in enumerate(present):
+            if pk in sought:
+                indices.append(index)
+        return indices
 
     def __str__(self):
         return self.filename()
@@ -294,19 +279,6 @@ class TRC(models.Model):
             return self
         prev = TRC.objects.filter(isd=self.isd, serial_version=self.serial_version - 1)
         return prev.get() if prev.exists() else None
-
-
-class CertificateInTRC(models.Model):
-    """ relationship through-table between TRC and Certificate """
-    certificate = models.ForeignKey(
-        Certificate,
-        on_delete=models.CASCADE,
-    )
-    trc = models.ForeignKey(
-        TRC,
-        on_delete=models.CASCADE,
-    )
-    index = models.PositiveIntegerField()
 
 
 def _can_update(isd):

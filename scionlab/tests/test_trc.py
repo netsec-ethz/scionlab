@@ -49,19 +49,19 @@ class TRCTests(TestCase):
         c2 = Certificate.objects.create_voting_regular_cert(as110)
         c3 = Certificate.objects.create_voting_regular_cert(as110)
         c4 = Certificate.objects.create_voting_regular_cert(as110)
-        prev.add_certificates([c0, c1, c2, c3, c4])
+        prev.certificates.add(c0, c1, c2, c3, c4)
         prev.save()
         trc = _create_TRC(self.isd1, 2, 1)
-        trc.add_certificates([c0, c1, c2, c3, c4])
-        trc.add_vote(c1)
+        trc.certificates.add(c0, c1, c2, c3, c4)
+        trc.votes.add(c1)
         self.assertEqual(trc.get_voters_indices(), [1])
-        trc.add_vote(c4)
+        trc.votes.add(c4)
         self.assertEqual(trc.get_voters_indices(), [1, 4])
         # insert votes in a different order
         trc.votes.clear()
-        trc.add_vote(c3)
-        trc.add_vote(c4)
-        trc.add_vote(c1)
+        trc.votes.add(c3)
+        trc.votes.add(c4)
+        trc.votes.add(c1)
         self.assertEqual(trc.get_voters_indices(), [1, 3, 4])
 
 
@@ -125,7 +125,7 @@ class TRCUpdateTests(TestCase):
                    base_version=1, serial_version=6)
         trc6.save()
         self._reset_core_ases(trc6)
-        trc6.certificateintrc_set.filter(certificate__key__usage=Key.ISSUING_ROOT).last().delete()
+        trc6.certificates.remove(trc6.certificates.filter(key__usage=Key.ISSUING_ROOT).last())
         self.assertTrue(trc6.update_regular_impossible())
         self.assertIn('different number', trc6.update_regular_impossible())
         # change regular voting certificate, not part of voters
@@ -135,17 +135,16 @@ class TRCUpdateTests(TestCase):
         trc7.save()
         self._reset_core_ases(trc7)
         self.assertFalse(trc7.update_regular_impossible())
-        cert = trc7.certificateintrc_set.filter(
-            certificate__key__usage=Key.TRC_VOTING_REGULAR).last()
-        trc7.del_certificates([cert.certificate])
-        as_ = cert.certificate.key.AS
-        trc7.add_certificates([Certificate.objects.create_voting_regular_cert(as_)])
+        cert = trc7.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR).last()
+        trc7.certificates.remove(cert)
+        as_ = cert.key.AS
+        trc7.certificates.add(Certificate.objects.create_voting_regular_cert(as_))
         trc7.save()
         self.assertTrue(trc7.update_regular_impossible())
         self.assertIn('regular voting certificate', trc7.update_regular_impossible())
         self.assertIn('not part of voters', trc7.update_regular_impossible())
         # change regular voting certificate, make it part of voters
-        trc7.votes.add(cert.certificate)
+        trc7.votes.add(cert)
         self.assertFalse(trc7.update_regular_impossible())
 
         # change root certificate, not part of voters
@@ -154,12 +153,11 @@ class TRCUpdateTests(TestCase):
         trc8.save()
         self._reset_core_ases(trc8)
         self.assertFalse(trc8.update_regular_impossible())
-        cert = trc8.certificateintrc_set.filter(
-            certificate__key__usage=Key.ISSUING_ROOT).last()
-        trc8.del_certificates([cert.certificate])
-        as_ = cert.certificate.key.AS
+        cert = trc8.certificates.filter(key__usage=Key.ISSUING_ROOT).last()
+        trc8.certificates.remove(cert)
+        as_ = cert.key.AS
         cert = Certificate.objects.create_issuer_root_cert(as_)
-        trc8.add_certificates([cert])
+        trc8.certificates.add(cert)
         trc8.save()
         self.assertTrue(trc8.update_regular_impossible())
         self.assertIn('root certificate', trc8.update_regular_impossible())
@@ -175,7 +173,7 @@ class TRCUpdateTests(TestCase):
         trc.quorum = trc.core_ases.count() // 2 + 1
         # insert all core AS certificates:
         trc.certificates.clear()
-        trc.add_certificates(_coreas_certificates(trc.isd))
+        trc.certificates.add(*_coreas_certificates(trc.isd))
         trc.save()
 
 

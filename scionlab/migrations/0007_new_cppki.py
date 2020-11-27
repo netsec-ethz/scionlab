@@ -139,20 +139,10 @@ def migrate_trc():
         migrations.RemoveField(
             model_name='trc',
             name='voting_offline',
-        ),
-        migrations.CreateModel(
-            name='CertificateInTRC',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('index', models.PositiveIntegerField()),
-                ('certificate', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='scionlab.Certificate')),
-                ('trc', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='scionlab.TRC')),
-            ],
-        ),
-        migrations.AddField(
+        ),migrations.AddField(
             model_name='trc',
             name='certificates',
-            field=models.ManyToManyField(related_name='trc_included', through='scionlab.CertificateInTRC', to='scionlab.Certificate'),
+            field=models.ManyToManyField(related_name='trc_included', to='scionlab.Certificate'),
         ),
     ]
 
