@@ -149,7 +149,7 @@ class VPNKeygenConf:
 VPN_KEYGEN_CONFIG = VPNKeygenConf()
 
 # Location of the scion-pki command to generate TRCs.
-SCION_CPPKI_COMMAND = "scion-pki"
+SCION_CPPKI_COMMAND = os.path.join(BASE_DIR, 'static_bin', 'scion-pki')
 
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []
