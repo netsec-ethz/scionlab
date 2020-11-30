@@ -83,7 +83,7 @@ def regenerate_ca(asid):
 
 def regenerate_ases():
     # get the CA key
-    with open(f'ca-ff00_0_110.key', 'rb') as f:
+    with open('ca-ff00_0_110.key', 'rb') as f:
         ca_key = decode_key(f.read().decode('ascii'))
         issuer = (ca_key, _create_name('1-ff00:0:110', '1-ff00:0:110 Secure CA Certificate'))
     # and generate
@@ -106,8 +106,10 @@ def regenerate_trc():
     _run_scion_cppki('payload', '-t', 'payload-1-config.toml', '-o', 'payload-1.der')
     # 2. sign payload with voters
     signers = [  # cert, key, outfile
-        ('voting-sensitive-ff00_0_110.crt', 'voting-sensitive-ff00_0_110.key', 'payload-1-signed-sensitive-ff00_0_110.der'),
-        ('voting-regular-ff00_0_110.crt', 'voting-regular-ff00_0_110.key', 'payload-1-signed-regular-ff00_0_110.der')]
+        ('voting-sensitive-ff00_0_110.crt', 'voting-sensitive-ff00_0_110.key',
+         'payload-1-signed-sensitive-ff00_0_110.der'),
+        ('voting-regular-ff00_0_110.crt', 'voting-regular-ff00_0_110.key',
+         'payload-1-signed-regular-ff00_0_110.der')]
     for (cert, key, outfile) in signers:
         command = ['openssl', 'cms', '-sign', '-in', 'payload-1.der',
                    '-inform', 'der', '-md', 'sha512', '-signer', cert,
@@ -127,7 +129,8 @@ def regenerate_regular_updated_trc():
                      '-o', 'payload-2.der')
     # 2. sign again with the regular certificate only
     signers = [  # cert, key, outfile
-        ('voting-regular-ff00_0_110.crt', 'voting-regular-ff00_0_110.key', 'payload-2-signed-regular-ff00_0_110.der')]
+        ('voting-regular-ff00_0_110.crt', 'voting-regular-ff00_0_110.key',
+         'payload-2-signed-regular-ff00_0_110.der')]
     for (cert, key, outfile) in signers:
         command = ['openssl', 'cms', '-sign', '-in', 'payload-2.der',
                    '-inform', 'der', '-md', 'sha512', '-signer', cert,

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import subprocess
 import toml
 from django.test import TestCase
 from datetime import datetime, timedelta, timezone

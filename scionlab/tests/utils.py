@@ -27,7 +27,6 @@ from tempfile import NamedTemporaryFile
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
 from scionlab.models.pki import Key, Certificate
-from scionlab.models.trc import TRC
 from scionlab.models.user_as import UserAS
 from scionlab.scion import trcs
 
