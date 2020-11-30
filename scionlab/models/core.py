@@ -289,6 +289,20 @@ class AS(TimestampedModel):
         self.save()
 
     @staticmethod
+    def update_cp_as_keys(queryset):
+        """
+        Simply update the CP AS keys. These keys are only used for the control plane of each AS,
+        so there is no need to update any other crytographic material.
+        """
+        for as_ in queryset:
+            # find a core AS
+            core_ases = AS.objects.filter(isd=as_.isd, is_core=True)
+            if not core_ases.exists():
+                continue
+            Key.objects.create(as_, Key.CP_AS)
+            Certificate.objects.create_cp_as_cert(as_, core_ases.first())
+
+    @staticmethod
     def update_core_as_keys(queryset):
         """
         All the ASes in the queryset must update their keys and certificates.
