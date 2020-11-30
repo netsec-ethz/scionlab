@@ -529,8 +529,7 @@ class ASAdmin(admin.ModelAdmin):
         """
         Admin action: generate new keys for the selected ASes.
         """
-        for as_ in queryset.iterator():
-            as_.update_keys()
+        AS.update_cp_as_keys(queryset)
 
     def update_core_keys(self, request, queryset):
         """
