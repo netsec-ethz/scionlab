@@ -22,12 +22,15 @@ import subprocess
 import toml
 import yaml
 
-# from contextlib import contextmanager
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.serialization import pkcs7
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Dict, List, Optional, Tuple
+
+from scionlab.scion import certs, keys
 
 
 def encode_trc(trc: bytes) -> str:
@@ -164,30 +167,14 @@ class TRCConf:
         self._run_scion_cppki(temp_dir, *args)
 
     def _sign_payload(self, temp_dir: TemporaryDirectory, cert: bytes, key: bytes) -> bytes:
-        # TODO(juagargi) replace the execution of openssl with a library call !!.
-        # XXX(juagargi): I don't find a nice way to encode CMS in python.
-        # There seems to be some possibilities:
-        # pkcs7.PKCS7Encoder()
-        # https://github.com/vbwagner/ctypescrypto
-        # or maybe the new cryptography >= 3.2 ?
-        KEY_FILENAME = 'key_file.key'
-        CERT_FILENAME = 'cert_file.crt'
-
-        Path(temp_dir, KEY_FILENAME).write_bytes(key)
-        Path(temp_dir, CERT_FILENAME).write_bytes(cert)
-        command = ['openssl', 'cms', '-sign', '-in', self.PAYLOAD_FILENAME,
-                   '-inform', 'der', '-md', 'sha512', '-signer', CERT_FILENAME,
-                   '-inkey', KEY_FILENAME, '-nodetach', '-nocerts', '-nosmimecap',
-                   '-binary', '-outform', 'der', '-out', 'trc-signed.der']
-        ret = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             check=False, cwd=temp_dir)
-        stdout = ret.stdout.decode('utf-8')
-        if ret.returncode != 0:
-            raise Exception(
-                f'{stdout}\n\nExecuting {command}: bad return code: {ret.returncode}')
-
-        # read the signed trc and return it
-        return Path(temp_dir, 'trc-signed.der').read_bytes()
+        """ signs the payload with one signer """
+        sb = pkcs7.PKCS7SignatureBuilder(Path(temp_dir, self.PAYLOAD_FILENAME).read_bytes())\
+            .add_signer(certs.decode_certificate(cert),
+                        keys.decode_key(key),
+                        hashes.SHA512())
+        return sb.sign(serialization.Encoding.DER, [pkcs7.PKCS7Options.NoCerts,
+                                                    pkcs7.PKCS7Options.NoCapabilities,
+                                                    pkcs7.PKCS7Options.Binary])
 
     def _combine(self, temp_dir: TemporaryDirectory, *signed) -> bytes:
         """ returns the final TRC by combining the signed blocks and payload """
