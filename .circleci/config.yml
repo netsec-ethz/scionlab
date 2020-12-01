@@ -194,7 +194,7 @@ jobs:
             # Generate new AS-keys for 1303 and push the new configuration.
             # This waits until the configuration has been deployed.
             docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py ffaa:0:1303; \
+             'python .circleci/actions/update-keys.py ffaa:0:1303 && \
               python .circleci/actions/push-deploy.py ffaa:0:1303'
 
             docker-compose logs huey
