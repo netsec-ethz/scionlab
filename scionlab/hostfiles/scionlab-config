@@ -465,7 +465,7 @@ def install_config_files(old_files, new_files, skip, tar):
     # safely extract files; paths in new_files (file hashes listed in the config info) has already
     # been sanity checked. Because we also want to extract any possibly empty directories that may
     # be in the tar, we sanity check the remaining items too. These should only be dirs.
-    to_check = set(tar.getnames()) - set(CONFIG_INFO_FILE) - set(new_files)
+    to_check = set(tar.getnames()) - {CONFIG_INFO_FILE} - set(new_files)
     _sanity_check_file_list(to_check)
     for f in to_check:
         if not tar.getmember(f).isdir():
@@ -475,7 +475,7 @@ def install_config_files(old_files, new_files, skip, tar):
     for f in to_delete:
         os.remove(_root(f))
 
-    to_extract = set(tar.getnames()) - set(skip) - set(CONFIG_INFO_FILE)
+    to_extract = set(tar.getnames()) - set(skip) - {CONFIG_INFO_FILE}
     tar.extractall(path=_root(""), members=[tar.getmember(f) for f in to_extract])
     for f in to_extract:
         shutil.chown(_root(f), user='scion', group='scion')

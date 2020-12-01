@@ -352,6 +352,8 @@ class ScionlabConfigUnitTests(TestCase):
                     archive.add_dir(f)
                 else:
                     archive.write_text(f, content)
+            # Add config info file, to ensure this is ignored correctly
+            archive.write_json('scionlab-config.json', {})
 
         buf.seek(0)
         return tarfile.open(mode='r:gz', fileobj=buf)
