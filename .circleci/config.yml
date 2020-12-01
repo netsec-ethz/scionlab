@@ -260,8 +260,8 @@ jobs:
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
             docker-compose exec useras4 /bin/bash -c \
-             'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; \
-              scion ping -c 5 20-ffaa:0:1405,127.0.0.1'
+             "journalctl -n 0 -f -u scion-control-service@cs-1.service | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'; \
+              scion ping -c 5 20-ffaa:0:1405,127.0.0.1"
 
   upgrade_integration:
     machine:
