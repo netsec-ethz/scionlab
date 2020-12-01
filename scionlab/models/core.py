@@ -300,6 +300,7 @@ class AS(TimestampedModel):
                 continue
             Key.objects.create(as_, Key.CP_AS)
             Certificate.objects.create_cp_as_cert(as_, core_ases.first())
+            as_.hosts.bump_config()
 
     @staticmethod
     def update_core_as_keys(queryset):
