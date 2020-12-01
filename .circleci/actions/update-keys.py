@@ -39,8 +39,8 @@ def main():
 def update_keys(as_ids):
     from scionlab.models.core import AS
 
-    for as_ in AS.objects.filter(as_id__in=as_ids).iterator():
-        as_.update_keys()
+    ases = AS.objects.filter(as_id__in=as_ids)
+    AS.update_cp_as_keys(ases)
 
 
 def update_core_keys(as_ids):
