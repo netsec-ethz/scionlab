@@ -227,7 +227,7 @@ jobs:
             # Check updated TRC and check that updated TRCs were installed on all hosts
             TRC_version=$((TRC_version + 1))
             for c in as1301 as1303 as1305; do
-              docker-compose exec -T $c stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
+              docker-compose exec -T $c stat -t "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
             done
             docker-compose exec -T as1301 \
               scion-pki trcs verify --anchor `seq -f "/etc/scion/certs/ISD19-B1-S%.0f.trc" 1 $TRC_version`
