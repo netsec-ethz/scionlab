@@ -38,7 +38,6 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import tempfile
 import textwrap
 import time
 import urllib.request
@@ -367,20 +366,14 @@ def install_config(args, tar):
                      ", ".join(_root(f) for f in backup))
     backup_files(backup)
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # safely extract files; new_files list has been checked
-        # (c.f. warning on tarfile.TarFile.extractall)
-        to_extract = list(new_files) + [CONFIG_INFO_FILE]
-        tar.extractall(path=tmpdir, members=[tar.getmember(f) for f in to_extract])
+    stop_scion()
+    install_config_files(old_files, new_files, skip, tar)
+    enable_scionlab_services(old_config_info, new_config_info)
+    tar.extract(CONFIG_INFO_FILE, path=SCION_CONFIG_PATH)
+    shutil.chown(CONFIG_INFO_PATH, user='scion', group='scion')
 
-        stop_scion()
-
-        install_config_files(old_files, new_files, skip, tmpdir)
-        enable_scionlab_services(old_config_info, new_config_info)
-        os.replace(os.path.join(tmpdir, CONFIG_INFO_FILE), CONFIG_INFO_PATH)
-
-        run_vpn_tunnels(old_files, new_files)
-        run_scion()
+    run_vpn_tunnels(old_files, new_files)
+    run_scion()
 
     # Cleanup configuration in gen/ directory (old style)
     if os.path.exists(FALLBACK_CONFIG_INFO_PATH):
@@ -466,18 +459,26 @@ def backup_file(path, suffix):
     os.rename(path, bkname)
 
 
-def install_config_files(old_files, new_files, skip, tmpdir):
-    """ Install new config files by copying from tmpdir, and remove old files """
+def install_config_files(old_files, new_files, skip, tar):
+    """ Install new config files by extracting from tar, and remove old files """
+
+    # safely extract files; paths in new_files (file hashes listed in the config info) has already
+    # been sanity checked. Because we also want to extract any possibly empty directories that may
+    # be in the tar, we sanity check the remaining items too. These should only be dirs.
+    to_check = set(tar.getnames()) - {CONFIG_INFO_FILE} - set(new_files)
+    _sanity_check_file_list(to_check)
+    for f in to_check:
+        if not tar.getmember(f).isdir():
+            raise ValueError("The tar has a fishy member ('%s'), was expected to be a dir." % f)
 
     to_delete = set(old_files) - set(new_files) - set(skip)
     for f in to_delete:
         os.remove(_root(f))
 
-    to_install = set(new_files) - set(skip)
-    for f in to_install:
-        os.makedirs(os.path.dirname(_root(f)), exist_ok=True)
-        os.replace(os.path.join(tmpdir, f), _root(f))
-        subprocess.run(['chown', 'scion:scion', _root(f)])
+    to_extract = set(tar.getnames()) - set(skip) - {CONFIG_INFO_FILE}
+    tar.extractall(path=_root(""), members=[tar.getmember(f) for f in to_extract])
+    for f in to_extract:
+        shutil.chown(_root(f), user='scion', group='scion')
 
 
 def enable_scionlab_services(old_config_info, new_config_info):
