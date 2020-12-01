@@ -369,8 +369,8 @@ def install_config(args, tar):
     stop_scion()
     install_config_files(old_files, new_files, skip, tar)
     enable_scionlab_services(old_config_info, new_config_info)
-    tar.extract(tar.getmember(CONFIG_INFO_FILE), path=SCION_CONFIG_PATH)
-    shutil.chown(CONFIG_INFO_FILE, user='scion', group='scion')
+    tar.extract(CONFIG_INFO_FILE, path=SCION_CONFIG_PATH)
+    shutil.chown(CONFIG_INFO_PATH, user='scion', group='scion')
 
     run_vpn_tunnels(old_files, new_files)
     run_scion()
