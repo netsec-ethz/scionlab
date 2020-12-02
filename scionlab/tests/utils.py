@@ -22,7 +22,6 @@ import tarfile
 import logging
 
 from collections import namedtuple, Counter, OrderedDict
-from tempfile import NamedTemporaryFile
 
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
@@ -320,7 +319,7 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
         prev_trc_pld = trcs.decode_trc(prev_trc.trc)
     else:
         prev_trc_pld = trc_pld
-    check_scion_trc(testcase, trc_pld, prev_trc_pld)
+    trcs.verify_trcs(prev_trc_pld, trc_pld)
 
 
 def check_issuer_certs(testcase, as_):
@@ -535,15 +534,3 @@ def basic_auth(username, password):
 
 def subprocess_call_log(*popenargs, timeout=None, **kwargs):
     logging.info("Command: %s; shell args: %s" % (" ".join(*popenargs), str(kwargs)))
-
-
-def check_scion_trc(testcase, trc, anchor_trc, expected_failure=False):
-    with NamedTemporaryFile('wb') as trc_file, NamedTemporaryFile('wb') as anchor_file:
-        trc_file.write(trc)
-        trc_file.flush()
-        anchor_file.write(anchor_trc)
-        anchor_file.flush()
-
-        ret = trcs._raw_run_scion_cppki("verify", "--anchor", anchor_file.name, trc_file.name)
-        fcn = testcase.assertNotEqual if expected_failure else testcase.assertEqual
-        fcn(ret.returncode, 0, ret.stdout.decode("utf-8"))
