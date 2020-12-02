@@ -1,30 +1,24 @@
 # Binary files needed by the scionlab project
 
-- `scion-pki` From scionproto, used to create TRCs.
+- `scion-pki` from netsec-ethz/scion, used to create TRCs.
+
+  This binary is directly contained in the scionlab repository. 
+  This allows us to simply guarantee that we use the same dependency version
+  during development, e.g. for running tests, and in the production deployment,
+  without relying on external services. 
+  The alternative of e.g. installing from our debian packages would introduce
+  tricky constraints to the release sequence -- the coordinator would require
+  updated packages to function, but at the same time the coordinator should be
+  available to serve updated configuration at the time the packages are
+  released.
 
 
-## How-to build the binaries
+## How to update
 
-### scion-pki
+Requires docker.
 
-Use our fork of the scion project. Build scion normally, and copy the `scion-pki` binary to this directory in the scionlab project.
-
-
-```
-git clone -b scionlab_nextversion git@github.com:netsec-ethz/scion
-cd scion
-```
-
-Now, if you want to use the regular `bazel` build (recommended):
-
-```
-./scion.sh bazelremote
-make
-```
-
-Or just build with the go compiler:
-```
-go build -o ./bin/scion-pki ./go/scion-pki/
-```
-
-Finally, copy the binary located in `bin/scion-pki`.
+1. Modify the `scion_commit` hash in the Dockerfile & update the date of the
+   commit in the comment.
+2. Run `build.sh`; this will build `scion-pki` (using `go build`) in a docker
+   container and copy the resulting binary to this directory.
+3. Commit the modified `Dockerfile` and `scion-pki`
