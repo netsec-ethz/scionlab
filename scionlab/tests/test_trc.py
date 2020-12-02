@@ -20,7 +20,6 @@ from scionlab.scion import as_ids, trcs
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key, Certificate
 from scionlab.models.trc import TRC, _can_update, _coreas_certificates
-from scionlab.tests.utils import check_scion_trc
 
 
 _ASID_1 = 'ff00:0:1'
@@ -222,7 +221,7 @@ class TRCCreationTests(TestCase):
         self._create_ases()
         trc = TRC.objects.create(self.isd1)
 
-        _check_trc(self, trc, trc)
+        _check_trc(trc, trc)
         self.assertEqual(trc.serial_version, trc.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), trc)
         self.assertFalse(trc.votes.exists())
@@ -233,7 +232,7 @@ class TRCCreationTests(TestCase):
         prev = TRC.objects.create(self.isd1)
         trc = TRC.objects.create(self.isd1)
 
-        _check_trc(self, trc, prev)
+        _check_trc(trc, prev)
         self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
@@ -249,7 +248,7 @@ class TRCCreationTests(TestCase):
         Certificate.objects.create_all_certs(as4)
         trc = TRC.objects.create(self.isd1)
 
-        _check_trc(self, trc, prev)
+        _check_trc(trc, prev)
         self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
@@ -265,7 +264,7 @@ class TRCCreationTests(TestCase):
         trc = TRC.objects.latest()
 
         # check it's a sensitive update
-        _check_trc(self, trc, prev)
+        _check_trc(trc, prev)
         self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, prev.base_version)
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
@@ -304,7 +303,7 @@ class WithExpiredCertsTests(TestCase):
         trc = TRC.objects.create(self.isd1)
 
         # despite being created with currently expired material, all is good:
-        _check_trc(self, trc, prev)
+        _check_trc(trc, prev)
         # and check this is just an update
         self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, prev.base_version)
@@ -330,7 +329,7 @@ class WithExpiredCertsTests(TestCase):
         trc = TRC.objects.create(self.isd1)
 
         # we should get a base TRC
-        _check_trc(self, trc, trc)
+        _check_trc(trc, trc)
         self.assertEqual(trc.serial_version, prev.serial_version + 1)
         self.assertEqual(trc.base_version, trc.serial_version)
         self.assertEqual(trc.predecessor_trc_or_none(), trc)
@@ -345,7 +344,7 @@ class WithNewCoreASesTests(TestCase):
         trc1 = TRC.objects.create(isd1)
         self.assertIsNotNone(trc1)
         self.assertEqual(trc1.base_version, trc1.serial_version)  # base TRC
-        _check_trc(self, trc1, trc1)
+        _check_trc(trc1, trc1)
         # delete all ASes in the ISD, and then create new ones with different ID
         AS.objects.filter(isd=isd1).delete()
         as2 = _create_AS(isd1, 'ff00:0:2', is_core=True)
@@ -354,7 +353,7 @@ class WithNewCoreASesTests(TestCase):
         self.assertIsNotNone(trc2)
         self.assertEqual(trc2.serial_version, trc1.serial_version + 1)
         self.assertEqual(trc2.base_version, trc1.base_version)  # just an update
-        _check_trc(self, trc2, trc1)  # sufficient to verify votes and signatures
+        _check_trc(trc2, trc1)  # sufficient to verify votes and signatures
 
 
 def _create_AS(isd, as_id, is_core=False):
@@ -371,6 +370,6 @@ def _create_TRC(isd, serial, base):
     return trc
 
 
-def _check_trc(testcase, trc, anchor):
-    """ takes a TRC object and checks it """
-    check_scion_trc(testcase, trcs.decode_trc(trc.trc), trcs.decode_trc(anchor.trc))
+def _check_trc(trc, anchor):
+    """ Verify a TRC, raises on error """
+    trcs.verify_trcs(trcs.decode_trc(anchor.trc), trcs.decode_trc(trc.trc))

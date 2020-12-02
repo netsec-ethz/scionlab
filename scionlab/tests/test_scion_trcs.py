@@ -22,8 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
 from scionlab.scion import certs, keys
-from scionlab.scion.trcs import TRCConf, generate_trc, trc_to_dict
-from scionlab.tests.utils import check_scion_trc
+from scionlab.scion.trcs import TRCConf, generate_trc, trc_to_dict, verify_trcs, VerifyError
 
 _TESTDATA_DIR = Path(os.path.dirname(os.path.realpath(__file__)), 'data/test_scion_trcs')
 
@@ -99,7 +98,7 @@ class TRCCreationTests(TestCase):
                 signed_payloads.append(conf._sign_payload(temp_dir, cert, key))
             trc = conf._combine(temp_dir, *signed_payloads)
         # verify the trc with a call to scion-pki (would raise if error)
-        check_scion_trc(self, trc, trc)
+        verify_trcs(trc, trc)
 
     def test_sign_other_certificate(self):
         # list of (cert, key)
@@ -136,7 +135,8 @@ class TRCCreationTests(TestCase):
                 signed_payloads.append(conf._sign_payload(temp_dir, cert, key))
             trc = conf._combine(temp_dir, *signed_payloads)
         # verify the trc with a call to scion-pki (would raise if error)
-        check_scion_trc(self, trc, trc, expected_failure=True)
+        with self.assertRaises(VerifyError):
+            verify_trcs(trc, trc)
 
     def test_generate(self):
         signers = _get_signers(['voting-sensitive-ff00_0_110',
@@ -145,7 +145,7 @@ class TRCCreationTests(TestCase):
             Path(_TESTDATA_DIR, 'payload-1-config.toml').read_text()), signers))
         trc = conf.generate()
         # verify the trc with a call to scion-pki (would raise if error)
-        check_scion_trc(self, trc, trc)
+        verify_trcs(trc, trc)
 
     def test_generate_trc(self):
         # generate a new TRC using the generate_trc function
@@ -169,7 +169,7 @@ class TRCCreationTests(TestCase):
                            signers_certs=[c.decode('ascii') for c in scerts],
                            signers_keys=[k.decode('ascii') for k in skeys])
         # test final trc
-        check_scion_trc(self, trc, trc)
+        verify_trcs(trc, trc)
 
 
 class TRCUpdate(TestCase):
@@ -183,7 +183,7 @@ class TRCUpdate(TestCase):
         conf = TRCConf(**kwargs, predecessor_trc=predec_trc)
         trc = conf.generate()
         # verify trc with the old trc as anchor
-        check_scion_trc(self, trc, predec_trc)
+        verify_trcs(predec_trc, trc)
 
     def test_sensitive_update(self):
         # previous TRC in TESTDATA/trc-2.trc
@@ -197,7 +197,7 @@ class TRCUpdate(TestCase):
         conf = TRCConf(**kwargs, predecessor_trc=predec_trc)
         trc = conf.generate()
         # verify trc with the old trc as anchor
-        check_scion_trc(self, trc, predec_trc)
+        verify_trcs(predec_trc, trc)
 
     def test_generate_trc_regular_update(self):
         # initial TRC in TESTDATA/trc-1.trc
@@ -219,7 +219,7 @@ class TRCUpdate(TestCase):
                            signers_certs=[c.decode('ascii') for c in scerts],
                            signers_keys=[k.decode('ascii') for k in skeys])
         # test final trc
-        check_scion_trc(self, trc, predec_trc)
+        verify_trcs(predec_trc, trc)
 
     def test_generate_trc_sensitive_update(self):
         # initial TRC in TESTDATA/trc-1.trc
@@ -243,7 +243,7 @@ class TRCUpdate(TestCase):
                            signers_certs=[c.decode('ascii') for c in scerts],
                            signers_keys=[k.decode('ascii') for k in skeys])
         # test final trc
-        check_scion_trc(self, trc, predec_trc)
+        verify_trcs(predec_trc, trc)
 
 
 class TRCTests(TestCase):

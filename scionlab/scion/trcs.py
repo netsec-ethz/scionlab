@@ -21,6 +21,7 @@ import base64
 import subprocess
 import toml
 import yaml
+import contextlib
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import pkcs7
@@ -45,11 +46,21 @@ def trc_to_dict(trc: bytes) -> dict:
     with NamedTemporaryFile('wb') as f:
         f.write(trc)
         f.flush()
-        ret = _raw_run_scion_cppki('human', '--format', 'yaml', f.name)
-    stdout = ret.stdout.decode('utf-8')
-    if ret.returncode != 0:
-        raise Exception(f'{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}')
-    return yaml.safe_load(stdout)
+        ret = _run_scion_pki('human', '--format', 'yaml', f.name, check=True)
+    return yaml.safe_load(ret.stdout)
+
+
+def verify_trcs(*trcs: bytes):
+    """
+    Verify that the sequence of trcs, using the first TRC as anchor.
+    Raises VerifyError if the TRCs are not valid.
+    """
+    with contextlib.ExitStack() as stack:
+        files = [stack.enter_context(NamedTemporaryFile(suffix=".trc")) for _ in range(len(trcs))]
+        for f, trc in zip(files, trcs):
+            f.write(trc)
+            f.flush()
+        _run_scion_pki('verify', '--anchor', *[f.name for f in files])
 
 
 def generate_trc(prev_trc: bytes,
@@ -164,7 +175,7 @@ class TRCConf:
             pred_filename = Path(temp_dir, self.PRED_TRC_FILENAME)
             pred_filename.write_bytes(self.predecessor_trc)
             args.extend(['-p', pred_filename])
-        self._run_scion_cppki(temp_dir, *args)
+        _run_scion_pki(*args, cwd=temp_dir)
 
     def _sign_payload(self, temp_dir: TemporaryDirectory, cert: bytes, key: bytes) -> bytes:
         """ signs the payload with one signer """
@@ -180,11 +191,11 @@ class TRCConf:
         """ returns the final TRC by combining the signed blocks and payload """
         for i, s in enumerate(signed):
             Path(temp_dir, f'signed-{i}.der').write_bytes(s)
-        self._run_scion_cppki(
-            temp_dir,
+        _run_scion_pki(
             'combine', '-p', self.PAYLOAD_FILENAME,
             *(f'signed-{i}.der' for i in range(len(signed))),
             '-o', Path(temp_dir, self.TRC_FILENAME),
+            cwd=temp_dir
         )
         return Path(temp_dir, self.TRC_FILENAME).read_bytes()
 
@@ -242,19 +253,35 @@ class TRCConf:
                 self.certificate_files.append(f.name)
 
     @staticmethod
-    def _run_scion_cppki(temp_dir, *args) -> str:
-        """ runs the binary scion-pki """
-        ret = _raw_run_scion_cppki(*args, cwd=temp_dir)
-        stdout = ret.stdout.decode('utf-8')
-        if ret.returncode != 0:
-            raise Exception(f'{stdout}\n\nExecuting scion-cppki: bad return code: {ret.returncode}')
-        return stdout
-
-    @staticmethod
     def _to_seconds(d: timedelta) -> str:
         return f'{int(d.total_seconds())}s'
 
 
-def _raw_run_scion_cppki(*args, cwd=None):
-    return subprocess.run([settings.SCION_CPPKI_COMMAND, 'trcs', *args],
-                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, cwd=cwd)
+def _run_scion_pki(*args, cwd=None, check=True):
+    try:
+        return subprocess.run([settings.SCION_PKI_COMMAND, 'trcs', *args],
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              encoding='utf-8',
+                              check=check,
+                              cwd=cwd)
+    except subprocess.CalledProcessError as e:
+        raise _CalledProcessErrorWithOutput(e) from None
+
+
+class _CalledProcessErrorWithOutput(subprocess.CalledProcessError):
+    """
+    Wrapper for CalledProcessError (raised by subprocess.run on returncode != 0 if check=True),
+    that includes the process output (stdout) in the __str__.
+    """
+    def __init__(self, e):
+        super().__init__(e.returncode, e.cmd, e.output, e.stderr)
+
+    def __str__(self):
+        s = super().__str__()
+        if self.output:
+            s += "\n\n"
+            s += self.output
+        return s
+
+
+VerifyError = _CalledProcessErrorWithOutput
