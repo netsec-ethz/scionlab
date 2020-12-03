@@ -76,6 +76,12 @@ jobs:
     working_directory: ~/repo
 
     steps:
+      - run:
+          name: Install git LFS
+          command: |
+            sudo apt-get install git-lfs
+            git lfs install
+
       - checkout
 
       # Download and cache dependencies
@@ -127,6 +133,12 @@ jobs:
       # docker_layer_caching: true
 
     steps:
+      - run:
+          name: Install git LFS
+          command: |
+            sudo apt-get install git-lfs
+            git lfs install
+
       - checkout
 
       - run:
@@ -268,6 +280,12 @@ jobs:
       image: ubuntu-1604:201903-01
 
     steps:
+      - run:
+          name: Install git LFS
+          command: |
+            sudo apt-get install git-lfs
+            git lfs install
+
       # Start old version of coordinator
       - run:
           name: OLD -- Checkout
