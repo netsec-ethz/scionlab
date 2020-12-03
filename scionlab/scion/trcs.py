@@ -92,9 +92,8 @@ def generate_trc(prev_trc: bytes,
                    not_after=not_after,
                    core_ases=primary_ases,
                    authoritative_ases=primary_ases,
-                   certificates=[c.encode('ascii') for c in certificates],  # from str to bytes
-                   signers=zip([c.encode('ascii') for c in signers_certs],  # from str to bytes
-                               [k.encode('ascii') for k in signers_keys]),
+                   certificates=certificates,
+                   signers=zip(signers_certs, signers_keys),
                    quorum=quorum,
                    votes=votes,
                    predecessor_trc=prev_trc)
@@ -248,7 +247,7 @@ class TRCConf:
     def _dump_certificates_to_files(self, temp_dir) -> None:
         self.certificate_files = []
         for c in self.certificates:
-            with NamedTemporaryFile('wb', dir=temp_dir, delete=False) as f:
+            with NamedTemporaryFile('w', dir=temp_dir, delete=False) as f:
                 f.write(c)
                 self.certificate_files.append(f.name)
 

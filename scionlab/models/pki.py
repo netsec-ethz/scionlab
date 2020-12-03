@@ -87,7 +87,7 @@ class KeyManager(models.Manager):
         not_before = not_before or datetime.utcnow()
         not_after = not_after or not_before + Key.default_expiration(usage)
 
-        key = keys.encode_key(keys.generate_key()).decode('ascii')
+        key = keys.encode_key(keys.generate_key())
         return super().create(
             AS=AS,
             _as_id_int=AS.as_id_int,
@@ -262,11 +262,11 @@ class CertificateManager(models.Manager):
         not_before, not_after = validity(Validity(not_before, not_after), subject_key, issuer_key)
         kwargs = {}
         if issuer_key is not None:
-            kwargs = {'issuer_key': keys.decode_key(issuer_key.key.encode('ascii')),
+            kwargs = {'issuer_key': keys.decode_key(issuer_key.key),
                       'issuer_id': issuer_key.AS.isd_as_str()}
 
         cert = fcn(subject_id=subject_id,
-                   subject_key=keys.decode_key(subject_key.key.encode('ascii')),
+                   subject_key=keys.decode_key(subject_key.key),
                    not_before=not_before,
                    not_after=not_after,
                    **kwargs)
@@ -276,7 +276,7 @@ class CertificateManager(models.Manager):
             version=version,
             not_before=not_before,
             not_after=not_after,
-            certificate=certs.encode_certificate(cert).decode('ascii'),  # PEM encoded
+            certificate=certs.encode_certificate(cert),  # PEM encoded
         )
         cert.ca_cert = issuer_key.certificates.latest(issuer_key.usage) if issuer_key else cert
         cert.save()

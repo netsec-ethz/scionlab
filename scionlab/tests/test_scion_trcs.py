@@ -166,8 +166,8 @@ class TRCCreationTests(TestCase):
                            grace_period=DEFAULT_TRC_GRACE_PERIOD,
                            not_before=not_before, not_after=not_after,
                            certificates=certificates,
-                           signers_certs=[c.decode('ascii') for c in scerts],
-                           signers_keys=[k.decode('ascii') for k in skeys])
+                           signers_certs=scerts,
+                           signers_keys=skeys)
         # test final trc
         verify_trcs(trc, trc)
 
@@ -212,12 +212,11 @@ class TRCUpdate(TestCase):
                        ('serial', 'serial_version'),
                        ('primary_ases', 'authoritative_ases'),
                        ('primary_ases', 'core_ases')])
-        kwargs['certificates'] = [c.decode('ascii') for c in kwargs['certificates']]
         del kwargs['signers']
         trc = generate_trc(prev_trc=predec_trc, **kwargs,
                            quorum=len(kwargs['primary_ases']) // 2 + 1,
-                           signers_certs=[c.decode('ascii') for c in scerts],
-                           signers_keys=[k.decode('ascii') for k in skeys])
+                           signers_certs=scerts,
+                           signers_keys=skeys)
         # test final trc
         verify_trcs(predec_trc, trc)
 
@@ -236,12 +235,11 @@ class TRCUpdate(TestCase):
                        ('serial', 'serial_version'),
                        ('primary_ases', 'authoritative_ases'),
                        ('primary_ases', 'core_ases')])
-        kwargs['certificates'] = [c.decode('ascii') for c in kwargs['certificates']]
         del kwargs['signers']
         trc = generate_trc(prev_trc=predec_trc, **kwargs,
                            quorum=len(kwargs['primary_ases']) // 2 + 1,
-                           signers_certs=[c.decode('ascii') for c in scerts],
-                           signers_keys=[k.decode('ascii') for k in skeys])
+                           signers_certs=scerts,
+                           signers_keys=skeys)
         # test final trc
         verify_trcs(predec_trc, trc)
 
@@ -291,7 +289,7 @@ def _transform_toml_conf_to_trcconf_args(toml_dict: Dict,
     # adapt the dictionary to be used with the TRCConf class
     not_before = datetime.fromtimestamp(toml_dict['validity']['not_before'], tz=timezone.utc)
     not_before = not_before.replace(tzinfo=None)  # expected in UTC without timezone
-    certificates = [Path(_TESTDATA_DIR, f).read_bytes() for f in toml_dict['cert_files']]
+    certificates = [Path(_TESTDATA_DIR, f).read_text() for f in toml_dict['cert_files']]
     return {
         'isd_id': toml_dict['isd'],
         'base_version': toml_dict['base_version'],
@@ -315,5 +313,5 @@ def _replace_keys(d: Dict[str, Any], keys: List[Tuple[str, str]]) -> Dict[str, A
 
 
 def _get_signers(filenames):
-    return [(Path(f'{f}.crt').read_bytes(), Path(f'{f}.key').read_bytes())
+    return [(Path(f'{f}.crt').read_text(), Path(f'{f}.key').read_text())
             for f in [Path(_TESTDATA_DIR, p) for p in filenames]]
