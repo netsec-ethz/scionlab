@@ -93,7 +93,7 @@ def generate_trc(prev_trc: bytes,
                    core_ases=primary_ases,
                    authoritative_ases=primary_ases,
                    certificates=certificates,
-                   signers=zip(signers_certs, signers_keys),
+                   signers=list(zip(signers_certs, signers_keys)),
                    quorum=quorum,
                    votes=votes,
                    predecessor_trc=prev_trc)
@@ -128,8 +128,8 @@ class TRCConf:
                  not_after: datetime,
                  authoritative_ases: List[str],
                  core_ases: List[str],
-                 certificates: List[bytes],
-                 signers: List[Tuple[bytes, bytes]],
+                 certificates: List[str],
+                 signers: List[Tuple[str, str]],
                  quorum: int = None,
                  votes: Optional[List[int]] = None,
                  predecessor_trc: Optional[bytes] = None):
@@ -149,7 +149,7 @@ class TRCConf:
         self.authoritative_ases = authoritative_ases
         self.core_ases = core_ases
         self.certificates = certificates
-        self.certificate_files = []  # will be populated on configure()
+        self.certificate_files = []  # type: List[str]  # will be populated on configure()
         self.signers = signers
         self.quorum = quorum
         self.votes = votes
@@ -166,17 +166,17 @@ class TRCConf:
                 signed_payloads.append(self._sign_payload(temp_dir, cert, key))
             return self._combine(temp_dir, *signed_payloads)
 
-    def _gen_payload(self, temp_dir: TemporaryDirectory) -> None:
+    def _gen_payload(self, temp_dir: str) -> None:
         conf = self._get_conf()
         Path(temp_dir, self.CONFIG_FILENAME).write_text(toml.dumps(conf))
         args = ['payload', '-t', self.CONFIG_FILENAME, '-o', self.PAYLOAD_FILENAME]
         if self.predecessor_trc:
             pred_filename = Path(temp_dir, self.PRED_TRC_FILENAME)
             pred_filename.write_bytes(self.predecessor_trc)
-            args.extend(['-p', pred_filename])
+            args.extend(['-p', str(pred_filename)])
         _run_scion_pki(*args, cwd=temp_dir)
 
-    def _sign_payload(self, temp_dir: TemporaryDirectory, cert: bytes, key: bytes) -> bytes:
+    def _sign_payload(self, temp_dir: str, cert: str, key: str) -> bytes:
         """ signs the payload with one signer """
         sb = pkcs7.PKCS7SignatureBuilder(Path(temp_dir, self.PAYLOAD_FILENAME).read_bytes())\
             .add_signer(certs.decode_certificate(cert),
@@ -186,7 +186,7 @@ class TRCConf:
                                                     pkcs7.PKCS7Options.NoCapabilities,
                                                     pkcs7.PKCS7Options.Binary])
 
-    def _combine(self, temp_dir: TemporaryDirectory, *signed) -> bytes:
+    def _combine(self, temp_dir: str, *signed) -> bytes:
         """ returns the final TRC by combining the signed blocks and payload """
         for i, s in enumerate(signed):
             Path(temp_dir, f'signed-{i}.der').write_bytes(s)
