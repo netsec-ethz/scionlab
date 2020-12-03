@@ -17,21 +17,10 @@ def remove_as_pki(apps, schema_editor):
 
 
 def create_as_pki(apps, schema_editor):
-    from scionlab.models.core import AS, ISD
+    from scionlab.models.core import ISD
 
-    # do core first, then non core
-    for as_ in AS.objects.filter(is_core=True):
-        as_.generate_keys()
-        as_.generate_certs()
-    # non core
-    for as_ in AS.objects.filter(is_core=False):
-        as_.generate_keys()
-        as_.generate_certs()
-    # TRCs
     for isd in ISD.objects.all():
-        isd.trcs.create()
-        # and validate
-        # TODO
+        isd.update_trc_and_certificates()
 
 
 def bump_config(apps, schema_editor):
