@@ -198,22 +198,18 @@ class Key(models.Model):
 class CertificateManager(models.Manager):
     def create_all_certs(self, subject, not_before=None, not_after=None):
         if subject.is_core:
-            certs = self.create_core_certs(subject, not_before, not_after)
+            core_certs = self.create_core_certs(subject, not_before, not_after)
             issuer = subject
         else:
-            certs = []
-            issuer_key = Key.objects.filter(AS__isd=subject.isd, AS__is_core=True).first()
-            issuer = issuer_key.AS if issuer_key else None
-        if issuer:
-            certs = [self.create_cp_as_cert(subject, issuer, not_before, not_after)] + certs
-        return certs
+            core_certs = []
+            issuer = subject.isd.ases.filter(is_core=True)[0:1].get()
+        return [self.create_cp_as_cert(subject, issuer, not_before, not_after)] + core_certs
 
     def create_core_certs(self, subject, not_before=None, not_after=None):
-        return [f(subject, not_before, not_after)
-                for f in [self.create_voting_sensitive_cert,
-                          self.create_voting_regular_cert,
-                          self.create_issuer_root_cert,
-                          self.create_issuer_ca_cert]]
+        return [self.create_voting_sensitive_cert(subject, not_before, not_after),
+                self.create_voting_regular_cert(subject, not_before, not_after),
+                self.create_issuer_root_cert(subject, not_before, not_after),
+                self.create_issuer_ca_cert(subject, not_before, not_after)]
 
     def create_voting_sensitive_cert(self, subject, not_before=None, not_after=None):
         """ Voting sensitive cert is self signed """
@@ -236,17 +232,15 @@ class CertificateManager(models.Manager):
         """ A CA cert is signed by a root cert. For now, always from the same AS """
         subject_key = subject.keys.latest(usage=Key.ISSUING_CA)
         issuer_key = subject.keys.latest(usage=Key.ISSUING_ROOT)
-        not_before, not_after = validity(Validity(not_before, not_after), subject_key, issuer_key)
         return self._create_cert(
-            certs.generate_issuer_ca_certificate, subject_key, not_before, not_after, issuer_key)
+            certs.generate_issuer_ca_certificate, subject_key, issuer_key, not_before, not_after)
 
     def create_cp_as_cert(self, subject, issuer, not_before=None, not_after=None):
         """ An AS cert is signed by the CA cert of the issuer """
         subject_key = subject.keys.latest(usage=Key.CP_AS)
         issuer_key = issuer.keys.latest(usage=Key.ISSUING_CA)
-        not_before, not_after = validity(Validity(not_before, not_after), subject_key, issuer_key)
         return self._create_cert(
-            certs.generate_as_certificate, subject_key, not_before, not_after, issuer_key)
+            certs.generate_as_certificate, subject_key, issuer_key, not_before, not_after)
 
     def latest(self, usage, AS=None):
         certs = self.filter(key__usage=usage)
@@ -255,20 +249,19 @@ class CertificateManager(models.Manager):
         return certs.latest('version')
 
     def _create_self_signed_cert(self, subject, not_before, not_after, usage, fcn):
-        key = subject.keys.latest(usage=usage)
-        not_before, not_after = validity(Validity(not_before, not_after), key)
-        return self._create_cert(fcn, key, not_before, not_after)
+        subject_key = subject.keys.latest(usage=usage)
+        issuer_key = None
+        return self._create_cert(fcn, subject_key, issuer_key, not_before, not_after)
 
-    def _create_cert(self, fcn, subject_key, not_before, not_after, issuer_key=None):
+    def _create_cert(self, fcn, subject_key, issuer_key, not_before, not_after):
         """
         :param callable fcn The function from the certs package to call to generate the cert.
         :param Key issuer_key If it is None, then self signed.
         """
         subject_id = subject_key.AS.isd_as_str()
-        not_before, not_after = validity(Validity(not_before, not_after), subject_key)
+        not_before, not_after = validity(Validity(not_before, not_after), subject_key, issuer_key)
         kwargs = {}
         if issuer_key is not None:
-            not_before, not_after = validity(Validity(not_before, not_after), issuer_key)
             kwargs = {'issuer_key': keys.decode_key(issuer_key.key.encode('ascii')),
                       'issuer_id': issuer_key.AS.isd_as_str()}
 
@@ -346,7 +339,10 @@ class Certificate(models.Model):
         Create the PEM file content for this certificate.
         AS certificates will return the whole chain: first the subject cert, then the issuer's one.
         """
-        return self.certificate + (self.ca_cert.certificate if self.key.usage == Key.CP_AS else '')
+        if self.key.usage == Key.CP_AS:
+            return self.certificate + self.ca_cert.certificate
+        else:
+            return self.certificate
 
     def _pre_delete(self):
         # cannot allow removal of certificates if they are part of a TRC.
@@ -376,6 +372,6 @@ def validity(*vs):
     Return the intersection of the validity periods for the given inputs.
     :param vs: iterable of objects with `not_before` and `not_after` datetime members
     """
-    not_before = max(v.not_before for v in vs if v.not_before)
-    not_after = min(v.not_after for v in vs if v.not_after)
+    not_before = max(v.not_before for v in vs if v is not None and v.not_before)
+    not_after = min(v.not_after for v in vs if v is not None and v.not_after)
     return not_before, not_after

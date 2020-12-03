@@ -104,9 +104,6 @@ class ISD(TimestampedModel):
         for as_ in self.ases.filter(is_core=False):
             as_.update_keys_certs()
 
-        return self.update_trc()
-
-    def update_trc(self):
         return self.trcs.create()
 
 

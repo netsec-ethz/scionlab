@@ -31,25 +31,42 @@ class TRCManager(models.Manager):
         """
         Create a TRC for this ISD.
 
-        It will attempt to update the TRC in the lightest way possible. That is, first attempt to
-        have a regular update. If not possible, try a sensitive update.
-        Last, go and create a base TRC, without update.
-
-        A base TRC breaks the chain of trust, and cannot be verified from the existing material.
-        Typically this means that a base TRC has to be copied to the ASes, so that the trust
-        is placed manually.
-
-        For sensitive TRC updates to be verifyable, they must contain votes
-        only from sensitive certificates.
-
-        The serial (version) is incremented from the previous TRC.
-
-        In SCIONLab, authoritative ASes = core ASes = CA ASes.
-
         Requires at least one core AS in this ISD.
 
         The latest certificates for all core ASes are used. The validity period for the TRC
         is determined based on the validity of these certificates.
+
+        TRC Updates and Trust Reset
+        ===========================
+        All TRC updates must comply with the following:
+        - The ISD identifier must not change.
+        - The base identifier must not change.
+        - noTrustReset must not change.
+        - Votes must belong to sensitive or regular certificates present in the previous TRC.
+        - The number of votes >= previous TRC votingQuorum.
+        - Every 'sensitive voting cert' and 'regular voting cert' that are new in
+          this TRC, attach a signature to the TRC.
+
+        A TRC update is a regular update if:
+        - The voting quorum does not change.
+        - The core ASes section does not change.
+        - The authoritative ASes section does not change.
+        - The number of sensitive, regular and root certificates does not change.
+        - The set of sensitive certificates does not change.
+        In regular TRC updates, votes must be cast with regular voting keys.
+
+        If a TRC update is not a regular update, it is called a sensitive update.
+        In sensitive TRC updates, votes must be cast with sensitive voting keys.
+
+        The alternative to a TRC update is a trust reset, where a TRC with a new base identifier is
+        created. A trust reset breaks the chain of trust, and cannot be verified from the existing
+        material. Typically this means that a base TRC has to be copied to the ASes, so that the
+        trust is placed manually.
+
+        create(...) will attempt to update the TRC in the lightest way possible, that is
+        1. regular TRC update, if possible
+        2. sensitive TRC update, if possible,
+        3. create a new base TRC (trust reset)
 
         :param isd ISD object.
         """
@@ -61,9 +78,9 @@ class TRCManager(models.Manager):
         if len(core_ases) == 0:
             raise RuntimeError('no core ASes found')
 
-        if _can_update(isd):
+        if prev is not None:
             base = prev.base_version
-            if not _is_regular_update_prevented(prev, quorum, core_ases, certificates):
+            if _can_regular_update(prev, quorum, core_ases, certificates):
                 # find compatible voters and signers:
                 # votes will be the subset of regular certs of the prev. trc
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_REGULAR)
@@ -71,6 +88,7 @@ class TRCManager(models.Manager):
                     .difference(prev.certificates.all())
                 signers = votes.union(changed_root_certs)
             else:
+                # sensitive updates require votes from sensitive keys
                 votes = prev.certificates.filter(key__usage=Key.TRC_VOTING_SENSITIVE)
                 added_core_certs = certificates.filter(key__usage__in=[
                     Key.TRC_VOTING_SENSITIVE, Key.TRC_VOTING_REGULAR]).difference(
@@ -193,6 +211,9 @@ class TRC(models.Model):
         verbose_name_plural = 'TRCs'
         unique_together = ('isd', 'serial_version', 'base_version')
 
+    def __str__(self):
+        return self.filename()
+
     def add_core_as(self, AS):
         """ adds the AS to the core ases list, and its certificates to the cert. list """
         certs = []
@@ -201,10 +222,6 @@ class TRC(models.Model):
         self.core_ases.add(AS)
         self.certificates.add(*certs)
         self.quorum = self.core_ases.count() // 2 + 1
-
-    def get_certificates(self):
-        """ returns the list of certificates ordered by their index """
-        return self.certificates.order_by('pk')
 
     def get_voters_indices(self):
         """ uses the certificate indices of the previous TRC to indicate who voted """
@@ -217,14 +234,11 @@ class TRC(models.Model):
         """ returns the indices of the certs argument """
         sought = set(c.pk for c in certs)
         indices = []
-        present = self.get_certificates().values_list('pk', flat=True)
+        present = self.certificates.order_by('pk').values_list('pk', flat=True)
         for index, pk in enumerate(present):
             if pk in sought:
                 indices.append(index)
         return indices
-
-    def __str__(self):
-        return self.filename()
 
     def filename(self) -> str:
         return f'ISD{self.isd.isd_id}-B{self.base_version}-S{self.serial_version}.trc'
@@ -232,12 +246,13 @@ class TRC(models.Model):
     def format_trcfile(self) -> bytes:
         return trcs.decode_trc(self.trc)
 
-    def update_regular_impossible(self):
+    def check_regular_update_error(self):
         """
-        Check if this TRC could do a regular TRC update (as opposed to a sensitive one).
+        Check if this TRC is a proper regular update. For testing.
         Returns None if all okay, and the error message otherwise.
 
-        It is a regular update if:
+        Checks that:
+        - this is not a base TRC
         - _is_regular_update_prevented returns False. It checks:
             - The voting quorum does not change.
             - The core ASes section does not change.
@@ -245,11 +260,9 @@ class TRC(models.Model):
             - The number of sensitive, regular and root certificates does not change.
             - The set of sensitive certificates does not change.
         - For every regular certificate that changes, the regular certificate in the previous
-            TRC is part of the voters of the new TRC.
+          TRC is part of the voters of the new TRC.
         - For every root certificate that changes, the root certificate in the previous TRC
-            attaches a signature to the new TRC.
-        For regular TRC updates to be verifiable, they must contain votes
-        only from regular certificates.
+          attaches a signature to the new TRC.
         """
         prev = self.predecessor_trc_or_none()
         if prev is None or prev == self:
@@ -281,25 +294,6 @@ class TRC(models.Model):
         return prev.get() if prev.exists() else None
 
 
-def _can_update(isd):
-    """
-    All TRC updates must comply with the following:
-    - The ISD identifier must not change.
-    - The base identifier must not change.
-    - noTrustReset must not change.
-    - Votes must belong to sensitive or regular certificates present in the previous TRC.
-    - The number of votes >= previous TRC votingQuorum.
-    - Every 'sensitive voting cert' and 'regular voting cert' that are new in
-        this TRC, attach a signature to the TRC.
-
-    In SCIONLab we only need to worry about the previous TRC.
-    Still, it is possible to try to update a prev. TRC with new certificates, and get
-    an empty validity window. In this case, no update will be performed.
-    That empty validity window has to be checked at the caller of this function.
-    """
-    return isd.trcs.latest_or_none() is not None
-
-
 def _can_regular_update(prev, quorum, core_ases, certificates):
     return not _is_regular_update_prevented(prev, quorum, core_ases, certificates)
 
@@ -309,14 +303,6 @@ def _is_regular_update_prevented(prev_trc, quorum, core_ases, certificates):
     Returns False if a regular update could be performed.
     Returns a string message with the reason, otherwise.
 
-    There can be a regular update if:
-        - The voting quorum does not change.
-        - The core ASes section does not change.
-        - The authoritative ASes section does not change.
-        - The number of sensitive, regular and root certificates does not change.
-        - The set of sensitive certificates does not change.
-
-    Some more conditions must hold as well.
     See also update_regular_impossible
     """
     if prev_trc.quorum != quorum:
