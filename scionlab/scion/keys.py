@@ -18,7 +18,6 @@
 ========================================================================
 """
 
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 from typing import cast
@@ -27,7 +26,7 @@ from typing import cast
 def generate_key() -> ec.EllipticCurvePrivateKeyWithSerialization:
     """ Generate an elliptic curve private key """
     # valid curves are: SECP256R1, SECP384R1, and secp521r1
-    key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
+    key = ec.generate_private_key(curve=ec.SECP256R1())
     key = cast(ec.EllipticCurvePrivateKeyWithSerialization, key)  # only for type hints
     return key
 
@@ -42,4 +41,4 @@ def encode_key(key: ec.EllipticCurvePrivateKeyWithSerialization) -> bytes:
 
 def decode_key(pem: bytes) -> ec.EllipticCurvePrivateKey:
     """ Returns an EllipticCurve key from its PEM encoding """
-    return serialization.load_pem_private_key(pem, password=None, backend=default_backend())
+    return serialization.load_pem_private_key(pem, password=None)

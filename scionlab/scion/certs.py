@@ -19,7 +19,6 @@
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ObjectIdentifier
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from datetime import datetime
@@ -48,7 +47,7 @@ def encode_certificate(cert: x509.Certificate) -> bytes:
 
 
 def decode_certificate(pem: bytes) -> x509.Certificate:
-    return x509.load_pem_x509_certificate(pem, default_backend())
+    return x509.load_pem_x509_certificate(pem)
 
 
 def generate_voting_sensitive_certificate(subject_id: str,
@@ -161,7 +160,7 @@ def _build_certificate(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
     for p in extensions:
         cert_builder = cert_builder.add_extension(p[0], p[1])
     # use the issuer to sign a certificate
-    return cert_builder.sign(issuer[0], hashes.SHA512(), default_backend())
+    return cert_builder.sign(issuer[0], hashes.SHA512())
 
 
 def _build_extensions_voting(key: ec.EllipticCurvePrivateKey,
