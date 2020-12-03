@@ -15,14 +15,18 @@
 """
 :mod:`scionlab.scion.certs` --- SCION Issuer Certificate and AS certificate creation
 ====================================================================================
-"""
+
+See https://scion.docs.anapaya.net/en/latest/cryptography/certificates.html
+Permalink: https://github.com/scionproto/scion/blob/835b3683c6e6bdf2a98750ec3a04137053f7f142/doc/cryptography/certificates.rst
+""" # noqa
 
 from cryptography import x509
+from cryptography.x509 import ExtensionType
 from cryptography.x509.oid import NameOID, ObjectIdentifier
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from datetime import datetime
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, NamedTuple
 
 
 OID_ISD_AS = ObjectIdentifier('1.3.6.1.4.1.55324.1.2.1')
@@ -37,9 +41,14 @@ CN_ISSUER_CA = 'Secure CA Certificate'
 CN_AS = 'AS Certificate'
 
 
+class Extension(NamedTuple):
+    extension: ExtensionType
+    critical: bool
+
+
 # some type aliases:
 Name = List[Tuple[ObjectIdentifier, str]]
-Extensions = List[Tuple[ObjectIdentifier, bool]]
+Extensions = List[Extension]
 
 
 def encode_certificate(cert: x509.Certificate) -> str:
@@ -157,49 +166,87 @@ def _build_certificate(subject: Tuple[ec.EllipticCurvePrivateKey, Name],
     ).not_valid_after(
         not_after
     )
-    for p in extensions:
-        cert_builder = cert_builder.add_extension(p[0], p[1])
+    for ext in extensions:
+        cert_builder = cert_builder.add_extension(ext.extension, ext.critical)
     # use the issuer to sign a certificate
     return cert_builder.sign(issuer[0], hashes.SHA512())
 
 
 def _build_extensions_voting(key: ec.EllipticCurvePrivateKey,
                              issuer_key_type: ObjectIdentifier) -> Extensions:
-    return [(x509.SubjectKeyIdentifier.from_public_key(key.public_key()), False),
-            (x509.ExtendedKeyUsage(
-                [issuer_key_type, x509.ExtendedKeyUsageOID.TIME_STAMPING]
-            ), False)]
+    return [Extension(x509.SubjectKeyIdentifier.from_public_key(key.public_key()),
+                      critical=False),
+            Extension(x509.ExtendedKeyUsage([issuer_key_type,
+                                             x509.ExtendedKeyUsageOID.TIME_STAMPING]),
+                      critical=False)]
 
 
 def _build_extensions_root(key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
-    Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
+    Returns a list of Extension with the extension and its criticality
     """
-    return [(x509.BasicConstraints(True, 1), True),
-            (x509.KeyUsage(False, False, False, False, False, True, True, False, False), True),
-            (x509.SubjectKeyIdentifier.from_public_key(key.public_key()), False),
-            (x509.ExtendedKeyUsage([OID_ROOT_KEY, x509.ExtendedKeyUsageOID.TIME_STAMPING]), False)]
+    return [Extension(x509.BasicConstraints(ca=True, path_length=1),
+                      critical=True),
+            Extension(x509.KeyUsage(digital_signature=False,
+                                    content_commitment=False,
+                                    key_encipherment=False,
+                                    data_encipherment=False,
+                                    key_agreement=False,
+                                    key_cert_sign=True,
+                                    crl_sign=True,
+                                    encipher_only=False,
+                                    decipher_only=False),
+                      critical=True),
+            Extension(x509.SubjectKeyIdentifier.from_public_key(key.public_key()),
+                      critical=False),
+            Extension(x509.ExtendedKeyUsage([OID_ROOT_KEY,
+                                             x509.ExtendedKeyUsageOID.TIME_STAMPING]),
+                      critical=False)]
 
 
 def _build_extensions_ca(subject_key: ec.EllipticCurvePrivateKey,
                          issuer_key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
-    Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
+    Returns a list of Extension with the extension and its criticality
     """
-    return [(x509.BasicConstraints(True, 0), True),
-            (x509.KeyUsage(False, False, False, False, False, True, True, False, False), True),
-            (x509.SubjectKeyIdentifier.from_public_key(subject_key.public_key()), False),
-            (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False)]
+    return [Extension(x509.BasicConstraints(ca=True, path_length=0),
+                      critical=True),
+            Extension(x509.KeyUsage(digital_signature=False,
+                                    content_commitment=False,
+                                    key_encipherment=False,
+                                    data_encipherment=False,
+                                    key_agreement=False,
+                                    key_cert_sign=True,
+                                    crl_sign=True,
+                                    encipher_only=False,
+                                    decipher_only=False),
+                      critical=True),
+            Extension(x509.SubjectKeyIdentifier.from_public_key(subject_key.public_key()),
+                      critical=False),
+            Extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()),
+                      critical=False)]
 
 
 def _build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
                          issuer_key: ec.EllipticCurvePrivateKey) -> Extensions:
     """
-    Returns a list of 2-tuples (extension,boolean) with the extension and its criticality
+    Returns a list of Extension with the extension and its criticality
     """
-    return [(x509.KeyUsage(True, False, False, False, False, False, False, False, False), True),
-            (x509.SubjectKeyIdentifier.from_public_key(subject_key.public_key()), False),
-            (x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()), False),
-            (x509.ExtendedKeyUsage([x509.ExtendedKeyUsageOID.SERVER_AUTH,
-                                    x509.ExtendedKeyUsageOID.CLIENT_AUTH,
-                                    x509.ExtendedKeyUsageOID.TIME_STAMPING]), False)]
+    return [Extension(x509.KeyUsage(digital_signature=True,
+                                    content_commitment=False,
+                                    key_encipherment=False,
+                                    data_encipherment=False,
+                                    key_agreement=False,
+                                    key_cert_sign=False,
+                                    crl_sign=False,
+                                    encipher_only=False,
+                                    decipher_only=False),
+                      critical=True),
+            Extension(x509.SubjectKeyIdentifier.from_public_key(subject_key.public_key()),
+                      critical=False),
+            Extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_key.public_key()),
+                      critical=False),
+            Extension(x509.ExtendedKeyUsage([x509.ExtendedKeyUsageOID.SERVER_AUTH,
+                                             x509.ExtendedKeyUsageOID.CLIENT_AUTH,
+                                             x509.ExtendedKeyUsageOID.TIME_STAMPING]),
+                      critical=False)]
