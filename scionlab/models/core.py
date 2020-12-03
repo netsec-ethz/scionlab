@@ -17,7 +17,6 @@
 ==============================================================================
 """
 
-from datetime import datetime
 import base64
 import os
 import uuid
@@ -90,33 +89,22 @@ class ISD(TimestampedModel):
         """
         Generate the TRC and all AS and Core AS Certificates and for all ASes in this ISD.
         Ensures that the certificates are updated in the correct order, i.e. Core AS certificates
-        first.
+        first, then AS certificates, then TRC.
         All updated objects are saved.
         """
         if not self.ases.filter(is_core=True).exists():
             return None
 
-        trc = self.trcs.create()
-        for as_ in self.ases.filter(is_core=True).iterator():
-            self._update_coreas_certificates(as_)
+        # regenerate certificates for every AS: non core ASes could need regeneration due to
+        # a replaced issuer core AS.
+        # First core ASes
+        for as_ in self.ases.filter(is_core=True):
+            as_.update_keys_certs()
+        # Then non-core (which need a core with a CA cert)
+        for as_ in self.ases.filter(is_core=False):
+            as_.update_keys_certs()
 
-        for as_ in self.ases.filter(is_core=False).iterator():
-            self._update_as_certificates(as_)
-
-        return trc
-
-    @staticmethod
-    def _update_as_certificates(as_):
-        as_.generate_certificate_chain()
-        as_.hosts.bump_config()
-        as_.save()
-
-    @staticmethod
-    def _update_coreas_certificates(as_):
-        as_.generate_core_certificate()
-        as_.generate_certificate_chain()
-        as_.hosts.bump_config()
-        as_.save()
+        return self.trcs.create()
 
 
 class ASManager(models.Manager):
@@ -143,12 +131,12 @@ class ASManager(models.Manager):
             master_as_key=AS._make_master_as_key()
         )
 
-        as_.init_keys()
+        as_.generate_keys()
         if init_certificates:
+            as_.generate_certs()
             if is_core:
-                isd.update_trc_and_certificates()
-            else:
-                as_.generate_certificate_chain()
+                isd.trcs.create()
+
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
@@ -273,72 +261,55 @@ class AS(TimestampedModel):
         """
         return self.isd_as_str().replace(":", "_")
 
-    def init_keys(self):
-        """
-        Initialise AS signing and encryption keys.
-        If this is a core AS, also initialise the core AS voting and issuing keys.
+    def certificates(self):
+        """ returns a queryset of all of this AS' certificates """
+        return Certificate.objects.filter(key__AS=self)
 
-        Note: does not set master_as_key.
-        """
-        valid_not_before = datetime.utcnow()
-        self._gen_keys(valid_not_before)
-        if self.is_core:
-            self._gen_core_keys(valid_not_before)
+    def generate_keys(self, not_before=None):
+        Key.objects.create_all_keys(self, not_before=not_before)
 
-    def update_keys(self):
+    def generate_certs(self):
+        Certificate.objects.create_all_certs(self)
+
+    def update_keys_certs(self, not_before=None):
         """
-        Generate new AS signing and encryption keys. Update the certificate.
+        Generate new keys and certificates (core and non core).
+        The keys and certs have to be updated simultaneously to avoid getting a nil validity range
+        when signing a CP AS certificate; e.g. the subject has keys valid during a year, but the
+        issuer's keys are valid only until last year.
         Bumps the configuration version on all affected hosts.
         """
-        self._gen_keys(valid_not_before=datetime.utcnow())
-        self.generate_certificate_chain()
+        self.generate_keys(not_before)
+        self.generate_certs()
         self.hosts.bump_config()
         self.save()
 
     @staticmethod
+    def update_cp_as_keys(queryset):
+        """
+        Simply update the CP AS keys. These keys are only used for the control plane of each AS,
+        so there is no need to update any other crytographic material.
+        """
+        for as_ in queryset:
+            # find a core AS
+            core_ases = AS.objects.filter(isd=as_.isd, is_core=True)
+            if not core_ases.exists():
+                continue
+            Key.objects.create(as_, Key.CP_AS)
+            Certificate.objects.create_cp_as_cert(as_, core_ases.first())
+            as_.hosts.bump_config()
+
+    @staticmethod
     def update_core_as_keys(queryset):
         """
-        For all ASes in the given queryset, generate new core AS signing key pairs.
-        Update the TRC and subsequently all core certificates.
-        Bumps the configuration version on all affected hosts.
+        All the ASes in the queryset must update their keys and certificates.
+        Since this some of these ASes could act as CA for other, non-core ASes,
+        we must re-issue all certificates in that ISD.
+        So in this function, we just update keys, certificates and TRCs for all
+        core ASes in all ISDs that are touched by the given queryset.
         """
-        isds = set()
-        valid_not_before = datetime.utcnow()
-        for as_ in queryset.filter(is_core=True):
-            isds.add(as_.isd)
-            as_._gen_core_keys(valid_not_before)
-            as_.save()
-
-        for isd in isds:
+        for isd in ISD.objects.filter(pk__in=queryset.values('isd')):
             isd.update_trc_and_certificates()
-
-    def generate_certificate_chain(self):
-        """
-        Create or update the AS Certificate chain.
-
-        Requires that the TRC in this ISD exists/is up to date.
-
-        Requires that a Core AS in this ISD with existing/up to date Core AS Certificate exists;
-        for core ASes, `generate_core_certificate` needs to be called first.
-        See ASManager.update_certificates, which creates the certificates in the correct order.
-        """
-        if self.is_core:
-            issuer = self
-        else:
-            # Find an issuer:
-            candidates = self.isd.ases.filter(is_core=True)
-            issuer = candidates.first()
-
-        if issuer:  # Skip if failed to find a core AS as issuer
-            self.certificates.create(type=Certificate.CHAIN, issuer=issuer)
-
-    def generate_core_certificate(self):
-        """
-        Create or update the Core AS Certificate.
-
-        Requires that the TRC in this ISD exists/is up to date.
-        """
-        self.certificates.create(type=Certificate.ISSUER)
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """
@@ -374,34 +345,20 @@ class AS(TimestampedModel):
         """
         if self.is_core:
             raise NotImplementedError
-
         self.isd = isd
-        self.generate_certificate_chain()
+        self.generate_certs()
+
         # Drop all previous certificates; these were created in a different ISD and would confuse.
         # Keep versions increasing (by generating new cert before deleting old ones); in case we
         # move back to the original ISD, we need to have a version number different from the
         # original certificate.
-        latest = self.certificates.latest(Certificate.CHAIN)
-        self.certificates.exclude(id=latest.pk).delete()
+        # Preserve last certificate and those that were part of TRCs.
+        # See also: pki._key_set_null_or_cascade
+        # Since this function checks that the AS is non-core, it contains no certs. part of TRCs.
+        latest = Certificate.objects.latest(usage=Key.CP_AS, AS=self)
+        self.certificates().exclude(id=latest.pk).delete()
 
         self.hosts.bump_config()
-
-    def _gen_keys(self, valid_not_before):
-        """
-        Generate signing and encryption key pairs.
-        """
-        for usage in [Key.DECRYPT, Key.SIGNING]:
-            self.keys.create(usage=usage, not_before=valid_not_before)
-
-    def _gen_core_keys(self, valid_not_before):
-        """
-        Generate core AS signing key pairs.
-        """
-        for usage in [Key.CERT_SIGNING,
-                      Key.TRC_ISSUING_GRANT,
-                      Key.TRC_VOTING_ONLINE,
-                      Key.TRC_VOTING_OFFLINE]:
-            self.keys.create(usage=usage, not_before=valid_not_before)
 
     @staticmethod
     def _make_master_as_key():

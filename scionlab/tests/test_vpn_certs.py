@@ -20,7 +20,6 @@ from unittest.mock import patch
 
 
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa
 from django.core.management import CommandError
@@ -116,7 +115,6 @@ class RootCASetupTests(TestCase):
         # replace with wrong key type
         wrong_key = dsa.generate_private_key(
             key_size=3072,
-            backend=default_backend()
         )
 
         pathlib.Path(TEST_CA_KEY_PATH).write_bytes(
@@ -167,8 +165,7 @@ class VPNCertsTests(TestCase):
         ca_cert_string_match = re.findall('<ca>\n(.*?)\n</ca>', config, flags=re.DOTALL)
         self.assertTrue(len(ca_cert_string_match) == 1)
         ca_cert = ca_cert_string_match[0]
-        config_ca_cert = x509.load_pem_x509_certificate(ca_cert.encode(),
-                                                        backend=default_backend())
+        config_ca_cert = x509.load_pem_x509_certificate(ca_cert.encode())
         self.assertEqual(load_ca_cert().public_bytes(serialization.Encoding.PEM).decode(),
                          config_ca_cert.public_bytes(serialization.Encoding.PEM).decode())
 
@@ -176,8 +173,7 @@ class VPNCertsTests(TestCase):
         client_cert_string_match = re.findall('<cert>\n(.*?)\n</cert>', config, flags=re.DOTALL)
         self.assertTrue(len(client_cert_string_match) == 1)
         client_cert = client_cert_string_match[0]
-        config_client_cert = x509.load_pem_x509_certificate(client_cert.encode(),
-                                                            backend=default_backend())
+        config_client_cert = x509.load_pem_x509_certificate(client_cert.encode())
         self.assertEqual(vpn_client.cert,
                          config_client_cert.public_bytes(serialization.Encoding.PEM).decode())
 
@@ -186,8 +182,7 @@ class VPNCertsTests(TestCase):
         self.assertTrue(len(client_key_string_match) == 1)
         client_key = client_key_string_match[0]
         config_client_key = serialization.load_pem_private_key(client_key.encode(),
-                                                               password=None,
-                                                               backend=default_backend())
+                                                               password=None)
         self.assertEqual(vpn_client.private_key,
                          config_client_key.private_bytes(
                              encoding=serialization.Encoding.PEM,

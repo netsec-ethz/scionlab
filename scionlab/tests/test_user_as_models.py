@@ -21,7 +21,7 @@ from unittest.mock import patch
 from parameterized import parameterized
 from django.test import TestCase
 from scionlab.models.core import Host, Link
-from scionlab.models.pki import Certificate
+from scionlab.models.pki import Certificate, Key
 from scionlab.models.user_as import (
     AttachmentPoint,
     AttachmentConf,
@@ -257,7 +257,7 @@ def update_useras(testcase,
     Update a `UserAS` and the configuration of its attachments
     """
     prev_aps_isd = user_as.isd
-    prev_cert_chain = user_as.certificates.latest(Certificate.CHAIN)
+    prev_cert_chain = Certificate.objects.latest(Key.CP_AS, user_as)
     hosts_pending_before = set(Host.objects.needs_config_deployment())
 
     with patch.object(AttachmentPoint, 'trigger_deployment', autospec=True) as mock_deploy:
@@ -289,7 +289,7 @@ def update_useras(testcase,
 
     # Check certificates reset if ISD changed
     curr_aps_isd = user_as.isd
-    cert_chain = user_as.certificates.latest(Certificate.CHAIN)
+    cert_chain = Certificate.objects.latest(Key.CP_AS, user_as)
     if prev_aps_isd != curr_aps_isd:
         testcase.assertEqual(
             cert_chain.version,
@@ -297,7 +297,7 @@ def update_useras(testcase,
             ("Certificate needs to be recreated on ISD change: "
              "ISD before: %s, ISD after:%s" % (prev_aps_isd, curr_aps_isd))
         )
-        testcase.assertEqual(user_as.certificates.filter(type=Certificate.CHAIN).count(), 1)
+        testcase.assertEqual(user_as.certificates().filter(key__usage=Key.CP_AS).count(), 1)
     else:
         testcase.assertEqual(prev_cert_chain, cert_chain)
 

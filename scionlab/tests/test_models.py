@@ -24,7 +24,7 @@ from scionlab.defines import (
     SD_TCP_PORT,
 )
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
-from scionlab.models.pki import Certificate
+from scionlab.models.pki import Certificate, Key
 from scionlab.fixtures import testtopo
 from scionlab.tests import utils
 
@@ -37,10 +37,10 @@ class StringRepresentationTests(TestCase):
         ISD.objects.create(isd_id=19, label='EU')
         ISD.objects.create(isd_id=60)
 
-        AS.objects.create(isd=isd17, as_id='ff00:0:1101', label='SCMN')
-        AS.objects.create(isd=isd17, as_id='ff00:0:1102', label='ETHZ')
-        AS.objects.create(isd=isd17, as_id='ff00:0:1103', label='SWTH')
-        AS.objects.create(isd=isd17, as_id='ff00:1:1')
+        AS.objects.create(isd=isd17, as_id='ff00:0:1101', label='SCMN', init_certificates=False)
+        AS.objects.create(isd=isd17, as_id='ff00:0:1102', label='ETHZ', init_certificates=False)
+        AS.objects.create(isd=isd17, as_id='ff00:0:1103', label='SWTH', init_certificates=False)
+        AS.objects.create(isd=isd17, as_id='ff00:1:1', init_certificates=False)
 
     def test_isd_str(self):
         isd_strs = list(sorted(str(isd) for isd in ISD.objects.all()))
@@ -64,18 +64,20 @@ class StringRepresentationTests(TestCase):
 
 
 class InitASTests(TestCase):
-    def test_create_as_with_keys(self):
-        isd = ISD.objects.create(isd_id=17, label='Switzerland')
-        as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
-        utils.check_as_keys(self, as_)
-
     def test_create_coreas_with_keys(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
-        as_ = AS.objects.create(isd=isd, as_id='ff00:1:1', is_core=True)
+        as_ = AS.objects.create(isd=isd, as_id='ff00:0:1', is_core=True)
         utils.check_as_keys(self, as_)
         utils.check_as_core_keys(self, as_)
         utils.check_issuer_certs(self, as_)
-        utils.check_cert_chains(self, as_)
+        utils.check_as_certs(self, as_)
+
+    def test_create_as_with_keys(self):
+        isd = ISD.objects.create(isd_id=17, label='Switzerland')
+        AS.objects.create(isd=isd, as_id='ff00:0:1', is_core=True)
+        as_ = AS.objects.create(isd=isd, as_id='ff00:1:1')
+        utils.check_as_keys(self, as_)
+        utils.check_as_certs(self, as_)
 
     def test_create_as_with_default_services(self):
         isd = ISD.objects.create(isd_id=17, label='Switzerland')
@@ -106,17 +108,17 @@ class UpdateASKeysTests(TestCase):
 
         as_ = AS.objects.first()
 
-        prev_certificate_chain = as_.certificates.latest(type=Certificate.CHAIN)
+        prev_certificate = Certificate.objects.latest(Key.CP_AS, as_)
 
-        as_.update_keys()
+        as_.update_keys_certs()
 
-        new_certificate_chain = as_.certificates.latest(type=Certificate.CHAIN)
+        new_certificate = Certificate.objects.latest(Key.CP_AS, as_)
 
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
             list(as_.hosts.all())
         )
-        self.assertEqual(new_certificate_chain.version, prev_certificate_chain.version + 1)
+        self.assertEqual(new_certificate.version, prev_certificate.version + 1)
 
 
 class LinkModificationTests(TestCase):
@@ -283,7 +285,7 @@ class DeleteASTests(TestCase):
 class HostTests(TestCase):
     def setUp(self):
         isd17 = ISD.objects.create(isd_id=17, label='Switzerland')
-        as_1101 = AS.objects.create(isd=isd17, as_id='ff00:0:1101', label='SCMN')
+        as_1101 = AS.objects.create(isd=isd17, as_id='ff00:0:1101', label='SCMN', is_core=True)
         as_1101.init_default_services()
         self.assertEqual(Host.objects.filter(AS=as_1101).count(), 1)
         self.host = Host.objects.first()

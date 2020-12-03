@@ -17,7 +17,7 @@ import os
 from collections import OrderedDict
 
 from scionlab.models.core import Service
-from scionlab.models.pki import TRC, Certificate
+from scionlab.models.trc import TRC
 from scionlab.scion.topology import TopologyInfo
 
 from scionlab.defines import (
@@ -34,9 +34,9 @@ from scionlab.defines import (
 
 GEN = "gen"
 GEN_CACHE = "gen-cache"
-CERT_DIR = "certs"
-KEY_DIR = "keys"
-TRC_DIR = "trcs"
+CERT_DIR = "certs"      # contains the TRCs
+CRYPTO_DIR = "crypto"   # contains AS certs and keys
+KEY_DIR = "keys"        # contains only AS master keys (== old stuff)
 MASTER_KEY_0 = "master0.key"
 MASTER_KEY_1 = "master1.key"
 
@@ -112,6 +112,8 @@ class _ConfigGeneratorBase:
         self._write_trcs(config_dir)
         self._write_certs(config_dir)
         self._write_keys(config_dir)
+        self._write_clients(config_dir)
+        self._write_master_keys(config_dir)
 
     def _write_trcs(self, dir):
         # Note: we are in "Manual Mode" as described in the ControlPlanePKI.md; this means
@@ -123,18 +125,27 @@ class _ConfigGeneratorBase:
         #   As there are no big disadvantages in always including all versions, that's what we do
         #   for now.
         for trc in TRC.objects.all():
-            self.archive.write_json((dir, CERT_DIR, trc.filename()), trc.trc)
+            self.archive.write_bytes((dir, CERT_DIR, trc.filename()), trc.format_trcfile())
 
     def _write_certs(self, dir):
-        for cert in self.AS.certificates.filter(type=Certificate.CHAIN):
-            self.archive.write_json((dir, CERT_DIR, cert.filename()), cert.certificate)
+        for cert in self.AS.certificates().all():
+            self.archive.write_text((dir, CRYPTO_DIR, cert.subdir(), cert.filename()),
+                                    cert.format_certfile())
 
     def _write_keys(self, dir):
+        for key in self.AS.keys.all():
+            self.archive.write_text((dir, CRYPTO_DIR, key.subdir(), key.filename()), key.key)
+
+    def _write_clients(self, dir):
+        # CA ASes have a certificate chain for each client for certificate renewal.
+        # We're not currently doing certificate renewal (perhaps we should try to disable it
+        # entirely?), but the directory needs to exist.
+        if self.AS.is_core:
+            self.archive.add_dir((dir, CRYPTO_DIR, 'ca', 'clients'))
+
+    def _write_master_keys(self, dir):
         self.archive.write_text((dir, KEY_DIR, MASTER_KEY_0), self.AS.master_as_key)
         self.archive.write_text((dir, KEY_DIR, MASTER_KEY_1), self.AS.master_as_key)
-
-        for key in self.AS.keys.all():
-            self.archive.write_text((dir, KEY_DIR, key.filename()), key.format_keyfile())
 
     def _write_topo(self, dir):
         self.archive.write_json((dir, 'topology.json'), self.topo_info.topo)
