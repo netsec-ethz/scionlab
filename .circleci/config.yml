@@ -18,6 +18,17 @@
 #
 version: 2
 
+install_git_lfs: &install_git_lfs
+  run:
+    name: Install git LFS
+    command: |
+      # circleci images don't currently come with git lfs installed:
+      #   https://support.circleci.com/hc/en-us/articles/360044671191-git-lfs-support-on-CircleCI-provided-images
+      # Install it manually, as suggested.
+      curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+      sudo apt-get install git-lfs
+      git lfs install
+
 check_services_status: &check_services_status
   command: |
     set -x
@@ -76,12 +87,7 @@ jobs:
     working_directory: ~/repo
 
     steps:
-      - run:
-          name: Install git LFS
-          command: |
-            curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-            sudo apt-get install git-lfs
-            git lfs install
+      - <<: *install_git_lfs
 
       - checkout
 
@@ -134,12 +140,7 @@ jobs:
       # docker_layer_caching: true
 
     steps:
-      - run:
-          name: Install git LFS
-          command: |
-            curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-            sudo apt-get install git-lfs
-            git lfs install
+      - <<: *install_git_lfs
 
       - checkout
 
@@ -282,12 +283,7 @@ jobs:
       image: ubuntu-1604:201903-01
 
     steps:
-      - run:
-          name: Install git LFS
-          command: |
-            curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-            sudo apt-get install git-lfs
-            git lfs install
+      - <<: *install_git_lfs
 
       # Start old version of coordinator
       - run:
