@@ -223,13 +223,6 @@ class TRC(models.Model):
         self.certificates.add(*certs)
         self.quorum = self.core_ases.count() // 2 + 1
 
-    def get_voters_indices(self):
-        """ uses the certificate indices of the previous TRC to indicate who voted """
-        prev = self.predecessor_trc_or_none()
-        if prev is None:
-            return None
-        return prev.get_certificate_indices(self.votes.iterator())
-
     def get_certificate_indices(self, certs):
         """ returns the indices of the certs argument """
         sought = set(c.pk for c in certs)

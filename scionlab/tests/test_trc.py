@@ -54,15 +54,15 @@ class TRCTests(TestCase):
         trc = _create_TRC(self.isd1, 2, 1)
         trc.certificates.add(c0, c1, c2, c3, c4)
         trc.votes.add(c1)
-        self.assertEqual(trc.get_voters_indices(), [1])
+        self.assertEqual(_get_voters_indices(trc), [1])
         trc.votes.add(c4)
-        self.assertEqual(trc.get_voters_indices(), [1, 4])
+        self.assertEqual(_get_voters_indices(trc), [1, 4])
         # insert votes in a different order
         trc.votes.clear()
         trc.votes.add(c3)
         trc.votes.add(c4)
         trc.votes.add(c1)
-        self.assertEqual(trc.get_voters_indices(), [1, 3, 4])
+        self.assertEqual(_get_voters_indices(trc), [1, 3, 4])
 
     def test_certificates_indices_after_delete(self):
         as110 = _create_AS(self.isd1, 'ff00:0:110', is_core=True)
@@ -86,12 +86,12 @@ class TRCTests(TestCase):
         trc.certificates.add(c0, c1, c2, c3, c4)
         trc.votes.add(c0, c1, c3, c4)
         trc.save()
-        self.assertEqual(trc.get_voters_indices(), [0, 1, 3, 4])  # normal
+        self.assertEqual(_get_voters_indices(trc), [0, 1, 3, 4])  # normal
         for c in [c0, c1, c2, c3, c4, c5]:
             with transaction.atomic():  # transaction of the test would be broken otherwise
                 self.assertRaises(RuntimeError, c.delete)
         # and the indices of the voters never changed
-        self.assertEqual(trc.get_voters_indices(), [0, 1, 3, 4])
+        self.assertEqual(_get_voters_indices(trc), [0, 1, 3, 4])
         prev.delete()
         c5.delete()  # does not raise exception, not part of a TRC anymore
 
@@ -363,6 +363,14 @@ def _create_TRC(isd, serial, base):
               base_version=base, serial_version=serial)
     trc.save()
     return trc
+
+
+def _get_voters_indices(trc):
+    """ uses the certificate indices of the previous TRC to indicate who voted """
+    prev = trc.predecessor_trc_or_none()
+    if prev is None:
+        return None
+    return prev.get_certificate_indices(trc.votes.all())
 
 
 def _check_trc(trc, anchor):
