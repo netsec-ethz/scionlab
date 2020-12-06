@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Parse the testdata.yaml fixture to extract host-uid and secrets for the hosts in the test setup.
 # Write the information to /tmp/asXY.env files, so it can easily be consumed in the docker-compose
 # setup.
@@ -5,7 +6,10 @@
 from __future__ import print_function
 import yaml
 
-TESTDATA_FILE = 'scionlab/fixtures/testdata.yaml'
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+TESTDATA_FILE = os.path.join(BASE_DIR, 'scionlab/fixtures/testdata.yaml')
 TEST_ASES = [
     'ffaa:0:1301',
     'ffaa:0:1303',

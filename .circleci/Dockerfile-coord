@@ -1,11 +1,12 @@
-FROM scionlab_django AS circleci_coord
+FROM python:3.6
+ENV PYTHONUNBUFFERED 1
 
-# Add dev requirements
-RUN pip install --upgrade pip
-COPY dev-requirements.txt /scionlab/
+RUN pip install appdeps
 
-RUN pip install -r dev-requirements.txt
-
+RUN mkdir /scionlab
+WORKDIR /scionlab
+COPY requirements.txt dev-requirements.txt /scionlab/
+RUN pip install -r requirements.txt -r dev-requirements.txt
 COPY . /scionlab/
 
 # Fixup django settings for the integration tests:
