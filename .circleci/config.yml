@@ -318,6 +318,22 @@ jobs:
           <<: *check_coordinator_ready
 
       - run:
+          name: OLD -- Recreate testtopo PKI because it has expired by now
+          working_directory: ~/project/.circleci
+          command: |
+            docker-compose exec coord ./manage.py shell -c '
+            from scionlab.models.core import *
+            from scionlab.models.pki import *
+            TRC.objects.all().delete()
+            Certificate.objects.all().delete()
+            Key.objects.all().delete()
+            for as_ in AS.objects.all():
+              as_.init_keys()
+            for isd in ISD.objects.all():
+              isd.update_trc_and_certificates()
+            '
+
+      - run:
           name: OLD -- Start ASes
           working_directory: ~/project/.circleci
           command: |
