@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Update AS keys for AS with given ids """
+"""
+Update AS keys for AS with given ids
+
+Run this script on the coordinator (container coord).
+"""
+
 
 import argparse
 import os
