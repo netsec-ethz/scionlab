@@ -28,7 +28,7 @@ RUN ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/multi-user.tar
 # Install SCION
 # XXX(matzf): install testing/prod based on branch name???
 RUN bash -c 'echo "deb [trusted=yes] https://packages-test.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list.d/scionlab.list'
-RUN apt-get update && apt-get install --assume-yes scionlab
+RUN apt-get update && apt-get install --assume-yes scionlab scion-apps-webapp
 
 # Add 'scionlab' user with passwordless sudo & configure authorized_keys to allow automatic deployment
 RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
