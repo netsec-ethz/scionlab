@@ -384,7 +384,7 @@ class _ConfigBuilder:
         return {
             'log': {
                 'console': {
-                    'level': 'debug',
+                    'level': 'info',
                 },
             },
         }
