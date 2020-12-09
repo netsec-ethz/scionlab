@@ -106,8 +106,8 @@ class _ConfigGeneratorBase:
             assert service.type == Service.CS
             self.archive.write_toml((config_dir, f'{service.instance_name}.toml'),
                                     cb.build_cs_conf(service))
+            self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
 
-        self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
         self._write_topo(config_dir)
         self._write_trcs(config_dir)
         self._write_certs(config_dir)
