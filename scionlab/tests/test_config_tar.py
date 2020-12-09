@@ -70,6 +70,14 @@ class ConfigTarRegressionTests(TestCase):
         generate_user_as_config_tar(user_as, archive)
         self._check_archive('user_as_%i' % user_as.id, archive)
 
+    @parameterized.expand(list(zip(range(2))))
+    def test_user_as_vm_host(self, user_as_id):
+        user_as = UserAS.objects.filter(
+            owner=get_testuser_exbert(),
+            installation_type=UserAS.VM
+        ).order_by('pk')[user_as_id]
+        self._test_host(user_as.host)
+
     def _check_archive(self, test_id, archive):
 
         unchecked_files = ["README.md"]
