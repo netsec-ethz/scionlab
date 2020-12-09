@@ -126,8 +126,7 @@ def _topo_add_interface(router_entry, interface):
     }
     if interface.get_bind_ip():
         interface_entry["underlay"].update({
-            "bind": _join_host_port(interface.get_bind_ip(),
-                                    interface.bind_port or interface.public_port)
+            "bind": interface.get_bind_ip(),
         })
     router_entry["interfaces"][interface.interface_id] = interface_entry
 
