@@ -88,7 +88,7 @@ def check_host_ports(testcase, host):
         for interface in filter(lambda iface: iface.link().active, router.interfaces.iterator()):
             _add_port(interface.get_public_ip(), interface.public_port)
             if interface.get_bind_ip():
-                _add_port(interface.get_bind_ip(), interface.bind_port)
+                _add_port(interface.get_bind_ip(), interface.public_port)
 
     for service in host.services.iterator():
         _add_port(service.host.internal_ip, service.port())
@@ -109,7 +109,6 @@ LinkDescription = namedtuple('LinkDescription', [
     'from_public_ip',
     'from_public_port',
     'from_bind_ip',
-    'from_bind_port',
     'from_internal_ip',
     'from_internal_port',
     'from_control_port',
@@ -117,7 +116,6 @@ LinkDescription = namedtuple('LinkDescription', [
     'to_public_ip',
     'to_public_port',
     'to_bind_ip',
-    'to_bind_port',
     'to_internal_ip',
     'to_internal_port',
     'to_control_port',
@@ -157,17 +155,9 @@ def check_link(testcase, link, link_desc=None):
     _check_port(testcase, link.interfaceA.public_port)
     _check_port(testcase, link.interfaceA.border_router.internal_port)
     _check_port(testcase, link.interfaceA.border_router.control_port)
-    if link.interfaceA.get_bind_ip():
-        _check_port(testcase, link.interfaceA.bind_port)
-    else:
-        testcase.assertIsNone(link.interfaceA.bind_port)    # No harm, but this seems cleaner
     _check_port(testcase, link.interfaceB.public_port)
     _check_port(testcase, link.interfaceB.border_router.internal_port)
     _check_port(testcase, link.interfaceB.border_router.control_port)
-    if link.interfaceB.get_bind_ip():
-        _check_port(testcase, link.interfaceB.bind_port)
-    else:
-        testcase.assertIsNone(link.interfaceB.bind_port)    # ditto
 
     if link_desc:
         actual_link_desc = _describe_link(link)
@@ -185,7 +175,6 @@ def _describe_link(link):
         from_public_ip=link.interfaceA.get_public_ip(),
         from_public_port=link.interfaceA.public_port,
         from_bind_ip=link.interfaceA.get_bind_ip(),
-        from_bind_port=link.interfaceA.bind_port,
         from_internal_ip=link.interfaceA.host.internal_ip,
         from_internal_port=link.interfaceA.border_router.internal_port,
         from_control_port=link.interfaceA.border_router.control_port,
@@ -193,7 +182,6 @@ def _describe_link(link):
         to_public_ip=link.interfaceB.get_public_ip(),
         to_public_port=link.interfaceB.public_port,
         to_bind_ip=link.interfaceB.get_bind_ip(),
-        to_bind_port=link.interfaceB.bind_port,
         to_internal_ip=link.interfaceB.host.internal_ip,
         to_internal_port=link.interfaceB.border_router.internal_port,
         to_control_port=link.interfaceB.border_router.control_port,

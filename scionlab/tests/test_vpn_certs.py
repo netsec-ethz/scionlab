@@ -58,9 +58,8 @@ def create_user_as(ap, label='Some label'):
         label=label,
     )
     att_conf = AttachmentConf(ap,
-                              None, test_public_port,
-                              bind_ip=None, bind_port=None,
-                              use_vpn=True)
+                              use_vpn=True,
+                              public_port=test_public_port)
     user_as.update_attachments([att_conf])
     return user_as
 

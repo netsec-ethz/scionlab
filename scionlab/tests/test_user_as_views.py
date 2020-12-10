@@ -52,9 +52,8 @@ def _create_ases_for_testuser(num):
             label="Testuser's AS number %i" % (i + 1),
         )
         att_conf = AttachmentConf(ap,
-                                  _test_ip, _test_start_port + i,
-                                  bind_ip=None, bind_port=None,
-                                  use_vpn=False)
+                                  public_ip=_test_ip,
+                                  public_port=_test_start_port + i)
         user_as.update_attachments([att_conf])
 
 
@@ -75,7 +74,6 @@ def _get_form_fields(data, include_errors: bool = False):
         "public_ip": "",
         "public_port": "50000",
         "bind_ip": "",
-        "bind_port": ""
     }
     d = useras_defaults
     d['form-INITIAL_FORMS'] = 0
@@ -127,14 +125,6 @@ def _get_form_fields_for_edit(form_data, user_as: UserAS):
     for i in range(form_data['form-TOTAL_FORMS']):
         if d['form-{}-use_vpn'.format(i)]:
             d['form-{}-public_ip'.format(i)] = ''
-
-    # Use auto-assigned bind port
-    for i in range(form_data['form-TOTAL_FORMS']):
-        if d['form-{}-bind_ip'.format(i)] and not d['form-{}-bind_port'.format(i)]:
-            # Assume that bind port will be set to public port. Should work for most test data.
-            # Could also inspect the link object directly, but this seems to trust the thing that we
-            # want to check.
-            d['form-{}-bind_port'.format(i)] = d['form-{}-public_port'.format(i)]
 
     return d
 
