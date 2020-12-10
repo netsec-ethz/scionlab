@@ -36,9 +36,7 @@ class TopologyInfo:
     TopologyInfo creates the router/service-IDs and the topology.json-dict for an AS.
 
     The routers/services in `self.routers` and `self.services` are
-    scionlab.models.core.BorderRouter/Service objects, marked up with the additional attributes
-        `instance_name`
-        `instance_id`
+    scionlab.models.core.BorderRouter/Service objects, with instance_id pre-populated.
     """
 
     def __init__(self, as_, with_sig_dummy_entry=False):
@@ -65,9 +63,8 @@ class TopologyInfo:
 def _fetch_routers(as_):
     routers = []
     for id, router in enumerate(as_.border_routers.order_by('pk').iterator(), start=1):
+        router.__dict__['instance_id'] = id
         if router.interfaces.active().exists():  # skip empty BRs
-            router.instance_id = id
-            router.instance_name = f"br-{id}"
             routers.append(router)
     return routers
 
@@ -76,8 +73,7 @@ def _fetch_services(as_):
     services = []
     for stype, _ in Service.SERVICE_TYPES:
         for id, service in enumerate(as_.services.filter(type=stype).order_by('pk'), start=1):
-            service.instance_id = id
-            service.instance_name = f"{stype.lower()}-{id}"
+            service.__dict__['instance_id'] = id
             services.append(service)
     return services
 

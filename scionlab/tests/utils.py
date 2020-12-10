@@ -434,11 +434,11 @@ def _check_tarball_etc_scion(testcase, tar, host):
         'topology.json',
     ]
     expected += [
-        "%s-%i.toml" % (s.type.lower(), s._service_idx()) for s in host.services.all()
+        "%s-%i.toml" % (s.type.lower(), s.instance_id) for s in host.services.all()
         if s.type in Service.CONTROL_SERVICE_TYPES
     ]
     expected += [
-        "br-%i.toml" % r._br_idx() for r in host.border_routers.all()
+        "br-%i.toml" % r.instance_id for r in host.border_routers.all()
     ]
     testcase.assertEqual(sorted(expected), tar_ls(tar, 'etc/scion'))
 
@@ -462,9 +462,9 @@ def _check_tarball_info(testcase, tar, host):
     testcase.assertEqual(config_info['version'], host.config_version)
     testcase.assertIn('url', config_info)
 
-    br = ["scion-border-router@br-%i.service" % br._br_idx()
+    br = ["scion-border-router@br-%i.service" % br.instance_id
           for br in host.border_routers.all()]
-    cs = ["scion-control-service@cs-%i.service" % s._service_idx()
+    cs = ["scion-control-service@cs-%i.service" % s.instance_id
           for s in host.services.filter(type=Service.CS)]
     bw = ["scion-bwtestserver.service"
           for _ in host.services.filter(type=Service.BW)]
