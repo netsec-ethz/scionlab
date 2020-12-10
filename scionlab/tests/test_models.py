@@ -171,20 +171,21 @@ class LinkModificationTests(TestCase):
 
         Host.objects.reset_needs_config_deployment()
 
-        # Update bind address: this is a local change
-        link.interfaceA.update(bind_ip='192.0.2.1', bind_port=50000)
-        self.assertEqual(
-            list(Host.objects.needs_config_deployment()),
-            list(as_a.hosts.all())
-        )
-        Host.objects.reset_needs_config_deployment()
-
         # Update public address: this affects local and remote interfaces
         link.interfaceA.update(public_ip='192.0.2.1', public_port=50000)
         self._sanity_check_link(link)
         self.assertEqual(
             list(Host.objects.needs_config_deployment()),
             list(as_a.hosts.all() | as_b.hosts.all())
+        )
+        Host.objects.reset_needs_config_deployment()
+
+        # Update bind address: this is a local change
+        # Note: interface bind_ip only effective because interface.public_ip has been set just above
+        link.interfaceA.update(bind_ip='192.0.2.99')
+        self.assertEqual(
+            list(Host.objects.needs_config_deployment()),
+            list(as_a.hosts.all())
         )
         Host.objects.reset_needs_config_deployment()
 

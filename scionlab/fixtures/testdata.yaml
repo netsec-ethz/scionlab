@@ -3863,7 +3863,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 2
   fields:
@@ -3874,7 +3873,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 3
   fields:
@@ -3885,7 +3883,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 4
   fields:
@@ -3896,7 +3893,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 5
   fields:
@@ -3907,7 +3903,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 6
   fields:
@@ -3918,7 +3913,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 7
   fields:
@@ -3929,7 +3923,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 8
   fields:
@@ -3940,7 +3933,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 9
   fields:
@@ -3951,7 +3943,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 10
   fields:
@@ -3962,7 +3953,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 11
   fields:
@@ -3973,7 +3963,6 @@
     public_ip: null
     public_port: 50002
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 12
   fields:
@@ -3984,7 +3973,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 13
   fields:
@@ -3995,7 +3983,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 14
   fields:
@@ -4006,7 +3993,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 15
   fields:
@@ -4017,7 +4003,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 16
   fields:
@@ -4028,7 +4013,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 17
   fields:
@@ -4039,7 +4023,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 18
   fields:
@@ -4050,7 +4033,6 @@
     public_ip: null
     public_port: 50003
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 19
   fields:
@@ -4061,7 +4043,6 @@
     public_ip: null
     public_port: 50002
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 20
   fields:
@@ -4072,7 +4053,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 21
   fields:
@@ -4083,7 +4063,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 22
   fields:
@@ -4094,7 +4073,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 23
   fields:
@@ -4105,7 +4083,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 24
   fields:
@@ -4116,7 +4093,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 25
   fields:
@@ -4127,7 +4103,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 26
   fields:
@@ -4138,7 +4113,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 27
   fields:
@@ -4149,7 +4123,6 @@
     public_ip: null
     public_port: 50002
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 28
   fields:
@@ -4160,7 +4133,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 29
   fields:
@@ -4171,7 +4143,6 @@
     public_ip: null
     public_port: 50002
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 30
   fields:
@@ -4182,7 +4153,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 31
   fields:
@@ -4193,7 +4163,6 @@
     public_ip: null
     public_port: 50002
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 32
   fields:
@@ -4204,7 +4173,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 33
   fields:
@@ -4215,7 +4183,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 34
   fields:
@@ -4226,7 +4193,6 @@
     public_ip: null
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 35
   fields:
@@ -4237,7 +4203,6 @@
     public_ip: 10.0.8.1
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 36
   fields:
@@ -4248,7 +4213,6 @@
     public_ip: 10.0.0.1
     public_port: 54321
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 37
   fields:
@@ -4259,7 +4223,6 @@
     public_ip: null
     public_port: 50002
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 38
   fields:
@@ -4270,7 +4233,6 @@
     public_ip: 172.31.0.200
     public_port: 54321
     bind_ip: 10.0.2.15
-    bind_port: 54321
 - model: scionlab.interface
   pk: 39
   fields:
@@ -4281,7 +4243,6 @@
     public_ip: null
     public_port: 50002
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 40
   fields:
@@ -4292,7 +4253,6 @@
     public_ip: 172.31.0.200
     public_port: 54321
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 41
   fields:
@@ -4303,7 +4263,6 @@
     public_ip: 10.8.0.1
     public_port: 50000
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 42
   fields:
@@ -4314,7 +4273,6 @@
     public_ip: 10.8.0.2
     public_port: 54321
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 43
   fields:
@@ -4325,7 +4283,6 @@
     public_ip: null
     public_port: 50001
     bind_ip: null
-    bind_port: null
 - model: scionlab.interface
   pk: 44
   fields:
@@ -4336,7 +4293,6 @@
     public_ip: 172.31.0.200
     public_port: 54321
     bind_ip: null
-    bind_port: null
 - model: scionlab.link
   pk: 1
   fields:

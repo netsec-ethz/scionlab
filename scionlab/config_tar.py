@@ -150,7 +150,7 @@ def _expand_vagrantfile_template(host):
                      if not UserAS.is_link_over_vpn(iface)]
     forwarding_strings = []
     for iface in public_ifaces:
-        port = iface.bind_port or iface.public_port
+        port = iface.public_port
         # XXX: The two spaces are on purpose for indentation, don't remove them (I'm watching you)
         forwarding_strings.append('  config.vm.network "forwarded_port", guest: {port},'
                                   ' host: {port}, protocol: "udp"'.format(port=port))

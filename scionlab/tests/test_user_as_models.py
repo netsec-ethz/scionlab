@@ -59,7 +59,6 @@ class VPNChoice(Enum):
 test_public_ip = '172.31.0.111'
 test_public_port = 54321
 test_bind_ip = '192.168.1.2'
-test_bind_port = 6666
 
 
 def _randbool(r: random.Random):
@@ -190,7 +189,6 @@ def check_useras(testcase,
                 to_public_ip=user_as.hosts.get().vpn_clients.get(active=True, vpn=ap.vpn).ip,
                 to_public_port=att_conf.public_port,
                 to_bind_ip=None,
-                to_bind_port=None,
                 to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
             ))
         else:
@@ -199,15 +197,9 @@ def check_useras(testcase,
                                                   vpn=att_conf.attachment_point.vpn
                                                   ).first()
             testcase.assertTrue(not vpn_client or not vpn_client.active)
-            bind_ip, bind_port = att_conf.bind_ip, att_conf.bind_port
+            bind_ip = att_conf.bind_ip
             if installation_type == UserAS.VM:
                 bind_ip = '10.0.2.15'
-                if bind_port is None:
-                    # Port is assigned automatically in this case, so we cannot know it in advance
-                    # XXX: Actually in this case the test check is skipped, but it shouldn't be
-                    # a problem since we would just be testing whether or not PortMap is working,
-                    # which has its own tests
-                    bind_port = att_conf.link.interfaceB.bind_port
 
             utils.check_link(testcase, link, utils.LinkDescription(
                 type=Link.PROVIDER,
@@ -218,7 +210,6 @@ def check_useras(testcase,
                 to_public_ip=att_conf.public_ip,
                 to_public_port=att_conf.public_port,
                 to_bind_ip=bind_ip,
-                to_bind_port=bind_port,
                 to_internal_ip=DEFAULT_HOST_INTERNAL_IP,
             ))
 
@@ -342,16 +333,13 @@ def _get_random_att_confs(seed,
 
         while True:
             bind_ip = '192.168.1.%i' % r.randint(10, 254)
-            bind_port = r.choice(range(DEFAULT_PUBLIC_PORT + 1000, DEFAULT_PUBLIC_PORT + 1020))
-            if (bind_ip, bind_port) not in used_bind_ip_port_pairs:
-                used_bind_ip_port_pairs.add((bind_ip, bind_port))
+            if (bind_ip, public_port) not in used_bind_ip_port_pairs:
+                used_bind_ip_port_pairs.add((bind_ip, public_port))
                 break
         if _randbool(r) or force_bind_ip:
             att_conf_dict['bind_ip'] = bind_ip
-            att_conf_dict['bind_port'] = bind_port
         else:
             att_conf_dict['bind_ip'] = None
-            att_conf_dict['bind_port'] = None
         att_confs.append(AttachmentConf(**att_conf_dict))
 
     return att_confs

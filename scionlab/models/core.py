@@ -563,7 +563,7 @@ class Host(models.Model):
         for interface in self.interfaces.iterator():
             portmap.add(interface.get_public_ip(), interface.public_port)
             if interface.get_bind_ip():
-                portmap.add(interface.get_bind_ip(), interface.bind_port)
+                portmap.add(interface.get_bind_ip(), interface.public_port)
 
         for port, in self.vpn_servers.values_list('server_port'):
             portmap.add(self.internal_ip, port)
@@ -577,7 +577,6 @@ class InterfaceManager(models.Manager):
                public_ip=None,
                public_port=None,
                bind_ip=None,
-               bind_port=None,
                interface_id=None):
         """
         Create an Interface
@@ -586,7 +585,6 @@ class InterfaceManager(models.Manager):
         :param str public_ip: optional, the public IP for this interface to override host.public_ip
         :param int public_port: optional, a free port is selected if not specified
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
-        :param int bind_port: optional, a free port is selected if bind IP set and not specified
         :param int interface_id: optional, the interface id for this interface.
         """
         host = border_router.host
@@ -594,15 +592,10 @@ class InterfaceManager(models.Manager):
         ifid = interface_id or as_.find_interface_id()
 
         effective_public_ip = public_ip or host.public_ip
-        effective_bind_ip = bind_ip if public_ip else host.bind_ip
 
         portmap = LazyPortMap(host.get_port_map)
         if public_port is None:
             public_port = portmap.get_port(effective_public_ip, DEFAULT_PUBLIC_PORT)
-        if bind_port is None and effective_bind_ip is not None:
-            bind_port = portmap.get_port(effective_bind_ip,
-                                         min=DEFAULT_PUBLIC_PORT,
-                                         preferred=public_port)
 
         as_.hosts.bump_config()
 
@@ -614,7 +607,6 @@ class InterfaceManager(models.Manager):
             public_ip=public_ip,
             public_port=public_port,
             bind_ip=bind_ip,
-            bind_port=bind_port
         )
 
     def active(self):
@@ -670,7 +662,6 @@ class Interface(models.Model):
         blank=True,
         help_text="""Bind IP for this interface (optional). If `public_ip` (!) is not null, this
             overrides the Host's default bind IP.""")
-    bind_port = models.PositiveIntegerField(null=True, blank=True)
 
     objects = InterfaceManager()
 
@@ -700,8 +691,7 @@ class Interface(models.Model):
                border_router=_placeholder,
                public_ip=_placeholder,
                public_port=_placeholder,
-               bind_ip=_placeholder,
-               bind_port=_placeholder):
+               bind_ip=_placeholder):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
@@ -710,12 +700,9 @@ class Interface(models.Model):
         :param int public_port: optional, a free port is selected if `None` is passed and either
                                 `host` or `public_ip` are changed.
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
-        :param int bind_port: optional, if bind IP is set, a free port is selected if `None` is
-                              passed and either `host` or `bind_ip` are changed
         """
         prev_host = self.host
         prev_public_ip = self.get_public_ip()
-        prev_bind_ip = self.get_bind_ip()
         prev_public_info = self._get_public_info()
         prev_local_info = self._get_local_info()
 
@@ -727,10 +714,8 @@ class Interface(models.Model):
             self.bind_ip = bind_ip or None
 
         self._update_ports(public_port,
-                           bind_port,
                            host_changed=self.host != prev_host,
-                           public_ip_changed=self.get_public_ip() != prev_public_ip,
-                           bind_ip_changed=self.get_bind_ip() != prev_bind_ip)
+                           public_ip_changed=self.get_public_ip() != prev_public_ip)
 
         self.save()
 
@@ -758,9 +743,9 @@ class Interface(models.Model):
             self.host = host
             self.border_router = border_router
 
-    def _update_ports(self, public_port, bind_port,
-                      host_changed, public_ip_changed, bind_ip_changed):
-        """ Helper: update public port and bind port. """
+    def _update_ports(self, public_port,
+                      host_changed, public_ip_changed):
+        """ Helper: update public port """
 
         portmap = LazyPortMap(self.host.get_port_map)
         if public_port is not _placeholder:
@@ -768,16 +753,6 @@ class Interface(models.Model):
                 self.public_port = public_port
             elif host_changed or public_ip_changed:
                 self.public_port = portmap.get_port(self.get_public_ip(), DEFAULT_PUBLIC_PORT)
-
-        if bind_port is not _placeholder:
-            if bind_port is not None:
-                self.bind_port = bind_port
-            elif not self.get_bind_ip():
-                self.bind_port = None
-            elif host_changed or bind_ip_changed:
-                self.bind_port = portmap.get_port(self.get_bind_ip(),
-                                                  min=DEFAULT_PUBLIC_PORT,
-                                                  preferred=self.public_port)
 
     def get_public_ip(self):
         """ Get the effective public IP for this interface """
@@ -830,7 +805,7 @@ class Interface(models.Model):
         Helper for update: return the information that when changed triggers an update
         of only the local AS.
         """
-        return [self.border_router, self.get_bind_ip(), self.bind_port]
+        return [self.border_router, self.get_bind_ip()]
 
 
 class LinkManager(models.Manager):
