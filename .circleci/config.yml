@@ -51,14 +51,14 @@ check_scion_connections: &check_scion_connections
       "journalctl -n 0 -f -u scion-control-service@cs-1.service | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
 
     # Show paths used by SCMP
-    docker-compose exec -T as1301 scion showpaths 19-ffaa:0:1303
-    docker-compose exec -T as1303 scion showpaths 19-ffaa:0:1301
-    docker-compose exec -T as1305 scion showpaths 19-ffaa:0:1301
+    docker-compose exec --user user -T as1301 scion showpaths 19-ffaa:0:1303
+    docker-compose exec --user user -T as1303 scion showpaths 19-ffaa:0:1301
+    docker-compose exec --user user -T as1305 scion showpaths 19-ffaa:0:1301
 
     # Check that we can SCMP
-    docker-compose exec -T as1301 scion ping -c 5 19-ffaa:0:1303,127.0.0.1
-    docker-compose exec -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
-    docker-compose exec -T as1305 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
+    docker-compose exec --user user -T as1301 scion ping -c 5 19-ffaa:0:1303,127.0.0.1
+    docker-compose exec --user user -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
+    docker-compose exec --user user -T as1305 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
 
 start_coordinator: &start_coordinator
   command: |
@@ -201,7 +201,7 @@ jobs:
           command: |
             set -x
 
-            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
+            prev_version=$(docker-compose exec --user user -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
 
             # Start the huey worker
             docker-compose up -d huey
@@ -216,10 +216,10 @@ jobs:
 
             # Check that
             # i) configuration was deployed
-            new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
+            new_version=$(docker-compose exec --user user -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
             [ "$prev_version" -lt "$new_version" ]
             # ii) connection still works
-            docker-compose exec -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
+            docker-compose exec --user user -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
 
       - run:
           name: Test TRC update and push changes
@@ -229,7 +229,7 @@ jobs:
 
             # Show current TRC
             TRC_version=1
-            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
+            docker-compose exec --user user -T as1301 scion-pki trcs human "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
             docker-compose exec -T coord /bin/bash -c \
@@ -242,16 +242,16 @@ jobs:
             # Check updated TRC and check that updated TRCs were installed on all hosts
             TRC_version=$((TRC_version + 1))
             for c in as1301 as1303 as1305; do
-              docker-compose exec -T $c stat -t "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
+              docker-compose exec --user user -T $c stat -t "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
             done
-            docker-compose exec -T as1301 \
+            docker-compose exec --user user -T as1301 \
               scion-pki trcs verify --anchor `seq -f "/etc/scion/certs/ISD19-B1-S%.0f.trc" 1 $TRC_version`
 
             # Check that infra still works
             sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
-            docker-compose exec -T as1301 scion ping -c 5 19-ffaa:0:1303,127.0.0.1
-            docker-compose exec -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
-            docker-compose exec -T as1305 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
+            docker-compose exec --user user -T as1301 scion ping -c 5 19-ffaa:0:1303,127.0.0.1
+            docker-compose exec --user user -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
+            docker-compose exec --user user -T as1305 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
 
       - run:
           name: Start VPN containers and verify the connection over VPN works
@@ -359,9 +359,9 @@ jobs:
 
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec -T useras4 /bin/bash -c \
+            docker-compose exec --user user -T useras4 /bin/bash -c \
               "sleep 10; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-            docker-compose exec useras4 scion ping -c 5 20-ffaa:0:1405,127.0.0.1
+            docker-compose exec --user user useras4 scion ping -c 5 20-ffaa:0:1405,127.0.0.1
 
       # Starting upgrade integration tests
 
@@ -460,9 +460,9 @@ jobs:
               "bash -c 'sleep 300 && systemctl restart scionlab.target' &"
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec -T useras4 /bin/bash -c \
+            docker-compose exec --user user -T useras4 /bin/bash -c \
               "sleep 10; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-            docker-compose exec useras4 scion ping -c 5 20-ffaa:0:1405,127.0.0.1
+            docker-compose exec --user user useras4 scion ping -c 5 20-ffaa:0:1405,127.0.0.1
  
   prod:
     machine: true
