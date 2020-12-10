@@ -34,6 +34,8 @@ RUN apt-get update && apt-get install --assume-yes scionlab
 RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
 RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
 COPY --chown=scionlab:scionlab .circleci/setup/deploy_authorized_keys /home/scionlab/.ssh/authorized_keys
+# Add 'user' user without sudo group to run user commands
+RUN useradd --create-home --shell /bin/bash user
 
 # Add VPN tun0 ip check script
 COPY --chown=scionlab:scionlab .circleci/setup/check_tun0_in_topo.py /home/scionlab/
