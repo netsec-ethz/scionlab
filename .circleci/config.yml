@@ -276,7 +276,7 @@ jobs:
             echo "Waiting for beaconing before starting VPN client SCMPs"
             docker-compose exec useras4 /bin/bash -c \
              "while curl -s 127.0.0.1:30454/metrics | egrep -q 'control_beaconing_received_beacons_total{.*}.[0]+'; do sleep 1; done; \
-              scion ping -c 5 20-ffaa:0:1405,127.0.0.1"
+              sleep 5; scion ping -c 5 20-ffaa:0:1405,127.0.0.1"
 
   upgrade_integration:
     machine:
