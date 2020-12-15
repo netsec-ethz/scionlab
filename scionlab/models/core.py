@@ -27,7 +27,7 @@ from django.dispatch import receiver
 from django.db import models
 from django.db.models import F, Q, Count
 from django.db.models.signals import pre_delete, post_delete
-
+from django.utils.functional import cached_property
 
 from scionlab.models.user import User
 from scionlab.models.pki import Key, Certificate
@@ -1044,14 +1044,30 @@ class BorderRouter(models.Model):
     objects = BorderRouterManager()
 
     def __str__(self):
-        return "br-%s-%i" % (self.AS.isd_as_path_str(), self._br_idx())
+        return f"{self.AS.isd_as_str()} {self.instance_name}"
 
-    def _br_idx(self):
-        # slow!
+    @cached_property
+    def instance_id(self):
+        """
+        The index/id of this border router instance in this AS.
+        This is inferred from the order by PK.
+        """
+        # Hint: when loading this from in scionlab.scion.topology._fetch_routers, we _override_ the
+        # instance_id attribute, as we know the id from having loaded all routers. This code is not
+        # run. This is analogous to the way that the @cached_property works (the decorator overrides
+        # itself with the computed value when first accessed).
         if self.pk:
+            # slow!
             return self.AS.border_routers.filter(pk__lt=self.pk).count() + 1
         else:
             return 0
+
+    @property
+    def instance_name(self):
+        """
+        Name of this border router instance in the AS topology.
+        """
+        return f"br-{self.instance_id}"
 
     def update(self, host=_placeholder, internal_port=_placeholder, control_port=_placeholder):
         """
@@ -1158,14 +1174,29 @@ class Service(models.Model):
     objects = ServiceManager()
 
     def __str__(self):
-        return "%s-%s-%i" % (self.type.lower(), self.AS.isd_as_path_str(), self._service_idx())
+        return f"{self.AS.isd_as_str()} {self.instance_name}"
 
-    def _service_idx(self):
-        # slow!
+    @cached_property
+    def instance_id(self):
+        """
+        The index/id of this service instance in this AS.
+        This is inferred from the order by PK.
+        """
+        # Hint: when loading this from in scionlab.scion.topology._fetch_services, we _override_ the
+        # instance_id attribute, as we know the id from having loaded all services. This code is not
+        # run.
         if self.pk:
+            # slow!
             return self.AS.services.filter(type=self.type, pk__lt=self.pk).count() + 1
         else:
             return 0
+
+    @property
+    def instance_name(self):
+        """
+        Name of this service instance in the AS topology.
+        """
+        return f"{self.type.lower()}-{self.instance_id}"
 
     def _pre_delete(self):
         """
