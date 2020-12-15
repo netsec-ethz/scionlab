@@ -3,6 +3,12 @@
 from django.db import migrations
 
 
+def bump_config(apps, schema_editor):
+    # Host = apps.get_model('scionlab', 'Host')
+    from scionlab.models.core import Host
+    Host.objects.bump_config()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -18,4 +24,5 @@ class Migration(migrations.Migration):
             model_name='borderrouter',
             name='internal_port',
         ),
+        migrations.RunPython(bump_config),
     ]
