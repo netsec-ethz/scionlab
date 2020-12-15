@@ -13,7 +13,7 @@ etc/scion/br-1.toml: |
   prometheus = "127.0.0.1:30442"
 
   [log.console]
-  level = "debug"
+  level = "info"
 etc/scion/certs/ISD17-B1-S1.trc: !!binary |
   MIIMCgYJKoZIhvcNAQcCoIIL+zCCC/cCAQExDTALBglghkgBZQMEAgMwgghzBgkqhkiG9w0BBwGg
   gghkBIIIYDCCCFwCAQAwCQIBEQIBAQIBATAiGA8yMDIwMTEyNzEzMjQ1MloYDzIwMjIxMTI3MTMy
@@ -356,7 +356,7 @@ etc/scion/cs-1.toml: |
   propagation = "/etc/scion/beacon_policy.yaml"
 
   [log.console]
-  level = "debug"
+  level = "info"
 etc/scion/keys/master0.key: |-
   MCQgtuWgUs081jQWnFgiWA==
 etc/scion/keys/master1.key: |-
@@ -405,13 +405,13 @@ scionlab-config.json: |-
   {
     "files": {
       "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
-      "etc/scion/br-1.toml": "176ed3483535e5fa6b5bee83a786e978ae4ec081",
+      "etc/scion/br-1.toml": "5c04d150000929eb571293dc88003aa0e768e51b",
       "etc/scion/certs/ISD17-B1-S1.trc": "69955adde1383f6996656cf0b41d07c485a5a4fc",
       "etc/scion/certs/ISD19-B1-S1.trc": "8a82241f811eb1d68bae427a3821ea7a9c7d40c0",
       "etc/scion/certs/ISD20-B1-S1.trc": "bc54e36782e4a472bc47b4b0586d516b68c45c33",
       "etc/scion/crypto/as/ISD20-ASffaa_1_3.pem": "c448c33b8f63dc26a203a1b626e969bda271eeb9",
       "etc/scion/crypto/as/cp-as.key": "7dce2fffd03ee4a0277bd43c9b438b4fbe972ebe",
-      "etc/scion/cs-1.toml": "0ef56839347bcb4cdef6c814ff2e1af86cbe8c89",
+      "etc/scion/cs-1.toml": "971405d2fe08e2a2a7f6f7ad259dbd3d8746fd79",
       "etc/scion/keys/master0.key": "2601ba8e8bbc7e9344e2d5a2a09c4e9ba9ac3bb7",
       "etc/scion/keys/master1.key": "2601ba8e8bbc7e9344e2d5a2a09c4e9ba9ac3bb7",
       "etc/scion/topology.json": "a1c013186e3d405564853fd55255573db812a895"

@@ -13,7 +13,7 @@ gen/ASffaa_1_5/br-1.toml: |
   prometheus = "127.0.0.1:30442"
 
   [log.console]
-  level = "debug"
+  level = "info"
 gen/ASffaa_1_5/certs/ISD17-B1-S1.trc: !!binary |
   MIIMCgYJKoZIhvcNAQcCoIIL+zCCC/cCAQExDTALBglghkgBZQMEAgMwgghzBgkqhkiG9w0BBwGg
   gghkBIIIYDCCCFwCAQAwCQIBEQIBAQIBATAiGA8yMDIwMTEyNzEzMjQ1MloYDzIwMjIxMTI3MTMy
@@ -356,7 +356,7 @@ gen/ASffaa_1_5/cs-1.toml: |
   propagation = "gen/ASffaa_1_5/beacon_policy.yaml"
 
   [log.console]
-  level = "debug"
+  level = "info"
 gen/ASffaa_1_5/keys/master0.key: |-
   a3IkBigxqU18UH+93pvNag==
 gen/ASffaa_1_5/keys/master1.key: |-
@@ -377,7 +377,7 @@ gen/ASffaa_1_5/sd.toml: |
   connection = "gen-cache/sd.trust.db"
 
   [log.console]
-  level = "debug"
+  level = "info"
 gen/ASffaa_1_5/topology.json: |-
   {
     "attributes": [],
@@ -427,7 +427,7 @@ gen/dispatcher/disp.toml: |
   prometheus = "127.0.0.1:30441"
 
   [log.console]
-  level = "debug"
+  level = "info"
 gen/supervisord.conf: |+
   [program:br-1]
   autostart = false

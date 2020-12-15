@@ -140,7 +140,7 @@ etc/scion/br-1.toml: |
   prometheus = "127.0.0.1:30442"
 
   [log.console]
-  level = "debug"
+  level = "info"
 etc/scion/br-2.toml: |
   [general]
   config_dir = "/etc/scion"
@@ -151,7 +151,7 @@ etc/scion/br-2.toml: |
   prometheus = "127.0.0.1:30443"
 
   [log.console]
-  level = "debug"
+  level = "info"
 etc/scion/certs/ISD17-B1-S1.trc: !!binary |
   MIIMCgYJKoZIhvcNAQcCoIIL+zCCC/cCAQExDTALBglghkgBZQMEAgMwgghzBgkqhkiG9w0BBwGg
   gghkBIIIYDCCCFwCAQAwCQIBEQIBAQIBATAiGA8yMDIwMTEyNzEzMjQ1MloYDzIwMjIxMTI3MTMy
@@ -494,7 +494,7 @@ etc/scion/cs-1.toml: |
   propagation = "/etc/scion/beacon_policy.yaml"
 
   [log.console]
-  level = "debug"
+  level = "info"
 etc/scion/keys/master0.key: |-
   kNjHXalqKVkXu7W9qbR8iA==
 etc/scion/keys/master1.key: |-
@@ -565,14 +565,14 @@ scionlab-config.json: |-
       "etc/openvpn/ccd/exbert@scionlab.org_ffaa_1_1": "72a44b475588d54d168220d99cb1d5b26a39decd",
       "etc/openvpn/server.conf": "97ea92112ee068f1843ae7691382c5fc2e76e977",
       "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
-      "etc/scion/br-1.toml": "176ed3483535e5fa6b5bee83a786e978ae4ec081",
-      "etc/scion/br-2.toml": "34e0d88c394f36115029ac19c40399806c95ef97",
+      "etc/scion/br-1.toml": "5c04d150000929eb571293dc88003aa0e768e51b",
+      "etc/scion/br-2.toml": "8102fbe7990a833db629fe55f06ece7138408e78",
       "etc/scion/certs/ISD17-B1-S1.trc": "69955adde1383f6996656cf0b41d07c485a5a4fc",
       "etc/scion/certs/ISD19-B1-S1.trc": "8a82241f811eb1d68bae427a3821ea7a9c7d40c0",
       "etc/scion/certs/ISD20-B1-S1.trc": "bc54e36782e4a472bc47b4b0586d516b68c45c33",
       "etc/scion/crypto/as/ISD17-ASffaa_0_1107.pem": "123c2ecf9e906796dac527c1d1cbe56ad6c3f493",
       "etc/scion/crypto/as/cp-as.key": "012a8b8508ce0d781daa3955da57ae531c80b90c",
-      "etc/scion/cs-1.toml": "0ef56839347bcb4cdef6c814ff2e1af86cbe8c89",
+      "etc/scion/cs-1.toml": "971405d2fe08e2a2a7f6f7ad259dbd3d8746fd79",
       "etc/scion/keys/master0.key": "77ed94fae8197e32b7e56a3b8804551d781b6663",
       "etc/scion/keys/master1.key": "77ed94fae8197e32b7e56a3b8804551d781b6663",
       "etc/scion/topology.json": "5a642776686c4167e4e57726cc5de7fa902699c8"
