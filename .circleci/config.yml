@@ -46,9 +46,9 @@ check_scion_connections: &check_scion_connections
 
     # Wait for 3 beacons received from now on
     docker-compose exec -T as1303 /bin/bash -c \
-      "journalctl -n 0 -f -u scion-control-service@cs-1.service | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
+      "while curl -s 127.0.0.1:30454/metrics | egrep -q 'control_beaconing_received_beacons_total{.*}.[0]+'; do sleep 1; done"
     docker-compose exec -T as1305 /bin/bash -c \
-      "journalctl -n 0 -f -u scion-control-service@cs-1.service | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
+      "while curl -s 127.0.0.1:30454/metrics | egrep -q 'control_beaconing_received_beacons_total{.*}.[0]+'; do sleep 1; done"
 
     # Show paths used by SCMP
     docker-compose exec -T as1301 scion showpaths 19-ffaa:0:1303
@@ -275,7 +275,7 @@ jobs:
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
             docker-compose exec useras4 /bin/bash -c \
-             "journalctl -n 0 -f -u scion-control-service@cs-1.service | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'; \
+             "while curl -s 127.0.0.1:30454/metrics | egrep -q 'control_beaconing_received_beacons_total{.*}.[0]+'; do sleep 1; done; \
               scion ping -c 5 20-ffaa:0:1405,127.0.0.1"
 
   upgrade_integration:
