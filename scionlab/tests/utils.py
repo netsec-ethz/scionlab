@@ -91,7 +91,7 @@ def check_host_ports(testcase, host):
                 _add_port(interface.get_bind_ip(), interface.public_port)
 
     for service in host.services.iterator():
-        _add_port(service.host.internal_ip, service.port())
+        _add_port(service.host.internal_ip, service.port)
 
     clashes = []
     for ip, ip_port_counter in ports_used.items():
@@ -124,18 +124,6 @@ LinkDescription = namedtuple('LinkDescription', [
 # As a simple workaround we manually provide the desired default value (_dont_care) for all
 # positional arguments by overwriting the magic __defaults__ field of the constructor function.
 LinkDescription.__new__.__defaults__ = (_dont_care,) * len(LinkDescription._fields)
-
-
-def check_links(testcase, link_descriptions):
-    """
-    Check that the system contains exactly the links described.
-    :param TestCase testcase: for assertions
-    :param [LinkDescription] link_descriptions: the expected state of the links
-    """
-    for link in Link.objects.iterator():
-        check_link(testcase, link)
-    actual_link_descs = [_describe_link(testcase, link) for link in Link.objects.iterator()]
-    testcase.assertEqual(sorted(actual_link_descs), sorted(link_descriptions))
 
 
 def check_link(testcase, link, link_desc=None):

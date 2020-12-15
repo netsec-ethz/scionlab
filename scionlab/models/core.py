@@ -25,7 +25,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.dispatch import receiver
 from django.db import models
-from django.db.models import F, Q, Count
+from django.db.models import F, Count
 from django.db.models.signals import pre_delete, post_delete
 from django.utils.functional import cached_property
 
@@ -33,17 +33,17 @@ from scionlab.models.user import User
 from scionlab.models.pki import Key, Certificate
 from scionlab.scion import as_ids
 from scionlab.util.django import value_set
-from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.defines import (
     MAX_INTERFACE_ID,
+    MAX_PORT,
     DEFAULT_PUBLIC_PORT,
-    DEFAULT_INTERNAL_PORT,
-    DEFAULT_CONTROL_PORT,
+    BR_INTERNAL_PORT_BASE,
+    BR_CONTROL_PORT_BASE,
+    BR_METRICS_PORT_BASE,
     CS_PORT,
+    CS_METRICS_PORT,
     BW_PORT,
     PP_PORT,
-    DISPATCHER_PORT,
-    SD_TCP_PORT,
     DEFAULT_HOST_INTERNAL_IP,
     DEFAULT_LINK_MTU,
     DEFAULT_LINK_BANDWIDTH,
@@ -540,35 +540,14 @@ class Host(models.Model):
         """
         return self.config_version_deployed < self.config_version
 
-    def get_port_map(self):
+    def find_public_port(self):
         """
-        Find a set of ports used.
-        :returns: PortMap of used ports
+        Find an unused public port for an AS interface on this Host
         """
-        portmap = PortMap()
-        portmap.add(None, DISPATCHER_PORT)
-        # SD_TCP_PORT TCP port doesn't clash with UDP, but anyways excluded
-        # to ensure that the related prometheus ports do not clash either.
-        portmap.add(None, SD_TCP_PORT)
-
-        for internal_port, control_port in \
-                self.border_routers.values_list('internal_port', 'control_port'):
-            portmap.add(self.internal_ip, internal_port)
-            portmap.add(self.internal_ip, control_port)
-
-        for srv in self.services.iterator():
-            portmap.add(self.internal_ip, srv.port())
-
-        # Note: could also use values_list for interface ports, but slightly more complicated
-        for interface in self.interfaces.iterator():
-            portmap.add(interface.get_public_ip(), interface.public_port)
-            if interface.get_bind_ip():
-                portmap.add(interface.get_bind_ip(), interface.public_port)
-
-        for port, in self.vpn_servers.values_list('server_port'):
-            portmap.add(self.internal_ip, port)
-
-        return portmap
+        used_ports = value_set(self.interfaces, 'public_port')
+        for candidate_port in range(DEFAULT_PUBLIC_PORT, MAX_PORT):
+            if candidate_port not in used_ports:
+                return candidate_port
 
 
 class InterfaceManager(models.Manager):
@@ -591,11 +570,8 @@ class InterfaceManager(models.Manager):
         as_ = host.AS
         ifid = interface_id or as_.find_interface_id()
 
-        effective_public_ip = public_ip or host.public_ip
-
-        portmap = LazyPortMap(host.get_port_map)
         if public_port is None:
-            public_port = portmap.get_port(effective_public_ip, DEFAULT_PUBLIC_PORT)
+            public_port = host.find_public_port()
 
         as_.hosts.bump_config()
 
@@ -622,15 +598,6 @@ class InterfaceManager(models.Manager):
         """
         return self.filter(link_as_interfaceA__active=False) |\
             self.filter(link_as_interfaceB__active=False)
-
-    def get_by_address_port(self, as_, public_ip, public_port):
-        """
-        Get the interface by specifying its public IP and port, unique to an AS
-        """
-        return self.get(
-            Q(public_ip=public_ip) | (Q(public_ip=None) & Q(host__public_ip=public_ip)),
-            AS=as_,
-            public_port=public_port)
 
 
 class Interface(models.Model):
@@ -713,9 +680,11 @@ class Interface(models.Model):
         if bind_ip is not _placeholder:
             self.bind_ip = bind_ip or None
 
-        self._update_ports(public_port,
-                           host_changed=self.host != prev_host,
-                           public_ip_changed=self.get_public_ip() != prev_public_ip)
+        if public_port is not _placeholder:
+            if public_port is not None:
+                self.public_port = public_port
+            elif self.host != prev_host or self.get_public_ip() != prev_public_ip:
+                self.public_port = self.host.find_public_port()
 
         self.save()
 
@@ -742,17 +711,6 @@ class Interface(models.Model):
                 old_as.hosts.bump_config()
             self.host = host
             self.border_router = border_router
-
-    def _update_ports(self, public_port,
-                      host_changed, public_ip_changed):
-        """ Helper: update public port """
-
-        portmap = LazyPortMap(self.host.get_port_map)
-        if public_port is not _placeholder:
-            if public_port is not None:
-                self.public_port = public_port
-            elif host_changed or public_ip_changed:
-                self.public_port = portmap.get_port(self.get_public_ip(), DEFAULT_PUBLIC_PORT)
 
     def get_public_ip(self):
         """ Get the effective public IP for this interface """
@@ -985,26 +943,17 @@ class Link(models.Model):
 
 
 class BorderRouterManager(models.Manager):
-    def create(self, host, internal_port=None, control_port=None):
+    def create(self, host):
         """
         Create a BorderRouter object.
         :param Host host: the host, defines the AS
-        :param int internal_port: optional, port, assigned automatically if not specified
-        :param int control_port: optional, port, assigned automatically if not specified
         :returns: BorderRouter
         """
         host.AS.hosts.bump_config()
-        portmap = LazyPortMap(host.get_port_map)
-        if not internal_port:
-            internal_port = portmap.get_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
-        if not control_port:
-            control_port = portmap.get_port(host.internal_ip, DEFAULT_CONTROL_PORT)
 
         return super().create(
             AS=host.AS,
             host=host,
-            internal_port=internal_port,
-            control_port=control_port
         )
 
     def first_or_create(self, host):
@@ -1038,8 +987,6 @@ class BorderRouter(models.Model):
         related_name='border_routers',
         on_delete=models.CASCADE
     )
-    internal_port = models.PositiveIntegerField(blank=True)
-    control_port = models.PositiveIntegerField(blank=True)
 
     objects = BorderRouterManager()
 
@@ -1069,17 +1016,24 @@ class BorderRouter(models.Model):
         """
         return f"br-{self.instance_id}"
 
-    def update(self, host=_placeholder, internal_port=_placeholder, control_port=_placeholder):
+    @property
+    def control_port(self):
+        return BR_CONTROL_PORT_BASE + self.instance_id
+
+    @property
+    def internal_port(self):
+        return BR_INTERNAL_PORT_BASE + self.instance_id
+
+    @property
+    def metrics_port(self):
+        return BR_METRICS_PORT_BASE + self.instance_id
+
+    def update(self, host=_placeholder):
         """
         Update the given fields
         :param Host host: optional, the host. Must be in current AS.
-        :param int internal_port: optional, port. A free port is selected if `None` is passed and
-                                  the host is changed.
-        :param int control_port: optional, port. A free port is selected if `None` is passed and
-                                  the host is changed.
         """
         prev_host = self.host
-        prev_info = [self.host, self.internal_port, self.control_port]
 
         if host is not _placeholder:
             if host.AS != self.AS:
@@ -1088,29 +1042,10 @@ class BorderRouter(models.Model):
                 raise RuntimeError('BorderRouter.update cannot change AS')
             self.host = host
 
-        self._update_ports(internal_port,
-                           control_port,
-                           host_changed=self.host != prev_host)
         self.save()
 
-        curr_info = [self.host, self.internal_port, self.control_port]
-        if curr_info != prev_info:
+        if host != prev_host:
             host.AS.hosts.bump_config()
-
-    def _update_ports(self, internal_port, control_port, host_changed):
-        """ Helper: update internal and control port. """
-        portmap = LazyPortMap(self.host.get_port_map)
-        if internal_port is not _placeholder:
-            if internal_port is not None:
-                self.internal_port = internal_port
-            elif host_changed:
-                self.internal_port = portmap.get_port(self.host.internal_ip, DEFAULT_INTERNAL_PORT)
-
-        if control_port is not _placeholder:
-            if control_port is not None:
-                self.control_port = control_port
-            elif host_changed:
-                self.control_port = portmap.get_port(self.host.internal_ip, DEFAULT_CONTROL_PORT)
 
 
 class ServiceManager(models.Manager):
@@ -1153,6 +1088,9 @@ class Service(models.Model):
         CS: CS_PORT,
         BW: BW_PORT,
         PP: PP_PORT,
+    }
+    METRICS_PORTS = {
+        CS: CS_METRICS_PORT,
     }
 
     AS = models.ForeignKey(
@@ -1198,6 +1136,16 @@ class Service(models.Model):
         """
         return f"{self.type.lower()}-{self.instance_id}"
 
+    @property
+    def port(self):
+        if self.type not in self.SERVICE_PORTS:
+            raise KeyError('Unknown type %s' % self.type)
+        return self.SERVICE_PORTS[self.type]
+
+    @property
+    def metrics_port(self):
+        return self.METRICS_PORTS.get(self.type)
+
     def _pre_delete(self):
         """
         Called by the pre_delete signal handler `_service_pre_delete`.
@@ -1205,11 +1153,6 @@ class Service(models.Model):
         also for bulk deletion, while this `delete()` method is not.
         """
         Service._bump_affected(self.host, self.type)
-
-    def port(self):
-        if self.type not in self.SERVICE_PORTS:
-            raise KeyError('Unknown type %s' % self.type)
-        return self.SERVICE_PORTS[self.type]
 
     def update(self, host=_placeholder):
         """
