@@ -142,10 +142,6 @@ jobs:
     steps:
       - <<: *install_git_lfs
 
-      - run:
-          name: Install curl
-          command: sudo apt-get install curl
-
       - checkout
 
       - run:
