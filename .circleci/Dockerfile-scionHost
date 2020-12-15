@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install --assume-yes \
   sudo \
   apt-transport-https \
   openssh-server \
-  jq
+  jq \
+  curl
 
 # systemd
 # Based on: https://developers.redhat.com/blog/2014/05/05/running-systemd-within-docker-container/
