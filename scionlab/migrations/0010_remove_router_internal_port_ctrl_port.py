@@ -4,8 +4,7 @@ from django.db import migrations
 
 
 def bump_config(apps, schema_editor):
-    # Host = apps.get_model('scionlab', 'Host')
-    from scionlab.models.core import Host
+    Host = apps.get_model('scionlab', 'Host')
     Host.objects.bump_config()
 
 
