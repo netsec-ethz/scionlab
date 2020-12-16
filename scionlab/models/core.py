@@ -17,7 +17,6 @@
 ==============================================================================
 """
 
-from datetime import datetime
 import base64
 import os
 import uuid
@@ -26,24 +25,25 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.dispatch import receiver
 from django.db import models
-from django.db.models import F, Q, Count
+from django.db.models import F, Count
 from django.db.models.signals import pre_delete, post_delete
-
+from django.utils.functional import cached_property
 
 from scionlab.models.user import User
 from scionlab.models.pki import Key, Certificate
 from scionlab.scion import as_ids
 from scionlab.util.django import value_set
-from scionlab.util.portmap import PortMap, LazyPortMap
 from scionlab.defines import (
     MAX_INTERFACE_ID,
+    MAX_PORT,
     DEFAULT_PUBLIC_PORT,
-    DEFAULT_INTERNAL_PORT,
-    DEFAULT_CONTROL_PORT,
+    BR_INTERNAL_PORT_BASE,
+    BR_CONTROL_PORT_BASE,
+    BR_METRICS_PORT_BASE,
     CS_PORT,
+    CS_METRICS_PORT,
     BW_PORT,
     PP_PORT,
-    DISPATCHER_PORT,
     DEFAULT_HOST_INTERNAL_IP,
     DEFAULT_LINK_MTU,
     DEFAULT_LINK_BANDWIDTH,
@@ -89,33 +89,22 @@ class ISD(TimestampedModel):
         """
         Generate the TRC and all AS and Core AS Certificates and for all ASes in this ISD.
         Ensures that the certificates are updated in the correct order, i.e. Core AS certificates
-        first.
+        first, then AS certificates, then TRC.
         All updated objects are saved.
         """
         if not self.ases.filter(is_core=True).exists():
             return None
 
-        trc = self.trcs.create()
-        for as_ in self.ases.filter(is_core=True).iterator():
-            self._update_coreas_certificates(as_)
+        # regenerate certificates for every AS: non core ASes could need regeneration due to
+        # a replaced issuer core AS.
+        # First core ASes
+        for as_ in self.ases.filter(is_core=True):
+            as_.update_keys_certs()
+        # Then non-core (which need a core with a CA cert)
+        for as_ in self.ases.filter(is_core=False):
+            as_.update_keys_certs()
 
-        for as_ in self.ases.filter(is_core=False).iterator():
-            self._update_as_certificates(as_)
-
-        return trc
-
-    @staticmethod
-    def _update_as_certificates(as_):
-        as_.generate_certificate_chain()
-        as_.hosts.bump_config()
-        as_.save()
-
-    @staticmethod
-    def _update_coreas_certificates(as_):
-        as_.generate_core_certificate()
-        as_.generate_certificate_chain()
-        as_.hosts.bump_config()
-        as_.save()
+        return self.trcs.create()
 
 
 class ASManager(models.Manager):
@@ -142,12 +131,12 @@ class ASManager(models.Manager):
             master_as_key=AS._make_master_as_key()
         )
 
-        as_.init_keys()
+        as_.generate_keys()
         if init_certificates:
+            as_.generate_certs()
             if is_core:
-                isd.update_trc_and_certificates()
-            else:
-                as_.generate_certificate_chain()
+                isd.trcs.create()
+
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
@@ -272,72 +261,55 @@ class AS(TimestampedModel):
         """
         return self.isd_as_str().replace(":", "_")
 
-    def init_keys(self):
-        """
-        Initialise AS signing and encryption keys.
-        If this is a core AS, also initialise the core AS voting and issuing keys.
+    def certificates(self):
+        """ returns a queryset of all of this AS' certificates """
+        return Certificate.objects.filter(key__AS=self)
 
-        Note: does not set master_as_key.
-        """
-        valid_not_before = datetime.utcnow()
-        self._gen_keys(valid_not_before)
-        if self.is_core:
-            self._gen_core_keys(valid_not_before)
+    def generate_keys(self, not_before=None):
+        Key.objects.create_all_keys(self, not_before=not_before)
 
-    def update_keys(self):
+    def generate_certs(self):
+        Certificate.objects.create_all_certs(self)
+
+    def update_keys_certs(self, not_before=None):
         """
-        Generate new AS signing and encryption keys. Update the certificate.
+        Generate new keys and certificates (core and non core).
+        The keys and certs have to be updated simultaneously to avoid getting a nil validity range
+        when signing a CP AS certificate; e.g. the subject has keys valid during a year, but the
+        issuer's keys are valid only until last year.
         Bumps the configuration version on all affected hosts.
         """
-        self._gen_keys(valid_not_before=datetime.utcnow())
-        self.generate_certificate_chain()
+        self.generate_keys(not_before)
+        self.generate_certs()
         self.hosts.bump_config()
         self.save()
 
     @staticmethod
+    def update_cp_as_keys(queryset):
+        """
+        Simply update the CP AS keys. These keys are only used for the control plane of each AS,
+        so there is no need to update any other crytographic material.
+        """
+        for as_ in queryset:
+            # find a core AS
+            core_ases = AS.objects.filter(isd=as_.isd, is_core=True)
+            if not core_ases.exists():
+                continue
+            Key.objects.create(as_, Key.CP_AS)
+            Certificate.objects.create_cp_as_cert(as_, core_ases.first())
+            as_.hosts.bump_config()
+
+    @staticmethod
     def update_core_as_keys(queryset):
         """
-        For all ASes in the given queryset, generate new core AS signing key pairs.
-        Update the TRC and subsequently all core certificates.
-        Bumps the configuration version on all affected hosts.
+        All the ASes in the queryset must update their keys and certificates.
+        Since this some of these ASes could act as CA for other, non-core ASes,
+        we must re-issue all certificates in that ISD.
+        So in this function, we just update keys, certificates and TRCs for all
+        core ASes in all ISDs that are touched by the given queryset.
         """
-        isds = set()
-        valid_not_before = datetime.utcnow()
-        for as_ in queryset.filter(is_core=True):
-            isds.add(as_.isd)
-            as_._gen_core_keys(valid_not_before)
-            as_.save()
-
-        for isd in isds:
+        for isd in ISD.objects.filter(pk__in=queryset.values('isd')):
             isd.update_trc_and_certificates()
-
-    def generate_certificate_chain(self):
-        """
-        Create or update the AS Certificate chain.
-
-        Requires that the TRC in this ISD exists/is up to date.
-
-        Requires that a Core AS in this ISD with existing/up to date Core AS Certificate exists;
-        for core ASes, `generate_core_certificate` needs to be called first.
-        See ASManager.update_certificates, which creates the certificates in the correct order.
-        """
-        if self.is_core:
-            issuer = self
-        else:
-            # Find an issuer:
-            candidates = self.isd.ases.filter(is_core=True)
-            issuer = candidates.first()
-
-        if issuer:  # Skip if failed to find a core AS as issuer
-            self.certificates.create(type=Certificate.CHAIN, issuer=issuer)
-
-    def generate_core_certificate(self):
-        """
-        Create or update the Core AS Certificate.
-
-        Requires that the TRC in this ISD exists/is up to date.
-        """
-        self.certificates.create(type=Certificate.ISSUER)
 
     def init_default_services(self, public_ip=None, bind_ip=None, internal_ip=None):
         """
@@ -373,34 +345,20 @@ class AS(TimestampedModel):
         """
         if self.is_core:
             raise NotImplementedError
-
         self.isd = isd
-        self.generate_certificate_chain()
+        self.generate_certs()
+
         # Drop all previous certificates; these were created in a different ISD and would confuse.
         # Keep versions increasing (by generating new cert before deleting old ones); in case we
         # move back to the original ISD, we need to have a version number different from the
         # original certificate.
-        latest = self.certificates.latest(Certificate.CHAIN)
-        self.certificates.exclude(id=latest.pk).delete()
+        # Preserve last certificate and those that were part of TRCs.
+        # See also: pki._key_set_null_or_cascade
+        # Since this function checks that the AS is non-core, it contains no certs. part of TRCs.
+        latest = Certificate.objects.latest(usage=Key.CP_AS, AS=self)
+        self.certificates().exclude(id=latest.pk).delete()
 
         self.hosts.bump_config()
-
-    def _gen_keys(self, valid_not_before):
-        """
-        Generate signing and encryption key pairs.
-        """
-        for usage in [Key.DECRYPT, Key.SIGNING]:
-            self.keys.create(usage=usage, not_before=valid_not_before)
-
-    def _gen_core_keys(self, valid_not_before):
-        """
-        Generate core AS signing key pairs.
-        """
-        for usage in [Key.CERT_SIGNING,
-                      Key.TRC_ISSUING_GRANT,
-                      Key.TRC_VOTING_ONLINE,
-                      Key.TRC_VOTING_OFFLINE]:
-            self.keys.create(usage=usage, not_before=valid_not_before)
 
     @staticmethod
     def _make_master_as_key():
@@ -582,29 +540,14 @@ class Host(models.Model):
         """
         return self.config_version_deployed < self.config_version
 
-    def get_port_map(self):
+    def find_public_port(self):
         """
-        Find a set of ports used.
-        :returns: PortMap of used ports
+        Find an unused public port for an AS interface on this Host
         """
-        portmap = PortMap()
-        portmap.add(None, DISPATCHER_PORT)
-
-        for internal_port, control_port in \
-                self.border_routers.values_list('internal_port', 'control_port'):
-            portmap.add(self.internal_ip, internal_port)
-            portmap.add(self.internal_ip, control_port)
-
-        # Note: could also use values_list for interface ports, but slightly more complicated
-        for interface in self.interfaces.iterator():
-            portmap.add(interface.get_public_ip(), interface.public_port)
-            if interface.get_bind_ip():
-                portmap.add(interface.get_bind_ip(), interface.bind_port)
-
-        for port, in self.vpn_servers.values_list('server_port'):
-            portmap.add(self.internal_ip, port)
-
-        return portmap
+        used_ports = value_set(self.interfaces, 'public_port')
+        for candidate_port in range(DEFAULT_PUBLIC_PORT, MAX_PORT):
+            if candidate_port not in used_ports:
+                return candidate_port
 
 
 class InterfaceManager(models.Manager):
@@ -613,7 +556,6 @@ class InterfaceManager(models.Manager):
                public_ip=None,
                public_port=None,
                bind_ip=None,
-               bind_port=None,
                interface_id=None):
         """
         Create an Interface
@@ -622,23 +564,14 @@ class InterfaceManager(models.Manager):
         :param str public_ip: optional, the public IP for this interface to override host.public_ip
         :param int public_port: optional, a free port is selected if not specified
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
-        :param int bind_port: optional, a free port is selected if bind IP set and not specified
         :param int interface_id: optional, the interface id for this interface.
         """
         host = border_router.host
         as_ = host.AS
         ifid = interface_id or as_.find_interface_id()
 
-        effective_public_ip = public_ip or host.public_ip
-        effective_bind_ip = bind_ip if public_ip else host.bind_ip
-
-        portmap = LazyPortMap(host.get_port_map)
         if public_port is None:
-            public_port = portmap.get_port(effective_public_ip, DEFAULT_PUBLIC_PORT)
-        if bind_port is None and effective_bind_ip is not None:
-            bind_port = portmap.get_port(effective_bind_ip,
-                                         min=DEFAULT_PUBLIC_PORT,
-                                         preferred=public_port)
+            public_port = host.find_public_port()
 
         as_.hosts.bump_config()
 
@@ -650,7 +583,6 @@ class InterfaceManager(models.Manager):
             public_ip=public_ip,
             public_port=public_port,
             bind_ip=bind_ip,
-            bind_port=bind_port
         )
 
     def active(self):
@@ -666,15 +598,6 @@ class InterfaceManager(models.Manager):
         """
         return self.filter(link_as_interfaceA__active=False) |\
             self.filter(link_as_interfaceB__active=False)
-
-    def get_by_address_port(self, as_, public_ip, public_port):
-        """
-        Get the interface by specifying its public IP and port, unique to an AS
-        """
-        return self.get(
-            Q(public_ip=public_ip) | (Q(public_ip=None) & Q(host__public_ip=public_ip)),
-            AS=as_,
-            public_port=public_port)
 
 
 class Interface(models.Model):
@@ -706,7 +629,6 @@ class Interface(models.Model):
         blank=True,
         help_text="""Bind IP for this interface (optional). If `public_ip` (!) is not null, this
             overrides the Host's default bind IP.""")
-    bind_port = models.PositiveIntegerField(null=True, blank=True)
 
     objects = InterfaceManager()
 
@@ -736,8 +658,7 @@ class Interface(models.Model):
                border_router=_placeholder,
                public_ip=_placeholder,
                public_port=_placeholder,
-               bind_ip=_placeholder,
-               bind_port=_placeholder):
+               bind_ip=_placeholder):
         """
         Update the fields for this interface and immediately `save`.
         This will trigger a configuration bump for all Hosts in all affected ASes.
@@ -746,12 +667,9 @@ class Interface(models.Model):
         :param int public_port: optional, a free port is selected if `None` is passed and either
                                 `host` or `public_ip` are changed.
         :param str bind_ip: optional, the bind IP for this interface to override host.bind_ip.
-        :param int bind_port: optional, if bind IP is set, a free port is selected if `None` is
-                              passed and either `host` or `bind_ip` are changed
         """
         prev_host = self.host
         prev_public_ip = self.get_public_ip()
-        prev_bind_ip = self.get_bind_ip()
         prev_public_info = self._get_public_info()
         prev_local_info = self._get_local_info()
 
@@ -762,11 +680,11 @@ class Interface(models.Model):
         if bind_ip is not _placeholder:
             self.bind_ip = bind_ip or None
 
-        self._update_ports(public_port,
-                           bind_port,
-                           host_changed=self.host != prev_host,
-                           public_ip_changed=self.get_public_ip() != prev_public_ip,
-                           bind_ip_changed=self.get_bind_ip() != prev_bind_ip)
+        if public_port is not _placeholder:
+            if public_port is not None:
+                self.public_port = public_port
+            elif self.host != prev_host or self.get_public_ip() != prev_public_ip:
+                self.public_port = self.host.find_public_port()
 
         self.save()
 
@@ -793,27 +711,6 @@ class Interface(models.Model):
                 old_as.hosts.bump_config()
             self.host = host
             self.border_router = border_router
-
-    def _update_ports(self, public_port, bind_port,
-                      host_changed, public_ip_changed, bind_ip_changed):
-        """ Helper: update public port and bind port. """
-
-        portmap = LazyPortMap(self.host.get_port_map)
-        if public_port is not _placeholder:
-            if public_port is not None:
-                self.public_port = public_port
-            elif host_changed or public_ip_changed:
-                self.public_port = portmap.get_port(self.get_public_ip(), DEFAULT_PUBLIC_PORT)
-
-        if bind_port is not _placeholder:
-            if bind_port is not None:
-                self.bind_port = bind_port
-            elif not self.get_bind_ip():
-                self.bind_port = None
-            elif host_changed or bind_ip_changed:
-                self.bind_port = portmap.get_port(self.get_bind_ip(),
-                                                  min=DEFAULT_PUBLIC_PORT,
-                                                  preferred=self.public_port)
 
     def get_public_ip(self):
         """ Get the effective public IP for this interface """
@@ -866,7 +763,7 @@ class Interface(models.Model):
         Helper for update: return the information that when changed triggers an update
         of only the local AS.
         """
-        return [self.border_router, self.get_bind_ip(), self.bind_port]
+        return [self.border_router, self.get_bind_ip()]
 
 
 class LinkManager(models.Manager):
@@ -1046,26 +943,17 @@ class Link(models.Model):
 
 
 class BorderRouterManager(models.Manager):
-    def create(self, host, internal_port=None, control_port=None):
+    def create(self, host):
         """
         Create a BorderRouter object.
         :param Host host: the host, defines the AS
-        :param int internal_port: optional, port, assigned automatically if not specified
-        :param int control_port: optional, port, assigned automatically if not specified
         :returns: BorderRouter
         """
         host.AS.hosts.bump_config()
-        portmap = LazyPortMap(host.get_port_map)
-        if not internal_port:
-            internal_port = portmap.get_port(host.internal_ip, DEFAULT_INTERNAL_PORT)
-        if not control_port:
-            control_port = portmap.get_port(host.internal_ip, DEFAULT_CONTROL_PORT)
 
         return super().create(
             AS=host.AS,
             host=host,
-            internal_port=internal_port,
-            control_port=control_port
         )
 
     def first_or_create(self, host):
@@ -1087,7 +975,7 @@ class BorderRouterManager(models.Manager):
 class BorderRouter(models.Model):
     """
     A BorderRouter object represents the actual `border`-process executing an Interface.
-    It stores the per-border-router settings (internal addess port and control addess port).
+    It stores the per-border-router settings (internal address port and control address port).
     """
     AS = models.ForeignKey(
         AS,
@@ -1099,32 +987,53 @@ class BorderRouter(models.Model):
         related_name='border_routers',
         on_delete=models.CASCADE
     )
-    internal_port = models.PositiveIntegerField(blank=True)
-    control_port = models.PositiveIntegerField(blank=True)
 
     objects = BorderRouterManager()
 
     def __str__(self):
-        return "br-%s-%i" % (self.AS.isd_as_path_str(), self._br_idx())
+        return f"{self.AS.isd_as_str()} {self.instance_name}"
 
-    def _br_idx(self):
-        # slow!
+    @cached_property
+    def instance_id(self):
+        """
+        The index/id of this border router instance in this AS.
+        This is inferred from the order by PK.
+        """
+        # Hint: when loading this from in scionlab.scion.topology._fetch_routers, we _override_ the
+        # instance_id attribute, as we know the id from having loaded all routers. This code is not
+        # run. This is analogous to the way that the @cached_property works (the decorator overrides
+        # itself with the computed value when first accessed).
         if self.pk:
+            # slow!
             return self.AS.border_routers.filter(pk__lt=self.pk).count() + 1
         else:
             return 0
 
-    def update(self, host=_placeholder, internal_port=_placeholder, control_port=_placeholder):
+    @property
+    def instance_name(self):
+        """
+        Name of this border router instance in the AS topology.
+        """
+        return f"br-{self.instance_id}"
+
+    @property
+    def control_port(self):
+        return BR_CONTROL_PORT_BASE + self.instance_id
+
+    @property
+    def internal_port(self):
+        return BR_INTERNAL_PORT_BASE + self.instance_id
+
+    @property
+    def metrics_port(self):
+        return BR_METRICS_PORT_BASE + self.instance_id
+
+    def update(self, host=_placeholder):
         """
         Update the given fields
         :param Host host: optional, the host. Must be in current AS.
-        :param int internal_port: optional, port. A free port is selected if `None` is passed and
-                                  the host is changed.
-        :param int control_port: optional, port. A free port is selected if `None` is passed and
-                                  the host is changed.
         """
         prev_host = self.host
-        prev_info = [self.host, self.internal_port, self.control_port]
 
         if host is not _placeholder:
             if host.AS != self.AS:
@@ -1133,29 +1042,10 @@ class BorderRouter(models.Model):
                 raise RuntimeError('BorderRouter.update cannot change AS')
             self.host = host
 
-        self._update_ports(internal_port,
-                           control_port,
-                           host_changed=self.host != prev_host)
         self.save()
 
-        curr_info = [self.host, self.internal_port, self.control_port]
-        if curr_info != prev_info:
+        if host != prev_host:
             host.AS.hosts.bump_config()
-
-    def _update_ports(self, internal_port, control_port, host_changed):
-        """ Helper: update internal and control port. """
-        portmap = LazyPortMap(self.host.get_port_map)
-        if internal_port is not _placeholder:
-            if internal_port is not None:
-                self.internal_port = internal_port
-            elif host_changed:
-                self.internal_port = portmap.get_port(self.host.internal_ip, DEFAULT_INTERNAL_PORT)
-
-        if control_port is not _placeholder:
-            if control_port is not None:
-                self.control_port = control_port
-            elif host_changed:
-                self.control_port = portmap.get_port(self.host.internal_ip, DEFAULT_CONTROL_PORT)
 
 
 class ServiceManager(models.Manager):
@@ -1199,6 +1089,9 @@ class Service(models.Model):
         BW: BW_PORT,
         PP: PP_PORT,
     }
+    METRICS_PORTS = {
+        CS: CS_METRICS_PORT,
+    }
 
     AS = models.ForeignKey(
         AS,
@@ -1219,14 +1112,39 @@ class Service(models.Model):
     objects = ServiceManager()
 
     def __str__(self):
-        return "%s-%s-%i" % (self.type.lower(), self.AS.isd_as_path_str(), self._service_idx())
+        return f"{self.AS.isd_as_str()} {self.instance_name}"
 
-    def _service_idx(self):
-        # slow!
+    @cached_property
+    def instance_id(self):
+        """
+        The index/id of this service instance in this AS.
+        This is inferred from the order by PK.
+        """
+        # Hint: when loading this from in scionlab.scion.topology._fetch_services, we _override_ the
+        # instance_id attribute, as we know the id from having loaded all services. This code is not
+        # run.
         if self.pk:
+            # slow!
             return self.AS.services.filter(type=self.type, pk__lt=self.pk).count() + 1
         else:
             return 0
+
+    @property
+    def instance_name(self):
+        """
+        Name of this service instance in the AS topology.
+        """
+        return f"{self.type.lower()}-{self.instance_id}"
+
+    @property
+    def port(self):
+        if self.type not in self.SERVICE_PORTS:
+            raise KeyError('Unknown type %s' % self.type)
+        return self.SERVICE_PORTS[self.type]
+
+    @property
+    def metrics_port(self):
+        return self.METRICS_PORTS.get(self.type)
 
     def _pre_delete(self):
         """
@@ -1235,11 +1153,6 @@ class Service(models.Model):
         also for bulk deletion, while this `delete()` method is not.
         """
         Service._bump_affected(self.host, self.type)
-
-    def port(self):
-        if self.type not in self.SERVICE_PORTS:
-            raise KeyError('Unknown type %s' % self.type)
-        return self.SERVICE_PORTS[self.type]
 
     def update(self, host=_placeholder):
         """

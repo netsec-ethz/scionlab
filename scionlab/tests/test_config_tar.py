@@ -14,12 +14,13 @@
 
 import os
 import yaml
+from parameterized import parameterized
 
 from django.test import TestCase
 
 from scionlab.config_tar import generate_host_config_tar, generate_user_as_config_tar
 from scionlab.fixtures.testuser import get_testuser_exbert
-from scionlab.models.core import Service
+from scionlab.models.core import AS, Service
 from scionlab.models.user_as import UserAS
 from scionlab.util.archive import DictWriter
 
@@ -49,18 +50,33 @@ class ConfigTarRegressionTests(TestCase):
     def setUp(self):
         self.maxDiff = None
 
-    def test_host(self):
+    def test_host_core(self):
+        as_ = AS.objects.filter(is_core=True).first()
+        self._test_host(as_.hosts.first())
+
+    def test_host_extra_srv(self):
         extra_srv = Service.objects.filter(type__in=[Service.BW]).first()
-        host = extra_srv.host
+        self._test_host(extra_srv.host)
+
+    def _test_host(self, host):
         archive = DictWriter()
         generate_host_config_tar(host, archive)
         self._check_archive('host_%i' % host.id, archive)
 
-    def test_user_as(self):
-        for user_as in UserAS.objects.filter(owner=get_testuser_exbert()).iterator():
-            archive = DictWriter()
-            generate_user_as_config_tar(user_as, archive)
-            self._check_archive('user_as_%i' % user_as.id, archive)
+    @parameterized.expand(list(zip(range(5))))
+    def test_user_as(self, user_as_id):
+        user_as = UserAS.objects.filter(owner=get_testuser_exbert()).order_by('pk')[user_as_id]
+        archive = DictWriter()
+        generate_user_as_config_tar(user_as, archive)
+        self._check_archive('user_as_%i' % user_as.id, archive)
+
+    @parameterized.expand(list(zip(range(2))))
+    def test_user_as_vm_host(self, user_as_id):
+        user_as = UserAS.objects.filter(
+            owner=get_testuser_exbert(),
+            installation_type=UserAS.VM
+        ).order_by('pk')[user_as_id]
+        self._test_host(user_as.host)
 
     def _check_archive(self, test_id, archive):
 

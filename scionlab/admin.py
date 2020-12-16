@@ -301,15 +301,11 @@ class BorderRouterAdminForm(_CreateUpdateModelForm):
     def create(self):
         return BorderRouter.objects.create(
             host=self.cleaned_data['host'],
-            internal_port=self.cleaned_data['internal_port'],
-            control_port=self.cleaned_data['control_port']
         )
 
     def update(self):
         self.instance.update(
             host=self.cleaned_data['host'],
-            internal_port=self.cleaned_data['internal_port'],
-            control_port=self.cleaned_data['control_port']
         )
 
 
@@ -317,7 +313,7 @@ class BorderRouterInline(admin.TabularInline):
     model = BorderRouter
     extra = 0
     form = BorderRouterAdminForm
-    fields = ('host', 'internal_port', 'control_port')
+    fields = ('host',)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "host":
@@ -357,7 +353,7 @@ class InterfaceInline(admin.TabularInline):
     model = Interface
     extra = 0
     fields = ('link', 'interface_id', 'border_router', 'host', 'public_ip_', 'public_port',
-              'bind_ip_', 'bind_port', 'type', 'active', )
+              'bind_ip_', 'type', 'active', )
     readonly_fields = tuple([f for f in fields if f != 'border_router'])
 
     def link(self, obj):
@@ -529,8 +525,7 @@ class ASAdmin(admin.ModelAdmin):
         """
         Admin action: generate new keys for the selected ASes.
         """
-        for as_ in queryset.iterator():
-            as_.update_keys()
+        AS.update_cp_as_keys(queryset)
 
     def update_core_keys(self, request, queryset):
         """
@@ -666,13 +661,11 @@ class LinkAdminForm(_CreateUpdateModelForm):
     from_public_ip = forms.GenericIPAddressField(required=False)
     from_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     from_bind_ip = forms.GenericIPAddressField(required=False)
-    from_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     to_host = forms.ModelChoiceField(queryset=Host.objects.all())
     to_public_ip = forms.GenericIPAddressField(required=False)
     to_public_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
     to_bind_ip = forms.GenericIPAddressField(required=False)
-    to_bind_port = forms.IntegerField(min_value=1, max_value=MAX_PORT, required=False)
 
     def __init__(self, data=None, files=None, initial=None, instance=None, **kwargs):
         initial = initial or {}
@@ -693,7 +686,6 @@ class LinkAdminForm(_CreateUpdateModelForm):
         initial[prefix+'public_ip'] = interface.public_ip
         initial[prefix+'public_port'] = interface.public_port
         initial[prefix+'bind_ip'] = interface.bind_ip
-        initial[prefix+'bind_port'] = interface.bind_port
 
     def _init_default_form_data(self, initial, prefix):
         pass
@@ -704,7 +696,6 @@ class LinkAdminForm(_CreateUpdateModelForm):
             public_ip=self.cleaned_data[prefix+'public_ip'],
             public_port=self.cleaned_data[prefix+'public_port'],
             bind_ip=self.cleaned_data[prefix+'bind_ip'],
-            bind_port=self.cleaned_data[prefix+'bind_port'],
         )
 
     def create(self):
@@ -735,7 +726,7 @@ class LinkAdmin(admin.ModelAdmin):
     form = LinkAdminForm
 
     list_display = ('__str__', 'type', 'active', 'public_ip_a', 'public_port_a', 'bind_ip_a',
-                    'bind_port_a', 'public_ip_b', 'public_port_b', 'bind_ip_b', 'bind_port_b')
+                    'public_ip_b', 'public_port_b', 'bind_ip_b',)
     list_filter = ('type', 'active', 'interfaceA__AS', 'interfaceB__AS',)
 
     def public_ip_a(self, obj):
@@ -747,9 +738,6 @@ class LinkAdmin(admin.ModelAdmin):
     def bind_ip_a(self, obj):
         return obj.interfaceA.get_bind_ip()
 
-    def bind_port_a(self, obj):
-        return obj.interfaceA.bind_port
-
     def public_ip_b(self, obj):
         return obj.interfaceB.get_public_ip()
 
@@ -758,9 +746,6 @@ class LinkAdmin(admin.ModelAdmin):
 
     def bind_ip_b(self, obj):
         return obj.interfaceB.get_bind_ip()
-
-    def bind_port_b(self, obj):
-        return obj.interfaceB.bind_port
 
 
 @admin.register(Host)

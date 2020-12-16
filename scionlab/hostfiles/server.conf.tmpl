@@ -2,6 +2,7 @@ mode server
 tls-server
 
 dev tun
+local ${ServerPublicIP}
 port ${ServerPort}
 proto udp
 
@@ -12,9 +13,9 @@ ncp-ciphers AES-256-GCM:AES-256-CBC:BF-CBC
 
 topology subnet
 push "topology subnet"
-ifconfig ${ServerIP} ${Netmask}
+ifconfig ${ServerVPNIP} ${Netmask}
 route ${Subnet} ${Netmask}
-push "route ${ServerIP}"
+push "route ${ServerVPNIP}"
 
 client-config-dir ccd
 ccd-exclusive
