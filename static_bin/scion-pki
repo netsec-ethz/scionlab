@@ -1,3 +1,13 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b9a3db4615a1909dbb35d348c6caa6127b4a28d5f3f28c650762e9b8035b33c9
-size 20312064
+#!/bin/bash
+
+# get script location, thanks: https://stackoverflow.com/a/246128/28578
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     ${DIR}/scion-pki-linux "$@" ;;
+    Darwin*)    ${DIR}/scion-pki-mac "$@" ;;
+    CYGWIN*)    echo "Cygwin not supported" && exit 1;;
+    MINGW*)     echo "Mingw not supported" && exit 1;;
+    *)          echo "Unknown machine: ${unameOut}" && exit 1
+esac

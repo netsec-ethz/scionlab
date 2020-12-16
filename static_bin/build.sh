@@ -16,6 +16,7 @@
 cd `dirname $0`
 docker build -t scionlab-scion-pki-build - < Dockerfile
 cid="$(docker create scionlab-scion-pki-build)"
-docker cp "$cid":/scion/bin/scion-pki .
+docker cp "$cid":/scion/bin/scion-pki-linux .
+docker cp "$cid":/scion/bin/scion-pki-mac .
 docker rm -v "$cid"
 docker image rm scionlab-scion-pki-build

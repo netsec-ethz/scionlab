@@ -1,7 +1,7 @@
 FROM golang:1.14.9-buster
 
-# netsec-ethz/scion:scionlab_nextversion, 2020/12/02
-ARG scion_commit=65fd6eb4ec9935018fc643b37f08c868547d325c
+# netsec-ethz/scion, last release on 2020/12/08
+ARG scion_commit=v2020.12
 
 RUN mkdir /scion
 WORKDIR /scion
@@ -13,5 +13,10 @@ RUN git init && \
 
 RUN startup_version=$(git describe --tags --always)-scionlab && \
     go build -ldflags="-s -w -X github.com/scionproto/scion/go/lib/env.StartupVersion=$startup_version" \
-             -o bin/ \
+             -o bin/scion-pki-linux \
+             ./go/scion-pki
+
+RUN startup_version=$(git describe --tags --always)-scionlab && \
+    GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X github.com/scionproto/scion/go/lib/env.StartupVersion=$startup_version" \
+             -o bin/scion-pki-mac \
              ./go/scion-pki
