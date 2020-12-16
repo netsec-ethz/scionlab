@@ -11,7 +11,7 @@ etc/scion/br-1.toml: |
   prometheus = "127.0.0.1:30401"
 
   [log.console]
-  level = "debug"
+  level = "info"
 etc/scion/certs/ISD17-B1-S1.trc: !!binary |
   MIIMCgYJKoZIhvcNAQcCoIIL+zCCC/cCAQExDTALBglghkgBZQMEAgMwgghzBgkqhkiG9w0BBwGg
   gghkBIIIYDCCCFwCAQAwCQIBEQIBAQIBATAiGA8yMDIwMTEyNzEzMjQ1MloYDzIwMjIxMTI3MTMy
@@ -452,7 +452,7 @@ etc/scion/cs-1.toml: |
   propagation = "/etc/scion/beacon_policy.yaml"
 
   [log.console]
-  level = "debug"
+  level = "info"
 etc/scion/keys/master0.key: |-
   ww8zXboQPrgpfJ7QGBjOvw==
 etc/scion/keys/master1.key: |-
@@ -520,7 +520,7 @@ scionlab-config.json: |-
   {
     "files": {
       "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
-      "etc/scion/br-1.toml": "3940948bd3850f080ccf24922a8e1c4862129f1d",
+      "etc/scion/br-1.toml": "93b34c926178d1ea7c422d7d9fa2d8d7dd770d3b",
       "etc/scion/certs/ISD17-B1-S1.trc": "69955adde1383f6996656cf0b41d07c485a5a4fc",
       "etc/scion/certs/ISD19-B1-S1.trc": "8a82241f811eb1d68bae427a3821ea7a9c7d40c0",
       "etc/scion/certs/ISD20-B1-S1.trc": "bc54e36782e4a472bc47b4b0586d516b68c45c33",
@@ -534,7 +534,7 @@ scionlab-config.json: |-
       "etc/scion/crypto/voting/ISD17-ASffaa_0_1101.sensitive.crt": "c8ef4fbdede2e2696302813ffc856a2a1a9c5619",
       "etc/scion/crypto/voting/regular-voting.key": "344a51b11cc51a5e473ea0ae7234c9a1e3d4549f",
       "etc/scion/crypto/voting/sensitive-voting.key": "400aee636c2f5a330ac7d7d02595b8286054e1ba",
-      "etc/scion/cs-1.toml": "845b9417f2085abd1e97791e982ce8b882ff9dea",
+      "etc/scion/cs-1.toml": "29acf3f22d998849dda271314af17f3ecfdbc9d8",
       "etc/scion/keys/master0.key": "33e60676f471fc79fa446cdb4e5fc79c0a9b8ed6",
       "etc/scion/keys/master1.key": "33e60676f471fc79fa446cdb4e5fc79c0a9b8ed6",
       "etc/scion/topology.json": "d98ff25307e2eda82b43957ef622e550831dc324"
