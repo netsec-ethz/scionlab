@@ -1,0 +1,15 @@
+isd = 1
+description = "SCIONLab TRC for ISD 1"
+base_version = 1
+serial_version = 2
+voting_quorum = 1
+grace_period = "0s"
+authoritative_ases = [ "ff00:0:110",]
+core_ases = [ "ff00:0:110",]
+cert_files = [ "voting-sensitive-ff00_0_110.crt", "voting-regular-ff00_0_110.crt", "root-ff00_0_110.crt",]
+no_trust_reset = false
+votes = [1]
+
+[validity]
+not_before = 1605168000  # 12.11.2020 8:00am UTC
+validity = "1800s"  # could go up to 3600s as the certificates have 24h validity

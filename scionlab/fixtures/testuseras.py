@@ -39,7 +39,5 @@ def _create_user_as(owner, attachment_point, installation_type, use_vpn):
             use_vpn=use_vpn,
             public_ip='172.31.0.200',
             public_port=54321,
-            bind_ip=None,
-            bind_port=None
-        )]
-    )
+        ),
+    ])

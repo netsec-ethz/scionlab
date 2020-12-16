@@ -22,7 +22,6 @@ from django.conf import settings
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -71,7 +70,7 @@ def load_ca_key_material():
 def load_ca_cert():
     try:
         ca_cert_data = pathlib.Path(settings.VPN_CA_CERT_PATH).read_bytes()
-        ca_cert = x509.load_pem_x509_certificate(ca_cert_data, backend=default_backend())
+        ca_cert = x509.load_pem_x509_certificate(ca_cert_data)
     except FileNotFoundError as e:
         raise RuntimeError("Missing CA root configuration. "
                            "Please run the admin command `python3 ./manage.py initialize_root_ca` "
@@ -84,8 +83,7 @@ def load_ca_key():
         password = settings.VPN_CA_KEY_PASSWORD.encode('utf-8')
         ca_key_data = pathlib.Path(settings.VPN_CA_KEY_PATH).read_bytes()
         ca_key = serialization.load_pem_private_key(ca_key_data,
-                                                    password=password,
-                                                    backend=default_backend())
+                                                    password=password)
         if not isinstance(ca_key, rsa.RSAPrivateKey):
             raise TypeError
     except FileNotFoundError as e:
@@ -117,7 +115,7 @@ def _generate_root_ca_cert(key):
     ).add_extension(
         x509.BasicConstraints(ca=True, path_length=0),
         critical=True,
-    ).sign(key, hashes.SHA256(), default_backend())
+    ).sign(key, hashes.SHA256())
     return cert
 
 
@@ -178,7 +176,7 @@ def get_cert_common_name(cert_data):
     Extract the common name from a (client-)certificate. This will be used to identify the
     client-config in the client-config-dir (ccd).
     """
-    cert = x509.load_pem_x509_certificate(cert_data, backend=default_backend())
+    cert = x509.load_pem_x509_certificate(cert_data)
     cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
     if len(cn) != 1:
         raise ValueError("Certificate Common Name field is not unequivocal.")
@@ -285,14 +283,13 @@ def _make_cert(subject_name, subject_key, issuer_name, issuer_key,
     ).add_extension(
         x509.BasicConstraints(ca=False, path_length=None),
         critical=True,
-    ).sign(issuer_key, hashes.SHA256(), default_backend())
+    ).sign(issuer_key, hashes.SHA256())
 
 
 def _generate_private_key():
     return rsa.generate_private_key(
         public_exponent=65537,
         key_size=settings.VPN_KEYGEN_CONFIG.KEY_SIZE,
-        backend=default_backend()
     )
 
 

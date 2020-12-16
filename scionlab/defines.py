@@ -23,19 +23,28 @@ MAX_INTERFACE_ID = 2**12-1
 USER_AS_ID_BEGIN = 0xffaa00010001  # 'ffaa:1:1'
 USER_AS_ID_END = 0xffaa0001ffff  # 'ffaa:1:ffff'
 
-DEFAULT_PUBLIC_PORT = 50000    # 30042-30051 (suggested by scion/wiki/default-port-ranges)
-DEFAULT_INTERNAL_PORT = 30042  # 30042-30051
-DEFAULT_CONTROL_PORT = 30242   # 30242-30251
-BR_PROM_PORT_OFFSET = 200  # offset from BR control port. E.g. 30242 + 200 = 30442
+DEFAULT_PUBLIC_PORT = 50000    # UDP/IP, public_ip:port (bound to bind_ip:port if bind_ip is set)
+# Fixed port assignment scheme for routers: the internal/control/metrics ports
+# are defined as base_port + instance_id.
+# Note that this does not strictly adhere to the suggestions by scion/wiki/default-port-ranges.
+# Notably, this scheme starts at lower numbers to allow up to 40 routers before collision with the
+# range used for the dispatcher (30041).
+BR_INTERNAL_PORT_BASE = 30000    # UDP/IP, internal_ip:port
+BR_CONTROL_PORT_BASE = 30200     # QUIC/UDP/SCION, [IA,internal_ip]:port
+BR_METRICS_PORT_BASE = 30400     # TCP/IP, 127.0.0.1:port
 
-CS_PORT = 30254  # This is both a SCION/UDP (inter-AS) and TCP (intra-AS)
-CS_QUIC_PORT = 30354  # SCION/UDP/QUIC port for inter-AS
-CS_PROM_PORT = 30454
-SD_TCP_PORT = 30255
-SD_PROM_PORT = 30455
-DISPATCHER_PORT = 30041
-DISPATCHER_PROM_PORT = 30441
-SIG_PORT = 31056
+CS_PORT = 30254                  # UDP/SCION (inter-AS) *and* TCP/IP (intra-AS)
+CS_QUIC_PORT = 30354             # QUIC/UDP/SCION port for inter-AS
+CS_METRICS_PORT = 30454          # TCP/IP, 127.0.0.1:port
+
+SD_TCP_PORT = 30255              # TCP/IP, 127.0.0.1:port, NOTE: also in scion-daemon.deb
+SD_METRICS_PORT = 30455          # "                       ditto
+
+DISPATCHER_PORT = 30041          # UDP/IP, 127.0.0.1:port, [::]:port, NOTE: fixed!
+DISPATCHER_METRICS_PORT = 30441  # TCP/IP, 127.0.0.1:port, NOTE: also in scion-dispatcher.deb
+
+SIG_CTRL_PORT = 30256
+SIG_DATA_PORT = 30056
 
 BW_PORT = 40001
 PP_PORT = 40002
@@ -48,7 +57,6 @@ PROPAGATE_TIME_CORE = 60  # lower beaconing frequency in cores to save resources
 PROPAGATE_TIME_NONCORE = 5  # higher frequency in non-cores ASes to have quicker startup
 
 SCION_CONFIG_DIR = "/etc/scion"
-SCION_LOG_DIR = "/var/log/scion"
 SCION_VAR_DIR = "/var/lib/scion"
 OPENVPN_CONFIG_DIR = "/etc/openvpn"
 
