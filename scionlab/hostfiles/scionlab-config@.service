@@ -1,7 +1,0 @@
-[Unit]
-Description=service to start scionlab-config script in daemon mode
-#this expects to be called with systemctl start scionlab-config@"host-id:host-secret".service
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/bash -c 'instance_name="%I"; exec scionlab-config --host-id "$${instance_name%:*}" --host-secret "$${instance_name#*:}" --daemon'
