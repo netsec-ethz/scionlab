@@ -1,2 +1,2 @@
-static_bin/scion-pki-mac filter=lfs diff=lfs merge=lfs -text
-static_bin/scion-pki-linux filter=lfs diff=lfs merge=lfs -text
+static_bin/scion-pki-darwin-amd64 filter=lfs diff=lfs merge=lfs -text
+static_bin/scion-pki-linux-amd64 filter=lfs diff=lfs merge=lfs -text
