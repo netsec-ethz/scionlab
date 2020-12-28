@@ -1,3 +1,17 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b9a3db4615a1909dbb35d348c6caa6127b4a28d5f3f28c650762e9b8035b33c9
-size 20312064
+#!/bin/sh
+
+goos=$(uname -s | tr '[:upper:]' '[:lower:]')
+goarch=$(uname -m | tr '[:upper:]' '[:lower:]')
+
+if [ "${goarch}" = "x86_64" ]; then
+   goarch="amd64"
+fi
+
+filename="$(dirname "$0")/scion-pki-${goos}-${goarch}"
+
+if [ ! -e "${filename}" ]; then
+  echo "Unsupported system: ${goos}-${goarch}"
+  exit 1
+fi
+
+exec "${filename}" "$@"
