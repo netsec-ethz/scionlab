@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install --assume-yes \
   sudo \
   apt-transport-https \
   openssh-server \
-  jq
+  jq \
+  curl
 
 # systemd
 # Based on: https://developers.redhat.com/blog/2014/05/05/running-systemd-within-docker-container/
@@ -30,6 +31,8 @@ RUN apt-get update && apt-get install --assume-yes scionlab
 # Add 'scionlab' user with passwordless sudo
 RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
 RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
+# Add 'user' user without sudo group to run user commands
+RUN useradd --create-home --shell /bin/bash user
 
 # Add VPN tun0 ip check script
 COPY --chown=scionlab:scionlab .circleci/setup/check_tun0_in_topo.py /home/scionlab/

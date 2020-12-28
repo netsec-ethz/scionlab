@@ -1,7 +1,6 @@
 {{ attachment_points|json_script:"attachment_points" }}
 
 <script>
-const _DEFAULT_BIND_PORT = "50000"
 let attachment_points = JSON.parse(document.getElementById('attachment_points').textContent);
 $(document).ready(function() {
   // Reset form to avoid stale dirty entries after page reload (firefox)
@@ -58,10 +57,9 @@ $(document).ready(function() {
 
 function setup_bind_row_collapse() {
   let should_collapse_bind_row = (row) => {
-    // Hide bind row only if no items specified
+    // Hide bind row only if no IP specified
     let bind_ip = row.find('input[name*="bind_ip"]').val()
-    let bind_port = row.find('input[name*="bind_port"]').val()
-    return (bind_ip === '' && bind_port === '')
+    return (bind_ip === '')
   }
   $('.bind-row-collapser').each(function() {
     // Init collapser and bind-row
@@ -132,17 +130,14 @@ function update_ip_fields_show(toggle) {
   let attachment = toggle.closest('.attachment');
   let public_ip_container = attachment.find("input[id*='public_ip']").closest('.hidable')
   let bind_ip_container = attachment.find("input[id*='bind_ip']").closest('.hidable')
-  let bind_port_container = attachment.find("input[id*='bind_port']").closest('.hidable')
   let bind_options_collapser = attachment.find('.bind-row-collapser')
   if(toggle.prop("checked")) {
     public_ip_container.hide();
     bind_ip_container.hide();
-    bind_port_container.hide();
     bind_options_collapser.hide();
   } else {
     public_ip_container.show();
     bind_ip_container.show();
-    bind_port_container.show();
     bind_options_collapser.show();
   }
 }

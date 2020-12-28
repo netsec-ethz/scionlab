@@ -18,6 +18,17 @@
 #
 version: 2
 
+install_git_lfs: &install_git_lfs
+  run:
+    name: Install git LFS
+    command: |
+      # circleci images don't currently come with git lfs installed:
+      #   https://support.circleci.com/hc/en-us/articles/360044671191-git-lfs-support-on-CircleCI-provided-images
+      # Install it manually, as suggested.
+      curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+      sudo apt-get install git-lfs
+      git lfs install
+
 check_services_status: &check_services_status
   command: |
     set -x
@@ -35,25 +46,19 @@ check_scion_connections: &check_scion_connections
 
     # Wait for 3 beacons received from now on
     docker-compose exec -T as1303 /bin/bash -c \
-      "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
+      "while curl -s 127.0.0.1:30454/metrics | egrep -q 'control_beaconing_received_beacons_total{.*}.[0]+'; do sleep 1; done"
     docker-compose exec -T as1305 /bin/bash -c \
-      "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
+      "while curl -s 127.0.0.1:30454/metrics | egrep -q 'control_beaconing_received_beacons_total{.*}.[0]+'; do sleep 1; done"
 
     # Show paths used by SCMP
-    docker-compose exec -T as1301 /bin/bash -c \
-      'showpaths -dstIA 19-ffaa:0:1303 || true'
-    docker-compose exec -T as1303 /bin/bash -c \
-      'showpaths -dstIA 19-ffaa:0:1301 || true'
-    docker-compose exec -T as1305 /bin/bash -c \
-      'showpaths -dstIA 19-ffaa:0:1301 || true'
+    docker-compose exec --user user -T as1301 scion showpaths 19-ffaa:0:1303
+    docker-compose exec --user user -T as1303 scion showpaths 19-ffaa:0:1301
+    docker-compose exec --user user -T as1305 scion showpaths 19-ffaa:0:1301
 
     # Check that we can SCMP
-    docker-compose exec -T as1301 /bin/bash -c \
-      'scmp echo -c 5 -remote 19-ffaa:0:1303,[127.0.0.1]'
-    docker-compose exec -T as1303 /bin/bash -c \
-      'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
-    docker-compose exec -T as1305 /bin/bash -c \
-      'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
+    docker-compose exec --user user -T as1301 scion ping -c 5 19-ffaa:0:1303,127.0.0.1
+    docker-compose exec --user user -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
+    docker-compose exec --user user -T as1305 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
 
 start_coordinator: &start_coordinator
   command: |
@@ -78,6 +83,8 @@ jobs:
     working_directory: ~/repo
 
     steps:
+      - <<: *install_git_lfs
+
       - checkout
 
       # Download and cache dependencies
@@ -129,6 +136,8 @@ jobs:
       # docker_layer_caching: true
 
     steps:
+      - <<: *install_git_lfs
+
       - checkout
 
       - run:
@@ -144,12 +153,6 @@ jobs:
             sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
             docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/ # Build base image, as used in production
             docker-compose build
-
-      - run:
-          name: Set date so certificates in test data are valid
-          command: |
-            # Certificates are valid between 2019-10-02 and 2020-10-01.
-            sudo date -s "2020-04-01"  # haha
 
       - run:
           name: Start coordinator
@@ -194,7 +197,7 @@ jobs:
           command: |
             set -x
 
-            prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
+            prev_version=$(docker-compose exec --user user -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
 
             # Generate new AS-keys for 1303 and pull the new configuration.
             # This waits until the configuration has been deployed.
@@ -202,13 +205,13 @@ jobs:
             'python .circleci/actions/update-keys.py ffaa:0:1303'
             docker-compose exec -T as1303 scionlab-config
 
+
             # Check that
             # i) configuration was deployed
-            new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
+            new_version=$(docker-compose exec --user user -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
             [ "$prev_version" -lt "$new_version" ]
             # ii) connection still works
-            docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
+            docker-compose exec --user user -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
 
 
       - run:
@@ -219,7 +222,7 @@ jobs:
 
             # Show current TRC
             TRC_version=1
-            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec --user user -T as1301 scion-pki trcs human "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
             docker-compose exec -T coord /bin/bash -c \
@@ -233,25 +236,18 @@ jobs:
             docker-compose logs coord
 
             # Check updated TRC and check that updated TRCs were installed on all hosts
-            # Copy TRCs to temporary directory tree with structure understood by the scion-pki tool
             TRC_version=$((TRC_version + 1))
-            docker-compose exec -T as1301 /bin/bash -c \
-             "mkdir -p /tmp/pki/ISD19/trcs/;
-              cp /etc/scion/certs/ISD19*.trc /tmp/pki/ISD19/trcs/;
-              scion-pki trcs human /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc;
-              scion-pki trcs verify -d /tmp/pki/ /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc"
-
-            docker-compose exec -T as1303 stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
-            docker-compose exec -T as1305 stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
+            for c in as1301 as1303 as1305; do
+              docker-compose exec --user user -T $c stat -t "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
+            done
+            docker-compose exec --user user -T as1301 \
+              scion-pki trcs verify --anchor `seq -f "/etc/scion/certs/ISD19-B1-S%.0f.trc" 1 $TRC_version`
 
             # Check that infra still works
             sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
-            docker-compose exec -T as1301 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1303,[127.0.0.1]'
-            docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
-            docker-compose exec -T as1305 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
+            docker-compose exec --user user -T as1301 scion ping -c 5 19-ffaa:0:1303,127.0.0.1
+            docker-compose exec --user user -T as1303 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
+            docker-compose exec --user user -T as1305 scion ping -c 5 19-ffaa:0:1301,127.0.0.1
 
       - run:
           name: Start VPN containers and verify the connection over VPN works
@@ -275,14 +271,16 @@ jobs:
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
             docker-compose exec useras4 /bin/bash -c \
-             'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; \
-              scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
+             "while curl -s 127.0.0.1:30454/metrics | egrep -q 'control_beaconing_received_beacons_total{.*}.[0]+'; do sleep 1; done; sleep 5; \
+              scion ping -c 5 20-ffaa:0:1405,127.0.0.1"
 
   upgrade_integration:
     machine:
       image: ubuntu-1604:201903-01
 
     steps:
+      - <<: *install_git_lfs
+
       # Start old version of coordinator
       - run:
           name: OLD -- Checkout
@@ -357,10 +355,9 @@ jobs:
 
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec -T useras4 /bin/bash -c \
+            docker-compose exec --user user -T useras4 /bin/bash -c \
               "sleep 10; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-            docker-compose exec useras4 /bin/bash -c \
-              'scmp echo -c 5 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+            docker-compose exec --user user useras4 scion ping -c 5 20-ffaa:0:1405,127.0.0.1
 
       # Starting upgrade integration tests
 
@@ -459,10 +456,64 @@ jobs:
               "bash -c 'sleep 300 && systemctl restart scionlab.target' &"
             # Wait for client to be setup
             echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec -T useras4 /bin/bash -c \
+            docker-compose exec --user user -T useras4 /bin/bash -c \
               "sleep 10; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-            docker-compose exec useras4 /bin/bash -c \
-             'scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
+            docker-compose exec --user user useras4 scion ping -c 5 20-ffaa:0:1405,127.0.0.1
+ 
+  prod:
+    machine: true
+    environment:
+      COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"
+    steps:
+      - checkout
+
+      - run:
+          name: Start stack
+          command: |
+            ln -rs .circleci/test-prod.env run/scionlab.env
+            docker-compose up --build -d
+
+      - run:
+          name: Load data from fixture to check (test) DB setup
+          command: |
+            sleep 5 # wait a bit for the migrations in the django-entrypoint.sh are done.
+            docker-compose exec -T django ./manage.py loaddata scionlab/fixtures/testdata.yaml
+
+      - run:
+          name: Check static files
+          command: |
+            set -x
+
+            # check that resource returned from a request to $1 is identical to the file at $2.
+            function check_static_file
+            {
+              curl --fail --silent "http://localhost/$1" --output /tmp/check_static_file.tmp
+              cmp --silent /tmp/check_static_file.tmp "$2" ||
+                { echo "The resource returned from '$1' is not identical to the file at '$2'";
+                  false; }
+            }
+            check_static_file favicon.ico scionlab/static/scionlab/images/favicon.ico
+            check_static_file static/scionlab/images/favicon.ico scionlab/static/scionlab/images/favicon.ico
+            check_static_file static/scionlab/style.css scionlab/static/scionlab/style.css
+
+            curl --silent --head --request GET "http://localhost/static/" | grep --quiet "404 Not Found" || 
+              { echo "The static/ subfolderst should not be browsable"; false; }
+         
+      - run:
+          name: Check django reverse proxy
+          command: |
+            set -x
+
+            # These should all exist:
+            curl --fail --silent --head --request GET "http://localhost/" > /tmp/headers.txt
+            grep --quiet "^Server: Caddy" /tmp/headers.txt
+            grep --quiet "^Server: gunicorn/" /tmp/headers.txt
+            curl --fail --silent "http://localhost/login/" > /dev/null
+            curl --fail --silent "http://localhost/topology.png" > /dev/null
+            curl --fail --silent "http://localhost/api/v2/topology/topology" > /dev/null
+
+            # This one does not:
+            curl --silent --head --request GET "http://localhost/foobar" | grep --quiet "404 Not Found"
 
 workflows:
   version: 2
@@ -470,6 +521,7 @@ workflows:
     jobs:
       - basic
       - integration
+      - prod
       - upgrade_integration:
           filters:
             branches:

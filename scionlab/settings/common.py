@@ -69,10 +69,6 @@ TEMPLATES = [
 
 # ##### DJANGO RUNNING CONFIGURATION ######################
 
-# setting the Timezone to UTC
-TIME_ZONE = "UTC"
-
-
 # the URL for static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -145,6 +141,8 @@ class VPNKeygenConf:
 
 VPN_KEYGEN_CONFIG = VPNKeygenConf()
 
+# Location of the scion-pki command to generate TRCs.
+SCION_PKI_COMMAND = os.path.join(BASE_DIR, 'static_bin', 'scion-pki')
 
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []

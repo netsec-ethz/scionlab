@@ -17,264 +17,270 @@
 ===========================================
 """
 
-from collections import namedtuple
+import base64
+import subprocess
+import toml
+import yaml
+import contextlib
+
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.serialization import pkcs7
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Tuple
+from django.conf import settings
+from pathlib import Path
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from typing import Dict, List, Optional, Tuple
 
-from scionlab.scion import jws
-
-
-# XXX(matzf): maybe this entire thing would be a bit simpler if we keep usage as member of Key.
-# Then we dont need so many dicts and stuff.
-Key = namedtuple('Key', ['version', 'priv_key', 'pub_key'])
-CoreKeys = namedtuple('CoreKeys', ['issuing_grant', 'voting_online', 'voting_offline'])
-CoreKeySet = Dict[str, Key]
+from scionlab.scion import certs, keys
 
 
-def generate_trc(isd, version, grace_period, not_before, not_after, primary_ases,
-                 prev_trc, prev_voting_offline):
+def encode_trc(trc: bytes) -> str:
+    return base64.b64encode(trc).decode('ascii')
+
+
+def decode_trc(trc: str) -> bytes:
+    return base64.b64decode(trc.encode('ascii'))
+
+
+def trc_to_dict(trc: bytes) -> dict:
+    with NamedTemporaryFile('wb') as f:
+        f.write(trc)
+        f.flush()
+        ret = _run_scion_pki('human', '--format', 'yaml', f.name, check=True)
+    return yaml.safe_load(ret.stdout)
+
+
+def verify_trcs(*trcs: bytes):
+    """
+    Verify that the sequence of trcs, using the first TRC as anchor.
+    Raises VerifyError if the TRCs are not valid.
+    """
+    with contextlib.ExitStack() as stack:
+        files = [stack.enter_context(NamedTemporaryFile(suffix=".trc")) for _ in range(len(trcs))]
+        for f, trc in zip(files, trcs):
+            f.write(trc)
+            f.flush()
+        _run_scion_pki('verify', '--anchor', *[f.name for f in files])
+
+
+def generate_trc(prev_trc: bytes,
+                 isd_id: int,
+                 base: int,
+                 serial: int,
+                 primary_ases: List[str],
+                 quorum: int,
+                 votes: List[int],
+                 grace_period: timedelta,
+                 not_before: datetime,
+                 not_after: datetime,
+                 certificates: List[str],
+                 signers_certs: List[str],
+                 signers_keys: List[str]) -> bytes:
     """
     Generate a new TRC.
+    This method is the interface between the DB objects and the scion PKI ones.
     """
-    # TODO(matzf) doc
-    assert (version >= 1)
-    assert (version == 1) == (prev_trc is None) == (prev_voting_offline is None)
+    assert (base >= 1 and serial >= 1)
+    assert (prev_trc is None) == (base == serial)
+    assert len(signers_certs) == len(signers_keys)
 
-    if prev_trc:
-        prev_primary_ases = _decode_primary_ases(prev_trc)
-    else:
-        prev_primary_ases = {}
-
-    changed = _changed_keys(primary_ases, prev_primary_ases)
-    if version == 1:
-        votes = {}
-        grace_period = timedelta(0)
-    elif _is_regular_update(primary_ases, prev_primary_ases):
-        votes = _regular_voting_keys(primary_ases, changed)
-    else:
-        votes = _sensitive_voting_keys(prev_voting_offline)
-    proof_of_possession = changed
-
-    payload = _build_payload(
-        isd,
-        version,
-        grace_period,
-        not_before,
-        not_after,
-        primary_ases,
-        votes,
-        proof_of_possession,
-    )
-
-    return _build_signed_trc(payload, votes, proof_of_possession,)
+    conf = TRCConf(isd_id=isd_id,
+                   base_version=base,
+                   serial_version=serial,
+                   grace_period=grace_period,
+                   not_before=not_before,
+                   not_after=not_after,
+                   core_ases=primary_ases,
+                   authoritative_ases=primary_ases,
+                   certificates=certificates,
+                   signers=list(zip(signers_certs, signers_keys)),
+                   quorum=quorum,
+                   votes=votes,
+                   predecessor_trc=prev_trc)
+    return conf.generate()
 
 
-def _is_regular_update(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> bool:
+class TRCConf:
     """
-    Check if this is a regular TRC update.
+    Configures, creates, signs, and combines all the pieces to finally have a TRC.
+    The typical usage is:
 
+    with TRCConf(...).configure() as trc:
+        trc.gen_payload()
+        trc.sign_payload()
+        final_trc = trc.combine()
 
-    In a regular update, the voting_quorum parameter must not be changed. In the primary_ases
-    section, only the issuing grant and online voting keys can change. No other parts of the
-    primary_ases section may change.
-
-    - All votes from ASes with unchanged online voting keys must be cast with the online voting key.
-    - All ASes with changed online voting keys must cast a vote with their offline voting key.
-
-    A sensitive update is any update that is not "regular" (as defined above). The following
-    conditions must be met:
-
-    - All votes must be issued with the offline voting key authenticated by the previous TRC.
-
-    Compared to the regular update, the restriction that voting ASes with changed online voting key
-    must cast a vote is lifted. This allows replacing the online and offline voting key of a voting
-    AS that has lost its offline voting key without revoking the voting status.
+    The combine step returns the bytes of the final TRC.
     """
 
-    return (new.keys() == prev.keys() and
-            all(_equal_key(new[as_id].voting_offline, prev[as_id].voting_offline)
-                for as_id in prev.keys()))
+    # files created internally (removed after exiting context)
+    TRC_FILENAME = 'scionlab-trc.trc'
+    PRED_TRC_FILENAME = 'predecessor-trc.trc'
+    PAYLOAD_FILENAME = 'scionlab-trc-payload.der'
+    CONFIG_FILENAME = 'scionlab-trc-config.toml'
 
+    def __init__(self,
+                 isd_id: int,
+                 base_version: int,
+                 serial_version: int,
+                 grace_period: timedelta,
+                 not_before: datetime,
+                 not_after: datetime,
+                 authoritative_ases: List[str],
+                 core_ases: List[str],
+                 certificates: List[str],
+                 signers: List[Tuple[str, str]],
+                 quorum: int = None,
+                 votes: Optional[List[int]] = None,
+                 predecessor_trc: Optional[bytes] = None):
+        """
+        authoritative_ases ASes are those that know which TRC version an ISD has
+        certificates is a map filename: content, of certificates that will be included in the TRC
+        """
+        assert not_before.tzinfo is None, 'expecting timestamps from DB in naive UTC datetime'
+        assert not_after.tzinfo is None, 'expecting timestamps from DB in naive UTC datetime'
 
-def _regular_voting_keys(primary_ases: Dict[str, CoreKeys],
-                         changed_keys: Dict[str, CoreKeySet]) -> Dict[str, CoreKeySet]:
-    def regular_voting_key(as_id, keys):
-        if 'voting_online' in changed_keys[as_id]:
-            return {'voting_offline': keys.voting_offline}
-        else:
-            return {'voting_online': keys.voting_online}
+        self.isd_id = isd_id
+        self.base_version = base_version
+        self.serial_version = serial_version
+        self.grace_period = grace_period
+        self.not_before = not_before.replace(tzinfo=timezone.utc)
+        self.not_after = not_after.replace(tzinfo=timezone.utc)
+        self.authoritative_ases = authoritative_ases
+        self.core_ases = core_ases
+        self.certificates = certificates
+        self.certificate_files = []  # type: List[str]  # will be populated on configure()
+        self.signers = signers
+        self.quorum = quorum
+        self.votes = votes
+        self.predecessor_trc = predecessor_trc
 
-    return {as_id: regular_voting_key(as_id, keys) for as_id, keys in primary_ases.items()}
+        self._validate()
 
+    def generate(self) -> bytes:
+        with TemporaryDirectory() as temp_dir:
+            self._dump_certificates_to_files(temp_dir)
+            self._gen_payload(temp_dir)
+            signed_payloads = []
+            for (cert, key) in self.signers:
+                signed_payloads.append(self._sign_payload(temp_dir, cert, key))
+            return self._combine(temp_dir, *signed_payloads)
 
-def _sensitive_voting_keys(prev_voting_offline: Dict[str, Key]) -> Dict[str, CoreKeySet]:
-    return {as_id: {'voting_offline': key} for as_id, key in prev_voting_offline.items()}
+    def _gen_payload(self, temp_dir: str) -> None:
+        conf = self._get_conf()
+        Path(temp_dir, self.CONFIG_FILENAME).write_text(toml.dumps(conf))
+        args = ['payload', '-t', self.CONFIG_FILENAME, '-o', self.PAYLOAD_FILENAME]
+        if self.predecessor_trc:
+            pred_filename = Path(temp_dir, self.PRED_TRC_FILENAME)
+            pred_filename.write_bytes(self.predecessor_trc)
+            args.extend(['-p', str(pred_filename)])
+        _run_scion_pki(*args, cwd=temp_dir)
 
+    def _sign_payload(self, temp_dir: str, cert: str, key: str) -> bytes:
+        """ signs the payload with one signer """
+        sb = pkcs7.PKCS7SignatureBuilder(Path(temp_dir, self.PAYLOAD_FILENAME).read_bytes())\
+            .add_signer(certs.decode_certificate(cert),
+                        keys.decode_key(key),
+                        hashes.SHA512())
+        return sb.sign(serialization.Encoding.DER, [pkcs7.PKCS7Options.NoCerts,
+                                                    pkcs7.PKCS7Options.NoCapabilities,
+                                                    pkcs7.PKCS7Options.Binary])
 
-def _changed_keys(new: Dict[str, CoreKeys], prev: Dict[str, CoreKeys]) -> Dict[str, CoreKeySet]:
-    def changed_set(new_as_keys, prev_as_keys):
-        if prev_as_keys is None:
-            return new_as_keys._asdict()
-        else:
-            return {usage: new_key
-                    for usage, new_key in new_as_keys._asdict().items()
-                    if not _equal_key(new_key, getattr(prev_as_keys, usage))}
-
-    return {as_id: changed_set(new[as_id], prev.get(as_id)) for as_id in new.keys()}
-
-
-def _equal_key(a, b):
-    return (a.version, a.pub_key) == (b.version, b.pub_key)
-
-
-def _build_payload(isd,
-                   version,
-                   grace_period,
-                   not_before,
-                   not_after,
-                   primary_ases,
-                   votes,
-                   proof_of_possession):
-    """
-    Build a TRC payload as a dict. See
-    https://github.com/scionproto/scion/blob/master/doc/ControlPlanePKI.md#trc-format
-    """
-    return {
-        "isd": isd.isd_id,
-        "trc_version": version,
-        "base_version": 1,
-        "description": "SCIONLab %s" % isd,
-        "voting_quorum": len(primary_ases),
-        "format_version": 1,
-        "grace_period": int(grace_period.total_seconds()),
-        "trust_reset_allowed": False,
-        "validity": {
-            "not_before": _utc_timestamp(not_before),
-            "not_after": _utc_timestamp(not_after),
-        },
-        "primary_ases": {
-            as_id: {
-                "attributes": ["authoritative", "core", "issuing", "voting"],
-                "keys": {
-                    usage: {
-                        "key_version": key.version,
-                        "algorithm": "Ed25519",
-                        "key": key.pub_key
-                    }
-                    for usage, key in primary_ases[as_id]._asdict().items()
-                }
-            }
-            for as_id in primary_ases.keys()
-        },
-        "votes": {as_id: next(iter(keys.keys()))
-                  for as_id, keys in votes.items()},
-        "proof_of_possession": {as_id: list(keys.keys())
-                                for as_id, keys in proof_of_possession.items()},
-    }
-
-
-def _build_signed_trc(payload, votes, proof_of_possession):
-    # one signature for each vote or proof of possession.
-    signatures = [(as_id, "vote", usage, key)
-                  for as_id, keys in votes.items()
-                  for usage, key in keys.items()]
-    signatures += [(as_id, "proof_of_possession", usage, key)
-                   for as_id, keys in proof_of_possession.items()
-                   for usage, key in keys.items()]
-
-    payload_enc = jws.encode(payload)
-    return {
-        "payload": payload_enc,
-        "signatures": [_signature_entry(payload_enc, as_id, type, usage, key)
-                       for as_id, type, usage, key in signatures]
-    }
-
-
-def _signature_entry(payload_enc, as_id, type, key_usage, key):
-    protected_enc = jws.encode(_build_protected_hdr(as_id, type, key_usage, key))
-    return {
-        "protected": protected_enc,
-        "signature": jws.signature(payload_enc, protected_enc, key.priv_key)
-    }
-
-
-def _build_protected_hdr(as_id, type, key_usage, key):
-    return {
-        "alg": "Ed25519",
-        "crit": ["type", "key_type", "key_version", "as"],
-        "type": type,
-        "key_type": key_usage,
-        "key_version": key.version,
-        "as": as_id,
-    }
-
-
-def _decode_primary_ases(trc):
-    payload = jws.decode_payload(trc)
-
-    def _key_info(key_entry):
-        return Key(
-            version=key_entry['key_version'],
-            priv_key=None,
-            pub_key=key_entry['key'],
+    def _combine(self, temp_dir: str, *signed) -> bytes:
+        """ returns the final TRC by combining the signed blocks and payload """
+        for i, s in enumerate(signed):
+            Path(temp_dir, f'signed-{i}.der').write_bytes(s)
+        _run_scion_pki(
+            'combine', '-p', self.PAYLOAD_FILENAME,
+            *(f'signed-{i}.der' for i in range(len(signed))),
+            '-o', Path(temp_dir, self.TRC_FILENAME),
+            cwd=temp_dir
         )
+        return Path(temp_dir, self.TRC_FILENAME).read_bytes()
 
-    def _core_keys(as_entry):
-        return CoreKeys(**{
-            usage: _key_info(key_entry) for usage, key_entry in as_entry['keys'].items()
-        })
+    def is_update(self):
+        return self.base_version != self.serial_version
 
-    return {as_id: _core_keys(as_entry)
-            for as_id, as_entry in payload['primary_ases'].items()}
+    def _validate(self) -> None:
+        if any(x <= 0 for x in [self.isd_id, self.base_version, self.serial_version]):
+            raise ValueError('isd_id, base_version and serial_version must be >= 0')
+        if self.base_version > self.serial_version:
+            raise ValueError('base version should refer to this or older serial version')
+        if self.is_update() and self.votes is None:
+            raise ValueError('must provide votes when updating')
+        if self.is_update() and self.predecessor_trc is None:
+            raise ValueError('must provide predecessor TRC when updating')
+        if self.not_after <= self.not_before:
+            raise ValueError('not_before must precede not_after')
+        if not self.certificates:
+            raise ValueError('must provide sensitive voting, regular voting, and root certificates')
+
+    def _get_conf(self) -> Dict:
+        return {
+            'isd': self.isd_id,
+            'description': f'SCIONLab TRC for ISD {self.isd_id}',
+            'base_version': self.base_version,
+            'serial_version': self.serial_version,
+            'voting_quorum': self._voting_quorum(),
+            'grace_period': self._grace_period(),
+            'authoritative_ases': self.authoritative_ases,
+            'core_ases': self.core_ases,
+            'cert_files': self.certificate_files,
+            'no_trust_reset': False,
+            'validity': {
+                'not_before': int(self.not_before.timestamp()),
+                'validity': self._to_seconds(self.not_after - self.not_before),
+            },
+            'votes': self.votes,
+        }
+
+    def _voting_quorum(self) -> int:
+        return self.quorum or len(self.core_ases) // 2 + 1
+
+    def _grace_period(self) -> str:
+        # must be zero for base TRCs
+        if self.base_version == self.serial_version:
+            return '0s'
+        else:
+            return self._to_seconds(self.grace_period)
+
+    def _dump_certificates_to_files(self, temp_dir) -> None:
+        self.certificate_files = []
+        for c in self.certificates:
+            with NamedTemporaryFile('w', dir=temp_dir, delete=False) as f:
+                f.write(c)
+                self.certificate_files.append(f.name)
+
+    @staticmethod
+    def _to_seconds(d: timedelta) -> str:
+        return f'{int(d.total_seconds())}s'
 
 
-def test_verify(trc,
-                expected_votes: List[Tuple[str, str, Key]],
-                expected_pops: List[Tuple[str, str, Key]]) -> bool:
+def _run_scion_pki(*args, cwd=None, check=True):
+    try:
+        return subprocess.run([settings.SCION_PKI_COMMAND, 'trcs', *args],
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              encoding='utf-8',
+                              check=check,
+                              cwd=cwd)
+    except subprocess.CalledProcessError as e:
+        raise _CalledProcessErrorWithOutput(e) from None
+
+
+class _CalledProcessErrorWithOutput(subprocess.CalledProcessError):
     """
-    Verify that the TRC was signed with (exactly) the given signing keys.
-
-    WARNING: for testing only!
+    Wrapper for CalledProcessError (raised by subprocess.run on returncode != 0 if check=True),
+    that includes the process output (stdout) in the __str__.
     """
+    def __init__(self, e):
+        super().__init__(e.returncode, e.cmd, e.output, e.stderr)
 
-    payload_enc = trc['payload']
-    signatures = trc['signatures']
-
-    expected_signatures = [
-        (as_id, 'vote', usage, key) for as_id, usage, key in expected_votes
-    ] + [
-        (as_id, 'proof_of_possession', usage, key) for as_id, usage, key in expected_pops
-    ]
-
-    remaining_signatures = {(as_id, type, usage, key.version): key.pub_key
-                            for as_id, type, usage, key in expected_signatures}
-
-    for signature in signatures:
-        protected_enc = signature['protected']
-
-        protected = jws.decode(protected_enc)
-        as_id = protected['as']
-        type = protected['type']
-        key_usage = protected['key_type']
-        key_version = protected['key_version']
-        # assume that other fields in protected header are fine.
-
-        pub_key = remaining_signatures.pop((as_id, type, key_usage, key_version))
-        if not pub_key:
-            return False
-
-        if not jws.verify(payload_enc, protected_enc, signature['signature'], pub_key):
-            return False
-
-    if remaining_signatures:
-        return False
-
-    return True
+    def __str__(self):
+        s = super().__str__()
+        if self.output:
+            s += "\n\n"
+            s += self.output
+        return s
 
 
-def _utc_timestamp(dt: datetime) -> int:
-    """
-    Return the timestamp for a naive datetime representing UTC time.
-    """
-    assert dt.tzinfo is None, "Timestamps from DB are expected to be naive UTC datetimes"
-    return int(dt.replace(tzinfo=timezone.utc).timestamp())
+VerifyError = _CalledProcessErrorWithOutput

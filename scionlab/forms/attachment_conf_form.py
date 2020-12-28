@@ -68,35 +68,34 @@ class AttachmentConfFormSet(BaseModelFormSet):
         """
         installation_type = self.userASForm.cleaned_data.get('installation_type')
         public_addrs, public_addr_clashes = PortMap(), []
-        actual_addrs, actual_addr_clashes = PortMap(), []
+        local_addrs, local_addr_clashes = PortMap(), []
         forward_ports, forward_addr_clashes = set(), []
 
         for f in filter(lambda f: not f.cleaned_data['use_vpn'], forms):
-            public_ip, public_port = f.cleaned_data['public_ip'], f.cleaned_data['public_port']
-            bind_ip, bind_port = f.cleaned_data['bind_ip'], f.cleaned_data['bind_port']
-            if public_addrs.add(public_ip, public_port):
+            public_ip = f.cleaned_data['public_ip'],
+            port = f.cleaned_data['public_port']
+            bind_ip = f.cleaned_data['bind_ip']
+            if public_addrs.add(public_ip, port):
                 public_addr_clashes.append(f)
-            clashes = actual_addrs.add(bind_ip or public_ip, bind_port or public_port)
-            if bind_port and clashes:
-                actual_addr_clashes.append(f)
+            if local_addrs.add(bind_ip or public_ip, port) and bind_ip:
+                local_addr_clashes.append(f)
             if installation_type == UserAS.VM:
-                forward_port = bind_port or public_port
-                if forward_port in forward_ports:
-                    forward_addr_clashes.append((f, bind_port is not None))
+                if port in forward_ports:
+                    forward_addr_clashes.append(f)
                 else:
-                    forward_ports.add(forward_port)
+                    forward_ports.add(port)
 
         for form in public_addr_clashes:
             form.add_error('public_port',
                            ValidationError('This port is already in use',
                                            code='public_port_clash'))
-        for form in actual_addr_clashes:
-            form.add_error('bind_port',
-                           ValidationError('This port is already in use',
-                                           code='bind_port_clash'))
-        for (form, is_bind_port) in forward_addr_clashes:
-            port_type_name = 'bind' if is_bind_port else 'public'
-            form.add_error('{}_port'.format(port_type_name),
+        for form in local_addr_clashes:
+            form.add_error('public_port',
+                           ValidationError('This port is already in use for the specified '
+                                           'bind IP address',
+                                           code='local_port_clash'))
+        for form in forward_addr_clashes:
+            form.add_error('public_port',
                            ValidationError('This port clashes in the VM setup',
                                            code='forwarded_port_clash'))
 
@@ -152,8 +151,6 @@ class AttachmentConfFormHelper(FormHelper):
                 ),
             Row(
                 Column(AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
-                       css_class='col-md-6 hidable'),
-                Column(AppendedText('bind_port', '<span class="fa fa-share-square"/>'),
                        css_class='col-md-6 hidable'),
                 css_class="bind-row"
                 ),
@@ -245,14 +242,8 @@ class AttachmentConfForm(forms.ModelForm):
     )
     bind_ip = forms.GenericIPAddressField(
         label="Bind IP address",
-        help_text="(Optional) Specify the local IP/port "
+        help_text="(Optional) Specify the local IP "
                   "if your border router is behind a NAT/firewall etc.",
-        required=False
-    )
-    bind_port = forms.IntegerField(
-        min_value=1024,
-        max_value=MAX_PORT,
-        label="Bind port",
         required=False
     )
     use_vpn = forms.BooleanField(
@@ -285,7 +276,6 @@ class AttachmentConfForm(forms.ModelForm):
             initial['public_ip'] = instance.interfaceB.public_ip
             initial['bind_ip'] = instance.interfaceB.bind_ip
             initial['public_port'] = instance.interfaceB.public_port
-            initial['bind_port'] = instance.interfaceB.bind_port
 
             # Clean IP fields when use_vpn is enabled
             if use_vpn:
@@ -295,7 +285,6 @@ class AttachmentConfForm(forms.ModelForm):
             # Clean bind fields when installation type VM
             if userAS.installation_type == UserAS.VM:
                 initial.pop('bind_ip', None)
-                initial.pop('bind_port', None)
         elif userAS:
             # Set some convenient default values for adding new links:
             # Copy first public IP:
@@ -362,10 +351,6 @@ class AttachmentConfForm(forms.ModelForm):
                                         code='invalid_public_ip')
                     )
 
-        # Ignore bind port if bind_ip not set
-        if not self.cleaned_data.get('bind_ip'):
-            self.cleaned_data['bind_port'] = None
-
         # Ignore active flag while creating a new instance
         if self.instance.pk is None:
             self.cleaned_data['active'] = True
@@ -378,11 +363,10 @@ class AttachmentConfForm(forms.ModelForm):
         """
         assert not commit, "Persistency in the DB shall be handled in the save(...) method of the \
                            AttachmentLinksFormSet"
-        return AttachmentConf(self.cleaned_data['attachment_point'],
-                              self.cleaned_data['public_ip'] or None,  # Interface needs None not ''
-                              self.cleaned_data['public_port'],
-                              self.cleaned_data['bind_ip'] or None,
-                              self.cleaned_data['bind_port'],
-                              self.cleaned_data['use_vpn'],
-                              self.cleaned_data['active'],
-                              self.instance if self.instance.pk is not None else None)
+        return AttachmentConf(attachment_point=self.cleaned_data['attachment_point'],
+                              public_ip=self.cleaned_data['public_ip'] or None,  # needs None not ''
+                              public_port=self.cleaned_data['public_port'],
+                              bind_ip=self.cleaned_data['bind_ip'] or None,
+                              use_vpn=self.cleaned_data['use_vpn'],
+                              active=self.cleaned_data['active'],
+                              link=self.instance if self.instance.pk is not None else None)
