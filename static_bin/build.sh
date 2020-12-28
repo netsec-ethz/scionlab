@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright 2020 ETH Zurich
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cd `dirname $0`
+cd "$(dirname "$0")" || return
 docker build -t scionlab-scion-pki-build - < Dockerfile
 cid="$(docker create scionlab-scion-pki-build)"
-docker cp "$cid":/scion/bin/scion-pki .
+docker cp "$cid":/scion/bin/scion-pki-linux-amd64  .
+docker cp "$cid":/scion/bin/scion-pki-darwin-amd64 .
 docker rm -v "$cid"
 docker image rm scionlab-scion-pki-build
