@@ -23,6 +23,7 @@ from typing import List, Set
 from django import urls
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Q
 from django.utils.html import format_html
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -424,7 +425,7 @@ class AttachmentPointManager(models.Manager):
 
     def active(self):
         threshold = timezone.now() - datetime.timedelta(seconds=60)
-        return AttachmentPoint.objects.filter(AS__hosts__config_queried_at__gt = threshold)
+        return AttachmentPoint.objects.filter(Q(AS__hosts__config_queried_at__gt = threshold) | Q(AS__owner = None))
 
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(

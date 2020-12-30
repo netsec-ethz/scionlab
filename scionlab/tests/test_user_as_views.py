@@ -65,7 +65,10 @@ def _get_form_fields(data, include_errors: bool = False):
     """
     useras_defaults = {
         "user-as-label": "",
-        "user-as-installation_type": "VM"
+        "user-as-installation_type": "VM",
+        "user-as-become_user_ap": "",
+        "user-as-public_ip": "",
+        "user-as-provide_vpn": ""
     }
     attachment_defaults = {
         "active": "on",
@@ -83,6 +86,9 @@ def _get_form_fields(data, include_errors: bool = False):
     d['user-as-label'] = data.get('label', d['user-as-label'])
     d['user-as-installation_type'] = data.get('installation_type',
                                               d['user-as-installation_type'])
+    d['user-as-become_user_ap'] = data.get('become_user_ap', d['user-as-become_user_ap'])
+    d['user-as-public_ip'] = data.get('public_ip', d['user-as-public_ip'])   
+    d['user-as-provide_vpn'] = data.get('provide_vpn', d['user-as-provide_vpn'])                                                                                         
     for i, attachment in enumerate(data['attachments']):
         t = {}
         for k, v in attachment_defaults.items():
@@ -181,6 +187,8 @@ class UserASFormTests(TestCase):
         self.assertTrue(form.is_valid(), error_descs)
         user_as = form.save()
         self.assertIsNotNone(user_as)
+        if form_data.get("user-as-become_user_ap", "") == "on":
+            self.assertTrue(AttachmentPoint.objects.filter(AS = user_as).count() > 0)
 
     @parameterized.expand(zip(invalid_forms_params_with_errors))
     def test_create_invalid(self, form_data):

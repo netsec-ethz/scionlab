@@ -100,3 +100,16 @@
     - attachment_point: "4"
       public_ip: "192.1.2.112"
       public_port: "50000"
+- desc: "User AS as an AP with public IP"
+  become_user_ap: "on"
+  public_ip: "192.1.2.111"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+- desc: "User AS as an AP with public IP that provides VPN"
+  become_user_ap: "on"
+  public_ip: "192.1.2.111"
+  provide_vpn: "on"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"

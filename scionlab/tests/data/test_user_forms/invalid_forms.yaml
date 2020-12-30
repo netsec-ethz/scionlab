@@ -104,3 +104,14 @@
     - attachment_point: "1"
       public_ip: "192.1.2.112"
       public_port: "50000"
+      
+- desc: "Conflicting forwarding port in VM setup"
+  error: "Please enter a public IP address to become User AP"
+  become_user_ap: "on"
+  attachments:
+    - attachment_point: "1"
+      use_vpn: "on"
+      
+      
+      
+      
