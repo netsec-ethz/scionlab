@@ -145,14 +145,19 @@ class UserASForm(forms.Form):
         cleaned_data = super().clean()
         if self.instance is None:
             self.user.check_as_quota()
-            
-        if cleaned_data['become_user_ap'] and not cleaned_data.get('public_ip'):
-            self.add_error(
-                'public_ip',
-                ValidationError('Please enter a public IP address to become User AP')
-            )
 
+        print("test")
         self.attachment_conf_form_set.full_clean()
+        
+        if cleaned_data['become_user_ap']:
+            if not cleaned_data.get('public_ip'):
+                self.add_error(
+                    'public_ip',
+                    ValidationError('Please enter a public IP address to become User AP')
+                )
+            if self.attachment_conf_form_set.provider_links < 1:
+                raise ValidationError("At least one Provider Link is required to be Attachment Point")
+                
         return cleaned_data
 
     def has_changed(self):
@@ -198,8 +203,7 @@ class UserASForm(forms.Form):
                 label=self.cleaned_data['label']
             )
             host = self.instance.hosts.first()
-            host.update(public_ip = self.cleaned_data['public_ip'])
-                      
+            host.update(public_ip = self.cleaned_data['public_ip'])          
             if self.instance.is_attachment_point():
                 # does the User already offer a VPN connection?
                 has_vpn = False

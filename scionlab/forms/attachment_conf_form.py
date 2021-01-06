@@ -37,6 +37,7 @@ class AttachmentConfFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
         self.userASForm = kwargs.pop('userASForm')
         self.isd = None
+        self.provider_links = 0
         super().__init__(*args, **kwargs)
 
     def _check_isd(self, forms):
@@ -113,6 +114,7 @@ class AttachmentConfFormSet(BaseModelFormSet):
             active_forms.append(form)
         self._check_isd(active_forms)
         self._check_ip_ports(active_forms)
+        self.provider_links = len(active_forms)
 
     def save(self, user_as, commit=True):
         att_confs = super().save(commit=False)
