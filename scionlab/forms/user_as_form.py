@@ -146,7 +146,6 @@ class UserASForm(forms.Form):
         if self.instance is None:
             self.user.check_as_quota()
 
-        print("test")
         self.attachment_conf_form_set.full_clean()
         
         if cleaned_data['become_user_ap']:
