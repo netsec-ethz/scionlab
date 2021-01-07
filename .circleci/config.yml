@@ -29,6 +29,22 @@ install_git_lfs: &install_git_lfs
       sudo apt-get install git-lfs
       git lfs install
 
+lfs_caching:
+  save_ids: &save_lfs_ids
+    run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+  restore_cache: &restore_lfs_cache
+    restore_cache:
+      keys:
+        - v1-lfscache-{{ checksum ".lfs-assets-id" }}
+        - v1-lfscache-
+  lfs_pull: &lfs_pull
+    run: git lfs pull
+  save_cache: &save_lfs_cache
+    save_cache:
+      paths:
+        - .git/lfs
+      key: v1-lfscache-{{ checksum ".lfs-assets-id" }}
+
 check_services_status: &check_services_status
   command: |
     set -x
@@ -94,16 +110,10 @@ jobs:
       - checkout
 
       # Handle caching of files stored using Git LFS
-      - run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
-      - restore_cache:
-          keys:
-            - v1-lfscache-{{ checksum ".lfs-assets-id" }}
-            - v1-lfscache-
-      - run: git lfs pull
-      - save_cache:
-          paths:
-            - .git/lfs
-          key: v1-lfscache-{{ checksum ".lfs-assets-id" }}
+      - <<: *save_lfs_ids
+      - <<: *restore_lfs_cache
+      - <<: *lfs_pull
+      - <<: *save_lfs_cache
 
       # Download and cache dependencies
       - restore_cache:
@@ -152,11 +162,18 @@ jobs:
       image: ubuntu-1604:201903-01
       # This is super nice and works like a charm BUT unfortunately it is now explicitly disabled on the free plan. Pitty
       # docker_layer_caching: true
-
+    environment:
+      GIT_LFS_SKIP_SMUDGE: 1
     steps:
       - <<: *install_git_lfs
 
       - checkout
+
+      # Handle caching of files stored using Git LFS
+      - <<: *save_lfs_ids
+      - <<: *restore_lfs_cache
+      - <<: *lfs_pull
+      - <<: *save_lfs_cache
 
       - run:
           name: Extract host configuration info from testdata.yaml fixture
@@ -482,8 +499,15 @@ jobs:
     machine: true
     environment:
       COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"
+      GIT_LFS_SKIP_SMUDGE: 1
     steps:
       - checkout
+
+      # Handle caching of files stored using Git LFS
+      - <<: *save_lfs_ids
+      - <<: *restore_lfs_cache
+      - <<: *lfs_pull
+      - <<: *save_lfs_cache
 
       - run:
           name: Start stack
