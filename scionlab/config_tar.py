@@ -14,7 +14,6 @@
 
 import os
 import pathlib
-import string
 
 from django.conf import settings
 from jinja2 import Environment
