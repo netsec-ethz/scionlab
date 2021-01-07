@@ -85,11 +85,25 @@ jobs:
     docker:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
+    environment:
+      GIT_LFS_SKIP_SMUDGE: 1
 
     steps:
       - <<: *install_git_lfs
 
       - checkout
+
+      # Handle caching of files stored using Git LFS
+      - run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+      - restore_cache:
+          keys:
+            - v1-lfscache-{{ checksum ".lfs-assets-id" }}
+            - v1-lfscache-
+      - run: git lfs pull
+      - save_cache:
+          paths:
+            - .git/lfs
+          key: v1-lfscache-{{ checksum ".lfs-assets-id" }}
 
       # Download and cache dependencies
       - restore_cache:
