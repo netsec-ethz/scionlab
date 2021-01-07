@@ -14,7 +14,6 @@
 
 import os
 import re
-import huey
 from .common import *
 
 
@@ -109,9 +108,6 @@ LOGGING = {
         },
     }
 }
-
-# ##### HUEY TASK QUEUE CONFIGURATION #####################
-HUEY = huey.RedisHuey('scionlab-huey', host='redis')
 
 # ##### MAILER CONFIGURATION ##############################
 DEFAULT_FROM_EMAIL = 'scionlab@ethz.ch'

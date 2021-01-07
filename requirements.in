@@ -7,7 +7,6 @@ django-recaptcha2
 django-registration>=3.1
 graphviz
 gunicorn
-huey
 jsonfield
 psycopg2-binary  # PostgreSQL backend
 pynacl

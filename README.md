@@ -68,12 +68,6 @@ Start the django development server:
 python manage.py runserver
 ```
 
-If required, additionally start the huey task queue (used for asynchronous
-tasks, currently only push deployment triggers).
-```bash
-python manage.py run_huey
-```
-
 ### Managing Dependencies
 There are two requirements-files for pip; `requirements.txt` contains the
 requirements for the production environment and `dev-requirements.txt` contains

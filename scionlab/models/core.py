@@ -473,8 +473,7 @@ class Host(models.Model):
                bind_ip=_placeholder,
                label=_placeholder,
                ssh_host=_placeholder,
-               secret=_placeholder,
-               config_queried_at=_placeholder):
+               secret=_placeholder):
         """
         Update the specified fields of this host instance, and immediately `save`.
         Updates to the IPs will trigger a configuration bump for all Hosts in all affected ASes.
@@ -505,8 +504,6 @@ class Host(models.Model):
             self.ssh_host = ssh_host or None
         if secret is not _placeholder:
             self.secret = secret or uuid.uuid4().hex
-        if config_queried_at is not _placeholder:
-            self.config_queried_at = config_queried_at or None
 
         internal_ip_changed = (self.internal_ip != prev_internal_ip)
         public_ip_changed = (self.public_ip != prev_public_ip)
@@ -543,7 +540,7 @@ class Host(models.Model):
     def find_public_port(self):
         """
         Find an unused public port for an AS interface on this Host
-        """        
+        """
         used_ports = value_set(self.interfaces, 'public_port')
         for candidate_port in range(DEFAULT_PUBLIC_PORT, MAX_PORT):
             if candidate_port not in used_ports:
