@@ -499,15 +499,8 @@ jobs:
     machine: true
     environment:
       COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"
-      GIT_LFS_SKIP_SMUDGE: 1
     steps:
       - checkout
-
-      # Handle caching of files stored using Git LFS
-      - <<: *save_lfs_ids
-      - <<: *restore_lfs_cache
-      - <<: *lfs_pull
-      - <<: *save_lfs_cache
 
       - run:
           name: Start stack
