@@ -44,14 +44,14 @@ Vagrantfile: |-
         '[Timer]' \
         'OnCalendar=' \
         'OnCalendar=07,19:00' \
-        'RandomizedDealySec=0' \
+        'RandomizedDelaySec=0' \
       > /etc/systemd/system/apt-daily.timer.d/override.conf
       mkdir /etc/systemd/system/apt-daily-upgrade.timer.d/ || true
       printf '%s\n' \
         '[Timer]' \
         'OnCalendar=' \
         'OnCalendar=07,19:15' \
-        'RandomizedDealySec=0' \
+        'RandomizedDelaySec=0' \
       > /etc/systemd/system/apt-daily-upgrade.timer.d/override.conf
       systemctl daemon-reload
       systemctl restart apt-daily.timer apt-daily-upgrade.timer
