@@ -159,12 +159,13 @@ jobs:
     docker:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
+    environment:
+      GIT_LFS_SKIP_SMUDGE: 1
+
     steps:
       - install_git_lfs
 
-      - checkout:
-          environment:
-            GIT_LFS_SKIP_SMUDGE: 1
+      - checkout
 
       - git_lfs_caching
 
@@ -215,12 +216,12 @@ jobs:
       image: ubuntu-1604:201903-01
       # This is super nice and works like a charm BUT unfortunately it is now explicitly disabled on the free plan. Pitty
       # docker_layer_caching: true
+    environment:
+      GIT_LFS_SKIP_SMUDGE: 1
     steps:
       - install_git_lfs
 
-      - checkout:
-          environment:
-            GIT_LFS_SKIP_SMUDGE: 1
+      - checkout
 
       - git_lfs_caching
 
