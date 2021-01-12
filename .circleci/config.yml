@@ -475,7 +475,8 @@ jobs:
       - run:
           name: Load data from fixture to check (test) DB setup
           command: |
-            sleep 5 # wait a bit for the migrations in the django-entrypoint.sh are done.
+            # wait a bit for the migrations in the django-entrypoint.sh are done.
+            docker-compose exec -T django appdeps.py --wait-secs 60 --port-wait django:8000
             docker-compose exec -T django ./manage.py loaddata scionlab/fixtures/testdata.yaml
 
       - run:
