@@ -32,23 +32,18 @@ commands:
           sudo apt-get install git-lfs
           git lfs install
 
-  git_lfs_caching:
-    # this command needs this environment variable: GIT_LFS_SKIP_SMUDGE: 1
+  cached_checkout:
     steps:
-    - run:
-        name: Save unique Git LFS identifiers to a file
-        command: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
-    - restore_cache:
-        keys:
-        - v1-lfscache-{{ checksum ".lfs-assets-id" }}
-        - v1-lfscache-
-    - run:
-        name: Git LFS pull anything not restored from cache
-        command: git lfs pull
-    - save_cache:
-        paths:
-          - .git/lfs
-        key: v1-lfscache-{{ checksum ".lfs-assets-id" }}
+      - restore_cache:
+          keys:
+          - source-v1-{{ .Branch }}-{{ .Revision }}
+          - source-v1-{{ .Branch }}-
+          - source-v1-
+      - checkout
+      - save_cache:
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ".git"
 
   check_services_status:
     parameters:
@@ -159,15 +154,11 @@ jobs:
     docker:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
-    environment:
-      GIT_LFS_SKIP_SMUDGE: 1
 
     steps:
       - install_git_lfs
 
-      - checkout
-
-      - git_lfs_caching
+      - cached_checkout
 
       # Download and cache dependencies
       - restore_cache:
@@ -216,14 +207,10 @@ jobs:
       image: ubuntu-1604:201903-01
       # This is super nice and works like a charm BUT unfortunately it is now explicitly disabled on the free plan. Pitty
       # docker_layer_caching: true
-    environment:
-      GIT_LFS_SKIP_SMUDGE: 1
     steps:
       - install_git_lfs
 
-      - checkout
-
-      - git_lfs_caching
+      - cached_checkout
 
       - run:
           name: Extract host configuration info from testdata.yaml fixture
