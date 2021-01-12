@@ -229,8 +229,7 @@ jobs:
              'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301'
 
             for c in as1301 as1303 as1305; do
-              docker-compose exec $c /bin/bash -c \
-                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+              docker-compose exec -T $c scionlab-config
             done
 
             docker-compose logs coord

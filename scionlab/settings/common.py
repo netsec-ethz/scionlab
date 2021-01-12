@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'huey.contrib.djhuey',
     'maintenance_mode',
     'django_extensions',  # used for runscript and graph_models commands
 ]

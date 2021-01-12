@@ -17,12 +17,13 @@
 ====================================================================================
 """
 
-import ipaddress, datetime
+import ipaddress
+import datetime
 from typing import List, Set
 
 from django import urls
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.utils.html import format_html
 from django.utils import timezone
@@ -365,9 +366,9 @@ class UserAS(AS):
         This will trigger a deployment of all the attachment points configurations
         """
         if active:
-            attachment_points = self._activate()
+            self._activate()
         else:
-            attachment_points = self._deactivate()
+            self._deactivate()
 
     @property
     def ip_port_labels(self):
@@ -421,11 +422,14 @@ class UserAS(AS):
         """
         return self.fixed_links().filter(type=Link.PROVIDER).exists()
 
+
 class AttachmentPointManager(models.Manager):
 
     def active(self):
         threshold = timezone.now() - datetime.timedelta(seconds=60)
-        return AttachmentPoint.objects.filter(Q(AS__hosts__config_queried_at__gt = threshold) | Q(AS__owner = None))
+        return AttachmentPoint.objects.filter(Q(AS__hosts__config_queried_at__gt=threshold) |
+                                              Q(AS__owner=None))
+
 
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
@@ -440,12 +444,12 @@ class AttachmentPoint(models.Model):
         related_name='+',
         on_delete=models.SET_NULL
     )
-    
+
     objects = AttachmentPointManager()
 
     def __str__(self):
-        if self.AS.owner != None:
-            return 'UserAP: %s' %(str(self.AS))
+        if self.AS.owner is not None:
+            return 'UserAP: %s' % (str(self.AS))
         return str(self.AS)
 
     def get_border_router_for_useras_interface(self) -> BorderRouter:

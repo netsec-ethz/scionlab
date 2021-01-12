@@ -17,7 +17,6 @@
 ==============================================================================
 """
 
-import datetime
 import base64
 import os
 import uuid
@@ -370,7 +369,7 @@ class AS(TimestampedModel):
         Recreatable Keys (DRKeys).
         """
         return _base64encode(os.urandom(16))
-        
+
     def is_attachment_point(self):
         return hasattr(self, 'attachment_point_info')
 
@@ -404,10 +403,10 @@ class HostManager(models.Manager):
         Find all hosts with `needs_config_deployment`.
         """
         return self.filter(config_version__gt=F('config_version_deployed'))
-        
+
     def active(self):
-        threshold = timezone.now() - datetime.timedelta(seconds=60)
-        return self.filter(config_queried_at__gt = threshold)
+        threshold = datetime.utcnow() - datetime.timedelta(seconds=60)
+        return self.filter(config_queried_at__gt=threshold)
 
 
 class Host(models.Model):
@@ -481,8 +480,7 @@ class Host(models.Model):
                bind_ip=_placeholder,
                label=_placeholder,
                ssh_host=_placeholder,
-               secret=_placeholder,
-               config_queried_at=_placeholder):
+               secret=_placeholder):
         """
         Update the specified fields of this host instance, and immediately `save`.
         Updates to the IPs will trigger a configuration bump for all Hosts in all affected ASes.
@@ -513,8 +511,6 @@ class Host(models.Model):
             self.ssh_host = ssh_host or None
         if secret is not _placeholder:
             self.secret = secret or uuid.uuid4().hex
-        if config_queried_at is not _placeholder:
-            self.config_queried_at = config_queried_at or None
 
         internal_ip_changed = (self.internal_ip != prev_internal_ip)
         public_ip_changed = (self.public_ip != prev_public_ip)
@@ -551,12 +547,12 @@ class Host(models.Model):
     def find_public_port(self):
         """
         Find an unused public port for an AS interface on this Host
-        """        
+        """
         used_ports = value_set(self.interfaces, 'public_port')
         for candidate_port in range(DEFAULT_PUBLIC_PORT, MAX_PORT):
             if candidate_port not in used_ports:
                 return candidate_port
-        
+
     def update_config_queried_timestamp(self):
         self.config_queried_at = datetime.utcnow()
         self.save()

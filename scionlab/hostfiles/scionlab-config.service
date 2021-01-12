@@ -1,7 +1,10 @@
 [Unit]
-Description=service to start scionlab-config script in daemon mode
+Description=scionlab-config daemon mode
 #this expects the host-id and host-secret to already be present in /etc/scion/scionlab-config.json
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/bash -c 'exec scionlab-config --daemon'
+ExecStart=scionlab-config --daemon
+
+[Install]
+WantedBy=multi-user.target

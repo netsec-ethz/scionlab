@@ -24,7 +24,7 @@ from crispy_forms.layout import Layout, Row, Column, Div, HTML
 from crispy_forms.bootstrap import AppendedText
 
 from scionlab.defines import MAX_PORT, DEFAULT_PUBLIC_PORT
-from scionlab.models.core import Link, Host
+from scionlab.models.core import Link
 from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS
 from scionlab.util.portmap import PortMap
 
