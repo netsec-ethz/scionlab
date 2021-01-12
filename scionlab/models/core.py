@@ -545,7 +545,7 @@ class Host(models.Model):
         for candidate_port in range(DEFAULT_PUBLIC_PORT, MAX_PORT):
             if candidate_port not in used_ports:
                 return candidate_port
-        
+
     def update_config_queried_timestamp(self):
         self.config_queried_at = datetime.utcnow()
         self.save()

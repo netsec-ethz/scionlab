@@ -29,7 +29,6 @@ from django.http import (
 
 from scionlab import config_tar
 from scionlab.models.core import Host
-from scionlab.models.user_as import  AttachmentPoint
 from scionlab.util.http import HttpResponseAttachment, basicauth
 from scionlab.util.archive import TarWriter
 

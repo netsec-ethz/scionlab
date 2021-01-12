@@ -22,7 +22,7 @@ from typing import List, Set
 
 from django import urls
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import models
 from django.utils.html import format_html
 from django.contrib.auth.models import User
 
@@ -363,9 +363,9 @@ class UserAS(AS):
         This will trigger a deployment of all the attachment points configurations
         """
         if active:
-            attachment_points = self._activate()
+            self._activate()
         else:
-            attachment_points = self._deactivate()
+            self._deactivate()
 
     @property
     def ip_port_labels(self):
