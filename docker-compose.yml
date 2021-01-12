@@ -27,5 +27,4 @@ services:
 
 volumes:
   web-static:
-  redisdata:
   caddydata:
