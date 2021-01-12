@@ -4,7 +4,7 @@ Description=scionlab-config daemon mode
 
 [Service]
 Type=simple
-ExecStart=scionlab-config --daemon
+ExecStart=/usr/bin/scionlab-config --daemon
 
 [Install]
 WantedBy=multi-user.target
