@@ -1,0 +1,10 @@
+[Unit]
+Description=scionlab-config daemon mode
+#this expects the host-id and host-secret to already be present in /etc/scion/scionlab-config.json
+
+[Service]
+Type=simple
+ExecStart=scionlab-config --daemon
+
+[Install]
+WantedBy=multi-user.target

@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'huey.contrib.djhuey',
     'maintenance_mode',
     'django_extensions',  # used for runscript and graph_models commands
 ]
@@ -108,13 +107,6 @@ MAINTENANCE_MODE_STATE_FILE_PATH = os.path.join(BASE_DIR, 'run', 'maintenance_mo
 MAX_ASES_ADMIN = 50
 MAX_ASES_USER = 5
 GRAFANA_URL = "https://prometheus.scionlab.org"
-
-# Rate limit for host deployments, specified by the minimal time between
-# two consecutive deployments (value in seconds).
-DEPLOYMENT_PERIOD = 60
-
-# SSH Config file for managed hosts
-SSH_CONFIG_PATH = os.path.join(BASE_DIR, 'run', 'ssh_config')
 
 # Openvpn key/cert:
 VPN_CA_KEY_PASSWORD = os.environ.get('VPN_CA_KEY_PASSWORD')

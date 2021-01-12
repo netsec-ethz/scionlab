@@ -60,6 +60,8 @@ FALLBACK_SYSTEMD_UNIT_PATTERNS = [
 DEFAULT_COORDINATOR_URL = 'https://www.scionlab.org'
 REQUEST_TIMEOUT_SECONDS = 10
 
+DAEMON_REQUEST_INTERVAL_SECONDS = 10
+
 _CONFIG_EMPTY = object()
 _CONFIG_UNCHANGED = object()
 
@@ -86,16 +88,20 @@ def main(argv):
     if os.geteuid() != 0:
         _error_exit("The script must be run as root")
     if not args.tar:
-        fetch_info = get_fetch_info(args)
-        config = fetch_config(fetch_info)
-        if config is _CONFIG_EMPTY:
-            stop_scion()
-        elif config is _CONFIG_UNCHANGED:
-            logging.info('Configuration unchanged (version %s). Nothing to do.',
-                         fetch_info.version)
-        else:
-            install_config(args, config)
-            confirm_deployed(args)
+        while True:
+            fetch_info = get_fetch_info(args)
+            config = fetch_config(fetch_info)
+            if config is _CONFIG_EMPTY:
+                stop_scion()
+            elif config is _CONFIG_UNCHANGED:
+                logging.info('Configuration unchanged (version %s). Nothing to do.',
+                             fetch_info.version)
+            else:
+                install_config(args, config)
+                confirm_deployed(args)
+            if not args.daemon:
+                break
+            time.sleep(DAEMON_REQUEST_INTERVAL_SECONDS)
     else:
         tar = tarfile.open(args.tar, mode='r')
         install_config(args, tar)
@@ -153,6 +159,8 @@ def parse_command_line_args(argv):
     group_fetch.add_argument('--url', help='URL of the SCIONLab coordination service')
 
     parser.add_argument('--version', action='version', version='%(prog)s ' + SCRIPT_VERSION)
+
+    parser.add_argument('--daemon', action='store_true')
 
     args = parser.parse_args(argv)
     # additional validation:
@@ -273,7 +281,6 @@ def confirm_deployed(args):
     confirms that this version has been sucessfully installed. This information is used coordinator
     by the coordinator only in the case where it actively pushes configuration to a host. A failure
     in this step is generally unproblematic.
-
     :param args: commandline arguments for optional coordinator URL
     """
     # Get newly installed config info

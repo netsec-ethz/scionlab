@@ -28,6 +28,7 @@ from django.db import models
 from django.db.models import F, Count
 from django.db.models.signals import pre_delete, post_delete
 from django.utils.functional import cached_property
+from datetime import datetime
 
 from scionlab.models.user import User
 from scionlab.models.pki import Key, Certificate
@@ -427,7 +428,6 @@ class Host(models.Model):
     )
     label = models.CharField(max_length=_MAX_LEN_DEFAULT, null=True, blank=True)
 
-    managed = models.BooleanField(default=False)
     ssh_host = models.CharField(
         max_length=_MAX_LEN_DEFAULT,
         null=True,
@@ -443,6 +443,7 @@ class Host(models.Model):
 
     config_version = models.PositiveIntegerField(default=1)
     config_version_deployed = models.PositiveIntegerField(default=0)
+    config_queried_at = models.DateTimeField(null=True, blank=True)
 
     objects = HostManager()
 
@@ -471,7 +472,6 @@ class Host(models.Model):
                public_ip=_placeholder,
                bind_ip=_placeholder,
                label=_placeholder,
-               managed=_placeholder,
                ssh_host=_placeholder,
                secret=_placeholder):
         """
@@ -482,7 +482,6 @@ class Host(models.Model):
         :param str public_ip: optional, default public IP for border router interfaces on this host
         :param str bind_ip: optional, default bind IP for border router interfaces on this host
         :param str label: optional
-        :param bool managed: optional
         :param str ssh_host: optional, hostname/IP for management access via SSH
         :param str secret: optional, a secret to authenticate the host. If `None` is given, a new
                            random secret is generated.
@@ -501,8 +500,6 @@ class Host(models.Model):
             self.bind_ip = bind_ip or None
         if label is not _placeholder:
             self.label = label or None
-        if managed is not _placeholder:
-            self.managed = managed
         if ssh_host is not _placeholder:
             self.ssh_host = ssh_host or None
         if secret is not _placeholder:
@@ -548,6 +545,10 @@ class Host(models.Model):
         for candidate_port in range(DEFAULT_PUBLIC_PORT, MAX_PORT):
             if candidate_port not in used_ports:
                 return candidate_port
+
+    def update_config_queried_timestamp(self):
+        self.config_queried_at = datetime.utcnow()
+        self.save()
 
 
 class InterfaceManager(models.Manager):
