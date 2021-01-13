@@ -23,18 +23,14 @@ rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
 rm -f /lib/systemd/system/basic.target.wants/*;
 VOLUME [ "/sys/fs/cgroup" ]
 
-# systemctl enable sshd
-RUN ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
-
 # Install SCION
 # XXX(matzf): install testing/prod based on branch name???
 RUN bash -c 'echo "deb [trusted=yes] https://packages-test.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
 RUN apt-get update && apt-get install --assume-yes scionlab
 
-# Add 'scionlab' user with passwordless sudo & configure authorized_keys to allow automatic deployment
+# Add 'scionlab' user with passwordless sudo
 RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
 RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
-COPY --chown=scionlab:scionlab .circleci/setup/deploy_authorized_keys /home/scionlab/.ssh/authorized_keys
 # Add 'user' user without sudo group to run user commands
 RUN useradd --create-home --shell /bin/bash user
 

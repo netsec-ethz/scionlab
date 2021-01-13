@@ -14,7 +14,6 @@
 
 import os
 from .common import *
-import huey
 
 SCIONLAB_SITE = 'http://localhost:8000'
 
@@ -35,10 +34,6 @@ DATABASES = {
     }
 }
 
-
-# ##### HUEY TASK QUEUE CONFIGURATION #####################
-HUEY = huey.SqliteHuey('scionlab-huey',
-                       filename=os.path.join(BASE_DIR, 'run', 'dev-huey.sqlite3'))
 
 # ##### APPLICATION CONFIGURATION #########################
 INSTALLED_APPS += [
