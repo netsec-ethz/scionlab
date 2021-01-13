@@ -261,13 +261,14 @@ class AttachmentConfForm(forms.ModelForm):
 
     class Meta:
         model = Link
-        fields = ('id', 'active')
+        fields = ('id', )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         userAS = kwargs.pop('userAS')
         instance = kwargs.get('instance')
         initial = kwargs.pop('initial', {})
+        initial['active'] = False
         if instance:
             use_vpn = UserAS.is_link_over_vpn(instance.interfaceB)
             initial['active'] = instance.active
