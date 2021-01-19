@@ -1,10 +1,12 @@
 [Unit]
 Description=scionlab-config daemon mode
-#this expects the host-id and host-secret to already be present in /etc/scion/scionlab-config.json
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/scionlab-config --daemon
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
