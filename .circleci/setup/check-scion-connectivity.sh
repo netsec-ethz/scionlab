@@ -18,7 +18,7 @@ set -eo pipefail
 containers=$(docker-compose ps --services | grep -v coord)
 
 set -x
-sleep 5  # Give the services enough time to start (or fail)
+sleep 10  # Give the services enough time to start (or fail)
 for c in $containers; do
   docker-compose exec -T "$c" check-scion-status.sh
 done
