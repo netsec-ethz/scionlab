@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2020 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +20,12 @@ containers=$(docker-compose ps --services | grep -v coord)
 set -x
 sleep 5  # Give the services enough time to start (or fail)
 for c in $containers; do
-  docker-compose exec -T $c check-scion-status.sh
+  docker-compose exec -T "$c" check-scion-status.sh
 done
 for c in $containers; do
-  docker-compose exec -T --user user $c await-beacons.sh
+  docker-compose exec -T --user user "$c" await-beacons.sh
 done
 for c in $containers; do
-  docker-compose exec -T --user user $c ping-all.sh
+  docker-compose exec -T --user user "$c" ping-all.sh
 done
 
