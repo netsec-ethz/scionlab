@@ -15,5 +15,5 @@
 
 mkdir -p logs
 for c in `docker-compose ps --services | grep -v coord`; do
-  docker-compose exec -T $c journalctl -u scion-* > logs/$c.log
+  docker-compose exec -T "$c" journalctl -u scion-* > logs/$c.log
 done

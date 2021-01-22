@@ -27,7 +27,7 @@ services:
     environment:
       POSTGRES_HOST: coord-db
       POSTGRES_PORT: 5432
-      POSTGRES_DB: scionlab_coordinator 
+      POSTGRES_DB: scionlab_coordinator
       POSTGRES_USER: scionlab_rw
       POSTGRES_PASSWORD: scionlab_rw_passw0rd
 
@@ -40,7 +40,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: scionlab_coordinator 
+      POSTGRES_DB: scionlab_coordinator
       POSTGRES_USER: scionlab_rw
       POSTGRES_PASSWORD: scionlab_rw_passw0rd
 

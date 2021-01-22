@@ -14,5 +14,5 @@
 # limitations under the License.
 
 for c in `docker-compose ps --services | grep -v coord`; do
-  docker-compose exec -T $c /bin/bash -c 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+  docker-compose exec -T "$c" /bin/bash -c 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
 done
