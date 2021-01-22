@@ -7,12 +7,10 @@ django-recaptcha2
 django-registration>=3.1
 graphviz
 gunicorn
-huey
 jinja2
 jsonfield
 psycopg2-binary  # PostgreSQL backend
 pynacl
 pyyaml>=4.2b1  # for fixtures and config generation; high severity vulnerability before 4.1 (CVE-2017-18342)
-redis
 scrypt
 toml

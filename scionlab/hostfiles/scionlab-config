@@ -41,7 +41,7 @@ import tarfile
 import textwrap
 import time
 import urllib.request
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 SCRIPT_VERSION = '3.0, api/v3, October 2020'
 
@@ -60,6 +60,21 @@ FALLBACK_SYSTEMD_UNIT_PATTERNS = [
 DEFAULT_COORDINATOR_URL = 'https://www.scionlab.org'
 REQUEST_TIMEOUT_SECONDS = 10
 
+DAEMON_REQUEST_INTERVAL_SECONDS = 10
+
+LOG_LEVELS = OrderedDict([
+    ('debug', logging.DEBUG),
+    ('info', logging.INFO),
+    ('warning', logging.WARNING),
+    ('error', logging.ERROR),
+    ('critical', logging.CRITICAL)
+])
+
+
+class TemporaryError(Exception):
+    pass
+
+
 _CONFIG_EMPTY = object()
 _CONFIG_UNCHANGED = object()
 
@@ -76,26 +91,35 @@ ConfigInfo = namedtuple('ConfigInfo',
                         ['files',
                          'systemd_units'])
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
-
 
 def main(argv):
     sys.tracebacklimit = -1
     args = parse_command_line_args(argv)
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=LOG_LEVELS[args.log_level])
 
     if os.geteuid() != 0:
         _error_exit("The script must be run as root")
     if not args.tar:
-        fetch_info = get_fetch_info(args)
-        config = fetch_config(fetch_info)
-        if config is _CONFIG_EMPTY:
-            stop_scion()
-        elif config is _CONFIG_UNCHANGED:
-            logging.info('Configuration unchanged (version %s). Nothing to do.',
-                         fetch_info.version)
-        else:
-            install_config(args, config)
-            confirm_deployed(args)
+        while True:
+            try:
+                fetch_info = get_fetch_info(args)
+                config = fetch_config(fetch_info)
+                if config is _CONFIG_EMPTY:
+                    stop_scion()
+                elif config is _CONFIG_UNCHANGED:
+                    logging.info('Configuration unchanged (version %s). Nothing to do.',
+                                 fetch_info.version)
+                else:
+                    install_config(args, config)
+                    confirm_deployed(args)
+            except TemporaryError as e:
+                if args.daemon:
+                    logging.warn(e)
+                else:
+                    _error_exit(e)
+            if not args.daemon:
+                break
+            time.sleep(DAEMON_REQUEST_INTERVAL_SECONDS)
     else:
         tar = tarfile.open(args.tar, mode='r')
         install_config(args, tar)
@@ -153,6 +177,12 @@ def parse_command_line_args(argv):
     group_fetch.add_argument('--url', help='URL of the SCIONLab coordination service')
 
     parser.add_argument('--version', action='version', version='%(prog)s ' + SCRIPT_VERSION)
+
+    parser.add_argument('--daemon', action='store_true')
+    parser.add_argument('--log-level',
+                        action='store',
+                        choices=LOG_LEVELS.keys(),
+                        default='warning')
 
     args = parser.parse_args(argv)
     # additional validation:
@@ -257,14 +287,20 @@ def fetch_config(fetch_info):
         elif code == 204:
             return _CONFIG_EMPTY
         else:
-            _error_exit(error_msg, fetch_info.url, code)
+            # unexpected status code, abort
+            _error_exit(error_msg % (fetch_info.url, code))
     except urllib.error.HTTPError as e:
         if e.code == 304:
             return _CONFIG_UNCHANGED
+        elif 500 <= e.code <= 599:
+            # server error, hopefully temporary
+            raise TemporaryError(error_msg % (fetch_info.url, e))
         else:
-            _error_exit(error_msg, fetch_info.url, e)
+            # unexpected status code, abort
+            _error_exit(error_msg % (fetch_info.url, e))
     except Exception as e:
-        _error_exit(error_msg, fetch_info.url, e)
+        # any other error, might be recoverable
+        raise TemporaryError(error_msg % (fetch_info.url, e))
 
 
 def confirm_deployed(args):
@@ -273,7 +309,6 @@ def confirm_deployed(args):
     confirms that this version has been sucessfully installed. This information is used coordinator
     by the coordinator only in the case where it actively pushes configuration to a host. A failure
     in this step is generally unproblematic.
-
     :param args: commandline arguments for optional coordinator URL
     """
     # Get newly installed config info
@@ -286,7 +321,10 @@ def confirm_deployed(args):
         host_id=fetch_info.host_id
     )
     data = {'version': fetch_info.version}
-    _http_post(url, data, username=fetch_info.host_id, password=fetch_info.host_secret)
+    try:
+        _http_post(url, data, username=fetch_info.host_id, password=fetch_info.host_secret)
+    except Exception:
+        pass
 
 
 def _http_get(url, params, username, password):

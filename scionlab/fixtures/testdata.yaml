@@ -3581,7 +3581,6 @@
     public_ip: 192.0.2.11
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.11
     uid: 509d359c4c3c4e8aa70ba151ac795376
     secret: 3815ef582ade4b608326c34af76e5d72
@@ -3595,7 +3594,6 @@
     public_ip: 192.0.2.12
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.12
     uid: c0fdd13e246f46bfab9e386e386e2128
     secret: 0557aa3231b0422f8e729b296918c549
@@ -3609,7 +3607,6 @@
     public_ip: 192.0.2.13
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.13
     uid: 67662eac09c84ae1bbb52e025fc39f60
     secret: e0726c26b3a44dd4a7846943ada5acc1
@@ -3623,7 +3620,6 @@
     public_ip: 192.0.2.17
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.17
     uid: 8cea74ca0f9c49e1ba71d2a1592a51bd
     secret: 22622eb19298433988b2dd5c10a5e2ba
@@ -3637,7 +3633,6 @@
     public_ip: 172.31.0.110
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 172.31.0.110
     uid: a81fde8686594c89918d5ac398661d33
     secret: f79001e42dc84efd902d63e975b18ac7
@@ -3651,7 +3646,6 @@
     public_ip: 192.0.2.32
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.32
     uid: 948915109c1a4379a660db91dcd0aa00
     secret: b314428d11ca44178122a38f181eedcb
@@ -3665,7 +3659,6 @@
     public_ip: 172.31.0.111
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 172.31.0.111
     uid: 7767d03756fd496785ae26bd55eac419
     secret: 7d1849c41cd84ebaa42e1addce30618b
@@ -3679,7 +3672,6 @@
     public_ip: 192.0.2.34
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.34
     uid: 2d66cde2020243bcaace95a8ce45bdd7
     secret: f071950d252940de8cba7ac8e7abd321
@@ -3693,7 +3685,6 @@
     public_ip: 172.31.0.112
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 172.31.0.112
     uid: cfe5c8058f434f499e933952bc2f06aa
     secret: 708b6ca1094347dfb4616664c5acc376
@@ -3707,7 +3698,6 @@
     public_ip: 172.31.0.113
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 172.31.0.113
     uid: b3f95aa1e7b547878a8dd66f1cec1bbc
     secret: 53f849b66b1545c490f239f684ade8ba
@@ -3721,7 +3711,6 @@
     public_ip: 192.0.2.42
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.42
     uid: 1386a5fc09834657bd4074e826dba9d2
     secret: dd6dc70637c246728bb2322cc5cb7cec
@@ -3735,7 +3724,6 @@
     public_ip: 192.0.2.43
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.43
     uid: 8ccd2caf7bd24706a6b1b2af1fc42f48
     secret: 3e771bd7724d4825942e2e99e288d58d
@@ -3749,7 +3737,6 @@
     public_ip: 192.0.2.44
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.44
     uid: 25925551d5d54739a235b233c22c924e
     secret: d2fc785518eb436ea0fb411f10c6988d
@@ -3763,7 +3750,6 @@
     public_ip: 172.31.0.114
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 172.31.0.114
     uid: 1d26e8a124e445ff9209f289abc5c54c
     secret: ec2e70758b71469599944696df14d507
@@ -3777,7 +3763,6 @@
     public_ip: 192.0.2.46
     bind_ip: null
     label: null
-    managed: true
     ssh_host: 192.0.2.46
     uid: f68085bac3284312a52ca9804d395480
     secret: d9e6eea7ac9e441780c5a9850f1a3bf7
@@ -3791,7 +3776,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    managed: false
     ssh_host: null
     uid: 72356ca6dbe24145a8d6e234f5571bd1
     secret: c9eea385840346a89b739aa68b221a2d
@@ -3805,7 +3789,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    managed: false
     ssh_host: null
     uid: 5e0ada6cf3a44e15868ba5ca12c3be3e
     secret: e4a42e1bb0384b86a1dd6a19e5c0ca5b
@@ -3819,7 +3802,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    managed: false
     ssh_host: null
     uid: fad7c71baf5d4a4491bfb65e71966576
     secret: c47a09a57f764b209afa8ad0093d1972
@@ -3833,7 +3815,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    managed: false
     ssh_host: null
     uid: 39090bd4b5484805b03cdf3a1bdab37f
     secret: 506d7726510d4cc5aabf47d42738354f
@@ -3847,7 +3828,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    managed: false
     ssh_host: null
     uid: 602f097fd7564ff3b7fc71fc46a11350
     secret: b5b5bcb7fa224c9fbd2568a8a2425618

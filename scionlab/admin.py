@@ -39,7 +39,6 @@ from scionlab.models.core import (
 from scionlab.models.user import User
 from scionlab.models.user_as import UserAS, AttachmentPoint
 from scionlab.models.vpn import VPN, VPNClient
-from scionlab.tasks import deploy_host_config
 from scionlab.views.api import get_host_config_tar_response
 # Needs to be after import of scionlab.models.user.User
 from django.contrib.auth.admin import UserAdmin as auth_UserAdmin
@@ -194,7 +193,7 @@ class ISDAdmin(admin.ModelAdmin):
 
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
-        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'managed', 'ssh_host')
+        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'ssh_host')
 
     secret = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '32'}))
 
@@ -205,7 +204,6 @@ class HostAdminForm(_CreateUpdateModelForm):
             public_ip=self.cleaned_data['public_ip'],
             bind_ip=self.cleaned_data['bind_ip'],
             label=self.cleaned_data['label'],
-            managed=self.cleaned_data['managed'],
             ssh_host=self.cleaned_data['ssh_host'],
             secret=self.cleaned_data['secret']
         )
@@ -216,7 +214,6 @@ class HostAdminForm(_CreateUpdateModelForm):
             public_ip=self.cleaned_data['public_ip'],
             bind_ip=self.cleaned_data['bind_ip'],
             label=self.cleaned_data['label'],
-            managed=self.cleaned_data['managed'],
             ssh_host=self.cleaned_data['ssh_host'],
             secret=self.cleaned_data['secret']
         )
@@ -533,14 +530,6 @@ class ASAdmin(admin.ModelAdmin):
         """
         AS.update_core_as_keys(queryset)
 
-    def trigger_config_deployment(self, request, queryset):
-        """
-        Trigger deployment for managed hosts in selected ASes.
-        """
-        for as_ in queryset.iterator():
-            for host in as_.hosts.filter(managed=True):
-                deploy_host_config(host)
-
 
 class VPNCreationForm(_CreateUpdateModelForm):
     """
@@ -754,7 +743,7 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     readonly_fields = ['uid', 'get_scionlab_config_cmd']
     actions = ['trigger_config_deployment']
     list_display = ('__str__', 'AS',
-                    'internal_ip', 'public_ip', 'bind_ip', 'managed', 'ssh_host',
+                    'internal_ip', 'public_ip', 'bind_ip', 'ssh_host',
                     'latest_config_deployed', 'get_scionlab_config_cmd', 'get_config_link')
     list_filter = ('AS__isd', 'AS', )
     ordering = ['AS']
@@ -776,13 +765,6 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
         """
         host = get_object_or_404(Host, pk=object_id)
         return get_host_config_tar_response(host)
-
-    def trigger_config_deployment(self, request, queryset):
-        """
-        Trigger deployment for selected managed hosts.
-        """
-        for host in queryset.filter(managed=True).iterator():
-            deploy_host_config(host)
 
 
 admin.site.register([

@@ -67,6 +67,8 @@ class GetHostConfig(SingleObjectMixin, View):
         if version is _BAD_VERSION:
             return HttpResponseBadRequest()
 
+        host.update_config_queried_timestamp()
+
         if version and version >= host.config_version:
             return HttpResponseNotModified()
 

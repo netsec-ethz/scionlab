@@ -22,11 +22,10 @@ from typing import List, Set
 
 from django import urls
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import models
 from django.utils.html import format_html
 from django.contrib.auth.models import User
 
-import scionlab.tasks
 from scionlab.models.core import (
     AS,
     Interface,
@@ -175,7 +174,6 @@ class UserAS(AS):
             self._delete_attachment(deleted_link)
         for ap in aps_set:
             ap.split_border_routers()
-            ap.trigger_deployment()
         self._deactivate_unused_vpn_clients(att_confs)
 
         self.save()
@@ -248,9 +246,7 @@ class UserAS(AS):
                             public_port=att_conf.public_port,
                             bind_ip=att_conf.bind_ip)
 
-        # Attribute already set if coming from AttachmentConfForm.save(...)
-        att_conf.link.active = att_conf.active
-        att_conf.link.save()
+        att_conf.link.update_active(att_conf.active)
 
     def _delete_attachment(self, deleted_link: Link):
         deleted_link.delete()
@@ -336,40 +332,30 @@ class UserAS(AS):
                        .values_list('active', flat=True)
                        .all())
 
-    def _activate(self) -> Set['AttachmentPoint']:
+    def _activate(self):
         """
         Activate the first attachment point
-        :return: attachment points that shall be updated
         """
         link = self.attachment_links().first()
         if link:
             link.update_active(True)
-            return {link.interfaceA.AS.attachment_point_info}
-        return set()
 
-    def _deactivate(self) -> Set['AttachmentPoint']:
+    def _deactivate(self):
         """
         Deactivate all links with the attachment points
-        :return: attachment points that shall be updated
         """
-        attachment_points = set()
         for link in self.attachment_links():
             link.update_active(False)
-            attachment_points.add(link.interfaceA.AS.attachment_point_info)
-        return attachment_points
 
     def update_active(self, active: bool):
         """
         Set the `UserAS` to be active (or inactive) by activating (or deactivating) a consistent
-        susbent (or all) the links with attachment points.
-        This will trigger a deployment of all the attachment points configurations
+        subset (or all) the links with attachment points.
         """
         if active:
-            attachment_points = self._activate()
+            self._activate()
         else:
-            attachment_points = self._deactivate()
-        for ap in attachment_points:
-            attachment_points = ap.trigger_deployment()
+            self._deactivate()
 
     @property
     def ip_port_labels(self):
@@ -459,17 +445,6 @@ class AttachmentPoint(models.Model):
         if self.vpn is None:
             raise ValidationError("Selected attachment point does not support VPN",
                                   code='attachment_point_no_vpn')
-
-    def trigger_deployment(self):
-        """
-        Trigger the deployment for the attachment point configuration (after the current transaction
-        is successfully committed).
-
-        The deployment is rate limited, max rate controlled by
-        settings.DEPLOYMENT_PERIOD.
-        """
-        for host in self.AS.hosts.iterator():
-            transaction.on_commit(lambda: scionlab.tasks.deploy_host_config(host))
 
     def supported_ip_versions(self) -> Set[int]:
         """
