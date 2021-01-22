@@ -1,6 +1,6 @@
 README.md: |-
   content_not_checked
-Vagrantfile: |
+Vagrantfile: |-
   # -*- mode: ruby -*-
   # vi: set ft=ruby :
 
@@ -12,45 +12,57 @@ Vagrantfile: |
     $setup_scion = <<-'SCRIPT'
       set -e
 
-      echo 'install needed standard packages'
-      apt-get update >/dev/null
-      apt-get install -y apt-transport-https ntp openvpn
+      echo 'install and update system packages'
+      export DEBIAN_FRONTEND=noninteractive; export LC_ALL=C
+      apt-get update > /dev/null
+      apt-get upgrade -y -qq
+      apt-get install -y -qq apt-transport-https ca-certificates unattended-upgrades
 
       echo 'install SCIONLab'
       echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" > /etc/apt/sources.list.d/scionlab.list
-      echo -e "`crontab -l`""\n`date -d '07:00 UTC' '+%M %H'` * * * apt-get update; apt-get install -y --only-upgrade scionlab" | crontab
       apt-get update > /dev/null
-      apt-get install -y scionlab
+      apt-get install -y -qq scionlab
 
       echo 'configure time sync'
-      sed -i -- 's/^\(\s*start-stop-daemon\s*--start\s*--quiet\s*--oknodo\s*--exec\s*\/usr\/sbin\/VBoxService\)$/\1 -- --disable-timesync/g' /etc/init.d/virtualbox-guest-utils || true
-      systemctl daemon-reload
-      systemctl restart virtualbox-guest-utils
-      systemctl enable ntp
-      # not needed: sed -i "s/^NTPD_OPTS='\(.*\)'/NTPD_OPTS=\'\1\ -g'/g" /etc/default/ntp
-      echo -e "tinker panic 0\n" >> /etc/ntp.conf
-      sed -i 's/\(pool .*\)$/\1 minpoll 1 maxpoll 6/g' /etc/ntp.conf
+      printf '%s\n' \
+        '[Time]' \
+        'NTP=0.ubuntu.pool.ntp.org 1.ubuntu.pool.ntp.org 2.ubuntu.pool.ntp.org 3.ubuntu.pool.ntp.org' \
+        'FallbackNTP=ntp.ubuntu.com' \
+      > /etc/systemd/timesyncd.conf
+      systemctl restart systemd-timesyncd.service
 
-      echo 'configure unattended upgrades (automatic security upgrades)'
-      echo 'Unattended-Upgrade::Allowed-Origins {
-  "${distro_id}:${distro_codename}-security";
-  "${distro_id}ESM:${distro_codename}";
-  };
-  Unattended-Upgrade::Automatic-Reboot "true";
-  Unattended-Upgrade::Automatic-Reboot-Time "02:00";' > /etc/apt/apt.conf.d/51unattended-upgrades-security
+      echo 'configure unattended upgrades for all system and SCION package upgrades'
+      printf '%s\n' \
+        'Unattended-Upgrade::Origins-Pattern { "origin=*"; };' \
+        'Unattended-Upgrade::Automatic-Reboot "true";' \
+        'Unattended-Upgrade::Automatic-Reboot-Time "02:00";' \
+        'APT::Periodic::Update-Package-Lists "always";' \
+        'APT::Periodic::Unattended-Upgrade "always";' \
+      > /etc/apt/apt.conf.d/51unattended-upgrades-scionlab-tweaks
+      mkdir /etc/systemd/system/apt-daily.timer.d/ || true
+      printf '%s\n' \
+        '[Timer]' \
+        'OnCalendar=' \
+        'OnCalendar=07,19:00' \
+        'RandomizedDelaySec=0' \
+      > /etc/systemd/system/apt-daily.timer.d/override.conf
+      mkdir /etc/systemd/system/apt-daily-upgrade.timer.d/ || true
+      printf '%s\n' \
+        '[Timer]' \
+        'OnCalendar=' \
+        'OnCalendar=07,19:15' \
+        'RandomizedDelaySec=0' \
+      > /etc/systemd/system/apt-daily-upgrade.timer.d/override.conf
+      systemctl daemon-reload
+      systemctl restart apt-daily.timer apt-daily-upgrade.timer
 
       # Fetch configuration from coordinator and start SCION
       scionlab-config --host-id=5e0ada6cf3a44e15868ba5ca12c3be3e --host-secret=e4a42e1bb0384b86a1dd6a19e5c0ca5b --url=http://localhost:8000
-
-      # TODO(juagargi): install scion-apps
-      echo "SCIONLab VM ready"
     SCRIPT
 
     config.vm.box = "ubuntu/bionic64"
-    # forward border router port (unless using OpenVPN):
+    # forward border router ports:
     config.vm.network "forwarded_port", guest: 54321, host: 54321, protocol: "udp"
-    # forward scion dispatcher port, for running SCION endhosts connected to the AS in this VM:
-    config.vm.network "forwarded_port", guest: 30041, host: 30041, protocol: "udp"
     # forward "webapp" port:
     config.vm.network "forwarded_port", guest: 8000, host: 8000, protocol: "tcp"
     config.vm.provider "virtualbox" do |vb|
