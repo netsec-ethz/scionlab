@@ -76,7 +76,7 @@ Vagrant.configure(2) do |config|
         we first reset it with OnCalendar=, to ensure that only our values in
         override file are effective.
     #}
-    echo 'configure unattended upgrades for all system and SCION package ugprades'
+    echo 'configure unattended upgrades for all system and SCION package upgrades'
     printf '%s\n' \
       'Unattended-Upgrade::Origins-Pattern { "origin=*"; };' \
       'Unattended-Upgrade::Automatic-Reboot "true";' \

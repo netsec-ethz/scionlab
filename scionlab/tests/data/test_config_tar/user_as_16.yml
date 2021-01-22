@@ -31,7 +31,7 @@ Vagrantfile: |-
       > /etc/systemd/timesyncd.conf
       systemctl restart systemd-timesyncd.service
 
-      echo 'configure unattended upgrades for all system and SCION package ugprades'
+      echo 'configure unattended upgrades for all system and SCION package upgrades'
       printf '%s\n' \
         'Unattended-Upgrade::Origins-Pattern { "origin=*"; };' \
         'Unattended-Upgrade::Automatic-Reboot "true";' \
