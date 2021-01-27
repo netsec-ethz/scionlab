@@ -15,7 +15,7 @@
 
 set -eo pipefail
 
-containers=$(docker-compose ps --services | grep -v coord)
+containers=$(docker-compose ps --services | egrep -x '(user)?as[0-9]+')
 
 set -x
 sleep 10  # Give the services enough time to start (or fail)

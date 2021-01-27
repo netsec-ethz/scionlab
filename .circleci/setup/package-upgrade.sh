@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-for c in `docker-compose ps --services | grep -v coord`; do
+for c in $(docker-compose ps --services | egrep -x '(user)?as[0-9]+'); do
   # We have to hide the /.dockerenv file, since the scionlab packages assume that they cannot use systemd, run systemctl when run in docker
   docker-compose exec -T "$c" /bin/bash -c \
     'echo "deb [trusted=yes] https://packages-test.netsec.inf.ethz.ch/debian all main" > /etc/apt/sources.list.d/scionlab.list; \

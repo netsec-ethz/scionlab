@@ -14,6 +14,6 @@
 # limitations under the License.
 
 mkdir -p logs
-for c in `docker-compose ps --services | grep -v coord`; do
+for c in $(docker-compose ps --services | egrep -x '(user)?as[0-9]+'); do
   docker-compose exec -T "$c" journalctl -u scion-* > logs/$c.log
 done
