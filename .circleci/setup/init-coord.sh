@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2020 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-
-# Wait for DB
-appdeps.py --interval-secs 1 --wait-secs 60 --port-wait $POSTGRES_HOST:$POSTGRES_PORT
-
-# Initialise/migrate DB
-/scionlab/manage.py migrate
-
-/scionlab/manage.py runserver 0.0.0.0:8000
+# wait a bit for the migrations in the django-entrypoint.sh are done:
+docker-compose exec -T coord appdeps.py --interval-secs 1 --wait-secs 60 --port-wait coord:8000
+docker-compose exec -T coord /bin/bash -c \
+  './manage.py loaddata scionlab/fixtures/testdata.yaml; \
+   cp scionlab/fixtures/dev_root_ca_*.pem run/'
