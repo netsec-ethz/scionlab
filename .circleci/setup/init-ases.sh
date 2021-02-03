@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2020 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-
-# Wait for DB
-appdeps.py --interval-secs 1 --wait-secs 60 --port-wait $POSTGRES_HOST:$POSTGRES_PORT
-
-# Initialise/migrate DB
-/scionlab/manage.py migrate
-
-/scionlab/manage.py runserver 0.0.0.0:8000
+for c in $(docker-compose ps --services egrep -x '(user)?as[0-9]+'); do
+  docker-compose exec -T "$c" /bin/bash -c 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+done

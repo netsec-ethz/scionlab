@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2020 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+set -eo pipefail
 
-# Wait for DB
-appdeps.py --interval-secs 1 --wait-secs 60 --port-wait $POSTGRES_HOST:$POSTGRES_PORT
+containers=$(docker-compose ps --services | egrep -x '(user)?as[0-9]+')
 
-# Initialise/migrate DB
-/scionlab/manage.py migrate
+set -x
+sleep 10  # Give the services enough time to start (or fail)
+for c in $containers; do
+  docker-compose exec -T "$c" check-scion-status.sh
+done
+for c in $containers; do
+  docker-compose exec -T --user user "$c" await-beacons.sh
+done
+for c in $containers; do
+  docker-compose exec -T --user user "$c" ping-all.sh
+done
 
-/scionlab/manage.py runserver 0.0.0.0:8000

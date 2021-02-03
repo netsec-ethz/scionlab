@@ -26,14 +26,24 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 ALLOWED_HOSTS = ['*']
 
 # ##### DATABASE CONFIGURATION ############################
-DATABASES = {
-    'default': {
+if os.environ.get("POSTGRES_HOST"):
+    db = {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': os.environ['POSTGRES_HOST'],
+        'PORT': os.environ['POSTGRES_PORT'],
+        'NAME': os.environ['POSTGRES_DB'],
+        'USER': os.environ['POSTGRES_USER'],
+        'PASSWORD': os.environ['POSTGRES_PASSWORD'],
+        'ATOMIC_REQUESTS': True,
+    }
+else:
+    db = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'run', 'dev.sqlite3'),
         'ATOMIC_REQUESTS': True,
     }
-}
 
+DATABASES = {'default': db}
 
 # ##### APPLICATION CONFIGURATION #########################
 INSTALLED_APPS += [

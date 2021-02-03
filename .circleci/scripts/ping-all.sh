@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2020 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+set -eo pipefail
 
-# Wait for DB
-appdeps.py --interval-secs 1 --wait-secs 60 --port-wait $POSTGRES_HOST:$POSTGRES_PORT
+# Ping _a_ host in all destination ASes.
+# Note that pinging the local AS is fine.
 
-# Initialise/migrate DB
-/scionlab/manage.py migrate
+ias=(
+  '19-ffaa:0:1301'
+  '19-ffaa:0:1303'
+  '19-ffaa:0:1305'
+  '20-ffaa:0:1401'
+  '20-ffaa:0:1405'
+  '20-ffaa:1:4'
+)
 
-/scionlab/manage.py runserver 0.0.0.0:8000
+set -x
+for dstIA in ${ias[@]}; do
+  chronic scion ping -c 1 "$dstIA,127.0.0.1"
+done
