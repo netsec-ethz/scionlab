@@ -14,10 +14,14 @@
 
 import importlib.util
 import importlib.machinery
+import io
 import os
+import pathlib
 import sys
 import tarfile
+import tempfile
 from collections import namedtuple
+from contextlib import closing
 from io import StringIO
 from unittest import TestCase
 from unittest.mock import patch
@@ -25,6 +29,7 @@ from unittest.mock import patch
 from django.test import LiveServerTestCase
 
 from scionlab.models.core import Host
+from scionlab.util.archive import TarWriter
 from scionlab.tests import utils
 
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -80,6 +85,26 @@ class ScionlabConfigLiveTests(LiveServerTestCase):
         self.host.AS.delete()  # Nothing left to do for this host
         config = scionlab_config.fetch_config(self.fetch_info)
         self.assertIs(config, scionlab_config._CONFIG_EMPTY)
+
+    def test_fetch_fail_fatal(self):
+        # requests that will result in unrecoverable errors:
+        cases = [
+            {'url': self.fetch_info.url + "/bad-url"},  # not found
+            {'host_secret': 'badsecret'},  # not authorized
+            {'version': 'bad'},  # bad request
+        ]
+
+        for case in cases:
+            fetch_info = self.fetch_info._replace(**case)
+            with self.assertRaises(SystemExit):
+                scionlab_config.fetch_config(fetch_info)
+
+    def test_fetch_fail_recoverable(self):
+        # use a URL that will result in a "connection refused", which is considered a temporary
+        # error
+        fetch_info = self.fetch_info._replace(url='http://%s:0' % LiveServerTestCase.host)
+        with self.assertRaises(scionlab_config.TemporaryError):
+            scionlab_config.fetch_config(fetch_info)
 
     def test_confirm_deployed(self):
         self.host.config_version += 1
@@ -268,3 +293,114 @@ class ScionlabConfigUnitTests(TestCase):
         with patch('builtins.input', side_effect=patched_input), patch('sys.stdout', new=term):
             ret = scionlab_config._prompt(*prompt_args, **prompt_kwargs)
             return ret, term.getvalue(), prompts
+
+    def test_install_config_files(self):
+        # Each testcase consists of a description of the initial file system (and configuration
+        # info) state and the new configuration.
+        # Each entry represents either a text file or a directory (None value).
+        case = namedtuple('case', ['initial', 'files', 'skip'])
+        cases = [
+            case(
+                initial={},
+                files={
+                    'etc/scion/bar/boo': 'boo',
+                    'etc/scion/foo': 'foo',
+                    'etc/scion/dir': None,
+                },
+                skip=[],
+            ),
+            case(
+                initial={
+                    'etc/scion/bar/boo': 'boo',
+                    'etc/scion/same': 'same',
+                },
+                files={
+                    'etc/scion/bar/boo': 'newboo',
+                    'etc/scion/same': 'same',
+                },
+                skip=[],
+            ),
+            case(
+                initial={
+                    'etc/scion/bar/boo': 'boo',
+                    'etc/scion/same': 'same',
+                },
+                files={
+                    'etc/scion/bar/boo': 'newboo',
+                    'etc/scion/same': 'same',
+                },
+                skip=['etc/scion/bar/boo']
+            ),
+            case(
+                initial={
+                    'etc/scion/dir': None,
+                },
+                files={
+                    'etc/scion/dir': None,
+                    'etc/scion/dir/stuff': 'stuff',
+                },
+                skip=[],
+            ),
+        ]
+
+        for c in cases:
+            with tempfile.TemporaryDirectory() as tmp:
+                self._setup_initial_files(tmp, c.initial)
+
+                def _tmproot(path):
+                    return os.path.join(tmp, path)
+
+                tar = self._to_tar(c.files)
+                new_files = [f for f, content in c.files.items() if content is not None]
+                old_files = [f for f, content in c.initial.items() if content is not None]
+
+                with patch('scionlab_config._root', side_effect=_tmproot), \
+                        patch('shutil.chown'):
+                    scionlab_config.install_config_files(old_files, new_files, c.skip, tar)
+
+                expected = c.files
+                for f in c.skip:
+                    expected[f] = c.initial[f]
+                self._check_files(tmp, expected)
+
+    def _to_tar(self, files):
+        buf = io.BytesIO()
+        with closing(tarfile.open(mode='w:gz', fileobj=buf)) as tar:
+            archive = TarWriter(tar)
+            for f, content in files.items():
+                if content is None:
+                    archive.add_dir(f)
+                else:
+                    archive.write_text(f, content)
+            # Add config info file, to ensure this is ignored correctly
+            archive.write_json('scionlab-config.json', {})
+
+        buf.seek(0)
+        return tarfile.open(mode='r:gz', fileobj=buf)
+
+    def _setup_initial_files(self, tmp, files):
+        for f, content in files.items():
+            filepath = pathlib.Path(tmp, f)
+            if content is None:
+                filepath.mkdir(parents=True, exist_ok=True)
+            else:
+                filepath.parent.mkdir(parents=True, exist_ok=True)
+                filepath.write_text(content)
+
+    def _check_files(self, tmp, expected):
+        actual = {}
+        for root, dirs, files in os.walk(tmp):
+            for d in dirs:
+                filepath = pathlib.Path(root, d)
+                actual[str(filepath.relative_to(tmp))] = None
+            for f in files:
+                filepath = pathlib.Path(root, f)
+                actual[str(filepath.relative_to(tmp))] = filepath.read_text()
+
+        # ok for some of the directories not to be listed in expected:
+        dirs = [f for f, content in actual.items() if content is None]
+        for d in dirs:
+            if d not in expected:
+                del actual[d]
+
+        self.assertEqual(actual, expected)

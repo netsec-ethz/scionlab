@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:latest
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_DB: scionlab_coordinator
+      POSTGRES_USER: scionlab_rw
+      POSTGRES_PASSWORD: scionlab_rw_passw0rd

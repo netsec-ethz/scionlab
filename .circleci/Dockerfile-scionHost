@@ -1,12 +1,15 @@
 FROM ubuntu:bionic
 
+ARG package_repo=packages.netsec.inf.ethz.ch
+
 # Install base
 RUN apt-get update && apt-get install --assume-yes \
   systemd \
   sudo \
   apt-transport-https \
-  openssh-server \
-  jq
+  jq \
+  curl \
+  moreutils
 
 # systemd
 # Based on: https://developers.redhat.com/blog/2014/05/05/running-systemd-within-docker-container/
@@ -22,23 +25,21 @@ rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
 rm -f /lib/systemd/system/basic.target.wants/*;
 VOLUME [ "/sys/fs/cgroup" ]
 
-# systemctl enable sshd
-RUN ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
-
 # Install SCION
 # XXX(matzf): install testing/prod based on branch name???
-RUN bash -c 'echo "deb [trusted=yes] https://packages-test.netsec.inf.ethz.ch/debian all main" >> /etc/apt/sources.list'
+RUN bash -c "echo \"deb [trusted=yes] https://${package_repo}/debian all main\" > /etc/apt/sources.list.d/scionlab.list"
 RUN apt-get update && apt-get install --assume-yes scionlab
 
-# Add 'scionlab' user with passwordless sudo & configure authorized_keys to allow automatic deployment
+# Add 'scionlab' user with passwordless sudo
 RUN sed '/^%sudo/s/ALL$/NOPASSWD:ALL/' /etc/sudoers -i
 RUN useradd --create-home --shell /bin/bash --groups sudo scionlab
-COPY --chown=scionlab:scionlab .circleci/setup/deploy_authorized_keys /home/scionlab/.ssh/authorized_keys
-
-# Add VPN tun0 ip check script
-COPY --chown=scionlab:scionlab .circleci/setup/check_tun0_in_topo.py /home/scionlab/
+# Add 'user' user without sudo group to run user commands
+RUN useradd --create-home --shell /bin/bash user
 
 # Overwrite scionlab-config script with version from repo
 COPY scionlab/hostfiles/scionlab-config /usr/bin/
+
+# Add CI scripts
+COPY .circleci/scripts/* /usr/local/bin/
 
 CMD ["/bin/systemd"]

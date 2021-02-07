@@ -1,0 +1,17 @@
+#!/bin/sh
+
+goos=$(uname -s | tr '[:upper:]' '[:lower:]')
+goarch=$(uname -m | tr '[:upper:]' '[:lower:]')
+
+if [ "${goarch}" = "x86_64" ]; then
+   goarch="amd64"
+fi
+
+filename="$(dirname "$0")/scion-pki-${goos}-${goarch}"
+
+if [ ! -e "${filename}" ]; then
+  echo "Unsupported system: ${goos}-${goarch}"
+  exit 1
+fi
+
+exec "${filename}" "$@"

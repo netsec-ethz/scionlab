@@ -1,0 +1,19 @@
+{$SCIONLAB_SITE} {
+    rewrite /favicon.ico /static/scionlab/images/favicon.ico
+    handle /static/* {
+      root * /srv/scionlab
+      file_server
+    }
+    handle {
+      reverse_proxy django:8000
+    }
+
+    log
+    tls scionlab-admins@sympa.ethz.ch
+}
+
+# Redirect to www. subdomain
+scionlab.org {
+    log
+    redir https://www.scionlab.org{uri} permanent
+}

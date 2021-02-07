@@ -16,75 +16,38 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
-version: 2
+version: 2.1
 
-check_services_status: &check_services_status
-  command: |
-    set -x
+commands:
 
-    sleep 10  # Give the services enough time to start (or fail)
-
-    for c in as1301 as1303 as1305; do
-      docker-compose exec $c /bin/bash -c \
-        '! systemctl is-failed scion-* || (systemctl status scion-* --no-pager --full && false)'
-    done
-
-check_scion_connections: &check_scion_connections
-  command: |
-    set -x
-
-    # Wait for 3 beacons received from now on
-    docker-compose exec -T as1303 /bin/bash -c \
-      "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-    docker-compose exec -T as1305 /bin/bash -c \
-      "tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-
-    # Show paths used by SCMP
-    docker-compose exec -T as1301 /bin/bash -c \
-      'showpaths -dstIA 19-ffaa:0:1303 || true'
-    docker-compose exec -T as1303 /bin/bash -c \
-      'showpaths -dstIA 19-ffaa:0:1301 || true'
-    docker-compose exec -T as1305 /bin/bash -c \
-      'showpaths -dstIA 19-ffaa:0:1301 || true'
-
-    # Check that we can SCMP
-    docker-compose exec -T as1301 /bin/bash -c \
-      'scmp echo -c 5 -remote 19-ffaa:0:1303,[127.0.0.1]'
-    docker-compose exec -T as1303 /bin/bash -c \
-      'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
-    docker-compose exec -T as1305 /bin/bash -c \
-      'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
-
-start_coordinator: &start_coordinator
-  command: |
-    # Initialize coordinator with test data and test keys
-    docker-compose run -T coord /bin/bash -c \
-     './scripts/init-test-db.sh && \
-      cp .circleci/setup/deploy_ssh_config run/ssh_config && \
-      cp .circleci/setup/deploy_rsa* run/ && \
-      chmod 644 run/deploy_rsa.pub && \
-      chmod 600 run/deploy_rsa'
-
-    docker-compose up -d coord
-
-check_coordinator_ready: &check_coordinator_ready
-  command: |
-    # We start another container in the same network as `coord` to check `coord` is ready.
-    # All exposed ports from `coord` are available on `localhost` in this new container.
-    # NOTE: uses python:3.6 to re-use already fetched image from `coord`; contains more tools than ubuntu:xenial
-    docker run --net circleci_as_net --entrypoint /bin/bash python:3.6 -c \
-      'wget --tries 10 --retry-connrefused http://coord:8000/login/'
-
-jobs:
-  basic:
-    docker:
-      - image: circleci/python:3.6.1
-    working_directory: ~/repo
-
+  install_git_lfs:
     steps:
-      - checkout
+    - run:
+        name: Install git LFS
+        command: |
+          # circleci images don't currently come with git lfs installed:
+          #   https://support.circleci.com/hc/en-us/articles/360044671191-git-lfs-support-on-CircleCI-provided-images
+          # Install it manually, as suggested.
+          curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+          sudo apt-get install git-lfs
+          git lfs install
 
-      # Download and cache dependencies
+  cached_checkout:
+    steps:
+      - restore_cache:
+          keys:
+          - source-v1-{{ .Branch }}-{{ .Revision }}
+          - source-v1-{{ .Branch }}-
+          - source-v1-
+      - checkout
+      - save_cache:
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ".git"
+
+
+  cached_pip_deps:
+    steps:
       - restore_cache:
           keys:
           - v4-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
@@ -97,20 +60,40 @@ jobs:
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
+
       - save_cache:
           paths:
             - /tmp/venv
           key: v4-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
 
-      # run flake8
+
+jobs:
+  style-check:
+    docker:
+      - image: circleci/python:3.6.1
+    steps:
+      - install_git_lfs
+      - cached_checkout
+      - cached_pip_deps
       - run:
           name: Run flake8 style checker
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/flake8/
             flake8 --format junit-xml --output-file=test-reports/flake8/results.xml
+      - store_test_results:
+          path: test-reports
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
 
-      # run Django's tests (using nose as the test runner)
+  unit-tests:
+    docker:
+      - image: circleci/python:3.6.1
+    steps:
+      - install_git_lfs
+      - cached_checkout
+      - cached_pip_deps
       - run:
           name: Run tests
           command: |
@@ -118,364 +101,210 @@ jobs:
             mkdir -p test-reports/django/
             python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
           when: always
-
       - store_test_results:
           path: test-reports
-
       - store_artifacts:
           path: test-reports
           destination: test-reports
 
-  integration:
+  integration-tests:
     machine:
       image: ubuntu-1604:201903-01
       # This is super nice and works like a charm BUT unfortunately it is now explicitly disabled on the free plan. Pitty
       # docker_layer_caching: true
-
+    environment:
+      COMPOSE_FILE: ".circleci/docker-compose.yml"
     steps:
-      - checkout
+      - install_git_lfs
+
+      - cached_checkout
 
       - run:
-          name: Extract host configuration info from testdata.yaml fixture
-          command: |
-            pip install pyyaml
-            python .circleci/setup/generate-host-envs.py
-
-      - run:
-          name: Build container images
-          working_directory: ~/project/.circleci
-          command: |
-            sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
-            docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/ # Build base image, as used in production
-            docker-compose build
-
-      - run:
-          name: Set date so certificates in test data are valid
-          command: |
-            # Certificates are valid between 2019-10-02 and 2020-10-01.
-            sudo date -s "2020-04-01"  # haha
-
-      - run:
-          name: Start coordinator
-          working_directory: ~/project/.circleci
-          <<: *start_coordinator
-
-      - run:
-          name: Check coordinator ready
-          working_directory: ~/project/.circleci
-          <<: *check_coordinator_ready
-
-      # Start integration tests
-      - run:
-          name: Start ASes in containers
-          working_directory: ~/project/.circleci
+          name: Build and start containers for coordinator and ASes
           command: |
             set -x
-            docker-compose up -d as1301 as1303 as1305
+            pip install pyyaml
 
-            for c in as1301 as1303 as1305; do
-              docker-compose exec $c /bin/bash -c \
-                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
-            done
+            .circleci/setup/build-containers.sh --build-arg package_repo=packages-test.netsec.inf.ethz.ch
+            docker-compose up -d
+            .circleci/setup/init-coord.sh
+            .circleci/setup/init-ases.sh
 
-            docker-compose logs
-
-      - run:
-          name: Check AS services status
-          working_directory: ~/project/.circleci
-          <<: *check_services_status
+      - run: .circleci/setup/check-scion-connectivity.sh
 
       - run:
-          name: Check SCION connections
-          working_directory: ~/project/.circleci
-          no_output_time: "3m0s"
-          <<: *check_scion_connections
-
-      - run:
-          name: "Push changes to AS ffaa:0:1303"
-          working_directory: ~/project/.circleci
-          no_output_time: "1m0s"
+          name: "Pull changes to AS ffaa:0:1303"
           command: |
             set -x
 
             prev_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
 
-            # Start the huey worker
-            docker-compose up -d huey
+            # Generate new AS-keys for 1303 and pull the new configuration.
+            docker-compose exec -T coord python .circleci/actions/update-keys.py ffaa:0:1303
+            docker-compose exec -T as1303 scionlab-config
 
-            # Generate new AS-keys for 1303 and push the new configuration.
-            # This waits until the configuration has been deployed.
-            docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py ffaa:0:1303; \
-              python .circleci/actions/push-deploy.py ffaa:0:1303'
-
-            docker-compose logs huey
-
-            # Check that
-            # i) configuration was deployed
+            # Check that configuration was updated
             new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
             [ "$prev_version" -lt "$new_version" ]
-            # ii) connection still works
-            docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
+
+      - run: .circleci/setup/check-scion-connectivity.sh
 
       - run:
-          name: Test TRC update and push changes
-          working_directory: ~/project/.circleci
+          name: Test TRC update and pull changes
           command: |
             set -x
 
             # Show current TRC
             TRC_version=1
-            docker-compose exec -T as1301 scion-pki trcs human "/etc/scion/certs/ISD19-V${TRC_version}.trc"
+            docker-compose exec -T --user user as1301 scion-pki trcs human "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
 
             # Update core keys which requires creating a new TRC
-            docker-compose exec -T coord /bin/bash -c \
-             'python .circleci/actions/update-keys.py --core-keys ffaa:0:1301;
-              python .circleci/actions/push-deploy.py ffaa:0:1301 ffaa:0:1303 ffaa:0:1305'
-
-            docker-compose logs huey
-            docker-compose logs coord
-
-            # Check updated TRC and check that updated TRCs were installed on all hosts
-            # Copy TRCs to temporary directory tree with structure understood by the scion-pki tool
-            TRC_version=$((TRC_version + 1))
-            docker-compose exec -T as1301 /bin/bash -c \
-             "mkdir -p /tmp/pki/ISD19/trcs/;
-              cp /etc/scion/certs/ISD19*.trc /tmp/pki/ISD19/trcs/;
-              scion-pki trcs human /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc;
-              scion-pki trcs verify -d /tmp/pki/ /tmp/pki/ISD19/trcs/ISD19-V${TRC_version}.trc"
-
-            docker-compose exec -T as1303 stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
-            docker-compose exec -T as1305 stat -t "/etc/scion/certs/ISD19-V${TRC_version}.trc"
-
-            # Check that infra still works
-            sleep 30 # wait for paths to register, see `Check SCION connections` for an active wait
-            docker-compose exec -T as1301 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1303,[127.0.0.1]'
-            docker-compose exec -T as1303 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
-            docker-compose exec -T as1305 /bin/bash -c \
-              'scmp echo -c 5 -remote 19-ffaa:0:1301,[127.0.0.1]'
-
-      - run:
-          name: Start VPN containers and verify the connection over VPN works
-          working_directory: ~/project/.circleci
-          command: |
-            set -x
-            echo "Start containers required for VPN AP and verify they are working"
-            docker-compose up -d as1401 as1405
-
-            for c in as1401 as1405; do
-              docker-compose exec $c /bin/bash -c \
-                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
-              docker-compose logs $c
-            done
-
-            docker-compose up -d useras4
-            docker-compose exec useras4 /bin/bash -c \
-              'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
-            docker-compose logs useras4
-
-            # Wait for client to be setup
-            echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec useras4 /bin/bash -c \
-             'until [ `grep "Registered beacons" -s -r /var/log/scion/ | wc -l` -ge 5 ]; do sleep 0.1; done; \
-              scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
-
-  upgrade_integration:
-    machine:
-      image: ubuntu-1604:201903-01
-
-    steps:
-      # Start old version of coordinator
-      - run:
-          name: OLD -- Checkout
-          working_directory: ~/
-          command: |
-            git clone https://github.com/netsec-ethz/scionlab.git -b master ~/previous_version
-
-      - run:
-          name: OLD -- Extract host configuration info from testdata.yaml fixture
-          working_directory: ~/previous_version
-          command: |
-            pip install pyyaml
-            python .circleci/setup/generate-host-envs.py
-
-      - run:
-          name: OLD -- Build container images
-          working_directory: ~/previous_version/.circleci
-          command: |
-            #docker build --file ~/project/previous_version/deploy/Dockerfile-django --tag scionlab_django ~/project/ # We are only extending the production image
-            sed -i '/.circleci/d' ~/previous_version/.dockerignore  # The .dockerignore is for production, we'll need this
-            docker-compose build
-
-
-      - run:
-          name: OLD -- Start coordinator
-          working_directory: ~/previous_version/.circleci
-          <<: *start_coordinator
-
-      - run:
-          name: OLD -- Check coordinator ready
-          working_directory: ~/previous_version/.circleci
-          <<: *check_coordinator_ready
-
-      - run:
-          name: OLD -- Start ASes
-          working_directory: ~/previous_version/.circleci
-          command: |
-            set -x
-            docker-compose up -d as1301 as1303 as1305
+            docker-compose exec -T coord python .circleci/actions/update-keys.py --core-keys ffaa:0:1301
 
             for c in as1301 as1303 as1305; do
-              docker-compose exec $c /bin/bash -c \
-                'apt-get install --assume-yes scionlab; \
-                 scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
+              docker-compose exec -T $c scionlab-config
             done
 
-            docker-compose logs
+            # Check updated TRC and check that updated TRCs were installed on all hosts
+            TRC_version=$((TRC_version + 1))
+            for c in as1301 as1303 as1305; do
+              docker-compose exec -T $c stat -t "/etc/scion/certs/ISD19-B1-S${TRC_version}.trc"
+            done
+            docker-compose exec --user user -T as1301 \
+              scion-pki trcs verify --anchor `seq -f "/etc/scion/certs/ISD19-B1-S%.0f.trc" 1 $TRC_version`
+
+      - run: .circleci/setup/check-scion-connectivity.sh
 
       - run:
-          name: OLD -- Check AS services status
-          working_directory: ~/previous_version/.circleci
-          <<: *check_services_status
+          command: .circleci/setup/export-logs.sh
+          when: always
 
+      - store_artifacts:
+          path: logs
+          destination: logs
+
+
+  upgrade-tests:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      COMPOSE_FILE: ".circleci/docker-compose.yml"
+    steps:
+      - install_git_lfs
+      - cached_checkout
       - run:
-          name: OLD -- Start VPN containers and verify the connection over VPN works
-          working_directory: ~/previous_version/.circleci
+          name: OLD -- Checkout
+          command: git checkout master
+      - run:
+          name: OLD -- Build and start containers for coordinator and ASes
           command: |
             set -x
-            echo "Start containers required for VPN AP and verify they are working"
-            docker-compose up -d as1401 as1405
+            pip install pyyaml
 
-            for c in as1401 as1405; do
-              docker-compose exec $c /bin/bash -c \
-                'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
-              docker-compose logs $c
-            done
+            .circleci/setup/build-containers.sh --build-arg package_repo=packages.netsec.inf.ethz.ch # start with released packages
+            docker-compose up -d
+            .circleci/setup/init-coord.sh
+            .circleci/setup/init-ases.sh
 
-            docker-compose up -d useras4
-            docker-compose exec useras4 /bin/bash -c \
-              'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
-            docker-compose logs useras4
-
-            # Wait for client to be setup
-            echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec -T useras4 /bin/bash -c \
-              "sleep 10; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-            docker-compose exec useras4 /bin/bash -c \
-              'scmp echo -c 5 -local 20-ffaa:1:4,[127.0.0.1] -remote 20-ffaa:0:1405,[127.0.0.1]'
+      - run: .circleci/setup/check-scion-connectivity.sh
 
       # Starting upgrade integration tests
-
-      - checkout
+      - checkout:
+          name: NEW -- Checkout
 
       - run:
           name: NEW -- Rebuild and start coordinator from current branch
-          working_directory: ~/project/.circleci
           command: |
             sed -i '/.circleci/d' ~/project/.dockerignore  # The .dockerignore is for production, we'll need this
-            docker build --file ~/project/deploy/Dockerfile-django --tag scionlab_django ~/project/
-            sudo chown circleci:circleci -R ~/previous_version/run/
-            cp -r ~/previous_version/run ~/project/
-            docker-compose up -d --force-recreate --build coord huey
+            docker-compose up -d --force-recreate --build coord
+            docker-compose exec -T coord appdeps.py --interval-secs 1 --wait-secs 60 --port-wait coord:8000
+
+      - run: .circleci/setup/package-upgrade.sh
+
+      - run: .circleci/setup/check-scion-connectivity.sh
 
       - run:
-          name: NEW -- Check coordinator ready
-          working_directory: ~/project/.circleci
-          <<: *check_coordinator_ready
+          command: .circleci/setup/export-logs.sh
+          when: always
+
+      - store_artifacts:
+          path: logs
+          destination: logs
+
+  production-stack-tests:
+    machine: true
+    environment:
+      COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"
+    steps:
+      - checkout
 
       - run:
-          name: OLD -- Run client cronjob
-          working_directory: ~/previous_version/.circleci
+          name: Start stack
+          command: |
+            ln -rs .circleci/test-prod.env run/scionlab.env
+            docker-compose up --build -d
+
+      - run:
+          name: Load data from fixture to check (test) DB setup
+          command: |
+            # wait a bit for the migrations in the django-entrypoint.sh are done.
+            docker-compose exec -T django appdeps.py --interval-secs 1 --wait-secs 60 --port-wait django:8000
+            docker-compose exec -T django ./manage.py loaddata scionlab/fixtures/testdata.yaml
+
+      - run:
+          name: Check static files
           command: |
             set -x
-            # Simulate command that is executed on hosts with upgrade cronjob (VMs), upgrade package
-            for c in as1301 as1303 as1305 as1401 as1405 useras4; do
-              # We have to hide the /.dockerenv file, since the scionlab packages assume that they cannot use systemd, run systemctl when run in docker
-              docker-compose exec -T $c /bin/bash -c \
-                'echo "deb [trusted=yes] https://packages-test.netsec.inf.ethz.ch/debian all main" | sudo tee /etc/apt/sources.list.d/scionlab.list; \
-                 apt-get update; \
-                 sudo mv /.dockerenv /.dockerenv.bk; \
-                 DEBIAN_FRONTEND=noninteractive apt-get install -y --only-upgrade scionlab; \
-                 sudo mv /.dockerenv.bk /.dockerenv;'
-            done
+
+            # check that resource returned from a request to $1 is identical to the file at $2.
+            function check_static_file
+            {
+              curl --fail --silent "http://localhost/$1" --output /tmp/check_static_file.tmp
+              cmp --silent /tmp/check_static_file.tmp "$2" ||
+                { echo "The resource returned from '$1' is not identical to the file at '$2'";
+                  false; }
+            }
+            check_static_file favicon.ico scionlab/static/scionlab/images/favicon.ico
+            check_static_file static/scionlab/images/favicon.ico scionlab/static/scionlab/images/favicon.ico
+            check_static_file static/scionlab/style.css scionlab/static/scionlab/style.css
+
+            curl --silent --head --request GET "http://localhost/static/" | grep --quiet "404 Not Found" ||
+              { echo "The static/ subfolderst should not be browsable"; false; }
 
       - run:
-          name: NEW -- Check updated AS services status
-          working_directory: ~/project/.circleci
-          <<: *check_services_status
-
-      - run:
-          name: NEW -- Check SCION connections
-          working_directory: ~/project/.circleci
-          no_output_time: "3m0s"
-          <<: *check_scion_connections
-
-      - run:
-          name: NEW -- Check updated configuration matches VPN setup
-          working_directory: ~/project/.circleci
+          name: Check django reverse proxy
           command: |
-            # Check configuration on AP
-            echo "Server AP 1405 new VPN configuration"
-            docker cp ./setup/check_tun0_in_topo.py $(docker-compose ps -q as1405):/home/scionlab/
-            docker-compose exec -T as1405 /bin/bash -c \
-              "apt-get install -y jq > /dev/null 2>&1; "\
-              "jq .BorderRouters[].Interfaces /etc/scion/topology.json; "\
-              "ip address show tun0; "\
-              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/topology.json"
-            # Check configuration on client
-            echo "Client AS4 new VPN configuration"
-            docker cp ./setup/check_tun0_in_topo.py $(docker-compose ps -q useras4):/home/scionlab/
-            docker-compose exec -T useras4 /bin/bash -c \
-              "apt-get install -y jq > /dev/null 2>&1; "\
-              "jq .BorderRouters[].Interfaces /etc/scion/topology.json; "\
-              "ip address show tun0; "\
-              "python3 /home/scionlab/check_tun0_in_topo.py /etc/scion/topology.json"
+            set -x
 
-      - run:
-          name: NEW -- Check CA and server VPN certificates on server and client
-          working_directory: ~/project/.circleci
-          command: |
-            # Check that the CA certificate on the AP expires later than two years from now
-            docker-compose exec -T as1405 /bin/bash -c \
-              "awk '/^<ca>$/,/^<\/ca>$/' /etc/openvpn/server.conf | \
-               openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 2 )) -in - | tail -n 1 | grep 'will not expire'"
-            # Check that the server certificate on the AP expires later than a year from now
-            docker-compose exec -T as1405 /bin/bash -c \
-              "awk '/^<cert>$/,/^<\/cert>$/' /etc/openvpn/server.conf | \
-               openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 1 )) -in - | tail -n 1 | grep 'will not expire'"
-            # Check that the CA certificate on the user AS expires later than two years from now
-            docker-compose exec -T useras4 /bin/bash -c \
-              "awk '/^<ca>$/,/^<\/ca>$/' /etc/openvpn/client-scionlab-20-ffaa_0_1405.conf | \
-               openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 2 )) -in - | tail -n 1 | grep 'will not expire'"
-            # Check that the server certificate on the user AS expires later than a year from now
-            docker-compose exec -T useras4 /bin/bash -c \
-              "awk '/^<cert>$/,/^<\/cert>$/' /etc/openvpn/client-scionlab-20-ffaa_0_1405.conf | \
-               openssl x509 -text -checkend $(( 60 * 60 * 24 * 365 * 1 )) -in - | tail -n 1 | grep 'will not expire'"
+            # These should all exist:
+            curl --fail --silent --head --request GET "http://localhost/" > /tmp/headers.txt
+            grep --quiet "^Server: Caddy" /tmp/headers.txt
+            grep --quiet "^Server: gunicorn/" /tmp/headers.txt
+            curl --fail --silent "http://localhost/login/" > /dev/null
+            curl --fail --silent "http://localhost/topology.png" > /dev/null
+            curl --fail --silent "http://localhost/api/v2/topology/topology" > /dev/null
 
-      - run:
-          name: NEW -- Check SCION connections over VPN works
-          working_directory: ~/project/.circleci
-          command: |
-            # Add a "retry", restart the scionlab target if the tun interface did not come up in time
-            docker-compose exec -T useras4 /bin/bash -c \
-              "bash -c 'sleep 300 && systemctl restart scionlab.target' &"
-            # Wait for client to be setup
-            echo "Waiting for beaconing before starting VPN client SCMPs"
-            docker-compose exec -T useras4 /bin/bash -c \
-              "sleep 10; tail -n 0 -f /var/log/scion/* | awk '/Registered beacons/ {c++; if(c>=3) exit(0)}'"
-            docker-compose exec useras4 /bin/bash -c \
-             'scmp echo -c 5 -remote 20-ffaa:0:1405,[127.0.0.1]'
+            # This one does not:
+            curl --silent --head --request GET "http://localhost/foobar" | grep --quiet "404 Not Found"
 
 workflows:
   version: 2
-  tests:
+  lint:
     jobs:
-      - basic
-      - integration
-      - upgrade_integration:
-          filters:
-            branches:
-              only: /.*_upgrade_.*/
+      - style-check
+  unit-tests:
+    jobs:
+      - unit-tests
+  integration-tests:
+    jobs:
+      - integration-tests
+  upgrade-tests:
+    jobs:
+      - trigger-upgrade-tests:
+          type: approval
+      - upgrade-tests:
+          requires:
+            - trigger-upgrade-tests
+  production-stack-tests:
+    jobs:
+      - production-stack-tests

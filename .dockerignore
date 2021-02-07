@@ -1,4 +1,14 @@
-run # mounted as volume
-.circleci
+# run/ mounted as volume
+run
 .git
 .gitignore
+
+# Environments
+env.sh
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/

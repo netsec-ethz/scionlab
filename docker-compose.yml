@@ -1,22 +1,6 @@
 version: '3'
 
 services:
-  redis:
-    image: redis:5-alpine
-    volumes:
-      - redisdata:/data:Z
-
-  huey:
-    build:
-      context: .
-      dockerfile: deploy/Dockerfile-django
-    command: /scionlab/manage.py run_huey -w 8
-    env_file: run/scionlab.env
-    depends_on:
-      - redis
-    volumes:
-      - ./run/:/scionlab/run/
-
   django:
     build:
       context: .
@@ -24,14 +8,12 @@ services:
     env_file: run/scionlab.env
     expose:
       - "8000"
-    depends_on:
-      - huey
     volumes:
       - ./run/:/scionlab/run/:z
       - web-static:/scionlab/static/:z
 
   caddy:
-    build: ./deploy/caddy
+    image: caddy:2.2.1-alpine
     env_file: run/scionlab.env
     depends_on:
       - django
@@ -39,10 +21,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - web-static:/var/www/scionlab/static:z
-      - caddydata:/home/caddy/.caddy/:Z
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:z
+      - web-static:/srv/scionlab/static:z
+      - caddydata:/data
 
 volumes:
   web-static:
-  redisdata:
   caddydata:

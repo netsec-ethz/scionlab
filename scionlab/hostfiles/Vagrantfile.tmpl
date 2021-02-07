@@ -9,53 +9,117 @@ Vagrant.configure(2) do |config|
   $setup_scion = <<-'SCRIPT'
     set -e
 
-    echo 'install needed standard packages'
-    apt-get update >/dev/null
-    apt-get install -y apt-transport-https ntp openvpn
+    echo 'install and update system packages'
+    export DEBIAN_FRONTEND=noninteractive; export LC_ALL=C
+    apt-get update > /dev/null
+    apt-get upgrade -y -qq
+    apt-get install -y -qq apt-transport-https ca-certificates unattended-upgrades
 
     echo 'install SCIONLab'
     echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" > /etc/apt/sources.list.d/scionlab.list
-    echo -e "`crontab -l`""\n`date -d '07:00 UTC' '+%M %H'` * * * apt-get update; apt-get install -y --only-upgrade scionlab" | crontab
     apt-get update > /dev/null
-    apt-get install -y scionlab
+    apt-get install -y -qq scionlab
 
+    {#
+      time sync: virtualbox host timesync is disabled to avoid issues on hosts
+      with bad time that we cannot work around (see GetHostTimeDisabled below).
+      Instead, we use systemd-timesyncd in the VM:
+      - ntp is a lot clumsier to use and I couldn't make it reliably adjust the
+        clock after a VM pause.
+      - use the ubuntu ntp pools, from default ubuntu ntp.conf
+    #}
     echo 'configure time sync'
-    sed -i -- 's/^\(\s*start-stop-daemon\s*--start\s*--quiet\s*--oknodo\s*--exec\s*\/usr\/sbin\/VBoxService\)$/\1 -- --disable-timesync/g' /etc/init.d/virtualbox-guest-utils || true
-    systemctl daemon-reload
-    systemctl restart virtualbox-guest-utils
-    systemctl enable ntp
-    # not needed: sed -i "s/^NTPD_OPTS='\(.*\)'/NTPD_OPTS=\'\1\ -g'/g" /etc/default/ntp
-    echo -e "tinker panic 0\n" >> /etc/ntp.conf
-    sed -i 's/\(pool .*\)$/\1 minpoll 1 maxpoll 6/g' /etc/ntp.conf
+    printf '%s\n' \
+      '[Time]' \
+      'NTP=0.ubuntu.pool.ntp.org 1.ubuntu.pool.ntp.org 2.ubuntu.pool.ntp.org 3.ubuntu.pool.ntp.org' \
+      'FallbackNTP=ntp.ubuntu.com' \
+    > /etc/systemd/timesyncd.conf
+    systemctl restart systemd-timesyncd.service
 
-    echo 'configure unattended upgrades (automatic security upgrades)'
-    echo 'Unattended-Upgrade::Allowed-Origins {
-"${distro_id}:${distro_codename}-security";
-"${distro_id}ESM:${distro_codename}";
-};
-Unattended-Upgrade::Automatic-Reboot "true";
-Unattended-Upgrade::Automatic-Reboot-Time "02:00";' > /etc/apt/apt.conf.d/51unattended-upgrades-security
+    {#
+      unattended upgrades:
+      unattended-upgrades is installed by default in the ubuntu/bionic64 box,
+      this was apparently not the case for older versions. Installing it
+      explicitly (above) for good measure.
+
+      The default settings are in 50unattended-upgrades. We put our tweaks in a
+      separate file, to avoid dpkg bickering about modified files when updating
+      the unattended-upgrades package itself. Both files are processed in
+      sequence, so our file has a chance to overwrite the default settings.
+      The settings below are:
+      - Origins-Pattern "origin=*": allows unattended-upgrades to install
+        packages from any configured source; it will behave just
+        like regular apt-get update.
+        The default is more conservative; this enables updates for all system
+        repos AND specifically for the scionlab package repo.
+        C.f. https://github.com/mvo5/unattended-upgrades/blob/master/README.md
+      - Automatic-Reboot: if a package update requires a reboot, the VM will
+        reboot at 02:00.
+      - Periodic::Update-Package-Lists/Unattended-Upgrade: the minimal interval
+        in days between the consecutive action. Setting 'always' means that this
+        happens everytime the systemd timer fires (see below).
+      Helpful for testing/debugging:
+      - check the effective settings by running `apt-config dump`
+      - `unattended-upgrades --dry-run --debug`
+
+      Modify the timers to trigger upgrades more frequently and at more
+      dependable times; the default timers have large RandomizedDelay that we
+      don't want.
+      Also, ensure that the apt-daily-upgrade timer runs _after_ apt-daily, by
+      removing RandomizedDelaySec on both timers and a few minutes offset in the OnCalendar.
+      Otherwise, the upgrade step may act based on an old package list.
+      Note:
+      - Supposedly, the order is correct at boot due to an After=, but I was
+        unable to verify this: c.f.
+        https://github.com/Debian/apt/commit/496313fb8e83af2ba71f6ce3d729be687c293dfd
+      - Because OnCalendar can be specified more than once to cumulate entries,
+        we first reset it with OnCalendar=, to ensure that only our values in
+        override file are effective.
+    #}
+    echo 'configure unattended upgrades for all system and SCION package upgrades'
+    printf '%s\n' \
+      'Unattended-Upgrade::Origins-Pattern { "origin=*"; };' \
+      'Unattended-Upgrade::Automatic-Reboot "true";' \
+      'Unattended-Upgrade::Automatic-Reboot-Time "02:00";' \
+      'APT::Periodic::Update-Package-Lists "always";' \
+      'APT::Periodic::Unattended-Upgrade "always";' \
+    > /etc/apt/apt.conf.d/51unattended-upgrades-scionlab-tweaks
+    mkdir /etc/systemd/system/apt-daily.timer.d/ || true
+    printf '%s\n' \
+      '[Timer]' \
+      'OnCalendar=' \
+      'OnCalendar=07,19:00' \
+      'RandomizedDelaySec=0' \
+    > /etc/systemd/system/apt-daily.timer.d/override.conf
+    mkdir /etc/systemd/system/apt-daily-upgrade.timer.d/ || true
+    printf '%s\n' \
+      '[Timer]' \
+      'OnCalendar=' \
+      'OnCalendar=07,19:15' \
+      'RandomizedDelaySec=0' \
+    > /etc/systemd/system/apt-daily-upgrade.timer.d/override.conf
+    systemctl daemon-reload
+    systemctl restart apt-daily.timer apt-daily-upgrade.timer
 
     # Fetch configuration from coordinator and start SCION
-    scionlab-config --host-id=${host_id} --host-secret=${host_secret} --url=${url}
-
-    # TODO(juagargi): install scion-apps
-    echo "SCIONLab VM ready"
+    scionlab-config --host-id={{ host_id }} --host-secret={{ host_secret }} --url={{ url }}
   SCRIPT
 
   config.vm.box = "ubuntu/bionic64"
-  # forward border router port (unless using OpenVPN):
-${PortForwarding}
-  # forward scion dispatcher port, for running SCION endhosts connected to the AS in this VM:
-  config.vm.network "forwarded_port", guest: 30041, host: 30041, protocol: "udp"
+  {% if forwarded_ports %}
+  # forward border router ports:
+  {% for port in forwarded_ports %}
+  config.vm.network "forwarded_port", guest: {{port}}, host: {{port}}, protocol: "udp"
+  {% endfor %}
+  {% endif %}
   # forward "webapp" port:
   config.vm.network "forwarded_port", guest: 8000, host: 8000, protocol: "tcp"
   config.vm.provider "virtualbox" do |vb|
     vb.customize [ "setextradata", :id, "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", 1 ]
     vb.customize [ "modifyvm", :id, "--uartmode1", "file", File::NULL ]
     vb.memory = "2048"
-    vb.name = "${vmname}"
+    vb.name = "{{ vmname }}"
   end
-  config.vm.hostname = "${hostname}"
+  config.vm.hostname = "{{ hostname }}"
   config.vm.provision "shell", privileged: true, inline: $setup_scion
 end
