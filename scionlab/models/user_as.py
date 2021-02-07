@@ -249,9 +249,7 @@ class UserAS(AS):
                             public_port=att_conf.public_port,
                             bind_ip=att_conf.bind_ip)
 
-        # Attribute already set if coming from AttachmentConfForm.save(...)
-        att_conf.link.active = att_conf.active
-        att_conf.link.save()
+        att_conf.link.update_active(att_conf.active)
 
     def _delete_attachment(self, deleted_link: Link):
         deleted_link.delete()
@@ -337,33 +335,25 @@ class UserAS(AS):
                        .values_list('active', flat=True)
                        .all())
 
-    def _activate(self) -> Set['AttachmentPoint']:
+    def _activate(self):
         """
         Activate the first attachment point
-        :return: attachment points that shall be updated
         """
         link = self.attachment_links().first()
         if link:
             link.update_active(True)
-            return {link.interfaceA.AS.attachment_point_info}
-        return set()
 
-    def _deactivate(self) -> Set['AttachmentPoint']:
+    def _deactivate(self):
         """
         Deactivate all links with the attachment points
-        :return: attachment points that shall be updated
         """
-        attachment_points = set()
         for link in self.attachment_links():
             link.update_active(False)
-            attachment_points.add(link.interfaceA.AS.attachment_point_info)
-        return attachment_points
 
     def update_active(self, active: bool):
         """
         Set the `UserAS` to be active (or inactive) by activating (or deactivating) a consistent
-        susbent (or all) the links with attachment points.
-        This will trigger a deployment of all the attachment points configurations
+        subset (or all) the links with attachment points.
         """
         if active:
             self._activate()

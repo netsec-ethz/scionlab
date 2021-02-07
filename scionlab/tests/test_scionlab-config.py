@@ -86,6 +86,26 @@ class ScionlabConfigLiveTests(LiveServerTestCase):
         config = scionlab_config.fetch_config(self.fetch_info)
         self.assertIs(config, scionlab_config._CONFIG_EMPTY)
 
+    def test_fetch_fail_fatal(self):
+        # requests that will result in unrecoverable errors:
+        cases = [
+            {'url': self.fetch_info.url + "/bad-url"},  # not found
+            {'host_secret': 'badsecret'},  # not authorized
+            {'version': 'bad'},  # bad request
+        ]
+
+        for case in cases:
+            fetch_info = self.fetch_info._replace(**case)
+            with self.assertRaises(SystemExit):
+                scionlab_config.fetch_config(fetch_info)
+
+    def test_fetch_fail_recoverable(self):
+        # use a URL that will result in a "connection refused", which is considered a temporary
+        # error
+        fetch_info = self.fetch_info._replace(url='http://%s:0' % LiveServerTestCase.host)
+        with self.assertRaises(scionlab_config.TemporaryError):
+            scionlab_config.fetch_config(fetch_info)
+
     def test_confirm_deployed(self):
         self.host.config_version += 1
         self.host.save()

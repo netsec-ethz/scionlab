@@ -61,7 +61,7 @@ ases = [
     makeASdef(17, 0x1103, 'SWTH', '192.0.2.13'),
     makeASdef(17, 0x1107, 'ETHZ-AP', '192.0.2.17', is_ap=True),
     # eu
-    makeASdef(19, 0x1301, 'PV', '172.31.0.110', is_core=True),
+    makeASdef(19, 0x1301, 'Magdeburg core', '172.31.0.110', is_core=True),
     makeASdef(19, 0x1302, 'GEANT', '192.0.2.32', is_core=True),
     makeASdef(19, 0x1303, 'Magdeburg', '172.31.0.111', is_ap=True),
     makeASdef(19, 0x1304, 'FR@Linode', '192.0.2.34'),
@@ -90,6 +90,8 @@ links = [
     # ch-eu
     makeLinkDef(Link.CORE, 0x1101, 0x1301),
     makeLinkDef(Link.CORE, 0x1101, 0x1302),
+    # eu-kr
+    makeLinkDef(Link.CORE, 0x1301, 0x1401),
     # korea
     makeLinkDef(Link.CORE, 0x1401, 0x1402),
     makeLinkDef(Link.PROVIDER, 0x1401, 0x1403),

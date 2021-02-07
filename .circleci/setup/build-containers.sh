@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2020 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+# Extract host configuration info from testdata.yaml fixture
+python $(dirname $0)/generate-host-envs.py
 
-# Wait for DB
-appdeps.py --interval-secs 1 --wait-secs 60 --port-wait $POSTGRES_HOST:$POSTGRES_PORT
+# The .dockerignore is for production, we'll need this
+sed -i '/.circleci/d' $(dirname $0)/../../.dockerignore
 
-# Initialise/migrate DB
-/scionlab/manage.py migrate
-
-/scionlab/manage.py runserver 0.0.0.0:8000
+# Parameter specifies --build-arg package_repo=... (testing or not prod packages)
+docker-compose build "$@"

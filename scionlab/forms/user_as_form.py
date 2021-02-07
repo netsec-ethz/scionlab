@@ -104,7 +104,7 @@ class UserASForm(forms.Form):
         """
         attachment_conf_form_set = modelformset_factory(Link,
                                                         form=AttachmentConfForm,
-                                                        fields=('active',),
+                                                        fields=(),
                                                         formset=AttachmentConfFormSet,
                                                         max_num=UserAS.MAX_AP_PER_USERAS,
                                                         validate_max=True,

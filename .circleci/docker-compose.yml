@@ -1,4 +1,4 @@
-version: "2"
+version: '3'
 
 networks:
   as_net:
@@ -7,6 +7,7 @@ networks:
       driver: default
       config:
         - subnet: 172.31.0.0/16
+  coord_net: # internal for webserver / DB
 
 services:
   coord:
@@ -16,10 +17,32 @@ services:
     networks:
       as_net:
         ipv4_address: 172.31.0.10
+      coord_net:
     ports:
       - "8432:8000"
     volumes:
       - ../run/:/scionlab/run/:z
+    depends_on:
+      - coord-db
+    environment:
+      POSTGRES_HOST: coord-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: scionlab_coordinator
+      POSTGRES_USER: scionlab_rw
+      POSTGRES_PASSWORD: scionlab_rw_passw0rd
+
+  coord-db:
+    image: postgres:latest
+    networks:
+      - coord_net
+    expose:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: scionlab_coordinator
+      POSTGRES_USER: scionlab_rw
+      POSTGRES_PASSWORD: scionlab_rw_passw0rd
 
   as1301:
     build:
@@ -73,8 +96,6 @@ services:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
-    depends_on:
-      - as1401
     networks:
       as_net:
         ipv4_address: 172.31.0.114
@@ -82,12 +103,11 @@ services:
     privileged: true
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
   useras4:
     build:
       context: ..
       dockerfile: .circleci/Dockerfile-scionHost
-    depends_on:
-      - as1405
     networks:
       as_net:
         ipv4_address: 172.31.0.2
@@ -95,3 +115,6 @@ services:
     privileged: true
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+volumes:
+  pgdata:
