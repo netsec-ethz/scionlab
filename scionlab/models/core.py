@@ -404,10 +404,6 @@ class HostManager(models.Manager):
         """
         return self.filter(config_version__gt=F('config_version_deployed'))
 
-    def active(self):
-        threshold = datetime.utcnow() - datetime.timedelta(seconds=60)
-        return self.filter(config_queried_at__gt=threshold)
-
 
 class Host(models.Model):
     """

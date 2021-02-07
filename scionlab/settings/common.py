@@ -113,6 +113,9 @@ VPN_CA_KEY_PASSWORD = os.environ.get('VPN_CA_KEY_PASSWORD')
 VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_key.pem')
 VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_cert.pem')
 
+# threshold for filtering of UserAPs
+USERAP_FILTER_THRESHOLD = 60
+
 
 class VPNKeygenConf:
     # A large key size will slow down TLS negotiation performance as well as the one-time DH parms

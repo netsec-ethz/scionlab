@@ -22,11 +22,11 @@ import datetime
 from typing import List, Set
 
 from django import urls
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils.html import format_html
-from django.utils import timezone
 from django.contrib.auth.models import User
 
 from scionlab.models.core import (
@@ -416,7 +416,8 @@ class UserAS(AS):
 class AttachmentPointManager(models.Manager):
 
     def active(self):
-        threshold = timezone.now() - datetime.timedelta(seconds=60)
+        threshold = datetime.datetime.utcnow()  \
+                    - datetime.timedelta(seconds=settings.USERAP_FILTER_THRESHOLD)
         return AttachmentPoint.objects.filter(Q(AS__hosts__config_queried_at__gt=threshold) |
                                               Q(AS__owner=None))
 
