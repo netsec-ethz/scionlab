@@ -13,7 +13,7 @@
 # limitations under the License.
 from crispy_forms.bootstrap import AppendedText
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field, Column, Row
+from crispy_forms.layout import Layout, Field, Column, Row, Div
 from django import forms
 from django.forms import modelformset_factory
 from django.core.exceptions import ValidationError
@@ -38,12 +38,21 @@ def _crispy_helper(instance):
             'installation_type',
             template='scionlab/partials/installation_type_accordion.html',
         ),
-        Field(
-            'become_user_ap',
-            Row(
-                Column('public_ip', css_class='col-md-5'),
-                Column('provide_vpn', css_class='col-md-5')
+        Div(
+            Div(
+                Row(
+                    'become_user_ap',
+                ),
+                css_class="card-header",
             ),
+            Div(
+                Row(
+                    Column('public_ip', css_class='col-md-5'),
+                    Column('provide_vpn', css_class='col-md-5'),
+                ),
+                css_class="card-body", css_id="user-ap-card-body",
+            ),
+            css_class="card",
         ),
     )
 
@@ -84,12 +93,16 @@ class UserASForm(forms.Form):
     )
     become_user_ap = forms.BooleanField(
         required=False,
-        label="Become User AP",
-        help_text="Activate this to become AP"
+        label="Make this AS a publicly available Attachment Point",
+        help_text="""If this option is enabled, this AS will show up in the list of available
+        Attachment Points. All users will be able to create provider links to this AS.<br/> Your
+        host will have to run the scionlab-config daemon, in order to refresh its configuration
+        whenever other users create or modify links to your AS. Please refer to
+        <a href='https://docs.scionlab.org' target='_blank'>Tutorials</a> for more details."""
     )
     public_ip = forms.GenericIPAddressField(
         required=False,
-        help_text="IP Address that will be used for the connections"
+        help_text="Public IP Address to be used for connections to child ASes"
     )
     provide_vpn = forms.BooleanField(
         required=False,

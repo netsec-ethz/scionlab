@@ -44,6 +44,7 @@ else:
     }
 
 DATABASES = {'default': db}
+
 # ##### APPLICATION CONFIGURATION #########################
 INSTALLED_APPS += [
     'django_nose',

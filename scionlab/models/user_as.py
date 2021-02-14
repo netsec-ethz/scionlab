@@ -417,7 +417,7 @@ class AttachmentPointManager(models.Manager):
 
     def active(self):
         threshold = datetime.datetime.utcnow()  \
-                    - datetime.timedelta(seconds=settings.USERAP_FILTER_THRESHOLD)
+                    - settings.USERAP_FILTER_THRESHOLD
         return AttachmentPoint.objects.filter(Q(AS__hosts__config_queried_at__gt=threshold) |
                                               Q(AS__owner=None))
 

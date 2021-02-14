@@ -16,15 +16,12 @@ $(document).ready(function() {
     window.onbeforeunload = null;
   });
   if($('#id_user-as-become_user_ap').prop('checked')) {
-    $('#div_id_user-as-public_ip').show();
-    $('#div_id_user-as-provide_vpn').show();
+    $('#user-ap-card-body').show();
   } else {
-  $('#div_id_user-as-public_ip').hide();
-  $('#div_id_user-as-provide_vpn').hide();
+  $('#user-ap-card-body').hide();
   }  
   $('#id_user-as-become_user_ap' ).on('click', function(){
-    $('#div_id_user-as-public_ip').toggle();
-    $('#div_id_user-as-provide_vpn').toggle();
+    $('#user-ap-card-body').toggle();
     if($('#id_user-as-become_user_ap').is(':checked') == false) {
       $('#id_user-as-public_ip').val('');
     }
