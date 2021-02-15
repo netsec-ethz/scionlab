@@ -58,6 +58,7 @@ class VPNChoice(Enum):
 
 # Some test data:
 test_public_ip = '172.31.0.111'
+test_different_public_ip = '172.31.0.112'
 test_public_port = 54321
 test_bind_ip = '192.168.1.2'
 
@@ -96,6 +97,9 @@ def create_and_check_useras(testcase,
                             att_confs: List[AttachmentConf],
                             vpn_choice: VPNChoice,
                             owner,
+                            wants_user_ap=False,
+                            ap_public_ip="",
+                            wants_vpn=False,
                             installation_type=UserAS.PKG,
                             label='label foo',
                             **kwargs) -> UserAS:
@@ -110,6 +114,9 @@ def create_and_check_useras(testcase,
         installation_type,
         isd,
         label=label,
+        ap_public_ip=ap_public_ip,
+        wants_vpn=wants_vpn,
+        wants_user_ap=wants_user_ap
     )
     user_as.update_attachments(att_confs)
 
@@ -130,6 +137,9 @@ def create_and_check_useras(testcase,
                  vpn_choice,
                  installation_type,
                  label,
+                 wants_user_ap,
+                 ap_public_ip,
+                 wants_vpn,
                  **kwargs)
 
     return user_as
@@ -142,6 +152,9 @@ def check_useras(testcase,
                  vpn_choice: VPNChoice,
                  installation_type,
                  label,
+                 is_ap,
+                 ap_public_ip,
+                 wants_vpn,
                  **kwargs):
     """
     Check the state of `user_as` and `att_confs`.
@@ -152,6 +165,12 @@ def check_useras(testcase,
     testcase.assertEqual(user_as.owner, owner)
     testcase.assertEqual(user_as.label, label)
     testcase.assertEqual(user_as.installation_type, installation_type)
+    testcase.assertEqual(user_as.is_attachment_point(), is_ap)
+    if is_ap:
+        ap = user_as.attachment_point_info
+        host = user_as.hosts.first()
+        testcase.assertEqual(host.public_ip, ap_public_ip)
+        testcase.assertEqual(ap.vpn is not None, wants_vpn)
     utils.check_as(testcase, user_as)
 
     # Check that the AttachmentPoints in `att_confs` are now AttachmentPoints of the user_as
@@ -237,6 +256,7 @@ def update_useras(testcase,
                   user_as,
                   att_confs: List[AttachmentConf],
                   deleted_links: List[Link] = [],
+                  wants_user_ap=False, ap_public_ip="", wants_vpn=False,
                   **kwargs):
     """
     Update a `UserAS` and the configuration of its attachments
@@ -248,6 +268,9 @@ def update_useras(testcase,
     user_as.update(
         label=kwargs.get('label', user_as.label),
         installation_type=kwargs.get('installation_type', user_as.installation_type),
+        public_ip=ap_public_ip,
+        wants_user_ap=wants_user_ap,
+        wants_vpn=wants_vpn,
     )
     user_as.update_attachments(att_confs, deleted_links)
 
@@ -342,7 +365,8 @@ def _get_random_useras_params(seed, vpn_choice, **kwargs):
     return kwargs
 
 
-def create_and_check_random_useras(testcase, seed, as_ids, vpn_choice, **kwargs):
+def create_and_check_random_useras(testcase, seed, as_ids, vpn_choice, wants_user_ap=False,
+                                   ap_public_ip="", wants_vpn=False, **kwargs):
     """
     Create and check UserAS with "random" parameters based on `seed`.
     Any parameters to UserAS.objects.create can be specified to override the generated values.
@@ -353,11 +377,22 @@ def create_and_check_random_useras(testcase, seed, as_ids, vpn_choice, **kwargs)
                                       seed,
                                       att_confs,
                                       vpn_choice,
+                                      wants_user_ap=wants_user_ap,
+                                      ap_public_ip=ap_public_ip,
+                                      wants_vpn=wants_vpn,
                                       **_get_random_useras_params(seed, vpn_choice, **kwargs))
     return user_as, att_confs
 
 
-def check_random_useras(testcase, seed, user_as, att_confs, vpn_choice, **kwargs):
+def check_random_useras(testcase,
+                        seed,
+                        user_as,
+                        att_confs,
+                        vpn_choice,
+                        wants_user_ap=False,
+                        ap_public_ip="",
+                        wants_vpn=False,
+                        **kwargs):
     """
     Check the state of a `user_as` based on the "random" parameters generated with `seed`.
     Any parameters to UserAS.objects.create can be specified to override the generated values.
@@ -367,9 +402,12 @@ def check_random_useras(testcase, seed, user_as, att_confs, vpn_choice, **kwargs
     :param List[AttachmentConf] att_confs:
     :param User owner:
     :param VPNChoice vpn_choice:
+    :param optional bool wants_user_ap:
+    :param optional string ap_public_ip:
+    :param optional bool wants_vpn:
     """
-    check_useras(testcase=testcase, user_as=user_as, att_confs=att_confs,
-                 vpn_choice=vpn_choice,
+    check_useras(testcase=testcase, user_as=user_as, att_confs=att_confs, vpn_choice=vpn_choice,
+                 is_ap=wants_user_ap, ap_public_ip=ap_public_ip, wants_vpn=wants_vpn,
                  **_get_random_useras_params(seed, vpn_choice, **kwargs))
 
 
@@ -517,6 +555,27 @@ class CreateUserASTests(TestCase):
         seed = 1
         create_and_check_random_useras(self, seed, [as_id], VPNChoice.ALL)
 
+    @parameterized.expand(zip(testtopo_vpns_as_ids))
+    def test_create_user_ap(self, as_id):
+        seed = 1
+        create_and_check_random_useras(self,
+                                       seed,
+                                       [as_id],
+                                       VPNChoice.ALL,
+                                       wants_user_ap=True,
+                                       ap_public_ip=test_public_ip)
+
+    @parameterized.expand(zip(testtopo_vpns_as_ids))
+    def test_create_user_ap_vpn(self, as_id):
+        seed = 1
+        create_and_check_random_useras(self,
+                                       seed,
+                                       [as_id],
+                                       VPNChoice.ALL,
+                                       wants_user_ap=True,
+                                       ap_public_ip=test_public_ip,
+                                       wants_vpn=True)
+
     @patch('scionlab.models.user.User.max_num_ases', return_value=32)
     def test_create_mixed(self, mock):
         r = random.Random()
@@ -596,6 +655,83 @@ class UpdateUserASTests(TestCase):
         att_confs[0].use_vpn = False
         update_useras(self, user_as, att_confs)
         check_random_useras(self, seed, user_as, att_confs, VPNChoice.NONE)
+
+    @parameterized.expand(zip(testtopo_vpns_as_ids))
+    def test_become_user_ap(self, as_def):
+        seed = 2
+        user_as, att_confs = create_and_check_random_useras(self, seed, [as_def], VPNChoice.ALL)
+        update_useras(self, user_as, att_confs, wants_user_ap=True, ap_public_ip=test_public_ip)
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            att_confs,
+                            VPNChoice.ALL,
+                            wants_user_ap=True,
+                            ap_public_ip=test_public_ip)
+
+    @parameterized.expand(zip(testtopo_vpns_as_ids))
+    def user_ap_change_public_ip(self, as_def):
+        seed = 2
+        user_as, att_confs = create_and_check_random_useras(self,
+                                                            seed,
+                                                            [as_def],
+                                                            VPNChoice.ALL,
+                                                            wants_user_ap=True,
+                                                            ap_public_ip=test_public_ip)
+        update_useras(self,
+                      user_as,
+                      att_confs,
+                      wants_user_ap=True,
+                      ap_public_ip=test_different_public_ip)
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            att_confs,
+                            VPNChoice.ALL,
+                            wants_user_ap=True,
+                            ap_public_ip=test_different_public_ip)
+
+    @parameterized.expand(zip(testtopo_vpns_as_ids))
+    def user_ap_change_vpn(self, as_def):
+        seed = 2
+        user_as, att_confs = create_and_check_random_useras(self,
+                                                            seed,
+                                                            [as_def],
+                                                            VPNChoice.ALL,
+                                                            wants_user_ap=True,
+                                                            ap_public_ip=test_public_ip)
+        update_useras(self,
+                      user_as,
+                      att_confs,
+                      wants_user_ap=True,
+                      ap_public_ip=test_public_ip,
+                      wants_vpn=True)
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            att_confs,
+                            VPNChoice.ALL,
+                            wants_user_ap=True,
+                            ap_public_ip=test_public_ip,
+                            wants_vpn=True)
+
+    @parameterized.expand(zip(testtopo_vpns_as_ids))
+    def user_as_delete_ap(self, as_def):
+        seed = 2
+        user_as, att_confs = create_and_check_random_useras(self,
+                                                            seed,
+                                                            [as_def],
+                                                            VPNChoice.ALL,
+                                                            wants_user_ap=True,
+                                                            ap_public_ip=test_public_ip)
+        update_useras(self, user_as, att_confs, wants_user_ap=False, ap_public_ip="")
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            att_confs,
+                            VPNChoice.ALL,
+                            wants_user_ap=False,
+                            ap_public_ip="")
 
     @parameterized.expand(zip(testtopo_vpns_as_ids))
     def test_cycle_vpn(self, as_def):

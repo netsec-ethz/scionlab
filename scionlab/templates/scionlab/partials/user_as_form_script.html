@@ -17,6 +17,9 @@ $(document).ready(function() {
   });
   if($('#id_user-as-become_user_ap').prop('checked')) {
     $('#user-ap-card-body').show();
+    if($('#id_user-as-provide_vpn').prop('checked')) {
+        $('#id_user-as-provide_vpn').prop('disabled', true)
+    }
   } else {
   $('#user-ap-card-body').hide();
   }  

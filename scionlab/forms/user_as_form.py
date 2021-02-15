@@ -19,9 +19,8 @@ from django.forms import modelformset_factory
 from django.core.exceptions import ValidationError
 
 from scionlab.forms.attachment_conf_form import AttachmentConfForm, AttachmentConfFormSet
-from scionlab.models.core import Link, Host
-from scionlab.models.user_as import UserAS, AttachmentPoint
-from scionlab.models.vpn import VPN
+from scionlab.models.core import Link
+from scionlab.models.user_as import UserAS
 
 
 def _crispy_helper(instance):
@@ -136,19 +135,14 @@ class UserASForm(forms.Form):
         self.attachment_conf_form_set = self._get_attachment_conf_form_set(data, self.instance)
         initial = kwargs.pop('initial', {})
         if self.instance:
-            host = Host.objects.filter(AS=self.instance).first()
-            is_user_ap = False
-            has_vpn = False
-            if AttachmentPoint.objects.filter(AS=self.instance).first() is not None:
-                is_user_ap = True
-                ap = AttachmentPoint.objects.filter(AS=self.instance).first()
-                if ap.vpn is not None:
-                    has_vpn = True
+            host = self.instance.host
+            is_ap = self.instance.is_attachment_point()
+            has_vpn = is_ap and self.instance.attachment_point_info.vpn is not None
             initial.update({
                 'label': self.instance.label,
                 'installation_type': self.instance.installation_type,
                 'public_ip': host.public_ip,
-                'become_user_ap': is_user_ap,
+                'become_user_ap': is_ap,
                 'provide_vpn': has_vpn
             })
         self.helper = _crispy_helper(self.instance)
@@ -190,53 +184,25 @@ class UserASForm(forms.Form):
         return super().is_valid() and self.attachment_conf_form_set.is_valid()
 
     def save(self, commit=True):
-        wants_user_ap = self.cleaned_data['become_user_ap']
-        wants_vpn = self.cleaned_data['provide_vpn']
         if not self.instance:
             user_as = UserAS.objects.create(
                 owner=self.user,
                 isd=self.attachment_conf_form_set.isd,
                 installation_type=self.cleaned_data['installation_type'],
                 label=self.cleaned_data['label'],
+                ap_public_ip=self.cleaned_data['public_ip'],
+                wants_user_ap=self.cleaned_data['become_user_ap'],
+                wants_vpn=self.cleaned_data['provide_vpn'],
             )
             self.attachment_conf_form_set.save(user_as)
-            if wants_user_ap:
-                ap = AttachmentPoint.objects.create(AS=user_as)
-                host = user_as.hosts.first()
-                host.update(public_ip=self.cleaned_data['public_ip'])
-                if wants_vpn:
-                    vpn = VPN.objects.create(server=host, server_port=1194)
-                    ap.vpn = vpn
-                    ap.save()
             return user_as
         else:
             self.instance.update(
                 installation_type=self.cleaned_data['installation_type'],
-                label=self.cleaned_data['label']
+                label=self.cleaned_data['label'],
+                public_ip=self.cleaned_data['public_ip'],
+                wants_user_ap=self.cleaned_data['become_user_ap'],
+                wants_vpn=self.cleaned_data['provide_vpn'],
             )
-            host = self.instance.hosts.first()
-            host.update(public_ip=self.cleaned_data['public_ip'])
-            if self.instance.is_attachment_point():
-                # does the User already offer a VPN connection?
-                has_vpn = False
-                if VPN.objects.filter(server=self.instance.hosts.first()).first() is not None:
-                    has_vpn = True
-                if not wants_user_ap:
-                    # User unchecks the 'become ap' box meaning he will not be AP anymore
-                    if has_vpn:
-                        vpn = VPN.objects.filter(server=self.instance.hosts.first()).delete()
-                    AttachmentPoint.objects.filter(AS=self.instance).delete()
-                    Link.objects.filter(interfaceA__AS=self.instance).delete()
-                elif not has_vpn and wants_vpn:
-                    # User wants to provide a VPN for his already existing AP
-                    ap = AttachmentPoint.objects.filter(AS=self.instance).first()
-                    ap.vpn = VPN.objects.create(server=host, server_port=1194)
-                    ap.save()
-            elif wants_user_ap:
-                # a new User AP will be created
-                ap = AttachmentPoint.objects.create(AS=self.instance)
-                if wants_vpn:
-                    ap.vpn = VPN.objects.create(server=host, server_port=1194)
-                    ap.save()
             self.attachment_conf_form_set.save(self.instance)
             return self.instance
