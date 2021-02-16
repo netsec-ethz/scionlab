@@ -194,7 +194,9 @@ jobs:
       - cached_checkout
       - run:
           name: OLD -- Checkout
-          command: git checkout master
+          command: |
+            git checkout master
+            git pull --ff-only  # may be stale
       - run:
           name: OLD -- Build and start containers for coordinator and ASes
           command: |
