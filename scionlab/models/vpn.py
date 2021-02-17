@@ -35,8 +35,7 @@ class VPNManager(models.Manager):
     def create(self, server, server_port, server_vpn_ip=None, subnet=None):
         subnet = subnet or str(self._find_vpn_subnet())
         if server_vpn_ip is None:
-            server_vpn_ip = subnet[:-4]
-            server_vpn_ip = server_vpn_ip + "1"
+            server_vpn_ip = str(next(ipaddress.ip_network(subnet).hosts()))
 
         vpn = VPN(
             server=server,
@@ -49,15 +48,19 @@ class VPNManager(models.Manager):
         server.bump_config()
         return vpn
 
+    def _find_free_subnet(self, supernet, prefixlen, existing):
+        for sub in supernet.subnets(prefixlen_diff=prefixlen - supernet.prefixlen):
+            if ((not any(sub.overlaps(ipaddress.ip_network(other)) for other in existing)) and
+                    str(sub) != "10.10.0.0/24"):
+                return sub
+        return None
+
     def _find_vpn_subnet(self):
         """
         Find the next free IP subnet in form 10.10.x.0/24
         """
         existing_vpns = value_set(VPN.objects.all(), 'subnet')
-        for x in range(256):
-            if "10.10.%s.0/24" % x not in existing_vpns:
-                return "10.10.%s.0/24" % x
-        raise RuntimeError('No more subnets available')
+        return self._find_free_subnet(ipaddress.ip_network('10.10.0.0/16'), 24, existing_vpns)
 
 
 class VPN(models.Model):

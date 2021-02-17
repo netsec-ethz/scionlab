@@ -459,8 +459,7 @@ class AttachmentPointManager(models.Manager):
         infrastructure AP or if it has queried its config less than a certain time ago.
         The threshold for this is defined in the settings.
         """
-        threshold = datetime.datetime.utcnow()  \
-                    - settings.USERAP_FILTER_THRESHOLD
+        threshold = datetime.datetime.utcnow() - settings.USERAP_FILTER_THRESHOLD
         return AttachmentPoint.objects.filter(Q(AS__hosts__config_queried_at__gt=threshold) |
                                               Q(AS__owner=None))
 
