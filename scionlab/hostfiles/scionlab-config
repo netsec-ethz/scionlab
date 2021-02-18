@@ -43,6 +43,8 @@ import time
 import urllib.request
 from collections import namedtuple, OrderedDict
 
+assert sys.version_info >= (3, 6)
+
 SCRIPT_VERSION = '3.0, api/v3, October 2020'
 
 SCION_CONFIG_PATH = '/etc/scion'
