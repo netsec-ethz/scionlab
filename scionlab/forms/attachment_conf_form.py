@@ -226,6 +226,24 @@ class AttachmentConfFormHelper(FormHelper):
         self.disable_csrf = True
 
 
+class ProviderLinkWidget(forms.Select):
+    """
+    Subclass of Django's select widget that will disable options which refer to inactive APs.
+    """
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        disabled = False
+        if label.startswith('UserAP'):
+            current_as = UserAS.objects.get(as_id=label[11:]).attachment_point_info
+            if label.startswith('UserAP') and not current_as.is_active():
+                disabled = True
+        option_dict = super(ProviderLinkWidget, self)\
+            .create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        if disabled:
+            option_dict['attrs']['disabled'] = 'disabled'
+        return option_dict
+
+
 class AttachmentConfForm(forms.ModelForm):
     """
     Form for creating and updating a Link involving a UserAS
@@ -259,7 +277,7 @@ class AttachmentConfForm(forms.ModelForm):
         label="Active",
         help_text="Activate or deactivate this connection without deleting it"
     )
-    attachment_point = forms.ModelChoiceField(queryset=None)
+    attachment_point = forms.ModelChoiceField(queryset=None, widget=ProviderLinkWidget)
 
     class Meta:
         model = Link
@@ -301,7 +319,9 @@ class AttachmentConfForm(forms.ModelForm):
 
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
-        self.fields['attachment_point'].queryset = AttachmentPoint.objects.active()
+        # self.fields['attachment_point'].queryset = AttachmentPoint.objects.active()
+        # the APs are not ordered correctly (do they need to be ordered here or in the widget?)
+        self.fields['attachment_point'].queryset = AttachmentPoint.objects.all()
 
     @staticmethod
     def _get_formset_index(prefix):

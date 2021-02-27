@@ -452,6 +452,7 @@ class UserAS(AS):
 
 
 class AttachmentPointManager(models.Manager):
+    # this is not needed anymore
 
     def active(self):
         """
@@ -484,6 +485,12 @@ class AttachmentPoint(models.Model):
         if self.AS.owner is not None:
             return 'UserAP: %s' % (str(self.AS))
         return str(self.AS)
+
+    def is_active(self) -> bool:
+        threshold = datetime.datetime.utcnow() - settings.USERAP_FILTER_THRESHOLD
+        if self.AS.hosts.first().config_queried_at is None:
+            return False
+        return self.AS.hosts.first().config_queried_at > threshold
 
     def get_border_router_for_useras_interface(self) -> BorderRouter:
         """
