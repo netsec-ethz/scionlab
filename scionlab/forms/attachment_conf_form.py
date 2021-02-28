@@ -18,6 +18,7 @@ from django import forms
 from django.conf import settings
 from django.forms import BaseModelFormSet
 from django.core.exceptions import ValidationError
+from django.db.models import Case, Value, When, BooleanField
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Div, HTML
@@ -234,8 +235,8 @@ class ProviderLinkWidget(forms.Select):
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         disabled = False
         if label.startswith('UserAP'):
-            current_as = UserAS.objects.get(as_id=label[11:]).attachment_point_info
-            if label.startswith('UserAP') and not current_as.is_active():
+            current_ap = UserAS.objects.get(as_id=label[11:]).attachment_point_info
+            if label.startswith('UserAP') and not current_ap.is_active():
                 disabled = True
         option_dict = super(ProviderLinkWidget, self)\
             .create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
@@ -319,9 +320,16 @@ class AttachmentConfForm(forms.ModelForm):
 
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
-        # self.fields['attachment_point'].queryset = AttachmentPoint.objects.active()
-        # the APs are not ordered correctly (do they need to be ordered here or in the widget?)
-        self.fields['attachment_point'].queryset = AttachmentPoint.objects.all()
+        self.fields['attachment_point'].queryset = AttachmentPoint.objects.all().annotate(
+            is_user_ap=Case(
+                When(
+                    AS__owner=None,
+                    then=Value(False)
+                ),
+                default=True,
+                output_field=BooleanField()
+            )
+        ).order_by('is_user_ap', '-AS__hosts__config_queried_at')
 
     @staticmethod
     def _get_formset_index(prefix):
