@@ -101,11 +101,12 @@ class UserASForm(forms.Form):
     )
     public_ip = forms.GenericIPAddressField(
         required=False,
+        label="Public IP",
         help_text="Public IP Address to be used for connections to child ASes"
     )
     provide_vpn = forms.BooleanField(
         required=False,
-        label="provide VPN",
+        label="Provide VPN",
         help_text="Allow Users to connect to your AP via VPN"
     )
 
@@ -134,6 +135,7 @@ class UserASForm(forms.Form):
         self.instance = kwargs.pop('instance', None)
         self.attachment_conf_form_set = self._get_attachment_conf_form_set(data, self.instance)
         initial = kwargs.pop('initial', {})
+        has_vpn = False
         if self.instance:
             host = self.instance.host
             is_ap = self.instance.is_attachment_point()
@@ -147,6 +149,8 @@ class UserASForm(forms.Form):
             })
         self.helper = _crispy_helper(self.instance)
         super().__init__(data, *args, initial=initial, **kwargs)
+        if has_vpn:
+            self.fields['provide_vpn'].widget.attrs['disabled'] = 'disabled'
 
     def clean(self):
         cleaned_data = super().clean()

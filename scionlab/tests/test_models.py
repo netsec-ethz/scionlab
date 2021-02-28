@@ -23,7 +23,7 @@ from scionlab.defines import (
 )
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
 from scionlab.models.pki import Certificate, Key
-from scionlab.models.vpn import VPN
+from scionlab.models.vpn import find_free_subnet
 from scionlab.fixtures import testtopo
 from scionlab.tests import utils
 
@@ -315,17 +315,17 @@ class PortSchemeTests(TestCase):
 
 class CreateVPNTests(TestCase):
     def test_first_vpn(self):
-        test = VPN.objects._find_free_subnet(ipaddress.ip_network('10.10.0.0/16'), 24, {})
+        test = find_free_subnet(ipaddress.ip_network('10.10.0.0/16'), 24, {})
         self.assertEqual(str(test), "10.10.1.0/24")
 
     def test_second_vpn(self):
-        test = VPN.objects._find_free_subnet(ipaddress.ip_network('10.10.0.0/16'),
-                                             24,
-                                             {"10.10.1.0/24"})
+        test = find_free_subnet(ipaddress.ip_network('10.10.0.0/16'),
+                                24,
+                                {"10.10.1.0/24"})
         self.assertEqual(str(test), "10.10.2.0/24")
 
     def test_middle_vpn(self):
-        test = VPN.objects._find_free_subnet(ipaddress.ip_network('10.10.0.0/16'),
-                                             24, {"10.10.1.0/24",
-                                                  "10.10.3.0/24"})
+        test = find_free_subnet(ipaddress.ip_network('10.10.0.0/16'),
+                                24,
+                                {"10.10.1.0/24", "10.10.3.0/24"})
         self.assertEqual(str(test), "10.10.2.0/24")

@@ -17,18 +17,17 @@ $(document).ready(function() {
   });
   if($('#id_user-as-become_user_ap').prop('checked')) {
     $('#user-ap-card-body').show();
-    if($('#id_user-as-provide_vpn').prop('checked')) {
-        $('#id_user-as-provide_vpn').prop('disabled', true)
-    }
   } else {
   $('#user-ap-card-body').hide();
   }  
-  $('#id_user-as-become_user_ap' ).on('click', function(){
-    $('#user-ap-card-body').toggle();
-    if($('#id_user-as-become_user_ap').is(':checked') == false) {
-      $('#id_user-as-public_ip').val('');
+  $('#id_user-as-become_user_ap' ).on('click', function()
+    {
+      $('#user-ap-card-body').toggle();
+      if($('#id_user-as-become_user_ap').is(':checked') == false) {
+        $('#id_user-as-public_ip').val('');
+      }
     }
-  });
+  );
     
 
   function enable_savebtn() {

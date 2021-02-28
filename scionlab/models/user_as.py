@@ -40,6 +40,7 @@ from scionlab.models.vpn import VPN, VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
+    OPENVPN_SERVER_PORT,
 )
 from scionlab.scion import as_ids
 
@@ -52,7 +53,7 @@ class UserASManager(models.Manager):
                owner: User,
                installation_type: str,
                isd: int,
-               ap_public_ip: int = "",
+               ap_public_ip: str = "",
                wants_user_ap: bool = False,
                wants_vpn: bool = False,
                as_id: str = None,
@@ -62,7 +63,7 @@ class UserASManager(models.Manager):
         :param User owner: owner of this UserAS
         :param str installation_type:
         :param int isd:
-        :param int public_ip: optional public IP address for the host of the AS
+        :param str ap_public_ip: optional public IP address for the host of the AS
         :param bool wants_user_ap: optional boolean if the User AS should be AP
         :param str wants_vpn: optional boolean if the User AP should provide a VPN
         :param str as_id: optional as_id, if None is given, the next free ID is chosen
@@ -91,16 +92,14 @@ class UserASManager(models.Manager):
 
         user_as.generate_keys()
         user_as.generate_certs()
-        user_as.init_default_services()
+        user_as.init_default_services(public_ip=ap_public_ip)
 
         if wants_user_ap:
-            ap = AttachmentPoint.objects.create(AS=user_as)
             host = user_as.hosts.first()
-            host.update(public_ip=ap_public_ip)
+            vpn = None
             if wants_vpn:
-                vpn = VPN.objects.create(server=host, server_port=1194)
-                ap.vpn = vpn
-                ap.save()
+                vpn = VPN.objects.create(server=host, server_port=OPENVPN_SERVER_PORT)
+            AttachmentPoint.objects.create(AS=user_as, vpn=vpn)
 
         return user_as
 
@@ -151,7 +150,7 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def update(self, label: str, installation_type: str, public_ip: int = "",
+    def update(self, label: str, installation_type: str, public_ip: str = "",
                wants_user_ap: bool = False, wants_vpn: bool = False):
         """
         Updates the `UserAS` fields and immediately saves
@@ -163,9 +162,10 @@ class UserAS(AS):
             elif self.installation_type == UserAS.VM:
                 self._unset_bind_ips_for_vagrant()
             self.installation_type = installation_type
-        host = self.hosts.first()
+        host = self.host
         host.update(public_ip=public_ip)
         if self.is_attachment_point():
+            # the case has_vpn and not wants_vpn will be ignored here because it's not allowed
             ap = self.attachment_point_info
             # does the User already offer a VPN connection?
             has_vpn = ap.vpn is not None
@@ -177,13 +177,13 @@ class UserAS(AS):
                 Link.objects.filter(interfaceA__AS=self).delete()
             elif not has_vpn and wants_vpn:
                 # User wants to provide a VPN for his already existing AP
-                ap.vpn = VPN.objects.create(server=host, server_port=1194)
+                ap.vpn = VPN.objects.create(server=host, server_port=OPENVPN_SERVER_PORT)
                 ap.save()
         elif wants_user_ap:
             # a new User AP will be created
             ap = AttachmentPoint.objects.create(AS=self)
             if wants_vpn:
-                ap.vpn = VPN.objects.create(server=host, server_port=1194)
+                ap.vpn = VPN.objects.create(server=host, server_port=OPENVPN_SERVER_PORT)
                 ap.save()
         self.save()
 
