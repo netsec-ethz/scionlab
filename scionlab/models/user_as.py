@@ -40,7 +40,6 @@ from scionlab.models.vpn import VPN, VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
-    OPENVPN_SERVER_PORT,
 )
 from scionlab.scion import as_ids
 
@@ -98,7 +97,7 @@ class UserASManager(models.Manager):
             host = user_as.hosts.first()
             vpn = None
             if wants_vpn:
-                vpn = VPN.objects.create(server=host, server_port=OPENVPN_SERVER_PORT)
+                vpn = VPN.objects.create(server=host)
             AttachmentPoint.objects.create(AS=user_as, vpn=vpn)
 
         return user_as
@@ -177,13 +176,13 @@ class UserAS(AS):
                 Link.objects.filter(interfaceA__AS=self).delete()
             elif not has_vpn and wants_vpn:
                 # User wants to provide a VPN for his already existing AP
-                ap.vpn = VPN.objects.create(server=host, server_port=OPENVPN_SERVER_PORT)
+                ap.vpn = VPN.objects.create(server=host)
                 ap.save()
         elif wants_user_ap:
             # a new User AP will be created
             ap = AttachmentPoint.objects.create(AS=self)
             if wants_vpn:
-                ap.vpn = VPN.objects.create(server=host, server_port=OPENVPN_SERVER_PORT)
+                ap.vpn = VPN.objects.create(server=host)
                 ap.save()
         self.save()
 
