@@ -301,8 +301,6 @@ class _ConfigBuilder:
             'beaconing': {
                 'origination_interval': interval,
                 'propagation_interval': interval,
-                'rev_ttl': '20s',
-                'rev_overlap': '5s',
                 'policies': {
                     'propagation': os.path.join(self.config_dir, 'beacon_policy.yaml')
                 }
