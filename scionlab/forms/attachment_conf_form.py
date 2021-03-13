@@ -48,6 +48,10 @@ class AttachmentConfFormSet(BaseModelFormSet):
         instance = self.userASForm.instance
         isd_set = {form.cleaned_data['attachment_point'].AS.isd for form in forms}
         if instance and instance.isd_fixed():
+            if instance.is_attachment_point():
+                for form in forms:
+                    if form.cleaned_data['attachment_point'] == instance.attachment_point_info:
+                        raise ValidationError("A link to your own AP is not allowed.")
             # If ISD is fixed, say which ISD the AS is restricted to
             isd_set.add(instance.isd)
             if len(isd_set) > 1:
@@ -113,9 +117,9 @@ class AttachmentConfFormSet(BaseModelFormSet):
             if not form.cleaned_data or not form.cleaned_data['active']:
                 continue
             active_forms.append(form)
+        self.provider_links = len(active_forms)
         self._check_isd(active_forms)
         self._check_ip_ports(active_forms)
-        self.provider_links = len(active_forms)
 
     def save(self, user_as, commit=True):
         att_confs = super().save(commit=False)
