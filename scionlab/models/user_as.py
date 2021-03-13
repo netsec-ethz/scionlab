@@ -52,7 +52,7 @@ class UserASManager(models.Manager):
                owner: User,
                installation_type: str,
                isd: int,
-               ap_public_ip: str = "",
+               public_ip: str = "",
                wants_user_ap: bool = False,
                wants_vpn: bool = False,
                as_id: str = None,
@@ -62,7 +62,7 @@ class UserASManager(models.Manager):
         :param User owner: owner of this UserAS
         :param str installation_type:
         :param int isd:
-        :param str ap_public_ip: optional public IP address for the host of the AS
+        :param str public_ip: optional public IP address for the host of the AS
         :param bool wants_user_ap: optional boolean if the User AS should be AP
         :param str wants_vpn: optional boolean if the User AP should provide a VPN
         :param str as_id: optional as_id, if None is given, the next free ID is chosen
@@ -91,7 +91,7 @@ class UserASManager(models.Manager):
 
         user_as.generate_keys()
         user_as.generate_certs()
-        user_as.init_default_services(public_ip=ap_public_ip)
+        user_as.init_default_services(public_ip=public_ip)
 
         if wants_user_ap:
             host = user_as.hosts.first()

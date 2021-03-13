@@ -194,7 +194,7 @@ class UserASForm(forms.Form):
                 isd=self.attachment_conf_form_set.isd,
                 installation_type=self.cleaned_data['installation_type'],
                 label=self.cleaned_data['label'],
-                ap_public_ip=self.cleaned_data['public_ip'],
+                public_ip=self.cleaned_data['public_ip'],
                 wants_user_ap=self.cleaned_data['become_user_ap'],
                 wants_vpn=self.cleaned_data['provide_vpn'],
             )
