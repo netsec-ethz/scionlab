@@ -555,27 +555,6 @@ class CreateUserASTests(TestCase):
         seed = 1
         create_and_check_random_useras(self, seed, [as_id], VPNChoice.ALL)
 
-    @parameterized.expand(zip(testtopo_vpns_as_ids))
-    def test_create_user_ap(self, as_id):
-        seed = 1
-        create_and_check_random_useras(self,
-                                       seed,
-                                       [as_id],
-                                       VPNChoice.ALL,
-                                       wants_user_ap=True,
-                                       public_ip=test_public_ip)
-
-    @parameterized.expand(zip(testtopo_vpns_as_ids))
-    def test_create_user_ap_vpn(self, as_id):
-        seed = 1
-        create_and_check_random_useras(self,
-                                       seed,
-                                       [as_id],
-                                       VPNChoice.ALL,
-                                       wants_user_ap=True,
-                                       public_ip=test_public_ip,
-                                       wants_vpn=True)
-
     @patch('scionlab.models.user.User.max_num_ases', return_value=32)
     def test_create_mixed(self, mock):
         r = random.Random()
@@ -655,83 +634,6 @@ class UpdateUserASTests(TestCase):
         att_confs[0].use_vpn = False
         update_useras(self, user_as, att_confs)
         check_random_useras(self, seed, user_as, att_confs, VPNChoice.NONE)
-
-    @parameterized.expand(zip(testtopo_vpns_as_ids))
-    def test_become_user_ap(self, as_def):
-        seed = 2
-        user_as, att_confs = create_and_check_random_useras(self, seed, [as_def], VPNChoice.ALL)
-        update_useras(self, user_as, att_confs, wants_user_ap=True, public_ip=test_public_ip)
-        check_random_useras(self,
-                            seed,
-                            user_as,
-                            att_confs,
-                            VPNChoice.ALL,
-                            wants_user_ap=True,
-                            public_ip=test_public_ip)
-
-    @parameterized.expand(zip(testtopo_vpns_as_ids))
-    def user_ap_change_public_ip(self, as_def):
-        seed = 2
-        user_as, att_confs = create_and_check_random_useras(self,
-                                                            seed,
-                                                            [as_def],
-                                                            VPNChoice.ALL,
-                                                            wants_user_ap=True,
-                                                            public_ip=test_public_ip)
-        update_useras(self,
-                      user_as,
-                      att_confs,
-                      wants_user_ap=True,
-                      public_ip=test_different_public_ip)
-        check_random_useras(self,
-                            seed,
-                            user_as,
-                            att_confs,
-                            VPNChoice.ALL,
-                            wants_user_ap=True,
-                            public_ip=test_different_public_ip)
-
-    @parameterized.expand(zip(testtopo_vpns_as_ids))
-    def user_ap_change_vpn(self, as_def):
-        seed = 2
-        user_as, att_confs = create_and_check_random_useras(self,
-                                                            seed,
-                                                            [as_def],
-                                                            VPNChoice.ALL,
-                                                            wants_user_ap=True,
-                                                            public_ip=test_public_ip)
-        update_useras(self,
-                      user_as,
-                      att_confs,
-                      wants_user_ap=True,
-                      public_ip=test_public_ip,
-                      wants_vpn=True)
-        check_random_useras(self,
-                            seed,
-                            user_as,
-                            att_confs,
-                            VPNChoice.ALL,
-                            wants_user_ap=True,
-                            public_ip=test_public_ip,
-                            wants_vpn=True)
-
-    @parameterized.expand(zip(testtopo_vpns_as_ids))
-    def user_as_delete_ap(self, as_def):
-        seed = 2
-        user_as, att_confs = create_and_check_random_useras(self,
-                                                            seed,
-                                                            [as_def],
-                                                            VPNChoice.ALL,
-                                                            wants_user_ap=True,
-                                                            public_ip=test_public_ip)
-        update_useras(self, user_as, att_confs, wants_user_ap=False, public_ip="")
-        check_random_useras(self,
-                            seed,
-                            user_as,
-                            att_confs,
-                            VPNChoice.ALL,
-                            wants_user_ap=False,
-                            public_ip="")
 
     @parameterized.expand(zip(testtopo_vpns_as_ids))
     def test_cycle_vpn(self, as_def):
@@ -1057,3 +959,115 @@ class DeleteUserASTests(TestCase):
         )
 
         utils.check_topology(self)
+
+
+class CreateUserAttachmentPointTests(TestCase):
+    fixtures = ['testdata']
+
+    def test_create_user_ap(self):
+        seed = 123
+        r = random.Random(seed)
+        as_ids = r.choice(get_random_as_ids_combinations())
+        create_and_check_random_useras(self,
+                                       seed,
+                                       as_ids,
+                                       VPNChoice.ALL,
+                                       wants_user_ap=True,
+                                       public_ip=test_public_ip)
+
+    def test_create_user_ap_vpn(self):
+        seed = 124
+        r = random.Random(seed)
+        as_ids = r.choice(get_random_as_ids_combinations())
+        create_and_check_random_useras(self,
+                                       seed,
+                                       as_ids,
+                                       VPNChoice.ALL,
+                                       wants_user_ap=True,
+                                       public_ip=test_public_ip,
+                                       wants_vpn=True)
+
+
+class UpdateUserAttachmentPointTests(TestCase):
+    fixtures = ['testdata']
+
+    def test_become_user_ap(self):
+        seed = 1
+        ap = AttachmentPoint.objects.filter(AS__as_id='ffaa:0:1404').get()
+        as_ids = [ap.AS.as_id]
+        user_as, att_confs = create_and_check_random_useras(self, seed, as_ids, VPNChoice.ALL)
+        update_useras(self, user_as, att_confs, wants_user_ap=True, public_ip=test_public_ip)
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            att_confs,
+                            VPNChoice.ALL,
+                            wants_user_ap=True,
+                            public_ip=test_public_ip)
+
+    def user_ap_change_public_ip(self):
+        seed = 2
+        r = random.Random(seed)
+        as_ids = r.choice(get_random_as_ids_combinations())
+        user_as, att_confs = create_and_check_random_useras(self,
+                                                            seed,
+                                                            as_ids,
+                                                            VPNChoice.ALL,
+                                                            wants_user_ap=True,
+                                                            public_ip=test_public_ip)
+        update_useras(self,
+                      user_as,
+                      att_confs,
+                      wants_user_ap=True,
+                      public_ip=test_different_public_ip)
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            att_confs,
+                            VPNChoice.ALL,
+                            wants_user_ap=True,
+                            public_ip=test_different_public_ip)
+
+    def user_ap_change_vpn(self):
+        seed = 3
+        r = random.Random(seed)
+        as_ids = r.choice(get_random_as_ids_combinations())
+        user_as, att_confs = create_and_check_random_useras(self,
+                                                            seed,
+                                                            as_ids,
+                                                            VPNChoice.ALL,
+                                                            wants_user_ap=True,
+                                                            public_ip=test_public_ip)
+        update_useras(self,
+                      user_as,
+                      att_confs,
+                      wants_user_ap=True,
+                      public_ip=test_public_ip,
+                      wants_vpn=True)
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            att_confs,
+                            VPNChoice.ALL,
+                            wants_user_ap=True,
+                            public_ip=test_public_ip,
+                            wants_vpn=True)
+
+    def user_as_delete_ap(self):
+        seed = 4
+        r = random.Random(seed)
+        as_ids = r.choice(get_random_as_ids_combinations())
+        user_as, att_confs = create_and_check_random_useras(self,
+                                                            seed,
+                                                            as_ids,
+                                                            VPNChoice.ALL,
+                                                            wants_user_ap=True,
+                                                            public_ip=test_public_ip)
+        update_useras(self, user_as, att_confs, wants_user_ap=False, public_ip="")
+        check_random_useras(self,
+                            seed,
+                            user_as,
+                            att_confs,
+                            VPNChoice.ALL,
+                            wants_user_ap=False,
+                            public_ip="")
