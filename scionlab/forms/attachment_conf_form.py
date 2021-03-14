@@ -282,7 +282,11 @@ class AttachmentConfForm(forms.ModelForm):
         label="Active",
         help_text="Activate or deactivate this connection without deleting it"
     )
-    attachment_point = forms.ModelChoiceField(queryset=None, widget=ProviderLinkWidget)
+    attachment_point = forms.ModelChoiceField(
+        queryset=None,
+        widget=ProviderLinkWidget,
+        help_text="Links to User APs can disappear if the corresponding AP gets deleted."
+    )
 
     class Meta:
         model = Link
