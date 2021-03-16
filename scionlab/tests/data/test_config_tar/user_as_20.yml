@@ -332,8 +332,6 @@ gen/ASffaa_1_5/cs-1.toml: |
   [beaconing]
   origination_interval = "5s"
   propagation_interval = "5s"
-  rev_overlap = "5s"
-  rev_ttl = "20s"
 
   [general]
   config_dir = "gen/ASffaa_1_5"

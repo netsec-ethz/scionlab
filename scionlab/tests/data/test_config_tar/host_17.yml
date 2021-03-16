@@ -330,8 +330,6 @@ etc/scion/cs-1.toml: |
   [beaconing]
   origination_interval = "5s"
   propagation_interval = "5s"
-  rev_overlap = "5s"
-  rev_ttl = "20s"
 
   [general]
   config_dir = "/etc/scion"
@@ -410,7 +408,7 @@ scionlab-config.json: |-
       "etc/scion/certs/ISD20-B1-S1.trc": "66a6da3efd14c19c51c88dacd3de1534caa9b92c",
       "etc/scion/crypto/as/ISD19-ASffaa_1_2.pem": "430b7a1146e18b7696db59e79ee6cdc20fbeed59",
       "etc/scion/crypto/as/cp-as.key": "6c7c05a511790222a8bc666047ea0e1670082c7c",
-      "etc/scion/cs-1.toml": "971405d2fe08e2a2a7f6f7ad259dbd3d8746fd79",
+      "etc/scion/cs-1.toml": "84467cd10682d975caeccba3a7eaaec1bd9ea858",
       "etc/scion/keys/master0.key": "830fe170742ae27e1c8867c09a799815e7ec3dbb",
       "etc/scion/keys/master1.key": "830fe170742ae27e1c8867c09a799815e7ec3dbb",
       "etc/scion/topology.json": "5c061e2995f336aebcb64f06b25da87684e8c2b8"
