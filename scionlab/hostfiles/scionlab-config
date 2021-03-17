@@ -145,6 +145,9 @@ def parse_command_line_args(argv):
         configuration files. If a conflict occurs, e.g. if a file appears to be modified
         locally and is also changed in the new version of the configuration, the script
         asks for confirmation before overwriting the file.
+        If the user decides to keep a modified, conflicting file, the new configuration
+        file version will be installed with a .v{version} suffix for reference.
+        Use --keep to disable prompts and keep all locally modified config files.
         Use --force to overwrite all locally modified config files and disable prompts
         in case of conflicting file modifications.
         """
@@ -165,15 +168,21 @@ def parse_command_line_args(argv):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
     group_config = parser.add_argument_group('Configuration installation options')
-    group_config.add_argument('--force',
-                              action='store_true',
-                              help='Overwrite locally modified configuration files. '
-                                   'Unconditionally fetch latest configuration from SCIONLab API.')
+    force_or_keep = group_config.add_mutually_exclusive_group()
+    force_or_keep.add_argument('--force',
+                               action='store_true',
+                               help='Overwrite locally modified configuration files. '
+                                    'Unconditionally fetch latest configuration from SCIONLab API.')
+    force_or_keep.add_argument('--keep',
+                               action='store_true',
+                               help='Disable interactive prompt and always keep '
+                                    'locally modified configuration files. '
+                                    'This is enabled by default if --force is not set and '
+                                    'the stdin is not a TTY.')
     group_config.add_argument('--tar',
                               type=argparse.FileType('r'),
                               help='Install configuration from a tar-file already obtained from '
                                    'the SCIONLab coordination service')
-
     group_fetch = parser.add_argument_group('SCIONLab API options')
     group_fetch.add_argument('--host-id', help='Host identifier')
     group_fetch.add_argument('--host-secret', help='Authentication for host')
@@ -196,6 +205,10 @@ def parse_command_line_args(argv):
     else:
         if bool(args.host_id) != bool(args.host_secret):
             parser.error("arguments --host-id and --host-secret must be used together\n")
+
+    if not args.force and not args.keep:
+        args.keep = not sys.stdin.isatty()
+
     return args
 
 
@@ -400,7 +413,7 @@ def install_config(args, tar):
     new_config_info = _read_config_info_tar_member(tar)
     new_files = new_config_info.files
 
-    skip, backup = resolve_file_conflicts(args.force, old_files, new_files)
+    skip, backup = resolve_file_conflicts(args.force, args.keep, old_files, new_files)
 
     if args.force and backup:  # only warn in --force, otherwise user has already been prompted
         logging.warn("Overwriting files with local modifications, creating backup: %s",
@@ -421,13 +434,15 @@ def install_config(args, tar):
         shutil.rmtree(os.path.join(SCION_CONFIG_PATH, 'gen'), ignore_errors=True)
 
 
-def resolve_file_conflicts(force, old_files, new_files):
+def resolve_file_conflicts(force, keep, old_files, new_files):
     """
     Check for modification conflicts and determines the appropriate action, prompting the user
     where necessary. Returns the lists of files to be skipped and backed-up
 
     :returns: list of files to be skipped, list of files to backed up
     """
+    assert not (force and keep)
+
     conflicts = find_file_conflicts(old_files, new_files)
     if force:
         skip = []
@@ -435,7 +450,11 @@ def resolve_file_conflicts(force, old_files, new_files):
     else:
         unchanged = [f for f in new_files if new_files[f] == old_files.get(f, None)]
         prompts = sorted(set(conflicts) - set(unchanged))
-        skip, backup = prompt_conflicts(old_files, new_files, prompts)
+        if keep:
+            skip = prompts
+            backup = []
+        else:
+            skip, backup = prompt_conflicts(old_files, new_files, prompts)
         skip += unchanged
 
     return skip, backup

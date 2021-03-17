@@ -205,29 +205,33 @@ class ScionlabConfigUnitTests(TestCase):
         # define expected result, the list of files to be skipped, depending on
         # user input on prompt:
         expected_num_prompts = 2
-        case = namedtuple('case', ['force', 'prompt_reply', 'expected_skip', 'expected_backup'])
+        case = namedtuple('case', ['force', 'keep', 'prompt_reply', 'expected_skip',
+                                   'expected_backup'])
+        case.__new__.__defaults__ = (False, False, None, None, None)
         cases = [
             case(
                 force=True,
-                prompt_reply=None,
                 expected_skip=[],
                 expected_backup=["etc/scion/fmo.toml", "etc/scion/bar.toml", "etc/scion/egg.toml"],
             ),
             case(
-                force=False,
                 prompt_reply="backup",
                 expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml"],
                 expected_backup=["etc/scion/bar.toml", "etc/scion/egg.toml"],
             ),
             case(
-                force=False,
                 prompt_reply="keep",
                 expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml",
                                "etc/scion/bar.toml", "etc/scion/egg.toml"],
                 expected_backup=[],
             ),
             case(
-                force=False,
+                keep=True,
+                expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml",
+                               "etc/scion/bar.toml", "etc/scion/egg.toml"],
+                expected_backup=[],
+            ),
+            case(
                 prompt_reply="overwrite",
                 expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml"],
                 expected_backup=[],
@@ -245,10 +249,11 @@ class ScionlabConfigUnitTests(TestCase):
                     patch('os.path.exists', side_effect=_mock_os_path_exists), \
                     patch('scionlab_config._prompt', return_value=c.prompt_reply) as mock_prompt:
 
-                skip, backup = scionlab_config.resolve_file_conflicts(c.force, old_files, new_files)
+                skip, backup = scionlab_config.resolve_file_conflicts(c.force, c.keep,
+                                                                      old_files, new_files)
 
-                self.assertEqual(mock_prompt.call_count, expected_num_prompts if not c.force else 0,
-                                 c)
+                doprompt = not c.force and not c.keep
+                self.assertEqual(mock_prompt.call_count, expected_num_prompts if doprompt else 0, c)
                 for call in mock_prompt.call_args_list:
                     self.assertEqual(call[1]["default"], "keep", call)
 
