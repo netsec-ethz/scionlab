@@ -249,6 +249,9 @@ class ScionlabConfigUnitTests(TestCase):
 
                 self.assertEqual(mock_prompt.call_count, expected_num_prompts if not c.force else 0,
                                  c)
+                for call in mock_prompt.call_args_list:
+                    self.assertEqual(call[1]["default"], "keep", call)
+
                 self.assertEqual(sorted(skip), sorted(c.expected_skip), c)
                 self.assertEqual(sorted(backup), sorted(c.expected_backup), c)
 

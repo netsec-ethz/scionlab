@@ -469,10 +469,10 @@ def prompt_conflicts(old_files, new_files, conflicts):
         else:
             explanation = "File '/%s' exists on disk and the updated config would overwrite it." % f
 
-        question = ("Do you want to (b)ackup + replace, (o)verwrite, or (k)eep the file? "
-                    "(default: backup + replace)?")
-        options = ["backup", "overwrite", "keep", "quit"]
-        reply = _prompt(explanation, question, options, default="backup")
+        question = ("Do you want to (k)eep, (b)ackup + replace, or (o)verwrite the file? "
+                    "(default: keep)?")
+        options = ["keep", "backup", "overwrite", "quit"]
+        reply = _prompt(explanation, question, options, default="keep")
         if reply == "quit":
             sys.exit(1)
         elif reply == "keep":
