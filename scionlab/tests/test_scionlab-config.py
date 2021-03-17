@@ -158,6 +158,17 @@ class ScionlabConfigUnitTests(TestCase):
             _check_bad([f])  # individual bad fail
             _check_bad(good + [f])  # individual bad with good still fail
 
+    def test_sanity_check_version(self):
+        good = [0, 1, 10000]
+        bad = ['foo', {}, '1', '123', 1.0]
+
+        for version in good:
+            scionlab_config._sanity_check_version(version)
+
+        for version in bad:
+            with self.assertRaises(ValueError):
+                scionlab_config._sanity_check_version(version)
+
     def test_resolve_file_conflicts(self):
         # Test setup defines some files and their pseudo sha1 hashes:
         # foo: unchanged
@@ -356,11 +367,13 @@ class ScionlabConfigUnitTests(TestCase):
 
                 with patch('scionlab_config._root', side_effect=_tmproot), \
                         patch('shutil.chown'):
-                    scionlab_config.install_config_files(old_files, new_files, c.skip, tar)
+                    scionlab_config.install_config_files(old_files, new_files, c.skip, 2, tar)
 
-                expected = c.files
+                expected = c.files.copy()
                 for f in c.skip:
                     expected[f] = c.initial[f]
+                    expected[f + '.v2'] = c.files[f]
+
                 self._check_files(tmp, expected)
 
     def _to_tar(self, files):
@@ -403,4 +416,4 @@ class ScionlabConfigUnitTests(TestCase):
             if d not in expected:
                 del actual[d]
 
-        self.assertEqual(actual, expected)
+        self.assertEqual(expected, actual)
