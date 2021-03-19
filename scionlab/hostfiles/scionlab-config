@@ -54,6 +54,8 @@ CONFIG_INFO_FILE = 'scionlab-config.json'
 CONFIG_INFO_PATH = os.path.join(SCION_CONFIG_PATH, CONFIG_INFO_FILE)
 FALLBACK_CONFIG_INFO_PATH = os.path.join(SCION_CONFIG_PATH, 'gen', CONFIG_INFO_FILE)
 
+CONFNEW_SUFFIX = '.confnew'
+
 # Names for
 FALLBACK_SYSTEMD_UNIT_PATTERNS = [
     'scion-border-router', 'scion-control-service', 'scion-daemon', 'scionlab-dispatcher'
@@ -413,7 +415,7 @@ def install_config(args, tar):
     new_config_info = _read_config_info_tar_member(tar)
     new_files = new_config_info.files
 
-    skip, backup = resolve_file_conflicts(args.force, args.keep, old_files, new_files)
+    skip, confnew, backup = resolve_file_conflicts(args.force, args.keep, old_files, new_files)
 
     if args.force and backup:  # only warn in --force, otherwise user has already been prompted
         logging.warn("Overwriting files with local modifications, creating backup: %s",
@@ -421,7 +423,7 @@ def install_config(args, tar):
     backup_files(backup)
 
     stop_scion()
-    install_config_files(old_files, new_files, skip, new_config_info.version, tar)
+    install_config_files(old_files, new_files, skip, confnew, tar)
     enable_scionlab_services(old_config_info, new_config_info)
     tar.extract(CONFIG_INFO_FILE, path=SCION_CONFIG_PATH)
     shutil.chown(CONFIG_INFO_PATH, user='scion', group='scion')
@@ -437,27 +439,34 @@ def install_config(args, tar):
 def resolve_file_conflicts(force, keep, old_files, new_files):
     """
     Check for modification conflicts and determines the appropriate action, prompting the user
-    where necessary. Returns the lists of files to be skipped and backed-up
+    where necessary.
+    Returns the lists of conflicting files to skip, install as .confnew, or backup:
+        - skipped: will be ignored and not installed / removed
+        - confnew: will be installed, but with a .confnew suffix, for reference.
+        - backup: will be backed up
 
-    :returns: list of files to be skipped, list of files to backed up
+    :returns: list of files to skip, confnew, backup
     """
     assert not (force and keep)
 
     conflicts = find_file_conflicts(old_files, new_files)
     if force:
         skip = []
+        confnew = []
         backup = conflicts
     else:
-        unchanged = [f for f in new_files if new_files[f] == old_files.get(f, None)]
-        prompts = sorted(set(conflicts) - set(unchanged))
+        unchanged = [f for f in conflicts
+                     if new_files.get(f, None) == old_files.get(f, None)]
         if keep:
-            skip = prompts
+            skip = unchanged
+            confnew = set(conflicts) - set(unchanged)
             backup = []
         else:
-            skip, backup = prompt_conflicts(old_files, new_files, prompts)
-        skip += unchanged
+            prompts = sorted(set(conflicts) - set(unchanged))
+            confnew, backup = prompt_conflicts(old_files, new_files, prompts)
+            skip = unchanged
 
-    return skip, backup
+    return skip, confnew, backup
 
 
 def find_file_conflicts(old_files, new_files):
@@ -480,7 +489,7 @@ def find_file_conflicts(old_files, new_files):
 
 
 def prompt_conflicts(old_files, new_files, conflicts):
-    skip = []
+    keep = []
     backup = []
     for f in conflicts:
         if f in old_files:
@@ -495,11 +504,11 @@ def prompt_conflicts(old_files, new_files, conflicts):
         if reply == "quit":
             sys.exit(1)
         elif reply == "keep":
-            skip.append(f)
+            keep.append(f)
         elif reply == "backup":
             backup.append(f)
 
-    return skip, backup
+    return keep, backup
 
 
 def backup_files(files):
@@ -519,7 +528,7 @@ def backup_file(path, suffix):
     os.rename(path, bkname)
 
 
-def install_config_files(old_files, new_files, skip, new_version, tar):
+def install_config_files(old_files, new_files, skip, confnew, tar):
     """ Install new config files by extracting from tar, and remove old files """
 
     # safely extract files; paths in new_files (file hashes listed in the config info) has already
@@ -535,19 +544,17 @@ def install_config_files(old_files, new_files, skip, new_version, tar):
     for f in to_delete:
         os.remove(_root(f))
 
-    to_extract = set(tar.getnames()) - set(skip) - {CONFIG_INFO_FILE}
+    to_extract = set(tar.getnames()) - set(skip) - set(confnew) - {CONFIG_INFO_FILE}
     tar.extractall(path=_root(""), members=[tar.getmember(f) for f in to_extract])
     for f in to_extract:
         shutil.chown(_root(f), user='scion', group='scion')
 
-    # Also extract all new but skipped files for reference with a .v{version} suffix
-    suffix = '.v%d' % new_version
-    suffixing_tar = _SuffixingTarFile(suffix, tar)
-    to_extract_suffixed = set(suffixing_tar.getnames()).intersection(skip)
+    # Also extract all changed and skipped files for reference with a .v{version} suffix
+    suffixing_tar = _SuffixingTarFile(CONFNEW_SUFFIX, tar)
     suffixing_tar.extractall(path=_root(""),
-                             members=[tar.getmember(f) for f in to_extract_suffixed])
-    for f in to_extract_suffixed:
-        shutil.chown(_root(f+suffix), user='scion', group='scion')
+                             members=[tar.getmember(f) for f in confnew])
+    for f in confnew:
+        shutil.chown(_root(f+CONFNEW_SUFFIX), user='scion', group='scion')
 
 
 class _SuffixingTarFile(tarfile.TarFile):

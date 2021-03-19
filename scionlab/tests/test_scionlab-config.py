@@ -206,34 +206,37 @@ class ScionlabConfigUnitTests(TestCase):
         # user input on prompt:
         expected_num_prompts = 2
         case = namedtuple('case', ['force', 'keep', 'prompt_reply', 'expected_skip',
-                                   'expected_backup'])
-        case.__new__.__defaults__ = (False, False, None, None, None)
+                                   'expected_confnew', 'expected_backup'])
+        case.__new__.__defaults__ = (False, False, None, None, None, None)
         cases = [
             case(
                 force=True,
                 expected_skip=[],
+                expected_confnew=[],
                 expected_backup=["etc/scion/fmo.toml", "etc/scion/bar.toml", "etc/scion/egg.toml"],
             ),
             case(
                 prompt_reply="backup",
-                expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml"],
+                expected_skip=["etc/scion/fmo.toml"],
+                expected_confnew=[],
                 expected_backup=["etc/scion/bar.toml", "etc/scion/egg.toml"],
             ),
             case(
                 prompt_reply="keep",
-                expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml",
-                               "etc/scion/bar.toml", "etc/scion/egg.toml"],
+                expected_skip=["etc/scion/fmo.toml"],
+                expected_confnew=["etc/scion/bar.toml", "etc/scion/egg.toml"],
                 expected_backup=[],
             ),
             case(
                 keep=True,
-                expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml",
-                               "etc/scion/bar.toml", "etc/scion/egg.toml"],
+                expected_skip=["etc/scion/fmo.toml"],
+                expected_confnew=["etc/scion/bar.toml", "etc/scion/egg.toml"],
                 expected_backup=[],
             ),
             case(
                 prompt_reply="overwrite",
-                expected_skip=["etc/scion/foo.toml", "etc/scion/fmo.toml"],
+                expected_skip=["etc/scion/fmo.toml"],
+                expected_confnew=[],
                 expected_backup=[],
             ),
         ]
@@ -249,8 +252,8 @@ class ScionlabConfigUnitTests(TestCase):
                     patch('os.path.exists', side_effect=_mock_os_path_exists), \
                     patch('scionlab_config._prompt', return_value=c.prompt_reply) as mock_prompt:
 
-                skip, backup = scionlab_config.resolve_file_conflicts(c.force, c.keep,
-                                                                      old_files, new_files)
+                skip, confnew, backup = scionlab_config.resolve_file_conflicts(c.force, c.keep,
+                                                                               old_files, new_files)
 
                 doprompt = not c.force and not c.keep
                 self.assertEqual(mock_prompt.call_count, expected_num_prompts if doprompt else 0, c)
@@ -258,6 +261,7 @@ class ScionlabConfigUnitTests(TestCase):
                     self.assertEqual(call[1]["default"], "keep", call)
 
                 self.assertEqual(sorted(skip), sorted(c.expected_skip), c)
+                self.assertEqual(sorted(confnew), sorted(c.expected_confnew), c)
                 self.assertEqual(sorted(backup), sorted(c.expected_backup), c)
 
     def test_prompt(self):
@@ -317,7 +321,7 @@ class ScionlabConfigUnitTests(TestCase):
         # Each testcase consists of a description of the initial file system (and configuration
         # info) state and the new configuration.
         # Each entry represents either a text file or a directory (None value).
-        case = namedtuple('case', ['initial', 'files', 'skip'])
+        case = namedtuple('case', ['initial', 'files', 'skip', 'confnew'])
         cases = [
             case(
                 initial={},
@@ -327,6 +331,7 @@ class ScionlabConfigUnitTests(TestCase):
                     'etc/scion/dir': None,
                 },
                 skip=[],
+                confnew=[],
             ),
             case(
                 initial={
@@ -338,17 +343,21 @@ class ScionlabConfigUnitTests(TestCase):
                     'etc/scion/same': 'same',
                 },
                 skip=[],
+                confnew=[],
             ),
             case(
                 initial={
                     'etc/scion/bar/boo': 'boo',
+                    'etc/scion/bar/hoo': 'hoo',
                     'etc/scion/same': 'same',
                 },
                 files={
                     'etc/scion/bar/boo': 'newboo',
+                    'etc/scion/bar/hoo': 'newhoo',
                     'etc/scion/same': 'same',
                 },
-                skip=['etc/scion/bar/boo']
+                skip=['etc/scion/bar/boo'],
+                confnew=['etc/scion/bar/hoo']
             ),
             case(
                 initial={
@@ -359,6 +368,7 @@ class ScionlabConfigUnitTests(TestCase):
                     'etc/scion/dir/stuff': 'stuff',
                 },
                 skip=[],
+                confnew=[],
             ),
         ]
 
@@ -375,12 +385,15 @@ class ScionlabConfigUnitTests(TestCase):
 
                 with patch('scionlab_config._root', side_effect=_tmproot), \
                         patch('shutil.chown'):
-                    scionlab_config.install_config_files(old_files, new_files, c.skip, 2, tar)
+                    scionlab_config.install_config_files(old_files, new_files,
+                                                         c.skip, c.confnew, tar)
 
                 expected = c.files.copy()
                 for f in c.skip:
                     expected[f] = c.initial[f]
-                    expected[f + '.v2'] = c.files[f]
+                for f in c.confnew:
+                    expected[f] = c.initial[f]
+                    expected[f + '.confnew'] = c.files[f]
 
                 self._check_files(tmp, expected)
 
