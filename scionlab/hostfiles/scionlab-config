@@ -148,7 +148,7 @@ def parse_command_line_args(argv):
         locally and is also changed in the new version of the configuration, the script
         asks for confirmation before overwriting the file.
         If the user decides to keep a modified, conflicting file, the new configuration
-        file version will be installed with a .v{version} suffix for reference.
+        file version will be installed with a .confnew suffix for reference.
         Use --keep to disable prompts and keep all locally modified config files.
         Use --force to overwrite all locally modified config files and disable prompts
         in case of conflicting file modifications.
@@ -549,7 +549,7 @@ def install_config_files(old_files, new_files, skip, confnew, tar):
     for f in to_extract:
         shutil.chown(_root(f), user='scion', group='scion')
 
-    # Also extract all changed and skipped files for reference with a .v{version} suffix
+    # Also extract all changed and skipped files for reference with a .confnew suffix
     suffixing_tar = _SuffixingTarFile(CONFNEW_SUFFIX, tar)
     suffixing_tar.extractall(path=_root(""),
                              members=[tar.getmember(f) for f in confnew])
