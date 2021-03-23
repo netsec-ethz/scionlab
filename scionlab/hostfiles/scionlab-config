@@ -549,7 +549,7 @@ def install_config_files(old_files, new_files, skip, confnew, tar):
     for f in to_extract:
         shutil.chown(_root(f), user='scion', group='scion')
 
-    # Also extract all changed and skipped files for reference with a .confnew suffix
+    # Extract reference files with a .confnew suffix
     suffixing_tar = _SuffixingTarFile(CONFNEW_SUFFIX, tar)
     suffixing_tar.extractall(path=_root(""),
                              members=[tar.getmember(f) for f in confnew])
