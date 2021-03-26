@@ -59,6 +59,7 @@ commands:
           command: |
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
+            pip install --upgrade pip  # need recent pip version, for cryptography
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
 
       - save_cache:
