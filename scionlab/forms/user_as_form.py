@@ -165,8 +165,6 @@ class UserASForm(forms.Form):
                     'public_ip',
                     ValidationError('Please enter a public IP address to become User AP')
                 )
-            if self.attachment_conf_form_set.provider_links < 1:
-                raise ValidationError("At least one Provider Link required to be Attachment Point")
 
         return cleaned_data
 

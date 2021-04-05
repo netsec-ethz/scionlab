@@ -61,6 +61,10 @@ test_public_ip = '172.31.0.111'
 test_different_public_ip = '172.31.0.112'
 test_public_port = 54321
 test_bind_ip = '192.168.1.2'
+test_att_confs_user_as = AttachmentConf(
+    attachment_point=user_as.attachment_point_info,
+    public_ip=test_public_ip,
+    public_port=55555)
 
 
 def _randbool(r: random.Random):
@@ -1015,6 +1019,11 @@ class UpdateUserAttachmentPointTests(TestCase):
                                                             VPNChoice.ALL,
                                                             wants_user_ap=True,
                                                             public_ip=test_public_ip)
+        create_and_check_random_useras(self,
+                                       seed,
+                                       as_ids,
+                                       VPNChoice.ALL,
+                                       kwargs={"att_confs":test_att_confs_user_as})
         update_useras(self,
                       user_as,
                       att_confs,
@@ -1038,6 +1047,11 @@ class UpdateUserAttachmentPointTests(TestCase):
                                                             VPNChoice.ALL,
                                                             wants_user_ap=True,
                                                             public_ip=test_public_ip)
+        create_and_check_random_useras(self,
+                                       seed,
+                                       as_ids,
+                                       VPNChoice.ALL,
+                                       kwargs={"att_confs":test_att_confs_user_as})
         update_useras(self,
                       user_as,
                       att_confs,
@@ -1063,6 +1077,11 @@ class UpdateUserAttachmentPointTests(TestCase):
                                                             VPNChoice.ALL,
                                                             wants_user_ap=True,
                                                             public_ip=test_public_ip)
+        create_and_check_random_useras(self,
+                                       seed,
+                                       as_ids,
+                                       VPNChoice.ALL,
+                                       kwargs={"att_confs":test_att_confs_user_as})
         update_useras(self, user_as, att_confs, wants_user_ap=False, public_ip="")
         check_random_useras(self,
                             seed,

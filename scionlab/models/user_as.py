@@ -450,20 +450,6 @@ class UserAS(AS):
         return self.fixed_links().filter(type=Link.PROVIDER).exists()
 
 
-class AttachmentPointManager(models.Manager):
-    # this is not needed anymore
-
-    def active(self):
-        """
-        :returns: a queryset of all "active" APs. An AP is considered active if it is an
-        infrastructure AP or if it has queried its config less than a certain time ago.
-        The threshold for this is defined in the settings.
-        """
-        threshold = datetime.datetime.utcnow() - settings.USERAP_FILTER_THRESHOLD
-        return AttachmentPoint.objects.filter(Q(AS__hosts__config_queried_at__gt=threshold) |
-                                              Q(AS__owner=None))
-
-
 class AttachmentPoint(models.Model):
     AS = models.OneToOneField(
         AS,
@@ -477,8 +463,6 @@ class AttachmentPoint(models.Model):
         related_name='+',
         on_delete=models.SET_NULL
     )
-
-    objects = AttachmentPointManager()
 
     def __str__(self):
         if self.AS.owner is not None:

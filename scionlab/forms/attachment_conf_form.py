@@ -38,7 +38,6 @@ class AttachmentConfFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
         self.userASForm = kwargs.pop('userASForm')
         self.isd = None
-        self.provider_links = 0
         super().__init__(*args, **kwargs)
 
     def _check_isd(self, forms):
@@ -48,10 +47,6 @@ class AttachmentConfFormSet(BaseModelFormSet):
         instance = self.userASForm.instance
         isd_set = {form.cleaned_data['attachment_point'].AS.isd for form in forms}
         if instance and instance.isd_fixed():
-            if instance.is_attachment_point():
-                for form in forms:
-                    if form.cleaned_data['attachment_point'] == instance.attachment_point_info:
-                        raise ValidationError("A link to your own AP is not allowed.")
             # If ISD is fixed, say which ISD the AS is restricted to
             isd_set.add(instance.isd)
             if len(isd_set) > 1:
@@ -60,6 +55,11 @@ class AttachmentConfFormSet(BaseModelFormSet):
         else:
             if len(isd_set) > 1:
                 raise ValidationError("All attachment points must belong to the same ISD")
+
+        if instance and instance.is_attachment_point():
+            for form in forms:
+                if form.cleaned_data['attachment_point'] == instance.attachment_point_info:
+                    raise ValidationError("A link to your own AP is not allowed.")
 
         if not instance:
             if len(isd_set) == 1:
@@ -117,7 +117,6 @@ class AttachmentConfFormSet(BaseModelFormSet):
             if not form.cleaned_data or not form.cleaned_data['active']:
                 continue
             active_forms.append(form)
-        self.provider_links = len(active_forms)
         self._check_isd(active_forms)
         self._check_ip_ports(active_forms)
 
@@ -241,8 +240,8 @@ class ProviderLinkWidget(forms.Select):
         if label.startswith('UserAP'):
             current_ap = UserAS.objects.get(as_id=label[11:]).attachment_point_info
             if label.startswith('UserAP') and not current_ap.is_active():
-                disabled = True
-        option_dict = super(ProviderLinkWidget, self)\
+                disabled = False
+        option_dict = super()\
             .create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
         if disabled:
             option_dict['attrs']['disabled'] = 'disabled'
@@ -285,7 +284,7 @@ class AttachmentConfForm(forms.ModelForm):
     attachment_point = forms.ModelChoiceField(
         queryset=None,
         widget=ProviderLinkWidget,
-        help_text="Links to User APs can disappear if the corresponding AP gets deleted."
+        help_text="Links to User APs can disappear when the corresponding Attachment Point is deleted."
     )
 
     class Meta:
