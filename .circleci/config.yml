@@ -59,7 +59,6 @@ commands:
           command: |
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
-            pip install --upgrade pip  # need recent pip version, for cryptography
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
 
       - save_cache:
@@ -71,7 +70,7 @@ commands:
 jobs:
   style-check:
     docker:
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.13
     steps:
       - install_git_lfs
       - cached_checkout
@@ -90,7 +89,7 @@ jobs:
 
   unit-tests:
     docker:
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.13
     steps:
       - install_git_lfs
       - cached_checkout
