@@ -71,7 +71,7 @@ commands:
 jobs:
   style-check:
     docker:
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.13
     steps:
       - install_git_lfs
       - cached_checkout
@@ -90,7 +90,7 @@ jobs:
 
   unit-tests:
     docker:
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.13
     steps:
       - install_git_lfs
       - cached_checkout
@@ -283,7 +283,7 @@ jobs:
             # These should all exist:
             curl --fail --silent --head --request GET "http://localhost/" > /tmp/headers.txt
             grep --quiet "^Server: Caddy" /tmp/headers.txt
-            grep --quiet "^Server: gunicorn/" /tmp/headers.txt
+            grep --quiet "^Server: gunicorn" /tmp/headers.txt
             curl --fail --silent "http://localhost/login/" > /dev/null
             curl --fail --silent "http://localhost/topology.png" > /dev/null
             curl --fail --silent "http://localhost/api/v2/topology/topology" > /dev/null
