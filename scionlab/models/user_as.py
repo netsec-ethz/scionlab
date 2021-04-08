@@ -25,7 +25,6 @@ from django import urls
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
 from django.utils.html import format_html
 from django.contrib.auth.models import User
 

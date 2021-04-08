@@ -284,7 +284,8 @@ class AttachmentConfForm(forms.ModelForm):
     attachment_point = forms.ModelChoiceField(
         queryset=None,
         widget=ProviderLinkWidget,
-        help_text="Links to User APs can disappear when the corresponding Attachment Point is deleted."
+        help_text="""Links to User Attachment Points can disappear when
+                     the corresponding Attachment Point is deleted."""
     )
 
     class Meta:
