@@ -70,7 +70,7 @@ commands:
 jobs:
   style-check:
     docker:
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.13
     steps:
       - install_git_lfs
       - cached_checkout
@@ -89,7 +89,7 @@ jobs:
 
   unit-tests:
     docker:
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.13
     steps:
       - install_git_lfs
       - cached_checkout
@@ -194,7 +194,9 @@ jobs:
       - cached_checkout
       - run:
           name: OLD -- Checkout
-          command: git checkout master
+          command: |
+            git checkout master
+            git pull --ff-only  # may be stale
       - run:
           name: OLD -- Build and start containers for coordinator and ASes
           command: |
@@ -279,7 +281,7 @@ jobs:
             # These should all exist:
             curl --fail --silent --head --request GET "http://localhost/" > /tmp/headers.txt
             grep --quiet "^Server: Caddy" /tmp/headers.txt
-            grep --quiet "^Server: gunicorn/" /tmp/headers.txt
+            grep --quiet "^Server: gunicorn" /tmp/headers.txt
             curl --fail --silent "http://localhost/login/" > /dev/null
             curl --fail --silent "http://localhost/topology.png" > /dev/null
             curl --fail --silent "http://localhost/api/v2/topology/topology" > /dev/null
