@@ -235,15 +235,14 @@ class ProviderLinkWidget(forms.Select):
     Subclass of Django's select widget that will disable options which refer to inactive APs.
     """
 
+    def __init__(self, attrs=None, choices=(), disabled_choices=()):
+        super(ProviderLinkWidget, self).__init__(attrs, choices=choices)
+        self.disabled_choices = disabled_choices
+
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
-        disabled = False
-        if label.startswith('UserAP'):
-            current_ap = UserAS.objects.get(as_id=label[11:]).attachment_point_info
-            if label.startswith('UserAP') and not current_ap.is_active():
-                disabled = False
         option_dict = super()\
             .create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
-        if disabled:
+        if value in self.disabled_choices:
             option_dict['attrs']['disabled'] = 'disabled'
         return option_dict
 
@@ -283,7 +282,7 @@ class AttachmentConfForm(forms.ModelForm):
     )
     attachment_point = forms.ModelChoiceField(
         queryset=None,
-        widget=ProviderLinkWidget,
+        widget=ProviderLinkWidget(disabled_choices=[]),
         help_text="""Links to User Attachment Points can disappear when
                      the corresponding Attachment Point is deleted."""
     )
@@ -338,6 +337,11 @@ class AttachmentConfForm(forms.ModelForm):
                 output_field=BooleanField()
             )
         ).order_by('is_user_ap', '-AS__hosts__config_queried_at')
+        disabled_choices = []
+        for index, option in enumerate(self.fields['attachment_point'].queryset):
+            if option.AS.owner is not None and not option.is_active():
+                disabled_choices.append(index + 1)
+        self.fields['attachment_point'].widget.disabled_choices = disabled_choices
 
     @staticmethod
     def _get_formset_index(prefix):
