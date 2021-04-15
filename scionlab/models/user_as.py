@@ -464,6 +464,10 @@ class AttachmentPoint(models.Model):
     )
 
     def __str__(self):
+        """
+        this representation with User prefix is expected and parsed by the frontend logic
+        :return: string representation of an AP (with UserAP prefix if it has no owner)
+        """
         if self.AS.owner is not None:
             return 'UserAP: %s' % (str(self.AS))
         return str(self.AS)
