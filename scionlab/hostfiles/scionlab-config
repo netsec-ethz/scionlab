@@ -420,6 +420,9 @@ def install_config(args, tar):
     if args.force and backup:  # only warn in --force, otherwise user has already been prompted
         logging.warn("Overwriting files with local modifications, creating backup: %s",
                      ", ".join(_root(f) for f in backup))
+    if args.keep and confnew:  # only warn in --keep, ditto
+        logging.warn("Skipping files with local modifications, installing updated file with "
+                     ".confnew suffix: %s", ", ".join(_root(f) for f in confnew))
     backup_files(backup)
 
     stop_scion()
@@ -485,6 +488,12 @@ def find_file_conflicts(old_files, new_files):
     for f, h in disk_files.items():
         if (f in new_files and h != new_files[f]) and (f not in old_files or h != old_files[f]):
             conflicts.append(f)
+
+    for f in conflicts:
+        logging.debug(
+            "File conflict for %s: disk: %s, new: %s, old: %s",
+            _root(f), disk_files.get(f, "-"), new_files.get(f, "-"), old_files.get(f, "-")
+        )
     return conflicts
 
 
