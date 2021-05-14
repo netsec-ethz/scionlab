@@ -3640,7 +3640,7 @@
     ssh_host: 172.31.0.110
     uid: 9b2eedd0a1bd41d59a6c3a37a0317024
     secret: e563ae76441a44b3b225cb26e569dc72
-    config_version: 9
+    config_version: 10
     config_version_deployed: 0
     config_queried_at: null
 - model: scionlab.host
@@ -4772,6 +4772,12 @@
     AS: 20
     host: 20
     type: CS
+- model: scionlab.service
+  pk: 23
+  fields:
+    AS: 5
+    host: 5
+    type: SIG
 - model: scionlab.vpn
   pk: 1
   fields:

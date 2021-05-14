@@ -47,6 +47,14 @@ class TopologyInfo:
         self.routers = _fetch_routers(self.AS)
         self.services = _fetch_services(self.AS)
 
+        # add a dummy SIG entry (for user ASes).
+        if with_sig_dummy_entry and not any(s.type == Service.SIG for s in self.services):
+            sig = Service(AS=self.AS,
+                          host=self.AS.hosts.first(),
+                          type=Service.SIG)
+            sig.__dict__['instance_id'] = 1
+            self.services.append(sig)
+
         # AS wide entries
         self.topo = {}
         self.topo["isd_as"] = self.AS.isd_as_str()
@@ -55,9 +63,7 @@ class TopologyInfo:
 
         _topo_add_routers(self.topo, self.routers)
         _topo_add_control_services(self.topo, self.services)
-
-        if with_sig_dummy_entry:
-            _topo_add_sig_dummy_entry(self.topo, self.AS.hosts.first())
+        _topo_add_sigs(self.topo, self.services)
 
 
 def _fetch_routers(as_):
@@ -143,23 +149,23 @@ def _topo_add_control_services(topo_dict, services):
             ds_entry[instance_name] = service_instance_entry
 
 
-def _topo_add_sig_dummy_entry(topo_dict, host):
+def _topo_add_sigs(topo_dict, services):
     """
-    Add a "dummy" entry for the SIG in the topology.json, with localhost address and default
-    port.
+    Add SIG entries to the topology, with default ports.
     Note that we do not actually include any configuration for the SIG (out of scope).
     This is added to reduce the number of files that a scionlab user needs to modify when
     configuring the SIG.
     Note: this entry allows the border router to resolve SIG service address; this changes the
     error behaviour slighly when receiving packets addressed to the SIG without the SIG running.
     """
-    topo_dict["sigs"] = {
-        "sig-1": {  # id is irrelevant, not used for anything
-            "ctrl_addr": _join_host_port(host.internal_ip, SIG_CTRL_PORT),
-            "data_addr": _join_host_port(host.internal_ip, SIG_DATA_PORT),
-            # 'allow_interfaces': [...], unused for now, not setting anything
+    sigs = (s for s in services if s.type == Service.SIG)
+    for sig in sigs:
+        topo_dict["sigs"] = {
+            sig.instance_name: {
+                "ctrl_addr": _join_host_port(sig.host.internal_ip, SIG_CTRL_PORT),
+                "data_addr": _join_host_port(sig.host.internal_ip, SIG_DATA_PORT),
+            }
         }
-    }
 
 
 def _join_host_port(host, port):

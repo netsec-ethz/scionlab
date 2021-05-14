@@ -43,6 +43,7 @@ from scionlab.defines import (
     BR_METRICS_PORT_BASE,
     CS_PORT,
     CS_METRICS_PORT,
+    SIG_CTRL_PORT,
     BW_PORT,
     PP_PORT,
     DEFAULT_HOST_INTERNAL_IP,
@@ -1071,10 +1072,12 @@ class Service(models.Model):
     and for any other service that communicates using SCION.
     """
     CS = 'CS'
+    SIG = 'SIG'
     BW = 'BW'
     PP = 'PP'
     SERVICE_TYPES = (
         (CS, 'Control Service'),  # monolithic control plane service
+        (SIG, 'SCION IP Gateway'),
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
     )
@@ -1087,6 +1090,7 @@ class Service(models.Model):
     )
     SERVICE_PORTS = {
         CS: CS_PORT,
+        SIG: SIG_CTRL_PORT,
         BW: BW_PORT,
         PP: PP_PORT,
     }

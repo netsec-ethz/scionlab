@@ -107,6 +107,7 @@ links = [
 extra_services = [
     (_expand_as_id(0x1107), Service.BW),
     (_expand_as_id(0x1406), Service.BW),
+    (_expand_as_id(0x1301), Service.SIG),
 ]
 
 # VPNs for APs, except 1303
