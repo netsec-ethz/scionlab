@@ -83,6 +83,23 @@ class LinkAdminFormTests(TestCase):
         self.assertTrue(edit_form.is_valid(), edit_form.errors)
         self.assertFalse(edit_form.has_changed(), edit_form.changed_data)
 
+    def test_create_link_error(self):
+        # Create an illegal loop-back link
+        as_a = AS.objects.first()
+        form_data = dict(
+            type=Link.PROVIDER,
+            active=True,
+            bandwidth=1234,
+            mtu=2345,
+            from_host=as_a.hosts.first().pk,
+            from_public_port=50000,
+            to_host=as_a.hosts.first().pk,
+            to_public_port=50000,
+        )
+        form = LinkAdminForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('Loop AS-link', str(form.errors['__all__'][0]))
+
     def test_render_edit(self):
         ases = AS.objects.iterator()
         as_a = next(ases)
