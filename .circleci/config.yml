@@ -284,6 +284,7 @@ jobs:
             grep --quiet "^Server: Caddy" /tmp/headers.txt
             grep --quiet "^Server: gunicorn" /tmp/headers.txt
             curl --fail --silent "http://localhost/login/" > /dev/null
+            curl --fail --silent "http://localhost/topology" > /dev/null
             curl --fail --silent "http://localhost/topology.png" > /dev/null
             curl --fail --silent "http://localhost/api/v2/topology/topology" > /dev/null
 
