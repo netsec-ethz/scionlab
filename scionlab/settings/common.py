@@ -99,6 +99,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 MAINTENANCE_MODE_IGNORE_ADMIN_SITE = True
 MAINTENANCE_MODE_IGNORE_URLS = (
     r'^/$',               # home
+    r'^/topology$',   # topology map on home page
     r'^/topology.png$',   # topology map on home page
     r'^/api/',            # get config, set deployed version
 )

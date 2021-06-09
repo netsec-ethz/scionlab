@@ -72,6 +72,8 @@ urlpatterns = [
          name='user_as_detail'),
 
     path('topology.png', topology_png, name='topology.png'),
+    path('topology',
+         RedirectView.as_view(url='/topology.png')),
 
     # API:
     path('api/v3/host/<slug:uid>/config',
