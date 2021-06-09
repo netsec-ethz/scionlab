@@ -95,9 +95,9 @@ django-registration==3.1.2 \
     --hash=sha256:c9985f9ffd123534026bf5f39adb0b48fd7bf930b965f27f9a487d135f377ac6 \
     --hash=sha256:dde525b08880da1d72b556f19dfd1c6588233a43f8bc354481f2d3e8896c44f8
     # via -r requirements.in
-django==3.2 \
-    --hash=sha256:0604e84c4fb698a5e53e5857b5aea945b2f19a18f25f10b8748dbdf935788927 \
-    --hash=sha256:21f0f9643722675976004eb683c55d33c05486f94506672df3d6a141546f389d
+django==3.2.4 \
+    --hash=sha256:66c9d8db8cc6fe938a28b7887c1596e42d522e27618562517cc8929eb7e7f296 \
+    --hash=sha256:ea735cbbbb3b2fba6d4da4784a0043d84c67c92f1fdf15ad6db69900e792c10f
     # via
     #   -r requirements.in
     #   django-extensions
@@ -324,9 +324,9 @@ typing-extensions==3.7.4.3 \
     --hash=sha256:99d4073b617d30288f569d3f13d2bd7548c3a7e4c8de87db09a9d29bb3a4a60c \
     --hash=sha256:dafc7639cde7f1b6e1acc0f457842a83e722ccca8eef5270af2d74792619a89f
     # via asgiref
-urllib3==1.26.4 \
-    --hash=sha256:2f4da4594db7e1e110a944bb1b551fdf4e6c136ad42e4234131391e21eb5b0df \
-    --hash=sha256:e7b021f7241115872f92f43c6508082facffbd1c048e3c6e2bb9c2a157e28937
+urllib3==1.26.5 \
+    --hash=sha256:753a0374df26658f99d826cfe40394a686d05985786d946fbe4165b5148f5a7c \
+    --hash=sha256:a7acd0977125325f516bda9735fa7142b909a8d01e8b2e4c8108d0984e6e0098
     # via requests
 
 # WARNING: The following packages were not pinned, but pip requires them to be
