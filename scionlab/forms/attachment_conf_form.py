@@ -18,6 +18,7 @@ from django import forms
 from django.conf import settings
 from django.forms import BaseModelFormSet
 from django.core.exceptions import ValidationError
+from django.db.models import Case, Value, When, BooleanField
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Div, HTML
@@ -54,6 +55,11 @@ class AttachmentConfFormSet(BaseModelFormSet):
         else:
             if len(isd_set) > 1:
                 raise ValidationError("All attachment points must belong to the same ISD")
+
+        if instance and instance.is_attachment_point():
+            for form in forms:
+                if form.cleaned_data['attachment_point'] == instance.attachment_point_info:
+                    raise ValidationError("A link to your own AP is not allowed.")
 
         if not instance:
             if len(isd_set) == 1:
@@ -224,6 +230,23 @@ class AttachmentConfFormHelper(FormHelper):
         self.disable_csrf = True
 
 
+class ProviderLinkWidget(forms.Select):
+    """
+    Subclass of Django's select widget that will disable options which refer to inactive APs.
+    """
+
+    def __init__(self, attrs=None, choices=(), disabled_choices=()):
+        super(ProviderLinkWidget, self).__init__(attrs, choices=choices)
+        self.disabled_choices = disabled_choices
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option_dict = super()\
+            .create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        if value in self.disabled_choices:
+            option_dict['attrs']['disabled'] = 'disabled'
+        return option_dict
+
+
 class AttachmentConfForm(forms.ModelForm):
     """
     Form for creating and updating a Link involving a UserAS
@@ -257,7 +280,12 @@ class AttachmentConfForm(forms.ModelForm):
         label="Active",
         help_text="Activate or deactivate this connection without deleting it"
     )
-    attachment_point = forms.ModelChoiceField(queryset=AttachmentPoint.objects)
+    attachment_point = forms.ModelChoiceField(
+        queryset=None,
+        widget=ProviderLinkWidget(disabled_choices=[]),
+        help_text="""Links to User Attachment Points can disappear when
+                     the corresponding Attachment Point is deleted."""
+    )
 
     class Meta:
         model = Link
@@ -299,6 +327,21 @@ class AttachmentConfForm(forms.ModelForm):
 
         self.helper = AttachmentConfFormHelper(instance, userAS)
         super().__init__(*args, initial=initial, **kwargs)
+        self.fields['attachment_point'].queryset = AttachmentPoint.objects.all().annotate(
+            is_user_ap=Case(
+                When(
+                    AS__owner=None,
+                    then=Value(False)
+                ),
+                default=True,
+                output_field=BooleanField()
+            )
+        ).order_by('is_user_ap', '-AS__hosts__config_queried_at')
+        disabled_choices = []
+        for index, option in enumerate(self.fields['attachment_point'].queryset):
+            if option.AS.owner is not None and not option.is_active():
+                disabled_choices.append(index + 1)
+        self.fields['attachment_point'].widget.disabled_choices = disabled_choices
 
     @staticmethod
     def _get_formset_index(prefix):

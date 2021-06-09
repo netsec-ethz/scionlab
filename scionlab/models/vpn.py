@@ -29,10 +29,24 @@ from scionlab.openvpn_config import (
     get_cert_common_name,
 )
 from scionlab.util.django import value_set
+from scionlab.defines import OPENVPN_SERVER_PORT
+
+
+def find_free_subnet(supernet, prefixlen, existing):
+    subnets = supernet.subnets(prefixlen_diff=prefixlen - supernet.prefixlen)
+    next(subnets)
+    for sub in subnets:
+        if not any(sub.overlaps(ipaddress.ip_network(other)) for other in existing):
+            return sub
+    return None
 
 
 class VPNManager(models.Manager):
-    def create(self, server, server_port, subnet, server_vpn_ip):
+    def create(self, server, server_port=OPENVPN_SERVER_PORT, server_vpn_ip=None, subnet=None):
+        subnet = subnet or str(self._find_vpn_subnet())
+        if server_vpn_ip is None:
+            server_vpn_ip = str(next(ipaddress.ip_network(subnet).hosts()))
+
         vpn = VPN(
             server=server,
             server_port=server_port,
@@ -43,6 +57,13 @@ class VPNManager(models.Manager):
         vpn.save()
         server.bump_config()
         return vpn
+
+    def _find_vpn_subnet(self):
+        """
+        Find the next free IP subnet in form 10.10.x.0/24
+        """
+        existing_vpns = value_set(VPN.objects.all(), 'subnet')
+        return find_free_subnet(ipaddress.ip_network('10.10.0.0/16'), 24, existing_vpns)
 
 
 class VPN(models.Model):

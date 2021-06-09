@@ -18,9 +18,11 @@
 """
 
 import ipaddress
+import datetime
 from typing import List, Set
 
 from django import urls
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.html import format_html
@@ -33,7 +35,7 @@ from scionlab.models.core import (
     BorderRouter,
     Host
 )
-from scionlab.models.vpn import VPNClient
+from scionlab.models.vpn import VPN, VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
@@ -49,6 +51,9 @@ class UserASManager(models.Manager):
                owner: User,
                installation_type: str,
                isd: int,
+               public_ip: str = "",
+               wants_user_ap: bool = False,
+               wants_vpn: bool = False,
                as_id: str = None,
                label: str = None) -> 'UserAS':
         """Create a UserAS
@@ -56,6 +61,9 @@ class UserASManager(models.Manager):
         :param User owner: owner of this UserAS
         :param str installation_type:
         :param int isd:
+        :param str public_ip: optional public IP address for the host of the AS
+        :param bool wants_user_ap: optional boolean if the User AS should be AP
+        :param str wants_vpn: optional boolean if the User AP should provide a VPN
         :param str as_id: optional as_id, if None is given, the next free ID is chosen
         :param str label: optional label
 
@@ -82,7 +90,14 @@ class UserASManager(models.Manager):
 
         user_as.generate_keys()
         user_as.generate_certs()
-        user_as.init_default_services()
+        user_as.init_default_services(public_ip=public_ip)
+
+        if wants_user_ap:
+            host = user_as.hosts.first()
+            vpn = None
+            if wants_vpn:
+                vpn = VPN.objects.create(server=host)
+            AttachmentPoint.objects.create(AS=user_as, vpn=vpn)
 
         return user_as
 
@@ -133,7 +148,8 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def update(self, label: str, installation_type: str):
+    def update(self, label: str, installation_type: str, public_ip: str = "",
+               wants_user_ap: bool = False, wants_vpn: bool = False):
         """
         Updates the `UserAS` fields and immediately saves
         """
@@ -144,6 +160,29 @@ class UserAS(AS):
             elif self.installation_type == UserAS.VM:
                 self._unset_bind_ips_for_vagrant()
             self.installation_type = installation_type
+        host = self.host
+        host.update(public_ip=public_ip)
+        if self.is_attachment_point():
+            # the case has_vpn and not wants_vpn will be ignored here because it's not allowed
+            ap = self.attachment_point_info
+            # does the User already offer a VPN connection?
+            has_vpn = ap.vpn is not None
+            if not wants_user_ap:
+                # User unchecks the 'become ap' box meaning he will not be AP anymore
+                if has_vpn:
+                    ap.vpn.delete()
+                ap.delete()
+                Link.objects.filter(interfaceA__AS=self).delete()
+            elif not has_vpn and wants_vpn:
+                # User wants to provide a VPN for his already existing AP
+                ap.vpn = VPN.objects.create(server=host)
+                ap.save()
+        elif wants_user_ap:
+            # a new User AP will be created
+            ap = AttachmentPoint.objects.create(AS=self)
+            if wants_vpn:
+                ap.vpn = VPN.objects.create(server=host)
+                ap.save()
         self.save()
 
     def update_attachments(self,
@@ -425,7 +464,19 @@ class AttachmentPoint(models.Model):
     )
 
     def __str__(self):
+        """
+        this representation with User prefix is expected and parsed by the frontend logic
+        :return: string representation of an AP (with UserAP prefix if it has no owner)
+        """
+        if self.AS.owner is not None:
+            return 'UserAP: %s' % (str(self.AS))
         return str(self.AS)
+
+    def is_active(self) -> bool:
+        threshold = datetime.datetime.utcnow() - settings.USERAP_FILTER_THRESHOLD
+        if self.AS.hosts.first().config_queried_at is None:
+            return False
+        return self.AS.hosts.first().config_queried_at > threshold
 
     def get_border_router_for_useras_interface(self) -> BorderRouter:
         """

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import ipaddress
 
 from unittest.mock import patch
 from django.test import TestCase
@@ -22,6 +23,7 @@ from scionlab.defines import (
 )
 from scionlab.models.core import ISD, AS, Link, Host, Interface, BorderRouter, Service
 from scionlab.models.pki import Certificate, Key
+from scionlab.models.vpn import find_free_subnet
 from scionlab.fixtures import testtopo
 from scionlab.tests import utils
 
@@ -309,3 +311,21 @@ class PortSchemeTests(TestCase):
             ports_in_use.add(br.control_port)
             self.assertNotIn(br.metrics_port, ports_in_use)
             ports_in_use.add(br.metrics_port)
+
+
+class CreateVPNTests(TestCase):
+    def test_first_vpn(self):
+        test = find_free_subnet(ipaddress.ip_network('10.10.0.0/16'), 24, {})
+        self.assertEqual(str(test), "10.10.1.0/24")
+
+    def test_second_vpn(self):
+        test = find_free_subnet(ipaddress.ip_network('10.10.0.0/16'),
+                                24,
+                                {"10.10.1.0/24"})
+        self.assertEqual(str(test), "10.10.2.0/24")
+
+    def test_middle_vpn(self):
+        test = find_free_subnet(ipaddress.ip_network('10.10.0.0/16'),
+                                24,
+                                {"10.10.1.0/24", "10.10.3.0/24"})
+        self.assertEqual(str(test), "10.10.2.0/24")

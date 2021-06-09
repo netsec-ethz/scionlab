@@ -371,6 +371,9 @@ class AS(TimestampedModel):
         """
         return _base64encode(os.urandom(16))
 
+    def is_attachment_point(self):
+        return hasattr(self, 'attachment_point_info')
+
 
 class HostManager(models.Manager):
     use_in_migrations = True

@@ -16,6 +16,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
+
 version: 2.1
 
 commands:
@@ -149,6 +150,7 @@ jobs:
             [ "$prev_version" -lt "$new_version" ]
 
       - run: .circleci/setup/check-scion-connectivity.sh
+
 
       - run:
           name: Test TRC update and pull changes

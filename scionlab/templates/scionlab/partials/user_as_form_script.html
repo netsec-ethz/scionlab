@@ -15,15 +15,32 @@ $(document).ready(function() {
   $(".savebtn ").click(function(){
     window.onbeforeunload = null;
   });
+  if($('#id_user-as-become_user_ap').prop('checked')) {
+    $('#user-ap-card-body').show();
+  } else {
+  $('#user-ap-card-body').hide();
+  }  
+  $('#id_user-as-become_user_ap' ).on('click', function()
+    {
+      $('#user-ap-card-body').toggle();
+      if($('#id_user-as-become_user_ap').is(':checked') == false) {
+        $('#id_user-as-public_ip').val('');
+      }
+    }
+  );
 
   function enable_savebtn() {
     $(".savebtn").removeAttr('disabled');
     window.onbeforeunload = function() { return ""; }
   }
 
-  // Handle attachment point VPN availability:
+  // Handle attachment point help text and VPN availability:
   $(".attachment").each(function() {
     let sel = $(this).find("select[id*='attachment_point']");
+    // A wrapper to call `update_user_ap_help_text_show` with `$(this)` as its argument
+    function _update_user_ap_help_text_show () { update_user_ap_help_text_show($(this)) }
+    update_user_ap_help_text_show(sel);
+    sel.change(_update_user_ap_help_text_show)
     // A wrapper to call `update_use_vpn_enable` with `$(this)` as its argument
     function _update_use_vpn_enable () { update_use_vpn_enable($(this)) }
     sel.change(_update_use_vpn_enable)
@@ -126,4 +143,17 @@ function update_ip_fields_show(toggle) {
     bind_options_collapser.show();
   }
 }
+
+// hide/show the help text for attachments depending on whether the selected AP is a UserAP.
+function update_user_ap_help_text_show(toggle) {
+  let attachment = toggle.closest('.attachment');
+  let help_text = attachment.find("small[id*='attachment_point']")
+  let selected_index = toggle.prop("selectedIndex")
+  if(toggle.prop("options")[selected_index].text.startsWith("User")) {
+    help_text.show();
+  } else {
+    help_text.hide();
+  }
+}
+
 </script>
