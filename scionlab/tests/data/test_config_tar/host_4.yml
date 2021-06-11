@@ -141,17 +141,6 @@ etc/scion/br-1.toml: |
 
   [log.console]
   level = "info"
-etc/scion/br-2.toml: |
-  [general]
-  config_dir = "/etc/scion"
-  id = "br-2"
-  reconnect_to_dispatcher = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30402"
-
-  [log.console]
-  level = "info"
 etc/scion/certs/ISD17-B1-S1.trc: !!binary |
   MIIMDQYJKoZIhvcNAQcCoIIL/jCCC/oCAQExDzANBglghkgBZQMEAgMFADCCCHIGCSqGSIb3DQEH
   AaCCCGMEgghfMIIIWwIBADAJAgERAgEBAgEBMCIYDzIwMjEwMTIwMDYxNzM0WhgPMjAyMzAxMjAw
@@ -513,13 +502,7 @@ etc/scion/topology.json: |-
               "public": "192.0.2.17:50000",
               "remote": "192.0.2.12:50001"
             }
-          }
-        },
-        "internal_addr": "127.0.0.1:30001"
-      },
-      "br-2": {
-        "ctrl_addr": "127.0.0.1:30202",
-        "interfaces": {
+          },
           "2": {
             "bandwidth": 1000,
             "isd_as": "17-ffaa:1:1",
@@ -541,7 +524,7 @@ etc/scion/topology.json: |-
             }
           }
         },
-        "internal_addr": "127.0.0.1:30002"
+        "internal_addr": "127.0.0.1:30001"
       }
     },
     "control_service": {
@@ -564,7 +547,6 @@ scionlab-config.json: |-
       "etc/openvpn/server.conf": "4da81a8209247858c583fcda94c7b617381d64ab",
       "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
       "etc/scion/br-1.toml": "93b34c926178d1ea7c422d7d9fa2d8d7dd770d3b",
-      "etc/scion/br-2.toml": "3e4c3c9c65f706f6792830ce68e3ae0d6b394a1f",
       "etc/scion/certs/ISD17-B1-S1.trc": "6e20b26b9831223ff8557b88cf7e2a3a441619b0",
       "etc/scion/certs/ISD19-B1-S1.trc": "b91dfb74d7f9d24d7cd81b53fdc2ffd820b1f46c",
       "etc/scion/certs/ISD20-B1-S1.trc": "66a6da3efd14c19c51c88dacd3de1534caa9b92c",
@@ -573,13 +555,12 @@ scionlab-config.json: |-
       "etc/scion/cs-1.toml": "84467cd10682d975caeccba3a7eaaec1bd9ea858",
       "etc/scion/keys/master0.key": "73184546f40ab4bc57870965e4a5896105a8ca2a",
       "etc/scion/keys/master1.key": "73184546f40ab4bc57870965e4a5896105a8ca2a",
-      "etc/scion/topology.json": "919e85f60aa61648a1d45d792fda85581c0537f4"
+      "etc/scion/topology.json": "6febb6e9910b8291d46bbc2767ae6f75ee820457"
     },
     "host_id": "ab0189ab83c940f88b0e16d51136e441",
     "host_secret": "8a6244bc807f481092cca4b70e8be75b",
     "systemd_units": [
       "scion-border-router@br-1.service",
-      "scion-border-router@br-2.service",
       "scion-control-service@cs-1.service",
       "scion-bwtestserver.service",
       "scion-daemon.service",

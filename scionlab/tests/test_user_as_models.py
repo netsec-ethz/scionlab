@@ -231,25 +231,8 @@ def _check_attachment_point(testcase, attachment_point: AttachmentPoint):
     """
     Check the assignment of interfaces to border routers in the attachment point.
     """
-
     host = attachment_point._get_host_for_useras_attachment()
-    border_routers = list(host.border_routers.all())
-
-    # The first BR is for the infrastructure links and also contains the inactive interfaces.
-    infra_br = border_routers.pop(0)
-    for iface in infra_br.interfaces.iterator():
-        testcase.assertTrue(iface.remote_as().owner is None or not iface.link().active)
-
-    # The other BRs contain up to 10 interfaces each.
-    MAX_IFACES = 10
-    for br in border_routers:
-        # Expecting only active interfaces in these BRs
-        testcase.assertTrue(all(interface.link().active for interface in br.interfaces.iterator()))
-        c = br.interfaces.count()
-        if br == border_routers[-1]:  # only last one can have less than max
-            testcase.assertLessEqual(c, MAX_IFACES)
-        else:
-            testcase.assertEqual(c, MAX_IFACES)
+    testcase.assertEqual(host.border_routers.count(), 1)
 
 
 def update_useras(testcase,
