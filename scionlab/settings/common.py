@@ -14,6 +14,7 @@
 
 # Python imports
 import os
+import datetime
 
 # ##### PATH CONFIGURATION ################################
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -98,6 +99,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 MAINTENANCE_MODE_IGNORE_ADMIN_SITE = True
 MAINTENANCE_MODE_IGNORE_URLS = (
     r'^/$',               # home
+    r'^/topology$',   # topology map on home page
     r'^/topology.png$',   # topology map on home page
     r'^/api/',            # get config, set deployed version
 )
@@ -112,6 +114,9 @@ GRAFANA_URL = "https://prometheus.scionlab.org"
 VPN_CA_KEY_PASSWORD = os.environ.get('VPN_CA_KEY_PASSWORD')
 VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_key.pem')
 VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'root_ca_cert.pem')
+
+# threshold for filtering of UserAPs
+USERAP_FILTER_THRESHOLD = datetime.timedelta(seconds=60)
 
 
 class VPNKeygenConf:

@@ -18,9 +18,11 @@
 """
 
 import ipaddress
+import datetime
 from typing import List, Set
 
 from django import urls
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.html import format_html
@@ -33,7 +35,7 @@ from scionlab.models.core import (
     BorderRouter,
     Host
 )
-from scionlab.models.vpn import VPNClient
+from scionlab.models.vpn import VPN, VPNClient
 from scionlab.defines import (
     USER_AS_ID_BEGIN,
     USER_AS_ID_END,
@@ -49,6 +51,9 @@ class UserASManager(models.Manager):
                owner: User,
                installation_type: str,
                isd: int,
+               public_ip: str = "",
+               wants_user_ap: bool = False,
+               wants_vpn: bool = False,
                as_id: str = None,
                label: str = None) -> 'UserAS':
         """Create a UserAS
@@ -56,6 +61,9 @@ class UserASManager(models.Manager):
         :param User owner: owner of this UserAS
         :param str installation_type:
         :param int isd:
+        :param str public_ip: optional public IP address for the host of the AS
+        :param bool wants_user_ap: optional boolean if the User AS should be AP
+        :param str wants_vpn: optional boolean if the User AP should provide a VPN
         :param str as_id: optional as_id, if None is given, the next free ID is chosen
         :param str label: optional label
 
@@ -82,7 +90,14 @@ class UserASManager(models.Manager):
 
         user_as.generate_keys()
         user_as.generate_certs()
-        user_as.init_default_services()
+        user_as.init_default_services(public_ip=public_ip)
+
+        if wants_user_ap:
+            host = user_as.hosts.first()
+            vpn = None
+            if wants_vpn:
+                vpn = VPN.objects.create(server=host)
+            AttachmentPoint.objects.create(AS=user_as, vpn=vpn)
 
         return user_as
 
@@ -133,7 +148,8 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def update(self, label: str, installation_type: str):
+    def update(self, label: str, installation_type: str, public_ip: str = "",
+               wants_user_ap: bool = False, wants_vpn: bool = False):
         """
         Updates the `UserAS` fields and immediately saves
         """
@@ -144,6 +160,29 @@ class UserAS(AS):
             elif self.installation_type == UserAS.VM:
                 self._unset_bind_ips_for_vagrant()
             self.installation_type = installation_type
+        host = self.host
+        host.update(public_ip=public_ip)
+        if self.is_attachment_point():
+            # the case has_vpn and not wants_vpn will be ignored here because it's not allowed
+            ap = self.attachment_point_info
+            # does the User already offer a VPN connection?
+            has_vpn = ap.vpn is not None
+            if not wants_user_ap:
+                # User unchecks the 'become ap' box meaning he will not be AP anymore
+                if has_vpn:
+                    ap.vpn.delete()
+                ap.delete()
+                Link.objects.filter(interfaceA__AS=self).delete()
+            elif not has_vpn and wants_vpn:
+                # User wants to provide a VPN for his already existing AP
+                ap.vpn = VPN.objects.create(server=host)
+                ap.save()
+        elif wants_user_ap:
+            # a new User AP will be created
+            ap = AttachmentPoint.objects.create(AS=self)
+            if wants_vpn:
+                ap.vpn = VPN.objects.create(server=host)
+                ap.save()
         self.save()
 
     def update_attachments(self,
@@ -172,8 +211,6 @@ class UserAS(AS):
             self._create_or_update_attachment(att_conf)
         for deleted_link in deleted_links:
             self._delete_attachment(deleted_link)
-        for ap in aps_set:
-            ap.split_border_routers()
         self._deactivate_unused_vpn_clients(att_confs)
 
         self.save()
@@ -425,13 +462,23 @@ class AttachmentPoint(models.Model):
     )
 
     def __str__(self):
+        """
+        this representation with User prefix is expected and parsed by the frontend logic
+        :return: string representation of an AP (with UserAP prefix if it has no owner)
+        """
+        if self.AS.owner is not None:
+            return 'UserAP: %s' % (str(self.AS))
         return str(self.AS)
+
+    def is_active(self) -> bool:
+        threshold = datetime.datetime.utcnow() - settings.USERAP_FILTER_THRESHOLD
+        if self.AS.hosts.first().config_queried_at is None:
+            return False
+        return self.AS.hosts.first().config_queried_at > threshold
 
     def get_border_router_for_useras_interface(self) -> BorderRouter:
         """
         Selects the preferred border router on which the Interfaces to UserASes should be configured
-
-        Note: the border router effectively used will be be overwritten by `split_border_routers`.
 
         :returns: a `BorderRouter` of the related `AS`
         """
@@ -463,51 +510,6 @@ class AttachmentPoint(models.Model):
         else:
             host = self.AS.hosts.filter(public_ip__isnull=False)[0]
         return host
-
-    def split_border_routers(self, max_ifaces=10):
-        """
-        This is a workaround for an (apparent) issue with the border router, that cannot handle more
-        than ~12 interfaces per process; this problem seemed to be fixed but is apparently still
-        here. This is a hopefully temporary patch.
-
-        Will create / remove border routers so no one of them has more than
-        the specified limit of interfaces. The links to parent ASes will
-        always remain in a different border router.
-        :param int max_ifaces The maximum number of interfaces per BR
-        """
-        host = self._get_host_for_useras_attachment()
-        # find the *active* interfaces attaching for UserASes (attaching_ifaces) and the rest
-        # (infra_ifaces)
-        ifaces = host.interfaces.active().order_by('interface_id')
-        attaching_ifaces = ifaces.filter(
-            link_as_interfaceA__type=Link.PROVIDER,
-            link_as_interfaceA__interfaceB__AS__owner__isnull=False)
-        infra_ifaces = ifaces.exclude(pk__in=attaching_ifaces)
-
-        # attaching non children all to one BR:
-        infra_br = BorderRouter.objects.first_or_create(host)
-        brs_to_delete = list(
-            host.border_routers.order_by('pk').exclude(pk=infra_br.pk).values_list('pk', flat=True))
-        brs_to_delete.reverse()
-        infra_ifaces.update(border_router=infra_br)
-        # attaching children to several BRs:
-        attaching_ifaces = attaching_ifaces.all()
-        for i in range(0, len(attaching_ifaces), max_ifaces):
-            if brs_to_delete:
-                br = BorderRouter.objects.get(pk=brs_to_delete.pop())
-            else:
-                br = BorderRouter.objects.create(host=host)
-            for j in range(i, min(len(attaching_ifaces), i + max_ifaces)):
-                iface = attaching_ifaces[j]
-                iface.border_router = br
-                iface.save()
-            br.save()
-        # squirrel away the *inactive* interfaces somewhere...
-        host.interfaces.inactive().update(border_router=infra_br)
-
-        # delete old BRs
-        if brs_to_delete:
-            BorderRouter.objects.filter(pk__in=brs_to_delete).delete()
 
     @staticmethod
     def from_link(link: Link) -> 'AttachmentPoint':

@@ -3640,7 +3640,7 @@
     ssh_host: 172.31.0.110
     uid: 9b2eedd0a1bd41d59a6c3a37a0317024
     secret: e563ae76441a44b3b225cb26e569dc72
-    config_version: 9
+    config_version: 10
     config_version_deployed: 0
     config_queried_at: null
 - model: scionlab.host
@@ -4219,7 +4219,7 @@
     AS: 4
     interface_id: 2
     host: 4
-    border_router: 17
+    border_router: 4
     public_ip: 10.0.8.1
     public_port: 50001
     bind_ip: null
@@ -4239,7 +4239,7 @@
     AS: 7
     interface_id: 3
     host: 7
-    border_router: 19
+    border_router: 7
     public_ip: null
     public_port: 50002
     bind_ip: null
@@ -4259,7 +4259,7 @@
     AS: 13
     interface_id: 3
     host: 13
-    border_router: 21
+    border_router: 13
     public_ip: null
     public_port: 50002
     bind_ip: null
@@ -4279,7 +4279,7 @@
     AS: 14
     interface_id: 3
     host: 14
-    border_router: 23
+    border_router: 14
     public_ip: 10.8.0.1
     public_port: 50002
     bind_ip: null
@@ -4299,7 +4299,7 @@
     AS: 4
     interface_id: 3
     host: 4
-    border_router: 17
+    border_router: 4
     public_ip: null
     public_port: 50002
     bind_ip: null
@@ -4601,40 +4601,20 @@
     AS: 16
     host: 16
 - model: scionlab.borderrouter
-  pk: 17
-  fields:
-    AS: 4
-    host: 4
-- model: scionlab.borderrouter
   pk: 18
   fields:
     AS: 17
     host: 17
-- model: scionlab.borderrouter
-  pk: 19
-  fields:
-    AS: 7
-    host: 7
 - model: scionlab.borderrouter
   pk: 20
   fields:
     AS: 18
     host: 18
 - model: scionlab.borderrouter
-  pk: 21
-  fields:
-    AS: 13
-    host: 13
-- model: scionlab.borderrouter
   pk: 22
   fields:
     AS: 19
     host: 19
-- model: scionlab.borderrouter
-  pk: 23
-  fields:
-    AS: 14
-    host: 14
 - model: scionlab.borderrouter
   pk: 24
   fields:
@@ -4772,6 +4752,12 @@
     AS: 20
     host: 20
     type: CS
+- model: scionlab.service
+  pk: 23
+  fields:
+    AS: 5
+    host: 5
+    type: SIG
 - model: scionlab.vpn
   pk: 1
   fields:

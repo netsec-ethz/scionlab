@@ -159,11 +159,14 @@ class _CreateUpdateModelForm(_AlwaysChangedModelForm):
             self._update_errors(e)
 
         # Call more stuff that ModelForm usually does.
+        exclude = self._get_validation_exclusions()
         try:
-            self.instance.full_clean(validate_unique=False)
+            self.instance.full_clean(exclude=exclude, validate_unique=False)
         except ValidationError as e:
             self._update_errors(e)
-        self.validate_unique()
+
+        if self._validate_unique:
+            self.validate_unique()
 
     def save(self, commit=True):
         # We override this hook too, because we have already saved our model at this point.
