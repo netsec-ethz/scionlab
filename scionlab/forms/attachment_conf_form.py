@@ -242,7 +242,7 @@ class ProviderLinkWidget(forms.Select):
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         option_dict = super()\
             .create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
-        if value in self.disabled_choices:
+        if index in self.disabled_choices:
             option_dict['attrs']['disabled'] = 'disabled'
         return option_dict
 
