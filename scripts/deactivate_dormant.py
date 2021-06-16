@@ -30,7 +30,7 @@ import pathlib
 from django.db import transaction
 from django.db.models import Q
 
-from scionlab.models.user_as import UserAS, AttachmentPoint
+from scionlab.models.user_as import UserAS
 
 nologin_threshold = datetime.timedelta(days=365)
 
@@ -54,7 +54,3 @@ def deactivate_dormant(as_ids):
     for user_as in q:
         print(user_as.as_id)
         user_as.update_active(False)
-
-    # Fix-up distribution of user AS interfaces to router instances.
-    for ap in AttachmentPoint.objects.all():
-        ap.split_border_routers()
