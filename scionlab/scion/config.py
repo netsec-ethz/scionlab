@@ -110,7 +110,6 @@ class _ConfigGeneratorBase:
         self._write_trcs(config_dir)
         self._write_certs(config_dir)
         self._write_keys(config_dir)
-        self._write_clients(config_dir)
         self._write_master_keys(config_dir)
 
     def _write_trcs(self, dir):
@@ -133,13 +132,6 @@ class _ConfigGeneratorBase:
     def _write_keys(self, dir):
         for key in self.AS.keys.all():
             self.archive.write_text((dir, CRYPTO_DIR, key.subdir(), key.filename()), key.key)
-
-    def _write_clients(self, dir):
-        # CA ASes have a certificate chain for each client for certificate renewal.
-        # We're not currently doing certificate renewal (perhaps we should try to disable it
-        # entirely?), but the directory needs to exist.
-        if self.AS.is_core:
-            self.archive.add_dir((dir, CRYPTO_DIR, 'ca', 'clients'))
 
     def _write_master_keys(self, dir):
         self.archive.write_text((dir, KEY_DIR, MASTER_KEY_0), self.AS.master_as_key)
@@ -318,13 +310,6 @@ class _ConfigBuilder:
                 'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
             },
         })
-        if service.AS.is_core:
-            conf.update({
-                'renewal_db': {
-                    'connection': '%s.renewal.db' % os.path.join(self.var_dir,
-                                                                 service.instance_name),
-                },
-            })
 
         return conf
 

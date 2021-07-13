@@ -359,7 +359,6 @@ etc/scion/crypto/ca/ISD17-ASffaa_0_1101.root.crt: |
   BAMEA0gAMEUCIE9bM6MFaBMrGEZsn7MirRzLG6BRmV75CAh8O+Nv8SQIAiEAyspR
   qvrSdTtcNASdCa7nwjtCDtqOTUKbvukk2J/dmg4=
   -----END CERTIFICATE-----
-etc/scion/crypto/ca/clients/: null
 etc/scion/crypto/ca/cp-ca.key: |
   -----BEGIN PRIVATE KEY-----
   MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgu6LQdkHrNYb11h/c
@@ -439,9 +438,6 @@ etc/scion/cs-1.toml: |
 
   [quic]
   address = "127.0.0.1:30354"
-
-  [renewal_db]
-  connection = "/var/lib/scion/cs-1.renewal.db"
 
   [trust_db]
   connection = "/var/lib/scion/cs-1.trust.db"
@@ -532,7 +528,7 @@ scionlab-config.json: |-
       "etc/scion/crypto/voting/ISD17-ASffaa_0_1101.sensitive.crt": "bb2628e2081161030858ed029857ec5f1fa16775",
       "etc/scion/crypto/voting/regular-voting.key": "154aac0ce5aeb4730e89636555aecace6e854b7b",
       "etc/scion/crypto/voting/sensitive-voting.key": "7b814e500635ee18eaf9af8f6d7d8b7de5653222",
-      "etc/scion/cs-1.toml": "3cc5e42e3dc78a28bd0e5c0aae2cc817f2fc42ea",
+      "etc/scion/cs-1.toml": "47ad2499da3f424ae2e5632598f002efee1119c5",
       "etc/scion/keys/master0.key": "70deed870340082346f2554d163ac20928e0412d",
       "etc/scion/keys/master1.key": "70deed870340082346f2554d163ac20928e0412d",
       "etc/scion/topology.json": "d98ff25307e2eda82b43957ef622e550831dc324"
