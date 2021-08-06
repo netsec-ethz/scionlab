@@ -67,6 +67,9 @@ TEMPLATES = [
     },
 ]
 
+# Use the default primary key field type AutoField (rather than the 64-bit BigAutoField)
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 # ##### DJANGO RUNNING CONFIGURATION ######################
 
 # the URL for static files
