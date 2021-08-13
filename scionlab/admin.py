@@ -447,7 +447,7 @@ class ASAdmin(admin.ModelAdmin):
     list_display_links = ('as_id', 'label')
     list_filter = ('isd', 'is_core', InfrastructureASFilter)
     ordering = ('isd', 'as_id')
-    search_fields = ('label', 'owner__email', 'owner__first_name', 'owner__last_name')
+    search_fields = ('label', 'as_id', 'owner__email', 'owner__first_name', 'owner__last_name')
 
     def get_fieldsets(self, request, obj=None):
         """
