@@ -271,8 +271,10 @@ class AS(TimestampedModel):
         """ returns a queryset of all the latest certificates of this AS """
         certs = Certificate.objects.none()
         for key_usage in Key.USAGES:
-            latest_version = self.keys.filter(usage=key_usage).aggregate(models.Max('version'))['version__max'] or 1
-            certs = certs | Certificate.objects.filter(key__AS=self, key__usage=key_usage, key__version__gte=latest_version)
+            latest_version = self.keys.filter(usage=key_usage).aggregate(models.Max('version'))[
+                                 'version__max'] or 1
+            certs = certs | Certificate.objects.filter(key__AS=self, key__usage=key_usage,
+                                                       key__version__gte=latest_version)
         return certs
 
     def generate_keys(self, not_before=None):
@@ -602,15 +604,15 @@ class InterfaceManager(models.Manager):
         """
         return list of Interfaces from active links
         """
-        return self.filter(link_as_interfaceA__active=True) |\
-            self.filter(link_as_interfaceB__active=True)
+        return self.filter(link_as_interfaceA__active=True) | \
+               self.filter(link_as_interfaceB__active=True)
 
     def inactive(self):
         """
         return list of Interfaces from inactive links
         """
-        return self.filter(link_as_interfaceA__active=False) |\
-            self.filter(link_as_interfaceB__active=False)
+        return self.filter(link_as_interfaceA__active=False) | \
+               self.filter(link_as_interfaceB__active=False)
 
 
 class Interface(models.Model):
