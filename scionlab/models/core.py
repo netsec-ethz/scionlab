@@ -605,14 +605,14 @@ class InterfaceManager(models.Manager):
         return list of Interfaces from active links
         """
         return self.filter(link_as_interfaceA__active=True) | \
-               self.filter(link_as_interfaceB__active=True)
+            self.filter(link_as_interfaceB__active=True)
 
     def inactive(self):
         """
         return list of Interfaces from inactive links
         """
         return self.filter(link_as_interfaceA__active=False) | \
-               self.filter(link_as_interfaceB__active=False)
+            self.filter(link_as_interfaceB__active=False)
 
 
 class Interface(models.Model):
