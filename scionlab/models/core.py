@@ -264,8 +264,16 @@ class AS(TimestampedModel):
         return self.isd_as_str().replace(":", "_")
 
     def certificates(self):
-        """ returns a queryset of all of this AS' certificates """
-        return Certificate.objects.filter(key__AS=self)
+        """ returns a queryset of all of this AS' certificates (in random order) """
+        return Certificate.objects.filter(key__AS=self).order_by('?')
+
+    def certificates_latest(self):
+        """ returns a queryset of all the latest certificates of this AS """
+        certs = Certificate.objects.none()
+        for key_usage in Key.USAGES:
+            latest_version = self.keys.filter(usage=key_usage).aggregate(models.Max('version'))['version__max'] or 1
+            certs = certs | Certificate.objects.filter(key__AS=self, key__usage=key_usage, key__version__gte=latest_version)
+        return certs
 
     def generate_keys(self, not_before=None):
         Key.objects.create_all_keys(self, not_before=not_before)
