@@ -21,7 +21,6 @@ from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key, Certificate
 from scionlab.models.trc import TRC, _coreas_certificates
 
-
 _ASID_1 = 'ff00:0:1'
 _ASID_2 = 'ff00:0:2'
 _ASID_3 = 'ff00:0:3'
@@ -249,6 +248,74 @@ class TRCCreationTests(TestCase):
         self.assertEqual(trc.predecessor_trc_or_none(), prev)
         self.assertTrue(trc.votes.exists())
         self.assertEqual(trc.quorum, prev.quorum)
+
+    def test_delete_one_core_as(self):
+        self._create_ases()
+        prev = TRC.objects.create(self.isd1)
+        # remove one core AS
+        AS.objects.filter(is_core=True, isd=self.isd1).first().delete()
+        # deleting a core As triggers a generation of a TRC. Get that TRC:
+        trc = TRC.objects.latest()
+
+        # check the trc chain
+        _check_trc(trc, prev)
+        # check it's a sensitive update
+        self.assertEqual(trc.serial_version, prev.serial_version + 1)
+        self.assertEqual(trc.base_version, prev.base_version)
+        self.assertEqual(trc.predecessor_trc_or_none(), prev)
+        self.assertTrue(trc.votes.exists())
+        self.assertNotEqual(trc.quorum, prev.quorum)
+
+        # Check valid latest CP AS certificates regenerated, core
+        some_core = AS.objects.filter(is_core=True, isd=self.isd1).first()
+        cert_cp_as = some_core.certificates_latest().filter(key__usage=Key.CP_AS).first()
+        loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
+        trcs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
+
+        # Check valid latest CP AS certificates regenerated, non-core
+        any_none_core = AS.objects.filter(is_core=False, isd=self.isd1).first()
+        cert_cp_as = any_none_core.certificates_latest().filter(key__usage=Key.CP_AS).first()
+        loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
+        trcs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
+
+    def test_broken_delete_one_core_as(self):
+        # [regression test] Check that validating an invalid / old certificate fails
+        # against an updated TRC
+        self._create_ases()
+        prev = TRC.objects.create(self.isd1)
+        # remove one core AS
+        AS.objects.filter(is_core=True, isd=self.isd1).first().delete()
+        # deleting a core As triggers a generation of a TRC. Get that TRC:
+        trc = TRC.objects.latest()
+
+        # check the trc chain
+        _check_trc(trc, prev)
+        # check it's a sensitive update
+        self.assertEqual(trc.serial_version, prev.serial_version + 1)
+        self.assertEqual(trc.base_version, prev.base_version)
+        self.assertEqual(trc.predecessor_trc_or_none(), prev)
+        self.assertTrue(trc.votes.exists())
+        self.assertNotEqual(trc.quorum, prev.quorum)
+
+        # Check invalid CP AS certificates when selecting old certificate, core
+        with self.assertRaises(trcs._CalledProcessErrorWithOutput):
+            some_core = AS.objects.filter(is_core=True, isd=self.isd1).first()
+            cert_cp_as = Certificate.objects.filter(key__AS=some_core, key__usage=Key.CP_AS,
+                                                    key__version=1).get()
+            loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
+            trcs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
+
+        # Check invalid CP AS certificates when randomly selecting, non-core
+        with self.assertRaises(AttributeError):
+            any_none_core = AS.objects.filter(is_core=False, isd=self.isd1).first()
+            cert_cp_as = Certificate.objects.filter(key__AS=any_none_core, key__usage=Key.CP_AS,
+                                                    key__version=1).get()
+            certfile = cert_cp_as.format_certfile()
+            # We should never get further, Unreachable code
+            # The first core AS was deleted and the non-core v1 CP AS cert was referring to
+            # that core AS CA cert
+            loaded_certs = bytes(certfile, 'ascii')
+            trcs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
 
     def test_create_less_core_ases(self):
         self._create_ases()

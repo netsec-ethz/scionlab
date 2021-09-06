@@ -63,6 +63,21 @@ def verify_trcs(*trcs: bytes):
         _run_scion_pki('verify', '--anchor', *[f.name for f in files])
 
 
+def verify_certificate(cert: bytes, trc: bytes):
+    """
+    Verify that the certificate is valid, using the last TRC as anchor.
+    Raises VerifyError if the certificate is not valid.
+    """
+    with contextlib.ExitStack() as stack:
+        trc_file = stack.enter_context(NamedTemporaryFile(suffix=".trc"))
+        cert_file = stack.enter_context(NamedTemporaryFile(suffix=".pem"))
+        files = [trc_file, cert_file]
+        for f, value in zip(files, [trc, cert]):
+            f.write(value)
+            f.flush()
+        _run_scion_pki('verify', '--trc', *[f.name for f in files], command='certificate')
+
+
 def generate_trc(prev_trc: bytes,
                  isd_id: int,
                  base: int,
@@ -256,13 +271,20 @@ class TRCConf:
         return f'{int(d.total_seconds())}s'
 
 
-def _run_scion_pki(*args, cwd=None, check=True):
+def _run_scion_pki(*args, cwd=None, command='trcs', check=True):
     try:
-        return subprocess.run([settings.SCION_PKI_COMMAND, 'trcs', *args],
-                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              encoding='utf-8',
-                              check=check,
-                              cwd=cwd)
+        if command == 'trcs':
+            return subprocess.run([settings.SCION_PKI_COMMAND, command, *args],
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                  encoding='utf-8',
+                                  check=check,
+                                  cwd=cwd)
+        elif command == 'certificate':
+            return subprocess.run([settings.SCION_PKI_COMMAND, command, *args],
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                  encoding='utf-8',
+                                  check=check,
+                                  cwd=cwd)
     except subprocess.CalledProcessError as e:
         raise _CalledProcessErrorWithOutput(e) from None
 

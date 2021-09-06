@@ -125,7 +125,7 @@ class _ConfigGeneratorBase:
             self.archive.write_bytes((dir, CERT_DIR, trc.filename()), trc.format_trcfile())
 
     def _write_certs(self, dir):
-        for cert in self.AS.certificates().all():
+        for cert in self.AS.certificates_latest().all():
             self.archive.write_text((dir, CRYPTO_DIR, cert.subdir(), cert.filename()),
                                     cert.format_certfile())
 
