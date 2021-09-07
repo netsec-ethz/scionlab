@@ -64,7 +64,19 @@ def decode_certificate(pem: str) -> x509.Certificate:
     return x509.load_pem_x509_certificate(pem.encode("ascii"))
 
 
-def verify_certificate(cert: bytes, trc: bytes):
+def verify_certificate_valid(cert: bytes, cert_usage: str):
+    """
+    Verifies that the certificate's fields are valid for that type.
+    This function does not verify the trust chain
+    (see also verify_cp_as_chain)
+    """
+    with NamedTemporaryFile('wb', suffix=".crt") as f:
+        f.write(cert)
+        f.flush()
+        _run_scion_pki('validate', '--type', cert_usage, '--check-time', f.name)
+
+
+def verify_cp_as_chain(cert: bytes, trc: bytes):
     """
     Verify that the certificate is valid, using the last TRC as anchor.
     Raises ScionPkiError if the certificate is not valid.
@@ -76,7 +88,7 @@ def verify_certificate(cert: bytes, trc: bytes):
         for f, value in zip(files, [trc, cert]):
             f.write(value)
             f.flush()
-        _run_scion_pki('verify', '--trc', *[f.name for f in files])
+        _run_scion_pki('verify', '--trc', trc_file.name, cert_file.name)
 
 
 def generate_voting_sensitive_certificate(subject_id: str,
