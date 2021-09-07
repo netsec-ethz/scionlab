@@ -37,6 +37,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import pathlib
 import tarfile
 import textwrap
 import time
@@ -109,13 +110,17 @@ def main(argv):
             try:
                 fetch_info = get_fetch_info(args)
                 config = fetch_config(fetch_info)
+                if args.noinstall:
+                    return write_tarfile(args.noinstall, config)
+
                 if config is _CONFIG_EMPTY:
                     stop_scion()
                 elif config is _CONFIG_UNCHANGED:
                     logging.info('Configuration unchanged (version %s). Nothing to do.',
                                  fetch_info.version)
                 else:
-                    install_config(args, config)
+                    tgz = tarfile.open(mode='r:gz', fileobj=io.BytesIO(config))
+                    install_config(args, tgz)
                     confirm_deployed(args)
             except TemporaryError as e:
                 if args.daemon:
@@ -181,10 +186,18 @@ def parse_command_line_args(argv):
                                     'locally modified configuration files. '
                                     'This is enabled by default if --force is not set and '
                                     'the stdin is not a TTY.')
-    group_config.add_argument('--tar',
-                              type=argparse.FileType('r'),
-                              help='Install configuration from a tar-file already obtained from '
-                                   'the SCIONLab coordination service')
+    withfile_or_noinstall = group_config.add_mutually_exclusive_group()
+    withfile_or_noinstall.add_argument(
+        '--tar',
+        type=pathlib.Path,
+        help='Install configuration from a tar-file already obtained from '
+        'the SCIONLab coordination service')
+    withfile_or_noinstall.add_argument(
+        '--noinstall',
+        # type=argparse.FileType('wb'),
+        type=pathlib.Path,
+        help='Only obtain the tar-file from the coordinator service, '
+        'write it to the specified path and do not install.')
     group_fetch = parser.add_argument_group('SCIONLab API options')
     group_fetch.add_argument('--host-id', help='Host identifier')
     group_fetch.add_argument('--host-secret', help='Authentication for host')
@@ -301,7 +314,7 @@ def fetch_config(fetch_info):
         code = conn.getcode()
         if code == 200:
             response_data = conn.read()
-            return tarfile.open(mode='r:gz', fileobj=io.BytesIO(response_data))
+            return response_data
         elif code == 204:
             return _CONFIG_EMPTY
         else:
@@ -319,6 +332,12 @@ def fetch_config(fetch_info):
     except Exception as e:
         # any other error, might be recoverable
         raise TemporaryError(error_msg % (fetch_info.url, e))
+
+
+def write_tarfile(filepath, tarbytes):
+    if isinstance(tarbytes, bytes):
+        with open(filepath, 'wb') as f:
+            f.write(tarbytes)
 
 
 def confirm_deployed(args):

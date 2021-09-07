@@ -70,7 +70,8 @@ class ScionlabConfigLiveTests(LiveServerTestCase):
         self.host.config_version += 1
         self.host.save()
         config = scionlab_config.fetch_config(self.fetch_info)
-        self._check_tar(config)
+        tar = tarfile.open(mode='r', fileobj=io.BytesIO(config))
+        self._check_tar(tar)
 
     def test_fetch_config_nop(self):
         config = scionlab_config.fetch_config(self.fetch_info)
@@ -78,8 +79,9 @@ class ScionlabConfigLiveTests(LiveServerTestCase):
 
     def test_fetch_config_force(self):
         config = scionlab_config.fetch_config(self.fetch_info._replace(version=None))
-        self.assertIsInstance(config, tarfile.TarFile)
-        self._check_tar(config)
+        self.assertIsInstance(config, bytes)
+        tar = tarfile.open(mode='r', fileobj=io.BytesIO(config))
+        self._check_tar(tar)
 
     def test_fetch_empty(self):
         self.host.AS.delete()  # Nothing left to do for this host
