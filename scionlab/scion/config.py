@@ -130,7 +130,7 @@ class _ConfigGeneratorBase:
                                     cert.format_certfile())
 
     def _write_keys(self, dir):
-        for key in self.AS.keys.all():
+        for key in self.AS.keys_latest().all():
             self.archive.write_text((dir, CRYPTO_DIR, key.subdir(), key.filename()), key.key)
 
     def _write_master_keys(self, dir):
