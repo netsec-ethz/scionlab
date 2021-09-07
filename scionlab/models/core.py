@@ -277,6 +277,16 @@ class AS(TimestampedModel):
                                                        key__version__gte=latest_version)
         return certs
 
+    def keys_latest(self):
+        """ returns a queryset of all of the latest keys of this AS """
+        keys = Key.objects.none()
+        for key_usage in Key.USAGES:
+            latest_version = self.keys.filter(usage=key_usage).aggregate(models.Max('version'))[
+                                 'version__max'] or 1
+            keys = keys | Key.objects.filter(AS=self, usage=key_usage,
+                                             version__gte=latest_version)
+        return keys
+
     def generate_keys(self, not_before=None):
         Key.objects.create_all_keys(self, not_before=not_before)
 
