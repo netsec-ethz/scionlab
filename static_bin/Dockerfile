@@ -1,7 +1,7 @@
 FROM golang:1.16.4-buster
 
 # netsec-ethz/scion, last biweekly update on 2021/06/25
-ARG scion_commit=3295af71a57a842f29bbaef83337149ba688a259
+ARG scion_commit=fc081bebc9329e611b074722245c6e6e62e2b9fd
 
 RUN mkdir /scion
 WORKDIR /scion
