@@ -269,14 +269,16 @@ class TRCCreationTests(TestCase):
         # Check valid latest CP AS certificates regenerated, core
         some_core = AS.objects.filter(is_core=True, isd=self.isd1).first()
         cert_cp_as = some_core.certificates_latest().filter(key__usage=Key.CP_AS).first()
-        loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
-        certs.verify_cp_as_chain(loaded_certs, trcs.decode_trc(trc.trc))
+        loaded_chain = bytes(cert_cp_as.format_certfile(), 'ascii')
+        certs.verify_cp_as_chain(loaded_chain, trcs.decode_trc(trc.trc))
+        some_core.validate_crypto()
 
         # Check valid latest CP AS certificates regenerated, non-core
         any_none_core = AS.objects.filter(is_core=False, isd=self.isd1).first()
         cert_cp_as = any_none_core.certificates_latest().filter(key__usage=Key.CP_AS).first()
-        loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
-        certs.verify_cp_as_chain(loaded_certs, trcs.decode_trc(trc.trc))
+        loaded_chain = bytes(cert_cp_as.format_certfile(), 'ascii')
+        certs.verify_cp_as_chain(loaded_chain, trcs.decode_trc(trc.trc))
+        any_none_core.validate_crypto()
 
     def test_broken_delete_one_core_as(self):
         # [regression test] Check that validating an invalid / old certificate fails
@@ -302,8 +304,8 @@ class TRCCreationTests(TestCase):
             some_core = AS.objects.filter(is_core=True, isd=self.isd1).first()
             cert_cp_as = Certificate.objects.filter(key__AS=some_core, key__usage=Key.CP_AS,
                                                     key__version=1).get()
-            loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
-            certs.verify_cp_as_chain(loaded_certs, trcs.decode_trc(trc.trc))
+            loaded_chain = bytes(cert_cp_as.format_certfile(), 'ascii')
+            certs.verify_cp_as_chain(loaded_chain, trcs.decode_trc(trc.trc))
 
         # Check invalid CP AS certificates when randomly selecting, non-core
         with self.assertRaises(AttributeError):
@@ -314,8 +316,8 @@ class TRCCreationTests(TestCase):
             # We should never get further, Unreachable code
             # The first core AS was deleted and the non-core v1 CP AS cert was referring to
             # that core AS CA cert
-            loaded_certs = bytes(certfile, 'ascii')
-            certs.verify_cp_as_chain(loaded_certs, trcs.decode_trc(trc.trc))
+            loaded_chain = bytes(certfile, 'ascii')
+            certs.verify_cp_as_chain(loaded_chain, trcs.decode_trc(trc.trc))
 
     def test_create_less_core_ases(self):
         self._create_ases()
