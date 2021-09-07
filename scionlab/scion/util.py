@@ -39,11 +39,14 @@ class ScionPkiError(subprocess.CalledProcessError):
     that includes the process output (stdout) in the __str__.
     """
     def __init__(self, e):
-        super().__init__(e.returncode, e.cmd, e.output, e.stderr)
+        if isinstance(e, subprocess.CalledProcessError):
+            super().__init__(e.returncode, e.cmd, e.output, e.stderr)
+        else:
+            super().__init__(returncode=0, cmd='<<internal>>', output=str(e))
 
     def __str__(self):
         s = super().__str__()
         if self.output:
-            s += "\n\n"
+            s += "\nOutput:\n"
             s += self.output
         return s
