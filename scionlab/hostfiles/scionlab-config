@@ -194,7 +194,6 @@ def parse_command_line_args(argv):
         'the SCIONLab coordination service')
     withfile_or_noinstall.add_argument(
         '--noinstall',
-        # type=argparse.FileType('wb'),
         type=pathlib.Path,
         help='Only obtain the tar-file from the coordinator service, '
         'write it to the specified path and do not install.')
@@ -256,7 +255,7 @@ def _load_fetch_info(file, args):
     if args.url:
         fetch_info = fetch_info._replace(url=args.url)
 
-    if args.force:
+    if args.force or args.noinstall:
         fetch_info = fetch_info._replace(version=None)
 
     return fetch_info
@@ -335,9 +334,15 @@ def fetch_config(fetch_info):
 
 
 def write_tarfile(filepath, tarbytes):
-    if isinstance(tarbytes, bytes):
-        with open(filepath, 'wb') as f:
-            f.write(tarbytes)
+    if tarbytes is _CONFIG_EMPTY:
+        logging.warn("will create an empty tar file")
+        buff = io.BytesIO()
+        tt = tarfile.open(mode='w:gz', fileobj=buff)
+        tt.close()
+        tarbytes = buff.getvalue()
+
+    with open(filepath, 'wb') as f:
+        f.write(tarbytes)
 
 
 def confirm_deployed(args):
