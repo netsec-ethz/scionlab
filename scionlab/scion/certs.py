@@ -20,13 +20,18 @@ See https://scion.docs.anapaya.net/en/latest/cryptography/certificates.html
 Permalink: https://github.com/scionproto/scion/blob/835b3683c6e6bdf2a98750ec3a04137053f7f142/doc/cryptography/certificates.rst
 """ # noqa
 
+import contextlib
+
 from cryptography import x509
 from cryptography.x509 import ExtensionType
 from cryptography.x509.oid import NameOID, ObjectIdentifier
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 from typing import List, Tuple, Optional, NamedTuple
+
+from scionlab.scion.util import run_scion_pki
 
 
 OID_ISD_AS = ObjectIdentifier('1.3.6.1.4.1.55324.1.2.1')
@@ -57,6 +62,21 @@ def encode_certificate(cert: x509.Certificate) -> str:
 
 def decode_certificate(pem: str) -> x509.Certificate:
     return x509.load_pem_x509_certificate(pem.encode("ascii"))
+
+
+def verify_certificate(cert: bytes, trc: bytes):
+    """
+    Verify that the certificate is valid, using the last TRC as anchor.
+    Raises ScionPkiError if the certificate is not valid.
+    """
+    with contextlib.ExitStack() as stack:
+        trc_file = stack.enter_context(NamedTemporaryFile(suffix=".trc"))
+        cert_file = stack.enter_context(NamedTemporaryFile(suffix=".pem"))
+        files = [trc_file, cert_file]
+        for f, value in zip(files, [trc, cert]):
+            f.write(value)
+            f.flush()
+        _run_scion_pki('verify', '--trc', *[f.name for f in files])
 
 
 def generate_voting_sensitive_certificate(subject_id: str,
@@ -250,3 +270,7 @@ def _build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
                                              x509.ExtendedKeyUsageOID.CLIENT_AUTH,
                                              x509.ExtendedKeyUsageOID.TIME_STAMPING]),
                       critical=False)]
+
+
+def _run_scion_pki(*args, cwd=None, check=True):
+    return run_scion_pki('certificate', *args, cwd=cwd, check=check)

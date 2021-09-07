@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from django.db import transaction
 from django.test import TestCase
 
-from scionlab.scion import as_ids, trcs
+from scionlab.scion import as_ids, certs, trcs, util
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key, Certificate
 from scionlab.models.trc import TRC, _coreas_certificates
@@ -270,13 +270,13 @@ class TRCCreationTests(TestCase):
         some_core = AS.objects.filter(is_core=True, isd=self.isd1).first()
         cert_cp_as = some_core.certificates_latest().filter(key__usage=Key.CP_AS).first()
         loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
-        trcs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
+        certs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
 
         # Check valid latest CP AS certificates regenerated, non-core
         any_none_core = AS.objects.filter(is_core=False, isd=self.isd1).first()
         cert_cp_as = any_none_core.certificates_latest().filter(key__usage=Key.CP_AS).first()
         loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
-        trcs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
+        certs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
 
     def test_broken_delete_one_core_as(self):
         # [regression test] Check that validating an invalid / old certificate fails
@@ -298,12 +298,12 @@ class TRCCreationTests(TestCase):
         self.assertNotEqual(trc.quorum, prev.quorum)
 
         # Check invalid CP AS certificates when selecting old certificate, core
-        with self.assertRaises(trcs._CalledProcessErrorWithOutput):
+        with self.assertRaises(util.ScionPkiError):
             some_core = AS.objects.filter(is_core=True, isd=self.isd1).first()
             cert_cp_as = Certificate.objects.filter(key__AS=some_core, key__usage=Key.CP_AS,
                                                     key__version=1).get()
             loaded_certs = bytes(cert_cp_as.format_certfile(), 'ascii')
-            trcs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
+            certs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
 
         # Check invalid CP AS certificates when randomly selecting, non-core
         with self.assertRaises(AttributeError):
@@ -315,7 +315,7 @@ class TRCCreationTests(TestCase):
             # The first core AS was deleted and the non-core v1 CP AS cert was referring to
             # that core AS CA cert
             loaded_certs = bytes(certfile, 'ascii')
-            trcs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
+            certs.verify_certificate(loaded_certs, trcs.decode_trc(trc.trc))
 
     def test_create_less_core_ases(self):
         self._create_ases()

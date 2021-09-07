@@ -18,7 +18,6 @@
 """
 
 import base64
-import subprocess
 import toml
 import yaml
 import contextlib
@@ -26,12 +25,12 @@ import contextlib
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import pkcs7
 from datetime import datetime, timedelta, timezone
-from django.conf import settings
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Dict, List, Optional, Tuple
 
 from scionlab.scion import certs, keys
+from scionlab.scion.util import run_scion_pki
 
 
 def encode_trc(trc: bytes) -> str:
@@ -53,7 +52,7 @@ def trc_to_dict(trc: bytes) -> dict:
 def verify_trcs(*trcs: bytes):
     """
     Verify that the sequence of trcs, using the first TRC as anchor.
-    Raises VerifyError if the TRCs are not valid.
+    Raises ScionPkiError if the TRCs are not valid.
     """
     with contextlib.ExitStack() as stack:
         files = [stack.enter_context(NamedTemporaryFile(suffix=".trc")) for _ in range(len(trcs))]
@@ -61,21 +60,6 @@ def verify_trcs(*trcs: bytes):
             f.write(trc)
             f.flush()
         _run_scion_pki('verify', '--anchor', *[f.name for f in files])
-
-
-def verify_certificate(cert: bytes, trc: bytes):
-    """
-    Verify that the certificate is valid, using the last TRC as anchor.
-    Raises VerifyError if the certificate is not valid.
-    """
-    with contextlib.ExitStack() as stack:
-        trc_file = stack.enter_context(NamedTemporaryFile(suffix=".trc"))
-        cert_file = stack.enter_context(NamedTemporaryFile(suffix=".pem"))
-        files = [trc_file, cert_file]
-        for f, value in zip(files, [trc, cert]):
-            f.write(value)
-            f.flush()
-        _run_scion_pki('verify', '--trc', *[f.name for f in files], command='certificate')
 
 
 def generate_trc(prev_trc: bytes,
@@ -271,38 +255,5 @@ class TRCConf:
         return f'{int(d.total_seconds())}s'
 
 
-def _run_scion_pki(*args, cwd=None, command='trcs', check=True):
-    try:
-        if command == 'trcs':
-            return subprocess.run([settings.SCION_PKI_COMMAND, command, *args],
-                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                  encoding='utf-8',
-                                  check=check,
-                                  cwd=cwd)
-        elif command == 'certificate':
-            return subprocess.run([settings.SCION_PKI_COMMAND, command, *args],
-                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                  encoding='utf-8',
-                                  check=check,
-                                  cwd=cwd)
-    except subprocess.CalledProcessError as e:
-        raise _CalledProcessErrorWithOutput(e) from None
-
-
-class _CalledProcessErrorWithOutput(subprocess.CalledProcessError):
-    """
-    Wrapper for CalledProcessError (raised by subprocess.run on returncode != 0 if check=True),
-    that includes the process output (stdout) in the __str__.
-    """
-    def __init__(self, e):
-        super().__init__(e.returncode, e.cmd, e.output, e.stderr)
-
-    def __str__(self):
-        s = super().__str__()
-        if self.output:
-            s += "\n\n"
-            s += self.output
-        return s
-
-
-VerifyError = _CalledProcessErrorWithOutput
+def _run_scion_pki(*args, cwd=None, check=True):
+    return run_scion_pki('trcs', *args, cwd=cwd, check=check)
