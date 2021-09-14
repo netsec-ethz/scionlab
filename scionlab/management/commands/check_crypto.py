@@ -15,7 +15,7 @@
 from django.core.management.base import BaseCommand
 
 from scionlab.models.core import ISD
-from scionlab.scion.util import ScionPkiError
+from scionlab.scion.pkicommand import ScionPkiError
 
 
 class Command(BaseCommand):

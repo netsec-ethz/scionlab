@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from django.db import transaction
 from django.test import TestCase
 
-from scionlab.scion import as_ids, certs, trcs, util
+from scionlab.scion import as_ids, certs, trcs, pkicommand
 from scionlab.models.core import ISD, AS
 from scionlab.models.pki import Key, Certificate
 from scionlab.models.trc import TRC, _coreas_certificates
@@ -300,7 +300,7 @@ class TRCCreationTests(TestCase):
         self.assertNotEqual(trc.quorum, prev.quorum)
 
         # Check invalid CP AS certificates when selecting old certificate, core
-        with self.assertRaises(util.ScionPkiError):
+        with self.assertRaises(pkicommand.ScionPkiError):
             some_core = AS.objects.filter(is_core=True, isd=self.isd1).first()
             cert_cp_as = Certificate.objects.filter(key__AS=some_core, key__usage=Key.CP_AS,
                                                     key__version=1).get()

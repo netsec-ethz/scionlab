@@ -20,8 +20,6 @@ See https://scion.docs.anapaya.net/en/latest/cryptography/certificates.html
 Permalink: https://github.com/scionproto/scion/blob/835b3683c6e6bdf2a98750ec3a04137053f7f142/doc/cryptography/certificates.rst
 """ # noqa
 
-import contextlib
-
 from cryptography import x509
 from cryptography.x509 import ExtensionType
 from cryptography.x509.oid import NameOID, ObjectIdentifier
@@ -31,7 +29,7 @@ from datetime import datetime
 from tempfile import NamedTemporaryFile
 from typing import List, Tuple, Optional, NamedTuple
 
-from scionlab.scion.util import run_scion_pki
+from scionlab.scion.pkicommand import run_scion_pki
 
 
 OID_ISD_AS = ObjectIdentifier('1.3.6.1.4.1.55324.1.2.1')
@@ -73,7 +71,7 @@ def verify_certificate_valid(cert: bytes, cert_usage: str):
     with NamedTemporaryFile('wb', suffix=".crt") as f:
         f.write(cert)
         f.flush()
-        _run_scion_pki('validate', '--type', cert_usage, '--check-time', f.name)
+        _run_scion_pki_certificate('validate', '--type', cert_usage, '--check-time', f.name)
 
 
 def verify_cp_as_chain(cert: bytes, trc: bytes):
@@ -81,14 +79,13 @@ def verify_cp_as_chain(cert: bytes, trc: bytes):
     Verify that the certificate is valid, using the last TRC as anchor.
     Raises ScionPkiError if the certificate is not valid.
     """
-    with contextlib.ExitStack() as stack:
-        trc_file = stack.enter_context(NamedTemporaryFile(suffix=".trc"))
-        cert_file = stack.enter_context(NamedTemporaryFile(suffix=".pem"))
+    with NamedTemporaryFile(suffix=".trc") as trc_file,\
+         NamedTemporaryFile(suffix=".pem") as cert_file:
         files = [trc_file, cert_file]
         for f, value in zip(files, [trc, cert]):
             f.write(value)
             f.flush()
-        _run_scion_pki('verify', '--trc', trc_file.name, cert_file.name)
+        _run_scion_pki_certificate('verify', '--trc', trc_file.name, cert_file.name)
 
 
 def generate_voting_sensitive_certificate(subject_id: str,
@@ -284,5 +281,5 @@ def _build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
                       critical=False)]
 
 
-def _run_scion_pki(*args, cwd=None, check=True):
+def _run_scion_pki_certificate(*args, cwd=None, check=True):
     return run_scion_pki('certificate', *args, cwd=cwd, check=check)

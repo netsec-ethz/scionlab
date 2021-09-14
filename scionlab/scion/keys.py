@@ -25,7 +25,7 @@ from cryptography.hazmat.primitives import serialization
 from tempfile import NamedTemporaryFile
 from typing import cast
 
-from scionlab.scion.util import run_scion_pki
+from scionlab.scion.pkicommand import run_scion_pki
 
 
 def generate_key() -> ec.EllipticCurvePrivateKeyWithSerialization:
@@ -62,8 +62,8 @@ def verify_key(key: bytes, cert: bytes):
         for f, value in zip(files, [key, cert]):
             f.write(value)
             f.flush()
-        _run_scion_pki('match', 'certificate', key_file.name, cert_file.name)
+        _run_scion_pki_key('match', 'certificate', key_file.name, cert_file.name)
 
 
-def _run_scion_pki(*args, cwd=None, check=True):
+def _run_scion_pki_key(*args, cwd=None, check=True):
     return run_scion_pki('key', *args, cwd=cwd, check=check)

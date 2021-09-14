@@ -36,7 +36,7 @@ from scionlab.scion import as_ids
 from scionlab.scion.certs import verify_certificate_valid, verify_cp_as_chain
 from scionlab.scion.keys import verify_key
 from scionlab.scion.trcs import decode_trc, verify_trcs
-from scionlab.scion.util import ScionPkiError
+from scionlab.scion.pkicommand import ScionPkiError
 from scionlab.util.django import value_set
 from scionlab.defines import (
     MAX_INTERFACE_ID,

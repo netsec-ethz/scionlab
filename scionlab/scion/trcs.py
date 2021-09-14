@@ -30,7 +30,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Dict, List, Optional, Tuple
 
 from scionlab.scion import certs, keys
-from scionlab.scion.util import run_scion_pki
+from scionlab.scion.pkicommand import run_scion_pki
 
 
 def encode_trc(trc: bytes) -> str:
@@ -45,13 +45,14 @@ def trc_to_dict(trc: bytes) -> dict:
     with NamedTemporaryFile('wb') as f:
         f.write(trc)
         f.flush()
-        ret = _run_scion_pki('human', '--format', 'yaml', f.name, check=True)
+        ret = _run_scion_pki_trcs('human', '--format', 'yaml', f.name, check=True)
     return yaml.safe_load(ret.stdout)
 
 
 def verify_trcs(*trcs: bytes):
     """
     Verify that the sequence of trcs, using the first TRC as anchor.
+    TRCs are passed in string, base 64 format.
     Raises ScionPkiError if the TRCs are not valid.
     """
     with contextlib.ExitStack() as stack:
@@ -59,7 +60,7 @@ def verify_trcs(*trcs: bytes):
         for f, trc in zip(files, trcs):
             f.write(trc)
             f.flush()
-        _run_scion_pki('verify', '--anchor', *[f.name for f in files])
+        _run_scion_pki_trcs('verify', '--anchor', *[f.name for f in files])
 
 
 def generate_trc(prev_trc: bytes,
@@ -173,7 +174,7 @@ class TRCConf:
             pred_filename = Path(temp_dir, self.PRED_TRC_FILENAME)
             pred_filename.write_bytes(self.predecessor_trc)
             args.extend(['-p', str(pred_filename)])
-        _run_scion_pki(*args, cwd=temp_dir)
+        _run_scion_pki_trcs(*args, cwd=temp_dir)
 
     def _sign_payload(self, temp_dir: str, cert: str, key: str) -> bytes:
         """ signs the payload with one signer """
@@ -189,7 +190,7 @@ class TRCConf:
         """ returns the final TRC by combining the signed blocks and payload """
         for i, s in enumerate(signed):
             Path(temp_dir, f'signed-{i}.der').write_bytes(s)
-        _run_scion_pki(
+        _run_scion_pki_trcs(
             'combine', '-p', self.PAYLOAD_FILENAME,
             *(f'signed-{i}.der' for i in range(len(signed))),
             '-o', Path(temp_dir, self.TRC_FILENAME),
@@ -255,5 +256,5 @@ class TRCConf:
         return f'{int(d.total_seconds())}s'
 
 
-def _run_scion_pki(*args, cwd=None, check=True):
+def _run_scion_pki_trcs(*args, cwd=None, check=True):
     return run_scion_pki('trcs', *args, cwd=cwd, check=check)
