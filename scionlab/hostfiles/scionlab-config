@@ -110,8 +110,8 @@ def main(argv):
             try:
                 fetch_info = get_fetch_info(args)
                 config = fetch_config(fetch_info)
-                if args.noinstall:
-                    return write_tarfile(args.noinstall, config)
+                if args.onlydownload:
+                    return write_tarfile(args.onlydownload, config)
 
                 if config is _CONFIG_EMPTY:
                     stop_scion()
@@ -186,14 +186,15 @@ def parse_command_line_args(argv):
                                     'locally modified configuration files. '
                                     'This is enabled by default if --force is not set and '
                                     'the stdin is not a TTY.')
-    withfile_or_noinstall = group_config.add_mutually_exclusive_group()
-    withfile_or_noinstall.add_argument(
+    withfile_or_onlydownload = group_config.add_mutually_exclusive_group()
+    withfile_or_onlydownload.add_argument(
         '--tar',
         type=pathlib.Path,
         help='Install configuration from a tar-file already obtained from '
         'the SCIONLab coordination service')
-    withfile_or_noinstall.add_argument(
-        '--noinstall',
+    withfile_or_onlydownload.add_argument(
+        '--onlydownload',
+        metavar='FILE',
         type=pathlib.Path,
         help='Only obtain the tar-file from the coordinator service, '
         'write it to the specified path and do not install.')
@@ -255,7 +256,7 @@ def _load_fetch_info(file, args):
     if args.url:
         fetch_info = fetch_info._replace(url=args.url)
 
-    if args.force or args.noinstall:
+    if args.force or args.onlydownload:
         fetch_info = fetch_info._replace(version=None)
 
     return fetch_info
