@@ -271,148 +271,54 @@ etc/scion/certs/ISD20-B1-S1.trc: !!binary |
   UdKxrO7+q9qwWaOMvhTDYeNIncDZw0zVfwfAmdTBfxnvDrjlr99IgOOudpQACJSzTpQ7gNJbhjLk
   gDAKBggqhkjOPQQDBARIMEYCIQDGI3hBIFGOEDLVC9bWi6JtrnKN+YZ69aareSnemMsClAIhAIvs
   eEC7ybR0E16iwn0Le+WsbMBhj2y4ir2c1Sm92oSx
-etc/scion/crypto/as/ISD19-ASffaa_0_1301.pem: |
+etc/scion/crypto/as/ISD17-ASffaa_0_1103.pem: |
   -----BEGIN CERTIFICATE-----
-  MIICtTCCAlqgAwIBAgIUB6Vq9fiG79Al3KFEb4R5Z0vUdoYwCgYIKoZIzj0EAwQw
+  MIICtDCCAlqgAwIBAgIUFs0tWQh0LUE3YKgiUzjstVttGq0wCgYIKoZIzj0EAwQw
   gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
-  YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
-  DA4xOS1mZmFhOjA6MTMwMTAeFw0yMTAxMjAwNjE3MzRaFw0yMjAxMjAwNjE3MzRa
+  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
+  YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+  DA4xNy1mZmFhOjA6MTEwMTAeFw0yMTAxMjAwNjE3MzRaFw0yMjAxMjAwNjE3MzRa
   MIGXMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
-  DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xOS1m
-  ZmFhOjA6MTMwMSBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xOS1m
-  ZmFhOjA6MTMwMTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBHqM3GCaLeG9iME
-  hlNj8M1/vO/I7ee1vlS98vcl4Vxq/KkVT00E3vP/uhDquTdylUqgqG2YuRfp+vNE
-  wkXGjrSjezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUfDgvpiShuf2brvWa
-  Y8igqDNudygwHwYDVR0jBBgwFoAUwO4gjrC2dn5TW8qYdhERzfEFEP0wJwYDVR0l
-  BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANJ
-  ADBGAiEA4WCXjX/7ETAmBE3Gx5vjp/mYZitsSotA6ctvYsy7KWUCIQCryH0/jIqm
-  3iilvB5KLXkO2zNVcpLnFZq3G849RLKf1g==
+  DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSYwJAYDVQQDDB0xNy1m
+  ZmFhOjA6MTEwMyBBUyBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIBDA4xNy1m
+  ZmFhOjA6MTEwMzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHMaHE5uyt0BmSLK
+  NzAx2PSitjouXtMoqKxRYIdz3Fy+SUMdvXURSM/3yr6KN52fyhVdxcepWgmxC2B3
+  9Q5SUVajezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQU5d3EjacvraxhWm70
+  NM1yooiLS94wHwYDVR0jBBgwFoAUMCDDfwjuyVXys7mhW7vYIfipKYUwJwYDVR0l
+  BCAwHgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANI
+  ADBFAiBgE2xaAPuTBSt46WBYmP3v1apWoz3s6DFhXXUvmjecPQIhAMIRVO0VDN2J
+  J8w1QjCbuUVd2PEDPcTqQebJZzVeXxbS
   -----END CERTIFICATE-----
   -----BEGIN CERTIFICATE-----
-  MIICrzCCAlWgAwIBAgIUA0DPiieK4OmaTz0tvaHKVS5CAOAwCgYIKoZIzj0EAwQw
+  MIICrzCCAlWgAwIBAgIUGpKYoG8xfR7c6BzjqULcY7aFW5EwCgYIKoZIzj0EAwQw
   gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE5LWZm
-  YWE6MDoxMzAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
-  AQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMTAeFw0yMTAxMjAwNjE3MzRaFw0yMzAx
+  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE3LWZm
+  YWE6MDoxMTAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
+  AQQBg7AcAQIBDA4xNy1mZmFhOjA6MTEwMTAeFw0yMTAxMjAwNjE3MzRaFw0yMzAx
   MjAwNjE3MzRaMIGeMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
   B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMS0wKwYD
-  VQQDDCQxOS1mZmFhOjA6MTMwMSBTZWN1cmUgQ0EgQ2VydGlmaWNhdGUxHzAdBgsr
-  BgEEAYOwHAECAQwOMTktZmZhYTowOjEzMDEwWTATBgcqhkjOPQIBBggqhkjOPQMB
-  BwNCAARIIKnRpsedzzSb0w+IbsKl6bz4Li3oN37lDIWmbEg9pV2SBZsC0IwWk4dZ
-  mkWHZEXJck3W72wM3XgR93Q1pdWRo2YwZDASBgNVHRMBAf8ECDAGAQH/AgEAMA4G
-  A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUwO4gjrC2dn5TW8qYdhERzfEFEP0wHwYD
-  VR0jBBgwFoAUyoD4EOY/44uATdQ4XHJLI2W0aRcwCgYIKoZIzj0EAwQDSAAwRQIg
-  KELIf8zG2I6tzpDAKbumJNfc0JovN6GzIMR7R9ZkCUsCIQDqAFOmZK8dmemv26Jn
-  w2J4s6FTYk2h1kq+ifuUdPwSog==
+  VQQDDCQxNy1mZmFhOjA6MTEwMSBTZWN1cmUgQ0EgQ2VydGlmaWNhdGUxHzAdBgsr
+  BgEEAYOwHAECAQwOMTctZmZhYTowOjExMDEwWTATBgcqhkjOPQIBBggqhkjOPQMB
+  BwNCAAS3d5PbxPo8kw2i7rJCukEuUH+48wQzYv+Hzkh3pgBlhraVrknlRIlRirLK
+  rViC+U41dQrPORJ8SBAFBUxmjfPTo2YwZDASBgNVHRMBAf8ECDAGAQH/AgEAMA4G
+  A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUMCDDfwjuyVXys7mhW7vYIfipKYUwHwYD
+  VR0jBBgwFoAUAJ2V/qt+bqyUF3gls5Zn/3nt1aAwCgYIKoZIzj0EAwQDSAAwRQIh
+  AMZkNZixwA41VYQSbEFiY0uLMIgwRig3gKYmeloEzWlcAiAIeXNmWVXotSBQAX/A
+  PxtK8c90x+XlTWjwhFxWCwb/5Q==
   -----END CERTIFICATE-----
 etc/scion/crypto/as/cp-as.key: |
   -----BEGIN PRIVATE KEY-----
-  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg951gAoaL6KE72fu4
-  xHwPbDgc19Jcfs0bM93Dn+rQfm2hRANCAAQR6jNxgmi3hvYjBIZTY/DNf7zvyO3n
-  tb5UvfL3JeFcavypFU9NBN7z/7oQ6rk3cpVKoKhtmLkX6frzRMJFxo60
-  -----END PRIVATE KEY-----
-etc/scion/crypto/ca/ISD19-ASffaa_0_1301.ca.crt: |
-  -----BEGIN CERTIFICATE-----
-  MIICrzCCAlWgAwIBAgIUA0DPiieK4OmaTz0tvaHKVS5CAOAwCgYIKoZIzj0EAwQw
-  gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE5LWZm
-  YWE6MDoxMzAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
-  AQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMTAeFw0yMTAxMjAwNjE3MzRaFw0yMzAx
-  MjAwNjE3MzRaMIGeMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
-  B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMS0wKwYD
-  VQQDDCQxOS1mZmFhOjA6MTMwMSBTZWN1cmUgQ0EgQ2VydGlmaWNhdGUxHzAdBgsr
-  BgEEAYOwHAECAQwOMTktZmZhYTowOjEzMDEwWTATBgcqhkjOPQIBBggqhkjOPQMB
-  BwNCAARIIKnRpsedzzSb0w+IbsKl6bz4Li3oN37lDIWmbEg9pV2SBZsC0IwWk4dZ
-  mkWHZEXJck3W72wM3XgR93Q1pdWRo2YwZDASBgNVHRMBAf8ECDAGAQH/AgEAMA4G
-  A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUwO4gjrC2dn5TW8qYdhERzfEFEP0wHwYD
-  VR0jBBgwFoAUyoD4EOY/44uATdQ4XHJLI2W0aRcwCgYIKoZIzj0EAwQDSAAwRQIg
-  KELIf8zG2I6tzpDAKbumJNfc0JovN6GzIMR7R9ZkCUsCIQDqAFOmZK8dmemv26Jn
-  w2J4s6FTYk2h1kq+ifuUdPwSog==
-  -----END CERTIFICATE-----
-etc/scion/crypto/ca/ISD19-ASffaa_0_1301.root.crt: |
-  -----BEGIN CERTIFICATE-----
-  MIICuTCCAl+gAwIBAgIUOW3qbWmXSZhX5R/0Zj06if8EocUwCgYIKoZIzj0EAwQw
-  gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE5LWZm
-  YWE6MDoxMzAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
-  AQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMTAeFw0yMTAxMjAwNjE3MzRaFw0yMzAx
-  MjAwNjE3MzRaMIGnMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
-  B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMTYwNAYD
-  VQQDDC0xOS1mZmFhOjA6MTMwMSBIaWdoIFNlY3VyaXR5IFJvb3QgQ2VydGlmaWNh
-  dGUxHzAdBgsrBgEEAYOwHAECAQwOMTktZmZhYTowOjEzMDEwWTATBgcqhkjOPQIB
-  BggqhkjOPQMBBwNCAAQgtMe+7XvgKqdzKyz5s+vtNb7Oh+YY+JUXFrOAhnO4N8Gw
-  8h/BLahH+D7WvgbiBnb0U7yUY8y8dxfFfVQKZdvDo2cwZTASBgNVHRMBAf8ECDAG
-  AQH/AgEBMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUyoD4EOY/44uATdQ4XHJL
-  I2W0aRcwIAYDVR0lBBkwFwYLKwYBBAGDsBwBAwMGCCsGAQUFBwMIMAoGCCqGSM49
-  BAMEA0gAMEUCIFvgsGVN31x92Br1lJjVH6mVjPmT/YOo7rJ+FPP1TguqAiEA5QhS
-  w5NcCzU1cx+rIgdPWY3a5zQWuglSGJR3ZGq8gxg=
-  -----END CERTIFICATE-----
-etc/scion/crypto/ca/cp-ca.key: |
-  -----BEGIN PRIVATE KEY-----
-  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg2JyyCsq7yT9W8t9z
-  9RutfZcn4VJYYDDhc3oPR64L3CehRANCAARIIKnRpsedzzSb0w+IbsKl6bz4Li3o
-  N37lDIWmbEg9pV2SBZsC0IwWk4dZmkWHZEXJck3W72wM3XgR93Q1pdWR
-  -----END PRIVATE KEY-----
-etc/scion/crypto/ca/cp-root.key: |
-  -----BEGIN PRIVATE KEY-----
-  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgraHoVKYFRHAKup8J
-  epOZt43x+YY3pb3jzqkYcagttKmhRANCAAQgtMe+7XvgKqdzKyz5s+vtNb7Oh+YY
-  +JUXFrOAhnO4N8Gw8h/BLahH+D7WvgbiBnb0U7yUY8y8dxfFfVQKZdvD
-  -----END PRIVATE KEY-----
-etc/scion/crypto/voting/ISD19-ASffaa_0_1301.regular.crt: |
-  -----BEGIN CERTIFICATE-----
-  MIICjTCCAjOgAwIBAgIUPyennP5WCfsBy2n4dX2ijd1O9fAwCgYIKoZIzj0EAwQw
-  gaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMMKTE5LWZm
-  YWE6MDoxMzAxIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYLKwYBBAGD
-  sBwBAgEMDjE5LWZmYWE6MDoxMzAxMB4XDTIxMDEyMDA2MTczNFoXDTIzMDEyMDA2
-  MTczNFowgaMxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8
-  cmljaDEPMA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxMjAwBgNVBAMM
-  KTE5LWZmYWE6MDoxMzAxIFJlZ3VsYXIgVm90aW5nIENlcnRpZmljYXRlMR8wHQYL
-  KwYBBAGDsBwBAgEMDjE5LWZmYWE6MDoxMzAxMFkwEwYHKoZIzj0CAQYIKoZIzj0D
-  AQcDQgAE6eXM53iwHdRZ+CshrSWULPQky2+1iQIVR5U5QVNNNRphA8eoxxl0xIEI
-  0AXH41orZKQnKhxHckD43UYQtvPSvaNDMEEwHQYDVR0OBBYEFKV5RT3U2pGcUquN
-  k8GBdsdsrnonMCAGA1UdJQQZMBcGCysGAQQBg7AcAQMCBggrBgEFBQcDCDAKBggq
-  hkjOPQQDBANIADBFAiAIhJ9kjarEGQ8IrR43S/FjkWJXnmTzJcjJ1sFMlWF3xQIh
-  AKMnT4dG4Lqk9MiKJP8zEH1HNZcznCrVG3e41UHIB9j2
-  -----END CERTIFICATE-----
-etc/scion/crypto/voting/ISD19-ASffaa_0_1301.sensitive.crt: |
-  -----BEGIN CERTIFICATE-----
-  MIICkTCCAjegAwIBAgIUI9zYNq8776t5MVxBaZyGLD0TABQwCgYIKoZIzj0EAwQw
-  gaUxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNDAyBgNVBAMMKzE5LWZm
-  YWE6MDoxMzAxIFNlbnNpdGl2ZSBWb3RpbmcgQ2VydGlmaWNhdGUxHzAdBgsrBgEE
-  AYOwHAECAQwOMTktZmZhYTowOjEzMDEwHhcNMjEwMTIwMDYxNzM0WhcNMjMwMTIw
-  MDYxNzM0WjCBpTELMAkGA1UEBhMCQ0gxCzAJBgNVBAgMAlpIMRAwDgYDVQQHDAda
-  w7xyaWNoMQ8wDQYDVQQKDAZOZXRzZWMxDzANBgNVBAsMBk5ldHNlYzE0MDIGA1UE
-  AwwrMTktZmZhYTowOjEzMDEgU2Vuc2l0aXZlIFZvdGluZyBDZXJ0aWZpY2F0ZTEf
-  MB0GCysGAQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMTBZMBMGByqGSM49AgEGCCqG
-  SM49AwEHA0IABLytiyH57q+deo4/K7K/iAk6G0oiddX3MfJPUH206Ifdm/SdEJO7
-  4w1ebVAvTxdQ1x7V6+t3gdjahWZ75RlfYmejQzBBMB0GA1UdDgQWBBQA7qtairSh
-  56ZViTmLRLEByx7e6DAgBgNVHSUEGTAXBgsrBgEEAYOwHAEDAQYIKwYBBQUHAwgw
-  CgYIKoZIzj0EAwQDSAAwRQIhAJI9XtLYjD+c7IYZ2Zs2uAw7pfhukCDR1P+CJbie
-  OFRHAiAwbPXRm8G5zuXhf4I57HnIS1arXhZgn28S8m4Q2XypBg==
-  -----END CERTIFICATE-----
-etc/scion/crypto/voting/regular-voting.key: |
-  -----BEGIN PRIVATE KEY-----
-  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgn3SZASo1E57RoIxD
-  hzRplEdkP7RafxFYCiv9nyxoqgChRANCAATp5czneLAd1Fn4KyGtJZQs9CTLb7WJ
-  AhVHlTlBU001GmEDx6jHGXTEgQjQBcfjWitkpCcqHEdyQPjdRhC289K9
-  -----END PRIVATE KEY-----
-etc/scion/crypto/voting/sensitive-voting.key: |
-  -----BEGIN PRIVATE KEY-----
-  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgkNOYCfBLdZFbxp+H
-  ghTOt4yVbNbevfgm2JTC9zAksLyhRANCAAS8rYsh+e6vnXqOPyuyv4gJOhtKInXV
-  9zHyT1B9tOiH3Zv0nRCTu+MNXm1QL08XUNce1evrd4HY2oVme+UZX2Jn
+  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgIJLgxEVZ1rqr/5D8
+  rqBVkPwk6F5UFRP4LCtz8uI0QkShRANCAARzGhxObsrdAZkiyjcwMdj0orY6Ll7T
+  KKisUWCHc9xcvklDHb11EUjP98q+ijedn8oVXcXHqVoJsQtgd/UOUlFW
   -----END PRIVATE KEY-----
 etc/scion/cs-1.toml: |
   [beacon_db]
   connection = "/var/lib/scion/cs-1.beacon.db"
 
   [beaconing]
-  origination_interval = "60s"
-  propagation_interval = "60s"
+  origination_interval = "5s"
+  propagation_interval = "5s"
 
   [general]
   config_dir = "/etc/scion"
@@ -437,69 +343,34 @@ etc/scion/cs-1.toml: |
   [log.console]
   level = "info"
 etc/scion/keys/master0.key: |-
-  XyMfSNIoUlHO12qqVWFA3g==
+  F/vGGh+49IFjSw8+vZqe6w==
 etc/scion/keys/master1.key: |-
-  XyMfSNIoUlHO12qqVWFA3g==
+  F/vGGh+49IFjSw8+vZqe6w==
 etc/scion/topology.json: |-
   {
-    "attributes": [
-      "authoritative",
-      "core",
-      "issuing",
-      "voting"
-    ],
+    "attributes": [],
     "border_routers": {
       "br-1": {
         "ctrl_addr": "127.0.0.1:30201",
         "interfaces": {
           "1": {
             "bandwidth": 1000,
-            "isd_as": "19-ffaa:0:1302",
-            "link_to": "CORE",
+            "isd_as": "17-ffaa:0:1101",
+            "link_to": "PARENT",
             "mtu": 1472,
             "underlay": {
-              "public": "172.31.0.110:50000",
-              "remote": "192.0.2.32:50000"
+              "public": "192.0.2.13:50000",
+              "remote": "192.0.2.11:50000"
             }
           },
           "2": {
             "bandwidth": 1000,
-            "isd_as": "19-ffaa:0:1303",
+            "isd_as": "17-ffaa:0:1102",
             "link_to": "CHILD",
             "mtu": 1472,
             "underlay": {
-              "public": "172.31.0.110:50001",
-              "remote": "172.31.0.111:50000"
-            }
-          },
-          "3": {
-            "bandwidth": 1000,
-            "isd_as": "19-ffaa:0:1304",
-            "link_to": "CHILD",
-            "mtu": 1472,
-            "underlay": {
-              "public": "172.31.0.110:50002",
-              "remote": "192.0.2.34:50000"
-            }
-          },
-          "4": {
-            "bandwidth": 1000,
-            "isd_as": "17-ffaa:0:1101",
-            "link_to": "CORE",
-            "mtu": 1472,
-            "underlay": {
-              "public": "172.31.0.110:50003",
-              "remote": "192.0.2.11:50001"
-            }
-          },
-          "5": {
-            "bandwidth": 1000,
-            "isd_as": "20-ffaa:0:1401",
-            "link_to": "CORE",
-            "mtu": 1472,
-            "underlay": {
-              "public": "172.31.0.110:50004",
-              "remote": "172.31.0.113:50000"
+              "public": "192.0.2.13:50001",
+              "remote": "192.0.2.12:50000"
             }
           }
         },
@@ -516,14 +387,8 @@ etc/scion/topology.json: |-
         "addr": "127.0.0.1:30254"
       }
     },
-    "isd_as": "19-ffaa:0:1301",
-    "mtu": 1472,
-    "sigs": {
-      "sig-1": {
-        "ctrl_addr": "127.0.0.1:30256",
-        "data_addr": "127.0.0.1:30056"
-      }
-    }
+    "isd_as": "17-ffaa:0:1103",
+    "mtu": 1472
   }
 scionlab-config.json: |-
   {
@@ -532,23 +397,15 @@ scionlab-config.json: |-
       "etc/scion/certs/ISD17-B1-S1.trc": "6e20b26b9831223ff8557b88cf7e2a3a441619b0",
       "etc/scion/certs/ISD19-B1-S1.trc": "b91dfb74d7f9d24d7cd81b53fdc2ffd820b1f46c",
       "etc/scion/certs/ISD20-B1-S1.trc": "66a6da3efd14c19c51c88dacd3de1534caa9b92c",
-      "etc/scion/crypto/as/ISD19-ASffaa_0_1301.pem": "2f6d84b8fe4d13cf75a8a6a689cd4556151aecbd",
-      "etc/scion/crypto/as/cp-as.key": "b166ace120525163b09163da906599fe5bfb2c82",
-      "etc/scion/crypto/ca/ISD19-ASffaa_0_1301.ca.crt": "c54d2dc129f1121bfd0e53942bd345f85707adf2",
-      "etc/scion/crypto/ca/ISD19-ASffaa_0_1301.root.crt": "3a1ccd81e057b02ebfba99d78f4abb3dae496bc3",
-      "etc/scion/crypto/ca/cp-ca.key": "06fb00f155b6b656d627c6ffc55356c6801c7165",
-      "etc/scion/crypto/ca/cp-root.key": "7d48e7ad385f1aa87dd491cffa0e8d3dd0c9e8d4",
-      "etc/scion/crypto/voting/ISD19-ASffaa_0_1301.regular.crt": "79a8205a820ef993bd5708d695c51f8517f746e1",
-      "etc/scion/crypto/voting/ISD19-ASffaa_0_1301.sensitive.crt": "4cdb055c967fd1d85913a070bdf3d3cfcfd7f881",
-      "etc/scion/crypto/voting/regular-voting.key": "22fc85c70d76d1764a88152c03213ddbbebff17b",
-      "etc/scion/crypto/voting/sensitive-voting.key": "ce2d236b8f838cdb69e38adb68c8421855a14ccd",
-      "etc/scion/cs-1.toml": "47ad2499da3f424ae2e5632598f002efee1119c5",
-      "etc/scion/keys/master0.key": "988129da38750290870323c1d2fa7f7e3a83738d",
-      "etc/scion/keys/master1.key": "988129da38750290870323c1d2fa7f7e3a83738d",
-      "etc/scion/topology.json": "bb9bf4a2e74eb7473da214558830212f36886fb7"
+      "etc/scion/crypto/as/ISD17-ASffaa_0_1103.pem": "ef840f8bda9a0d44b46cf1d880c667f0cbbdc017",
+      "etc/scion/crypto/as/cp-as.key": "74abf7e5596b9b790e0c6f6ec6c64f72ebc25ed1",
+      "etc/scion/cs-1.toml": "84467cd10682d975caeccba3a7eaaec1bd9ea858",
+      "etc/scion/keys/master0.key": "1da16f862afe030b5442d93d91c7226ab3185e2e",
+      "etc/scion/keys/master1.key": "1da16f862afe030b5442d93d91c7226ab3185e2e",
+      "etc/scion/topology.json": "3fa174c3e24a5efd6d51e2c31584ab3b21bdd6a1"
     },
-    "host_id": "9b2eedd0a1bd41d59a6c3a37a0317024",
-    "host_secret": "e563ae76441a44b3b225cb26e569dc72",
+    "host_id": "7b113599307b4c078bb58efda2dfb734",
+    "host_secret": "d8ae8eb8a08f4ff5af7f604e593e58a8",
     "systemd_units": [
       "scion-hsr@br-1.service",
       "scion-control-service@cs-1.service",
@@ -556,5 +413,5 @@ scionlab-config.json: |-
       "scion-dispatcher.service"
     ],
     "url": "http://localhost:8000",
-    "version": 10
+    "version": 6
   }

@@ -112,8 +112,8 @@ extra_services = [
 
 # Router instances (AS ID, router instance ID) with high-speed router configuration
 hsrs = [
-    (_expand_as_id(0x1301), 1),
-    (_expand_as_id(0x1302), 1),
+    (_expand_as_id(0x1102), 1),
+    (_expand_as_id(0x1103), 1),
 ]
 
 # VPNs for APs, except 1303

@@ -4531,13 +4531,13 @@
   fields:
     AS: 3
     host: 3
-    is_hsr: false
+    is_hsr: true
 - model: scionlab.borderrouter
   pk: 3
   fields:
     AS: 2
     host: 2
-    is_hsr: false
+    is_hsr: true
 - model: scionlab.borderrouter
   pk: 4
   fields:
@@ -4549,13 +4549,13 @@
   fields:
     AS: 5
     host: 5
-    is_hsr: true
+    is_hsr: false
 - model: scionlab.borderrouter
   pk: 6
   fields:
     AS: 6
     host: 6
-    is_hsr: true
+    is_hsr: false
 - model: scionlab.borderrouter
   pk: 7
   fields:
