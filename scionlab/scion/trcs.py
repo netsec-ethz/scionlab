@@ -52,7 +52,7 @@ def trc_to_dict(trc: bytes) -> dict:
 def verify_trcs(*trcs: bytes):
     """
     Verify that the sequence of trcs, using the first TRC as anchor.
-    TRCs are passed in string, base 64 format.
+    TRCs are passed as bytes, base 64 format.
     Raises ScionPkiError if the TRCs are not valid.
     """
     with contextlib.ExitStack() as stack:

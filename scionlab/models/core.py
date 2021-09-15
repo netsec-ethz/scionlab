@@ -311,16 +311,15 @@ class AS(TimestampedModel):
         certs = self.certificates_latest()
         cert_map = {}
         for cert in certs:
-            c = cert.certificate.encode('ascii')  # the simple certificate
-            cert_map[cert.usage()] = c
-            verify_certificate_valid(c, cert.usage())
+            cert_map[cert.usage()] = cert.certificate
+            verify_certificate_valid(cert.certificate, cert.usage())
             if cert.usage() == Key.CP_AS:
-                verify_cp_as_chain(cert.format_certfile().encode('ascii'), trc)  # chain
+                verify_cp_as_chain(cert.format_certfile(), trc)  # chain
         keys = self.keys_latest()
         for key in keys:
             if key.usage not in cert_map:
                 raise ScionPkiError(f'no corresponding cert for key {key.filename()}')
-            verify_key(key.key.encode('ascii'), cert_map[key.usage])
+            verify_key(key.key, cert_map[key.usage])
         return len(keys)
 
     def generate_keys(self, not_before=None):

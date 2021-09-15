@@ -50,14 +50,16 @@ def decode_key(pem: str) -> ec.EllipticCurvePrivateKey:
     return serialization.load_pem_private_key(pem.encode("ascii"), password=None)
 
 
-def verify_key(key: bytes, cert: bytes):
+def verify_key(key: str, cert: str):
     """
     Verify that the certificate is valid, using the last TRC as anchor.
+    The key is passed as a PEM string.
+    The certificate is passed as a PEM string.
     Raises ScionPkiError if the certificate is not valid.
     """
     with contextlib.ExitStack() as stack:
-        key_file = stack.enter_context(NamedTemporaryFile(suffix=".key"))
-        cert_file = stack.enter_context(NamedTemporaryFile(suffix=".crt"))
+        key_file = stack.enter_context(NamedTemporaryFile(mode='wt', suffix=".key"))
+        cert_file = stack.enter_context(NamedTemporaryFile(mode='wt', suffix=".crt"))
         files = [key_file, cert_file]
         for f, value in zip(files, [key, cert]):
             f.write(value)

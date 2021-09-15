@@ -62,25 +62,28 @@ def decode_certificate(pem: str) -> x509.Certificate:
     return x509.load_pem_x509_certificate(pem.encode("ascii"))
 
 
-def verify_certificate_valid(cert: bytes, cert_usage: str):
+def verify_certificate_valid(cert: str, cert_usage: str):
     """
     Verifies that the certificate's fields are valid for that type.
+    The certificate is passed as a PEM string.
     This function does not verify the trust chain
-    (see also verify_cp_as_chain)
+    (see also verify_cp_as_chain).
     """
-    with NamedTemporaryFile('wb', suffix=".crt") as f:
+    with NamedTemporaryFile('w', suffix=".crt") as f:
         f.write(cert)
         f.flush()
         _run_scion_pki_certificate('validate', '--type', cert_usage, '--check-time', f.name)
 
 
-def verify_cp_as_chain(cert: bytes, trc: bytes):
+def verify_cp_as_chain(cert: str, trc: bytes):
     """
     Verify that the certificate is valid, using the last TRC as anchor.
+    The certificate is passed as a PEM string.
+    The TRC is passed as bytes, basee 64 format.
     Raises ScionPkiError if the certificate is not valid.
     """
-    with NamedTemporaryFile(suffix=".trc") as trc_file,\
-         NamedTemporaryFile(suffix=".pem") as cert_file:
+    with NamedTemporaryFile(mode='wb', suffix=".trc") as trc_file,\
+         NamedTemporaryFile(mode='wt', suffix=".pem") as cert_file:
         files = [trc_file, cert_file]
         for f, value in zip(files, [trc, cert]):
             f.write(value)
