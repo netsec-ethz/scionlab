@@ -39,10 +39,6 @@ class Command(BaseCommand):
             for as_ in ases:
                 try:
                     num = as_.validate_crypto()
-                    if (as_.is_core and num != 5) or (not as_.is_core and num != 1):
-                        raise ScionPkiError(
-                            f'AS {as_.as_id}, core:{as_.is_core}: '
-                            f'invalid number of certs {num}')
                     print(f'AS {as_.as_id}, core: {as_.is_core} ; {num} certs')
                 except ScionPkiError as ex:
                     failed_ases.append(as_)

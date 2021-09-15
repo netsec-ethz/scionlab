@@ -320,6 +320,12 @@ class AS(TimestampedModel):
             if key.usage not in cert_map:
                 raise ScionPkiError(f'no corresponding cert for key {key.filename()}')
             verify_key(key.key, cert_map[key.usage])
+        if len(keys) != len(certs):
+            raise ScionPkiError(f'different number of keys ({len(keys)}) than certs ({len(certs)})')
+        if (self.is_core and len(keys) != 5) or (not self.is_core and len(keys) != 1):
+            raise ScionPkiError(
+                f'AS {self.as_id}, core:{self.is_core}: '
+                f'invalid number of keys/certs {len(keys)}')
         return len(keys)
 
     def generate_keys(self, not_before=None):
