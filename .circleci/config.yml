@@ -51,9 +51,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-          - v5-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
+          - v6-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
           # fallback to using the latest cache if no exact match is found
-          - v5-dependencies-
+          - v6-dependencies-
 
       - run:
           name: Install dependencies
@@ -66,7 +66,7 @@ commands:
       - save_cache:
           paths:
             - /tmp/venv
-          key: v5-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
+          key: v6-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "dev-requirements.txt" }}
 
 
 jobs:
