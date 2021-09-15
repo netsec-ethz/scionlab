@@ -26,7 +26,10 @@ from cryptography.x509.oid import NameOID, ObjectIdentifier
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 from typing import List, Tuple, Optional, NamedTuple
+
+from scionlab.scion.pkicommand import run_scion_pki
 
 
 OID_ISD_AS = ObjectIdentifier('1.3.6.1.4.1.55324.1.2.1')
@@ -57,6 +60,35 @@ def encode_certificate(cert: x509.Certificate) -> str:
 
 def decode_certificate(pem: str) -> x509.Certificate:
     return x509.load_pem_x509_certificate(pem.encode("ascii"))
+
+
+def verify_certificate_valid(cert: str, cert_usage: str):
+    """
+    Verifies that the certificate's fields are valid for that type.
+    The certificate is passed as a PEM string.
+    This function does not verify the trust chain
+    (see also verify_cp_as_chain).
+    """
+    with NamedTemporaryFile('w', suffix=".crt") as f:
+        f.write(cert)
+        f.flush()
+        _run_scion_pki_certificate('validate', '--type', cert_usage, '--check-time', f.name)
+
+
+def verify_cp_as_chain(cert: str, trc: bytes):
+    """
+    Verify that the certificate is valid, using the last TRC as anchor.
+    The certificate is passed as a PEM string.
+    The TRC is passed as bytes, basee 64 format.
+    Raises ScionPkiError if the certificate is not valid.
+    """
+    with NamedTemporaryFile(mode='wb', suffix=".trc") as trc_file,\
+         NamedTemporaryFile(mode='wt', suffix=".pem") as cert_file:
+        files = [trc_file, cert_file]
+        for f, value in zip(files, [trc, cert]):
+            f.write(value)
+            f.flush()
+        _run_scion_pki_certificate('verify', '--trc', trc_file.name, cert_file.name)
 
 
 def generate_voting_sensitive_certificate(subject_id: str,
@@ -250,3 +282,7 @@ def _build_extensions_as(subject_key: ec.EllipticCurvePrivateKey,
                                              x509.ExtendedKeyUsageOID.CLIENT_AUTH,
                                              x509.ExtendedKeyUsageOID.TIME_STAMPING]),
                       critical=False)]
+
+
+def _run_scion_pki_certificate(*args, cwd=None, check=True):
+    return run_scion_pki('certificate', *args, cwd=cwd, check=check)

@@ -33,6 +33,10 @@ from datetime import datetime
 from scionlab.models.user import User
 from scionlab.models.pki import Key, Certificate
 from scionlab.scion import as_ids
+from scionlab.scion.certs import verify_certificate_valid, verify_cp_as_chain
+from scionlab.scion.keys import verify_key
+from scionlab.scion.trcs import decode_trc, verify_trcs
+from scionlab.scion.pkicommand import ScionPkiError
 from scionlab.util.django import value_set
 from scionlab.defines import (
     MAX_INTERFACE_ID,
@@ -107,6 +111,16 @@ class ISD(TimestampedModel):
             as_.update_keys_certs()
 
         return self.trcs.create()
+
+    def validate_crypto(self):
+        """
+        checks that the crypto material for this object is correct,
+        namely that the trc chain is valid.
+        Returns the number of valid trcs in this ISD.
+        """
+        ts = [decode_trc(t.trc) for t in self.trcs.order_by('serial_version')]
+        verify_trcs(ts[0], *ts)
+        return len(ts)
 
 
 class ASManager(models.Manager):
@@ -286,6 +300,33 @@ class AS(TimestampedModel):
             keys = keys | Key.objects.filter(AS=self, usage=key_usage,
                                              version__gte=latest_version)
         return keys
+
+    def validate_crypto(self):
+        """
+        checks that the crypto material for this object is correct, by obtaining the
+        latests certificates and keys and checking them against the latest TRC.
+        Returns the number of certificates (with keys) that passed the check.
+        """
+        trc = decode_trc(self.isd.trcs.latest().trc)
+        certs = self.certificates_latest()
+        cert_map = {}
+        for cert in certs:
+            cert_map[cert.usage()] = cert.certificate
+            verify_certificate_valid(cert.certificate, cert.usage())
+            if cert.usage() == Key.CP_AS:
+                verify_cp_as_chain(cert.format_certfile(), trc)  # chain
+        keys = self.keys_latest()
+        for key in keys:
+            if key.usage not in cert_map:
+                raise ScionPkiError(f'no corresponding cert for key {key.filename()}')
+            verify_key(key.key, cert_map[key.usage])
+        if len(keys) != len(certs):
+            raise ScionPkiError(f'different number of keys ({len(keys)}) than certs ({len(certs)})')
+        if (self.is_core and len(keys) != 5) or (not self.is_core and len(keys) != 1):
+            raise ScionPkiError(
+                f'AS {self.as_id}, core:{self.is_core}: '
+                f'invalid number of keys/certs {len(keys)}')
+        return len(keys)
 
     def generate_keys(self, not_before=None):
         Key.objects.create_all_keys(self, not_before=not_before)

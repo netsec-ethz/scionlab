@@ -22,7 +22,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from scionlab.defines import DEFAULT_TRC_GRACE_PERIOD
 from scionlab.scion import certs, keys
-from scionlab.scion.trcs import TRCConf, generate_trc, trc_to_dict, verify_trcs, VerifyError
+from scionlab.scion.trcs import TRCConf, generate_trc, trc_to_dict, verify_trcs
+from scionlab.scion.pkicommand import ScionPkiError
 
 _TESTDATA_DIR = Path(os.path.dirname(os.path.realpath(__file__)), 'data/test_scion_trcs')
 
@@ -135,7 +136,7 @@ class TRCCreationTests(TestCase):
                 signed_payloads.append(conf._sign_payload(temp_dir, cert, key))
             trc = conf._combine(temp_dir, *signed_payloads)
         # verify the trc with a call to scion-pki (would raise if error)
-        with self.assertRaises(VerifyError):
+        with self.assertRaises(ScionPkiError):
             verify_trcs(trc, trc)
 
     def test_generate(self):
