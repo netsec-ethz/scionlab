@@ -30,7 +30,6 @@ DEFAULT_PUBLIC_PORT = 50000    # UDP/IP, public_ip:port (bound to bind_ip:port i
 # Notably, this scheme starts at lower numbers to allow up to 40 routers before collision with the
 # range used for the dispatcher (30041).
 BR_INTERNAL_PORT_BASE = 30000    # UDP/IP, internal_ip:port
-BR_CONTROL_PORT_BASE = 30200     # QUIC/UDP/SCION, [IA,internal_ip]:port
 BR_METRICS_PORT_BASE = 30400     # TCP/IP, 127.0.0.1:port
 
 CS_PORT = 30254                  # UDP/SCION (inter-AS) *and* TCP/IP (intra-AS)

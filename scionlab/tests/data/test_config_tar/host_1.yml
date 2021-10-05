@@ -461,7 +461,6 @@ etc/scion/topology.json: |-
     ],
     "border_routers": {
       "br-1": {
-        "ctrl_addr": "127.0.0.1:30201",
         "interfaces": {
           "1": {
             "bandwidth": 1000,
@@ -531,7 +530,7 @@ scionlab-config.json: |-
       "etc/scion/cs-1.toml": "47ad2499da3f424ae2e5632598f002efee1119c5",
       "etc/scion/keys/master0.key": "70deed870340082346f2554d163ac20928e0412d",
       "etc/scion/keys/master1.key": "70deed870340082346f2554d163ac20928e0412d",
-      "etc/scion/topology.json": "d98ff25307e2eda82b43957ef622e550831dc324"
+      "etc/scion/topology.json": "b57e9f386c09f59f75f348be304f85be82d36c51"
     },
     "host_id": "a273dae1dbf944ba9f7cf3737ef06752",
     "host_secret": "852fa3d011d94da59dc4c488e9750a8f",

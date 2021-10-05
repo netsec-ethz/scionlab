@@ -104,7 +104,6 @@ def _topo_add_routers(topo_dict, routers):
 def _topo_add_router_entry(topo_dict, router):
     return topo_dict[KEY_BR].setdefault(router.instance_name, {
         "internal_addr": _join_host_port(router.host.internal_ip, router.internal_port),
-        "ctrl_addr": _join_host_port(router.host.internal_ip, router.control_port),
         "interfaces": {},
     })
 

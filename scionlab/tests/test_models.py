@@ -307,8 +307,6 @@ class PortSchemeTests(TestCase):
             br = BorderRouter.objects.create(host=self.host)
             self.assertNotIn(br.internal_port, ports_in_use)
             ports_in_use.add(br.internal_port)
-            self.assertNotIn(br.control_port, ports_in_use)
-            ports_in_use.add(br.control_port)
             self.assertNotIn(br.metrics_port, ports_in_use)
             ports_in_use.add(br.metrics_port)
 
