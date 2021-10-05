@@ -147,7 +147,7 @@ jobs:
 
             # Check that configuration was updated
             new_version=$(docker-compose exec -T as1303 cat /etc/scion/scionlab-config.json | jq .version)
-            [ "$prev_version" -lt "$new_version" ]
+            [ "$prev_version" != "$new_version" ]
 
       - run: .circleci/setup/check-scion-connectivity.sh
 

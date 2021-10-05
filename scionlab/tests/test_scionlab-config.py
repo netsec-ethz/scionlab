@@ -23,17 +23,20 @@ import tempfile
 from collections import namedtuple
 from contextlib import closing
 from io import StringIO
+from parameterized import parameterized
 from unittest import TestCase
 from unittest.mock import patch
 
 from django.test import LiveServerTestCase
 
+from scionlab import config_tar
 from scionlab.models.core import Host
 from scionlab.util.archive import TarWriter
 from scionlab.tests import utils
 
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 _BASE_DIR = os.path.dirname(os.path.dirname(_TEST_DIR))
+_DATA_DIR = os.path.join(_TEST_DIR, 'data/test_scionlab-config/')
 _SCIONLAB_CONFIG_PATH = os.path.join(_BASE_DIR, "scionlab/hostfiles/scionlab-config")
 
 # import "scionlab-config" as a module "scionlab_config"
@@ -45,6 +48,12 @@ spec = importlib.util.spec_from_loader(
 scionlab_config = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scionlab_config)
 sys.modules['scionlab_config'] = scionlab_config
+
+
+def _expected_fetch_info(**kwargs):
+    url = kwargs.get("url", "https://test.scionlab.org")
+    version = kwargs.get("version", "12.345")
+    return scionlab_config.FetchInfo('h1', 's1', url, version)
 
 
 class ScionlabConfigLiveTests(LiveServerTestCase):
@@ -63,7 +72,7 @@ class ScionlabConfigLiveTests(LiveServerTestCase):
             host_id=host.uid,
             host_secret=host.secret,
             url=self.live_server_url,
-            version=1,
+            version='%i.1' % config_tar.CONFIG_GEN_VERSION,
         )
 
     def test_fetch_config_update(self):
@@ -111,7 +120,7 @@ class ScionlabConfigLiveTests(LiveServerTestCase):
     def test_confirm_deployed(self):
         self.host.config_version += 1
         self.host.save()
-        confirm_info = self.fetch_info._replace(version=self.host.config_version)
+        confirm_info = self.fetch_info._replace(version=config_tar.fmt_config_version(self.host))
         with patch('scionlab_config._read_fetch_info', return_value=confirm_info):
             class MockArgs:
                 url = None
@@ -119,6 +128,25 @@ class ScionlabConfigLiveTests(LiveServerTestCase):
 
         self.host.refresh_from_db()
         self.assertEqual(self.host.config_version, self.host.config_version_deployed)
+
+    @parameterized.expand([('good.json', _expected_fetch_info()),
+                           ('no_url.json', _expected_fetch_info(
+                               url=scionlab_config.DEFAULT_COORDINATOR_URL)),
+                           ('no_version.json', _expected_fetch_info(version=None)),
+                           ('old_version.json', _expected_fetch_info(version=None)),
+                           ])
+    def test_read_fetch_info_good(self, f, expected):
+        path = os.path.join(_DATA_DIR, f)
+        actual = scionlab_config._read_fetch_info(path)
+        self.assertEqual(actual, expected)
+
+    @parameterized.expand([('missing_id.json', ),
+                           ('missing_secret.json', ),
+                           ('does-not-exist.json', )])
+    def test_read_fetch_info_bad(self, f):
+        path = os.path.join(_DATA_DIR, f)
+        with self.assertRaises(SystemExit):
+            scionlab_config._read_fetch_info(path)
 
     def _check_tar(self, tar):
         self.assertIsInstance(tar, tarfile.TarFile)
@@ -161,8 +189,8 @@ class ScionlabConfigUnitTests(TestCase):
             _check_bad(good + [f])  # individual bad with good still fail
 
     def test_sanity_check_version(self):
-        good = [0, 1, 10000]
-        bad = ['foo', {}, '1', '123', 1.0]
+        good = ['0.0', '1.1', '13.10000']
+        bad = [0, 1, 'foo', {}, '1', '123', 1.0, '123.123.13']
 
         for version in good:
             scionlab_config._sanity_check_version(version)

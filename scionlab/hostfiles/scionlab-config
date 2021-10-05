@@ -33,11 +33,12 @@ import io
 import json
 import logging
 import os
+import pathlib
 import shlex
 import shutil
+import string
 import subprocess
 import sys
-import pathlib
 import tarfile
 import textwrap
 import time
@@ -46,7 +47,7 @@ from collections import namedtuple, OrderedDict
 
 assert sys.version_info >= (3, 6)
 
-SCRIPT_VERSION = '3.0, api/v3, October 2020'
+SCRIPT_VERSION = '3.1, api/v4, October 2020'
 
 SCION_CONFIG_PATH = '/etc/scion'
 OPENVPN_CONFIG_DIR = '/etc/openvpn'
@@ -103,7 +104,7 @@ def main(argv):
     args = parse_command_line_args(argv)
     logging.basicConfig(format='%(levelname)s: %(message)s', level=LOG_LEVELS[args.log_level])
 
-    if os.geteuid() != 0:
+    if not args.onlydownload and os.geteuid() != 0:
         _error_exit("The script must be run as root")
     if not args.tar:
         while True:
@@ -272,6 +273,11 @@ def _read_fetch_info(file):
             config_info_dict = json.load(f)
     except (IOError, json.decoder.JSONDecodeError) as e:
         _error_exit("Error loading the scionlab config info file '%s': %s", file, e)
+
+    # Version number used to be just an int, now it's a string. Ignore old version number.
+    if type(config_info_dict.get('version')) is int:
+        del config_info_dict['version']
+
     try:
         return FetchInfo(config_info_dict['host_id'],
                          config_info_dict['host_secret'],
@@ -296,7 +302,7 @@ def fetch_config(fetch_info):
         - tarfile.tar the configuration archive
     """
 
-    url = '{coordinator_url}/api/v3/host/{host_id}/config'.format(
+    url = '{coordinator_url}/api/v4/host/{host_id}/config'.format(
         coordinator_url=fetch_info.url.rstrip('/'),
         host_id=fetch_info.host_id
     )
@@ -359,7 +365,7 @@ def confirm_deployed(args):
     if args.url:
         fetch_info = fetch_info._replace(url=args.url)
 
-    url = '{coordinator_url}/api/v3/host/{host_id}/deployed_config_version'.format(
+    url = '{coordinator_url}/api/v4/host/{host_id}/deployed_config_version'.format(
         coordinator_url=fetch_info.url.rstrip('/'),
         host_id=fetch_info.host_id
     )
@@ -780,7 +786,11 @@ def _sanity_check_version(version):
     """
     Sanity check that the version is the expected integer value in a sensible range.
     """
-    if type(version) is not int or version < 0 or version >= 2**64:
+    if type(version) is not str \
+            or len(version) < 3 \
+            or len(version) > 40 \
+            or version.count(".") != 1 \
+            or any(c not in "." + string.digits for c in version):
         raise ValueError("The version info looks fishy.")
 
 

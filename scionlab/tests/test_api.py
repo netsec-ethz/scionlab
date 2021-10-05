@@ -16,6 +16,7 @@ import json
 
 from django.test import TestCase
 from parameterized import parameterized
+from scionlab import config_tar
 from scionlab.models.core import Host
 from scionlab.tests import utils
 from scionlab.tests.utils import basic_auth
@@ -27,7 +28,7 @@ class GetHostConfigTests(TestCase):
     def setUp(self):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
-        self.url = '/api/v3/host/%s/config' % self.host.uid
+        self.url = '/api/v4/host/%s/config' % self.host.uid
         self.auth_headers = basic_auth(self.host.uid, self.host.secret)
 
     def test_aaa(self):
@@ -46,13 +47,15 @@ class GetHostConfigTests(TestCase):
     def test_bad_request(self):
         ret = self.client.get(self.url, {'version': 'nan'}, **self.auth_headers)
         self.assertEqual(ret.status_code, 400)
+        ret = self.client.get(self.url, {'version': 1}, **self.auth_headers)
+        self.assertEqual(ret.status_code, 400)
 
     def test_post_not_allowed(self):
-        ret = self.client.post(self.url, {'version': 1}, **self.auth_headers)
+        ret = self.client.post(self.url, {'version': '1.1'}, **self.auth_headers)
         self.assertEqual(ret.status_code, 405)
 
     def test_unchanged(self):
-        request_data = {'version': self.host.config_version}
+        request_data = {'version': config_tar.fmt_config_version(self.host)}
 
         ret = self.client.get(self.url, request_data, **self.auth_headers)
         self.assertEqual(ret.status_code, 304)
@@ -61,7 +64,7 @@ class GetHostConfigTests(TestCase):
         self.assertEqual(ret.status_code, 304)
 
     def test_changed(self):
-        prev_version = self.host.config_version
+        prev_version = config_tar.fmt_config_version(self.host)
         self.host.bump_config()
         request_data = {'version': prev_version}
 
@@ -74,8 +77,19 @@ class GetHostConfigTests(TestCase):
         # Fails, because file-timestamps in tar-file which causes content-length difference
         # self.assertEqual(ret_head._headers, ret_get._headers)
 
+    def test_changed_gen(self):
+        prev_version = config_tar.fmt_config_version(self.host, gen=config_tar.CONFIG_GEN_VERSION-1)
+        request_data = {'version': prev_version}
+
+        ret_get = self.client.get(self.url, request_data, **self.auth_headers)
+        self.assertEqual(ret_get.status_code, 200)
+        utils.check_tarball_host(self, ret_get, self.host)
+
+        ret_head = self.client.head(self.url, request_data, **self.auth_headers)
+        self.assertEqual(ret_head.status_code, 200)
+
     def test_empty(self):
-        prev_version = self.host.config_version
+        prev_version = config_tar.fmt_config_version(self.host)
         self.host.AS.delete()  # Nothing left to do for this host
         request_data = {'version': prev_version}
 
@@ -91,7 +105,7 @@ class GetHostConfigExtraServicesTests(TestCase):
 
     @staticmethod
     def _get_url(host):
-        return '/api/v3/host/%s/config' % host.uid
+        return '/api/v4/host/%s/config' % host.uid
 
     @staticmethod
     def _get_auth_headers(host):
@@ -114,7 +128,7 @@ class PostHostConfigVersionTests(TestCase):
     def setUp(self):
         # Avoid duplication, get this info here:
         self.host = Host.objects.last()
-        self.url = '/api/v3/host/%s/deployed_config_version' % self.host.uid
+        self.url = '/api/v4/host/%s/deployed_config_version' % self.host.uid
         self.auth_headers = basic_auth(self.host.uid, self.host.secret)
 
     def test_bad_auth(self):
@@ -129,9 +143,11 @@ class PostHostConfigVersionTests(TestCase):
     def test_bad_request(self):
         ret = self.client.post(self.url, {'version': 'nan'}, **self.auth_headers)
         self.assertEqual(ret.status_code, 400)
+        ret = self.client.post(self.url, {'version': 1}, **self.auth_headers)
+        self.assertEqual(ret.status_code, 400)
 
     def test_get_not_allowed(self):
-        ret = self.client.get(self.url, {'version': 1}, **self.auth_headers)
+        ret = self.client.get(self.url, {'version': '1.1'}, **self.auth_headers)
         self.assertEqual(ret.status_code, 405)
 
     def test_older_than_prev_deployed(self):
@@ -141,19 +157,19 @@ class PostHostConfigVersionTests(TestCase):
         self.host.save()
 
         ret = self.client.post(self.url,
-                               {'version': self.host.config_version_deployed - 1},
+                               _fmt_config_version_num_hdr(self.host.config_version_deployed - 1),
                                **self.auth_headers)
         self.assertEqual(ret.status_code, 304)
 
     def test_newer_than_config(self):
         ret = self.client.post(self.url,
-                               {'version': self.host.config_version + 1},
+                               _fmt_config_version_num_hdr(self.host.config_version + 1),
                                **self.auth_headers)
         self.assertEqual(ret.status_code, 304)
 
     def test_success(self):
         ret = self.client.post(self.url,
-                               {'version': self.host.config_version},
+                               _fmt_config_version_num_hdr(self.host.config_version),
                                **self.auth_headers)
         self.assertEqual(ret.status_code, 200)
 
@@ -161,11 +177,16 @@ class PostHostConfigVersionTests(TestCase):
         self.assertEqual(self.host.config_version_deployed, self.host.config_version)
 
 
+def _fmt_config_version_num_hdr(host_config_version, gen=config_tar.CONFIG_GEN_VERSION):
+    return {'version': "%i.%i" % (gen, host_config_version)}
+
+
 class OldVersionTests(TestCase):
     fixtures = ['testdata']
     old_versions = [
         ('', 'oldest, unversioned'),
-        ('v2/', 'v2')
+        ('v2/', 'v2'),
+        ('v3/', 'v3'),
     ]
 
     @parameterized.expand(old_versions)
@@ -191,8 +212,14 @@ class OldVersionTests(TestCase):
         url_pattern = '/api/{version}/topology/topology'
         url_v2 = url_pattern.format(version='v2')
         url_v3 = url_pattern.format(version='v3')
+        url_v4 = url_pattern.format(version='v4')
 
         ret = self.client.get(url_v2, follow=True)
-        self.assertEqual(ret.redirect_chain, [(url_v3, 301)])
+        self.assertEqual(ret.redirect_chain, [(url_v4, 301)])
+        self.assertEqual(ret.status_code, 200)
+        self.assertEqual(ret['Content-Type'], 'application/json')
+
+        ret = self.client.get(url_v3, follow=True)
+        self.assertEqual(ret.redirect_chain, [(url_v4, 301)])
         self.assertEqual(ret.status_code, 200)
         self.assertEqual(ret['Content-Type'], 'application/json')

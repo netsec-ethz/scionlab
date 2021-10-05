@@ -422,5 +422,5 @@ scionlab-config.json: |-
       "scion-dispatcher.service"
     ],
     "url": "http://localhost:8000",
-    "version": 4
+    "version": "13.4"
   }

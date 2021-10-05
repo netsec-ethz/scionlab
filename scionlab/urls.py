@@ -76,18 +76,21 @@ urlpatterns = [
          RedirectView.as_view(url='/topology.png')),
 
     # API:
-    path('api/v3/host/<slug:uid>/config',
+    path('api/v4/host/<slug:uid>/config',
          GetHostConfig.as_view(),
          name='api_get_config'),
-    path('api/v3/host/<slug:uid>/deployed_config_version',
+    path('api/v4/host/<slug:uid>/deployed_config_version',
          PostHostDeployedConfigVersion.as_view(),
          name='api_post_deployed_version'),
-    path('api/v3/topology/topology',
+    path('api/v4/topology/topology',
          topology_json,
          name='api_topology'),
     # no longer supported versions of the API
     re_path(r'^api/host/', gone),
     re_path(r'^api/v2/host/', gone),
+    re_path(r'^api/v3/host/', gone),
     path('api/v2/topology/topology',
-         RedirectView.as_view(url='/api/v3/topology/topology', permanent=True)),
+         RedirectView.as_view(url='/api/v4/topology/topology', permanent=True)),
+    path('api/v3/topology/topology',
+         RedirectView.as_view(url='/api/v4/topology/topology', permanent=True)),
 ]

@@ -14,6 +14,7 @@
 
 import hmac
 import tarfile
+from collections import namedtuple
 from contextlib import closing
 
 from django.views import View
@@ -69,7 +70,9 @@ class GetHostConfig(SingleObjectMixin, View):
 
         host.update_config_queried_timestamp()
 
-        if version and version >= host.config_version:
+        if version \
+                and version.gen == config_tar.CONFIG_GEN_VERSION \
+                and version.host >= host.config_version:
             return HttpResponseNotModified()
 
         if config_tar.is_empty_config(host):
@@ -112,34 +115,36 @@ class PostHostDeployedConfigVersion(SingleObjectMixin, View):
 
     def post(self, request, *args, **kwargs):
         version = _get_version_param(request.POST)
-        if version is None or version is _BAD_VERSION:
+        if version is None or version is _BAD_VERSION \
+                or version.gen != config_tar.CONFIG_GEN_VERSION:
             return HttpResponseBadRequest()
 
         host = self.get_object()
-        if version > host.config_version or version < host.config_version_deployed:
+        if version.host > host.config_version or version.host < host.config_version_deployed:
             return HttpResponseNotModified()
 
-        host.config_version_deployed = version
+        host.config_version_deployed = version.host
         host.save()
         return HttpResponse()
 
 
 _BAD_VERSION = object()
+_Version = namedtuple('Version', ['gen', 'host'])
 
 
 def _get_version_param(request_params):
     """
     Extract the 'version' parameter from the request if available. Returns _BAD_VERSION
-    if the version cant be parsed to an int.
+    if the version cant be parsed.
     :param dict request_params: request.GET or request.POST
-    :returns: int or None or _BAD_VERSION
+    :returns: _Version or None or _BAD_VERSION
     """
     version_str = request_params.get('version')
     if version_str:
-        if version_str.isnumeric():
-            return int(version_str)
-        else:
+        parts = version_str.split(".")
+        if len(parts) != 2 or not all(p.isdigit() for p in parts):
             return _BAD_VERSION
+        return _Version(gen=int(parts[0]), host=int(parts[1]))
     return None
 
 

@@ -30,6 +30,13 @@ from scionlab.util.archive import HashedArchiveWriter
 _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 
 
+# Version of the config generation process. This number is included the version string in
+# the scionlab-config.json manifest file in the configuration tar ball.
+# This version number should be incremented whenever code changes globally affect the generated
+# configuration of hosts.
+CONFIG_GEN_VERSION = 13
+
+
 def generate_user_as_config_tar(user_as, archive):
     """
     Write the configuration for the given UserAS to the archive.
@@ -110,6 +117,14 @@ def is_empty_config(host):
     return host.AS is None
 
 
+def fmt_config_version(host, gen=CONFIG_GEN_VERSION):
+    """
+    Build the version string the configuration, consisting of a generation version part and a host
+    version part.
+    """
+    return "%i.%i" % (gen, host.config_version)
+
+
 def _add_vpn_client_configs(host, archive):
     """
     Generate the VPN config files and add them to the tar.
@@ -186,7 +201,7 @@ def _generate_config_info_json(host, hashes, systemd_units):
         'host_id': host.uid,
         'host_secret': host.secret,
         'url': settings.SCIONLAB_SITE,
-        'version': host.config_version,
+        'version': fmt_config_version(host),
         'files': hashes,
         'systemd_units': systemd_units,
     }
