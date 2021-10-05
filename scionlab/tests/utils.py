@@ -85,7 +85,6 @@ def check_host_ports(testcase, host):
 
     for router in host.border_routers.iterator():
         _add_port(router.host.internal_ip, router.internal_port)
-        _add_port(router.host.internal_ip, router.control_port)
         for interface in filter(lambda iface: iface.link().active, router.interfaces.iterator()):
             _add_port(interface.get_public_ip(), interface.public_port)
             if interface.get_bind_ip():
@@ -112,14 +111,12 @@ LinkDescription = namedtuple('LinkDescription', [
     'from_bind_ip',
     'from_internal_ip',
     'from_internal_port',
-    'from_control_port',
     'to_as_id',
     'to_public_ip',
     'to_public_port',
     'to_bind_ip',
     'to_internal_ip',
     'to_internal_port',
-    'to_control_port',
 ])
 # little hack: the `defaults` parameter for namedtuple will only be introduced in python-3.7.
 # As a simple workaround we manually provide the desired default value (_dont_care) for all
@@ -143,10 +140,8 @@ def check_link(testcase, link, link_desc=None):
     testcase.assertEqual(link.interfaceB.AS, link.interfaceB.host.AS)
     _check_port(testcase, link.interfaceA.public_port)
     _check_port(testcase, link.interfaceA.border_router.internal_port)
-    _check_port(testcase, link.interfaceA.border_router.control_port)
     _check_port(testcase, link.interfaceB.public_port)
     _check_port(testcase, link.interfaceB.border_router.internal_port)
-    _check_port(testcase, link.interfaceB.border_router.control_port)
 
     if link_desc:
         actual_link_desc = _describe_link(link)
@@ -166,14 +161,12 @@ def _describe_link(link):
         from_bind_ip=link.interfaceA.get_bind_ip(),
         from_internal_ip=link.interfaceA.host.internal_ip,
         from_internal_port=link.interfaceA.border_router.internal_port,
-        from_control_port=link.interfaceA.border_router.control_port,
         to_as_id=link.interfaceB.AS.as_id,
         to_public_ip=link.interfaceB.get_public_ip(),
         to_public_port=link.interfaceB.public_port,
         to_bind_ip=link.interfaceB.get_bind_ip(),
         to_internal_ip=link.interfaceB.host.internal_ip,
         to_internal_port=link.interfaceB.border_router.internal_port,
-        to_control_port=link.interfaceB.border_router.control_port,
     )
 
 

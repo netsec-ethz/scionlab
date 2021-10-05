@@ -43,7 +43,6 @@ from scionlab.defines import (
     MAX_PORT,
     DEFAULT_PUBLIC_PORT,
     BR_INTERNAL_PORT_BASE,
-    BR_CONTROL_PORT_BASE,
     BR_METRICS_PORT_BASE,
     CS_PORT,
     CS_METRICS_PORT,
@@ -1081,10 +1080,6 @@ class BorderRouter(models.Model):
         Name of this border router instance in the AS topology.
         """
         return f"br-{self.instance_id}"
-
-    @property
-    def control_port(self):
-        return BR_CONTROL_PORT_BASE + self.instance_id
 
     @property
     def internal_port(self):
