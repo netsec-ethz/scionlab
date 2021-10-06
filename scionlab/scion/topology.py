@@ -18,9 +18,12 @@ from scionlab.models.core import Service, Link
 KEY_BR = 'border_routers'
 KEY_CS = 'control_service'
 KEY_DS = 'discovery_service'
+KEY_CO = 'colibri_service'
+
 
 TYPES_TO_KEYS = {
     "CS": KEY_CS,
+    "CO": KEY_CO,
 }
 
 CORE_ATTRIBUTES = [

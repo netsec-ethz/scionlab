@@ -25,6 +25,7 @@ from scionlab.defines import (
     PROPAGATE_TIME_NONCORE,
     DISPATCHER_METRICS_PORT,
     CS_QUIC_PORT,
+    CO_QUIC_PORT,
     SD_METRICS_PORT,
     SCION_CONFIG_DIR,
     SCION_VAR_DIR,
@@ -43,8 +44,14 @@ TYPE_BR = 'BR'
 TYPE_SD = 'SD'
 SERVICES_TO_SYSTEMD_NAMES = {
     Service.CS: 'scion-control-service',
+    Service.CO: 'scion-colibri-service',
     Service.BW: 'scion-bwtestserver',
     TYPE_BR: 'scion-border-router',
+}
+
+CONTROL_SERVICES_TO_CONFIG_FUNCTION = {
+    Service.CS: 'build_cs_conf',
+    Service.CO: 'build_co_conf',
 }
 
 DEFAULT_ENV = ['TZ=UTC']
@@ -52,6 +59,7 @@ BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 
 CMDS = {
     Service.CS: 'cs',
+    Service.CO: 'co',
     TYPE_BR: 'posix-router',
     TYPE_SD: 'sciond',
 }
@@ -101,9 +109,9 @@ class _ConfigGeneratorBase:
                                     cb.build_br_conf(router))
 
         for service in self._control_services():
-            assert service.type == Service.CS
-            self.archive.write_toml((config_dir, f'{service.instance_name}.toml'),
-                                    cb.build_cs_conf(service))
+            cfg_fcn = CONTROL_SERVICES_TO_CONFIG_FUNCTION[service.type]
+            conf = getattr(cb, cfg_fcn)(service)
+            self.archive.write_toml((config_dir, f'{service.instance_name}.toml'), conf)
             self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
 
         self._write_topo(config_dir)
@@ -311,6 +319,26 @@ class _ConfigBuilder:
             },
         })
 
+        return conf
+
+    def build_co_conf(self, service):
+        general_conf = self._build_general_conf(service.instance_name)
+        logging_conf = self._build_logging_conf(service.instance_name)
+        metrics_conf = self._build_metrics_conf(service.metrics_port)
+
+        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
+        conf.update({
+            'colibri': {
+                'delta': 0.3,
+                'db': {
+                    'connection': f'{os.path.join(self.var_dir, service.instance_name)}'
+                                  '.reservation.db'
+                }
+            },
+            'quic': {
+                'address': _join_host_port(service.host.internal_ip, CO_QUIC_PORT),
+            },
+        })
         return conf
 
     def build_sciond_conf(self, host):
