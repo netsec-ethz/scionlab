@@ -381,7 +381,6 @@ gen/ASffaa_1_5/topology.json: |-
     "attributes": [],
     "border_routers": {
       "br-1": {
-        "ctrl_addr": "127.0.0.1:30201",
         "interfaces": {
           "1": {
             "bandwidth": 1000,
