@@ -23,6 +23,7 @@ import logging
 
 from collections import namedtuple, Counter, OrderedDict
 
+from scionlab import config_tar
 from scionlab.defines import MAX_PORT
 from scionlab.models.core import ISD, AS, Service, Interface, Link
 from scionlab.models.pki import Key, Certificate
@@ -447,7 +448,7 @@ def _check_tarball_info(testcase, tar, host):
 
     testcase.assertEqual(config_info['host_id'], host.uid)
     testcase.assertEqual(config_info['host_secret'], host.secret)
-    testcase.assertEqual(config_info['version'], host.config_version)
+    testcase.assertEqual(config_info['version'], config_tar.fmt_config_version(host))
     testcase.assertIn('url', config_info)
 
     br = ["scion-border-router@br-%i.service" % br.instance_id

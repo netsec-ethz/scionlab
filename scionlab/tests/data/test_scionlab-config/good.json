@@ -1,0 +1,6 @@
+{
+  "host_id": "h1",
+  "host_secret": "s1",
+  "url": "https://test.scionlab.org",
+  "version": "12.345"
+}
