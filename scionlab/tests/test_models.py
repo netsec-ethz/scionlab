@@ -94,7 +94,7 @@ class InitASTests(TestCase):
         self.assertTrue(host.needs_config_deployment())
 
         self.assertTrue(hasattr(host, 'services'))
-        self.assertEqual(sorted(s.type for s in host.services.iterator()), ['CS'])
+        self.assertEqual(sorted(s.type for s in host.services.iterator()), ['CO', 'CS'])
 
         utils.check_as(self, as_)
 

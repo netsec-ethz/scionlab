@@ -70,6 +70,7 @@ def check_as_services(testcase, as_):
     """
     counter = Counter(service.type for service in as_.services.iterator())
     testcase.assertEqual(counter[Service.CS], 1)
+    testcase.assertEqual(counter[Service.CO], 1)
 
 
 def check_host_ports(testcase, host):
@@ -448,10 +449,12 @@ def _check_tarball_info(testcase, tar, host):
           for br in host.border_routers.all()]
     cs = ["scion-control-service@cs-%i.service" % s.instance_id
           for s in host.services.filter(type=Service.CS)]
+    co = ["scion-colibri-service@co-%i.service" % s.instance_id
+          for s in host.services.filter(type=Service.CO)]
     bw = ["scion-bwtestserver.service"
           for _ in host.services.filter(type=Service.BW)]
 
-    expected_services = br + cs + bw + [
+    expected_services = br + cs + co + bw + [
         "scion-daemon.service",
         "scion-dispatcher.service",
     ]
