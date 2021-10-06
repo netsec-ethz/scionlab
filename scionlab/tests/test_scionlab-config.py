@@ -188,17 +188,6 @@ class ScionlabConfigUnitTests(TestCase):
             _check_bad([f])  # individual bad fail
             _check_bad(good + [f])  # individual bad with good still fail
 
-    def test_sanity_check_version(self):
-        good = ['0.0', '1.1', '13.10000']
-        bad = [0, 1, 'foo', {}, '1', '123', 1.0, '123.123.13']
-
-        for version in good:
-            scionlab_config._sanity_check_version(version)
-
-        for version in bad:
-            with self.assertRaises(ValueError):
-                scionlab_config._sanity_check_version(version)
-
     def test_resolve_file_conflicts(self):
         # Test setup defines some files and their pseudo sha1 hashes:
         # foo: unchanged

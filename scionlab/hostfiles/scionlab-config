@@ -36,7 +36,6 @@ import os
 import pathlib
 import shlex
 import shutil
-import string
 import subprocess
 import sys
 import tarfile
@@ -95,8 +94,7 @@ FetchInfo = namedtuple('FetchInfo',
 # services installed by this script.
 ConfigInfo = namedtuple('ConfigInfo',
                         ['files',
-                         'systemd_units',
-                         'version'])
+                         'systemd_units'])
 
 
 def main(argv):
@@ -755,10 +753,8 @@ def _read_config_info(f):
     """
     config_info_dict = json.load(f)
     info = ConfigInfo(config_info_dict['files'],
-                      config_info_dict['systemd_units'],
-                      config_info_dict['version'])
+                      config_info_dict['systemd_units'])
     _sanity_check_file_list(info.files)
-    _sanity_check_version(info.version)
     return info
 
 
@@ -780,18 +776,6 @@ def _sanity_check_file_list(files):
                 or not any(os.path.commonpath([os.path.dirname(f), d]) == d
                            for d in acceptable_dirs)):
             raise ValueError("The list of files has a fishy entry ('%s')." % f)
-
-
-def _sanity_check_version(version):
-    """
-    Sanity check that the version is the expected integer value in a sensible range.
-    """
-    if type(version) is not str \
-            or len(version) < 3 \
-            or len(version) > 40 \
-            or version.count(".") != 1 \
-            or any(c not in "." + string.digits for c in version):
-        raise ValueError("The version info looks fishy.")
 
 
 def _root(path):
