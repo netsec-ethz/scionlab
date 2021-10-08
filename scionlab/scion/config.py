@@ -49,11 +49,6 @@ SERVICES_TO_SYSTEMD_NAMES = {
     TYPE_BR: 'scion-border-router',
 }
 
-CONTROL_SERVICES_TO_CONFIG_FUNCTION = {
-    Service.CS: 'build_cs_conf',
-    Service.CO: 'build_co_conf',
-}
-
 DEFAULT_ENV = ['TZ=UTC']
 BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 
@@ -109,10 +104,14 @@ class _ConfigGeneratorBase:
                                     cb.build_br_conf(router))
 
         for service in self._control_services():
-            cfg_fcn = CONTROL_SERVICES_TO_CONFIG_FUNCTION[service.type]
-            conf = getattr(cb, cfg_fcn)(service)
+            if service.type == Service.CS:
+                self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
+                conf = cb.build_cs_conf(service)
+            elif service.type == Service.CO:
+                conf = cb.build_co_conf(service)
+            else:
+                raise ValueError(f'unknown control service type {service.type}')
             self.archive.write_toml((config_dir, f'{service.instance_name}.toml'), conf)
-            self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
 
         self._write_topo(config_dir)
         self._write_trcs(config_dir)
