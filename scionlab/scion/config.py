@@ -25,7 +25,6 @@ from scionlab.defines import (
     PROPAGATE_TIME_NONCORE,
     DISPATCHER_METRICS_PORT,
     CS_QUIC_PORT,
-    CO_QUIC_PORT,
     SD_METRICS_PORT,
     SCION_CONFIG_DIR,
     SCION_VAR_DIR,
@@ -333,9 +332,6 @@ class _ConfigBuilder:
                     'connection': f'{os.path.join(self.var_dir, service.instance_name)}'
                                   '.reservation.db'
                 }
-            },
-            'quic': {
-                'address': _join_host_port(service.host.internal_ip, CO_QUIC_PORT),
             },
         })
         return conf

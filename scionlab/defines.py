@@ -45,8 +45,7 @@ DISPATCHER_METRICS_PORT = 30441  # TCP/IP, 127.0.0.1:port, NOTE: also in scion-d
 SIG_CTRL_PORT = 30256
 SIG_DATA_PORT = 30056
 
-CO_PORT = 30257                  # UDP/SCION (inter-AS) *and* TCP/IP (intra-AS)
-CO_QUIC_PORT = 30357             # QUIC/UDP/SCION port for inter-AS
+CO_PORT = 30257                  # QUIC/SCION (inter-AS) *and* TCP/IP (intra-AS)
 CO_METRICS_PORT = 30457
 
 BW_PORT = 40001

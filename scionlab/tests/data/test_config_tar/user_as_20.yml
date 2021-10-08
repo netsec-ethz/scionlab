@@ -296,9 +296,6 @@ gen/ASffaa_1_5/co-1.toml: |
   [metrics]
   prometheus = "127.0.0.1:30457"
 
-  [quic]
-  address = "127.0.0.1:30357"
-
   [colibri.db]
   connection = "gen-cache/co-1.reservation.db"
 
