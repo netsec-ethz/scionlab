@@ -55,7 +55,7 @@ CMDS = {
     Service.CS: 'cs',
     Service.CO: 'co',
     TYPE_BR: 'posix-router',
-    TYPE_SD: 'sciond',
+    TYPE_SD: 'daemon',
 }
 CMD_DISPATCHER = 'dispatcher'
 
