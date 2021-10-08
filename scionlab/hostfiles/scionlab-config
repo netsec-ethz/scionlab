@@ -124,7 +124,7 @@ def main(argv):
                     confirm_deployed(args)
             except TemporaryError as e:
                 if args.daemon:
-                    logging.warn(e)
+                    logging.warning(e)
                 else:
                     _error_exit(e)
             if not args.daemon:
@@ -341,7 +341,7 @@ def fetch_config(fetch_info):
 
 def write_tarfile(filepath, tarbytes):
     if tarbytes is _CONFIG_EMPTY:
-        logging.warn("will create an empty tar file")
+        logging.warning("will create an empty tar file")
         buff = io.BytesIO()
         tt = tarfile.open(mode='w:gz', fileobj=buff)
         tt.close()
@@ -448,11 +448,11 @@ def install_config(args, tar):
     skip, confnew, backup = resolve_file_conflicts(args.force, args.keep, old_files, new_files)
 
     if args.force and backup:  # only warn in --force, otherwise user has already been prompted
-        logging.warn("Overwriting files with local modifications, creating backup: %s",
-                     ", ".join(_root(f) for f in backup))
+        logging.warning("Overwriting files with local modifications, creating backup: %s",
+                        ", ".join(_root(f) for f in backup))
     if args.keep and confnew:  # only warn in --keep, ditto
-        logging.warn("Skipping files with local modifications, installing updated file with "
-                     ".confnew suffix: %s", ", ".join(_root(f) for f in confnew))
+        logging.warning("Skipping files with local modifications, installing updated file with "
+                        ".confnew suffix: %s", ", ".join(_root(f) for f in confnew))
     backup_files(backup)
 
     stop_scion()
