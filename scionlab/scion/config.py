@@ -53,7 +53,7 @@ BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 CMDS = {
     Service.CS: 'cs',
     TYPE_BR: 'posix-router',
-    TYPE_SD: 'sciond',
+    TYPE_SD: 'daemon',
 }
 CMD_DISPATCHER = 'dispatcher'
 
