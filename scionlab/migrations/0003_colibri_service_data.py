@@ -11,6 +11,8 @@ def create_colibri_services(apps, schema_editor):
     assert Service.objects.filter(type=ServiceNew.CO).count() == 0  # should be empty
     for cs in Service.objects.filter(type=ServiceNew.CS):
         Service.objects.create(type=ServiceNew.CO, AS=cs.AS, host=cs.host)
+    Host = apps.get_model('scionlab', 'Host')
+    Host.objects.bump_config()
 
 
 def delete_colibri_services(apps, schema_editor):

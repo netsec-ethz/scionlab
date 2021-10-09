@@ -1116,7 +1116,7 @@ class ServiceManager(models.Manager):
         """
         Create a Service object.
         :param Host host: the host, defines the AS
-        :param str type: Service type (Service.CS, BW, or PP)
+        :param str type: Service type (Service.CS, CO, BW, or PP)
         :returns: Service
         """
         host.AS.hosts.bump_config()
