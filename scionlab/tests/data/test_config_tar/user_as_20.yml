@@ -490,7 +490,7 @@ gen/supervisord.conf: |+
   startretries = 0
   startsecs = 5
   priority = 100
-  command = bin/sciond --config gen/ASffaa_1_5/sd.toml
+  command = bin/daemon --config gen/ASffaa_1_5/sd.toml
 
   [group:as17-ffaa_1_5]
   programs = br-1,cs-1,co-1,sd
