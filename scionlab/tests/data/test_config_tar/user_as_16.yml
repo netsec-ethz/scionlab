@@ -57,7 +57,7 @@ Vagrantfile: |-
       systemctl restart apt-daily.timer apt-daily-upgrade.timer
 
       # Fetch configuration from coordinator and start SCION
-      scionlab-config --host-id=22c5c15784604542a54b87d9bf618832 --host-secret=2a45e79763314174812599649fc1ed03 --url=http://localhost:8000
+      scionlab-config --host-id=8882e778031c4df79fadcc272632aa6c --host-secret=a2be4b0d3326420fbd4f7ae0d536166f --url=http://localhost:8000
     SCRIPT
 
     config.vm.box = "ubuntu/bionic64"

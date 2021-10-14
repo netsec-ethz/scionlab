@@ -43,6 +43,7 @@ TYPE_BR = 'BR'
 TYPE_SD = 'SD'
 SERVICES_TO_SYSTEMD_NAMES = {
     Service.CS: 'scion-control-service',
+    Service.CO: 'scion-colibri-service',
     Service.BW: 'scion-bwtestserver',
     TYPE_BR: 'scion-border-router',
 }
@@ -52,6 +53,7 @@ BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 
 CMDS = {
     Service.CS: 'cs',
+    Service.CO: 'co',
     TYPE_BR: 'posix-router',
     TYPE_SD: 'sciond',
 }
@@ -101,10 +103,14 @@ class _ConfigGeneratorBase:
                                     cb.build_br_conf(router))
 
         for service in self._control_services():
-            assert service.type == Service.CS
-            self.archive.write_toml((config_dir, f'{service.instance_name}.toml'),
-                                    cb.build_cs_conf(service))
-            self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
+            if service.type == Service.CS:
+                self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
+                conf = cb.build_cs_conf(service)
+            elif service.type == Service.CO:
+                conf = cb.build_co_conf(service)
+            else:
+                raise ValueError(f'unknown control service type {service.type}')
+            self.archive.write_toml((config_dir, f'{service.instance_name}.toml'), conf)
 
         self._write_topo(config_dir)
         self._write_trcs(config_dir)
@@ -311,6 +317,23 @@ class _ConfigBuilder:
             },
         })
 
+        return conf
+
+    def build_co_conf(self, service):
+        general_conf = self._build_general_conf(service.instance_name)
+        logging_conf = self._build_logging_conf(service.instance_name)
+        metrics_conf = self._build_metrics_conf(service.metrics_port)
+
+        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
+        conf.update({
+            'colibri': {
+                'delta': 0.3,
+                'db': {
+                    'connection': f'{os.path.join(self.var_dir, service.instance_name)}'
+                                  '.reservation.db'
+                }
+            },
+        })
         return conf
 
     def build_sciond_conf(self, host):

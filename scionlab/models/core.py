@@ -47,6 +47,8 @@ from scionlab.defines import (
     CS_PORT,
     CS_METRICS_PORT,
     SIG_CTRL_PORT,
+    CO_PORT,
+    CO_METRICS_PORT,
     BW_PORT,
     PP_PORT,
     DEFAULT_HOST_INTERNAL_IP,
@@ -384,7 +386,7 @@ class AS(TimestampedModel):
             internal_ip=internal_ip or DEFAULT_HOST_INTERNAL_IP
         )
 
-        default_services = (Service.CS, )
+        default_services = (Service.CS, Service.CO, )
         for service_type in default_services:
             Service.objects.create(host=host, type=service_type)
 
@@ -1114,7 +1116,7 @@ class ServiceManager(models.Manager):
         """
         Create a Service object.
         :param Host host: the host, defines the AS
-        :param str type: Service type (Service.CS, BW, or PP)
+        :param str type: Service type (Service.CS, CO, BW, or PP)
         :returns: Service
         """
         host.AS.hosts.bump_config()
@@ -1132,16 +1134,19 @@ class Service(models.Model):
     """
     CS = 'CS'
     SIG = 'SIG'
+    CO = 'CO'
     BW = 'BW'
     PP = 'PP'
     SERVICE_TYPES = (
         (CS, 'Control Service'),  # monolithic control plane service
         (SIG, 'SCION IP Gateway'),
+        (CO, 'Colibri Service'),
         (BW, 'Bandwidth tester server'),
         (PP, 'Pingpong server'),
     )
     CONTROL_SERVICE_TYPES = (
         CS,
+        CO,
     )
     EXTRA_SERVICE_TYPES = (
         BW,
@@ -1150,11 +1155,13 @@ class Service(models.Model):
     SERVICE_PORTS = {
         CS: CS_PORT,
         SIG: SIG_CTRL_PORT,
+        CO: CO_PORT,
         BW: BW_PORT,
         PP: PP_PORT,
     }
     METRICS_PORTS = {
         CS: CS_METRICS_PORT,
+        CO: CO_METRICS_PORT,
     }
 
     AS = models.ForeignKey(
@@ -1244,7 +1251,7 @@ class Service(models.Model):
         :param str type: Service type
         :param Host prev_host:
         """
-        if type == Service.CS:
+        if type in Service.CONTROL_SERVICE_TYPES:
             host.AS.hosts.bump_config()
         else:
             host.bump_config()
