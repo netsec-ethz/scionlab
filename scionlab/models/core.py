@@ -48,7 +48,6 @@ from scionlab.defines import (
     CS_METRICS_PORT,
     SIG_CTRL_PORT,
     CO_PORT,
-    CO_METRICS_PORT,
     BW_PORT,
     PP_PORT,
     DEFAULT_HOST_INTERNAL_IP,
@@ -1161,7 +1160,6 @@ class Service(models.Model):
     }
     METRICS_PORTS = {
         CS: CS_METRICS_PORT,
-        CO: CO_METRICS_PORT,
     }
 
     AS = models.ForeignKey(
