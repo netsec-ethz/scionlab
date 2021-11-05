@@ -293,9 +293,6 @@ gen/ASffaa_1_5/co-1.toml: |
   id = "co-1"
   reconnect_to_dispatcher = true
 
-  [metrics]
-  prometheus = "127.0.0.1:30457"
-
   [colibri.db]
   connection = "gen-cache/co-1.reservation.db"
 

@@ -414,9 +414,6 @@ etc/scion/co-1.toml: |
   id = "co-1"
   reconnect_to_dispatcher = true
 
-  [metrics]
-  prometheus = "127.0.0.1:30457"
-
   [colibri.db]
   connection = "/var/lib/scion/co-1.reservation.db"
 
@@ -550,7 +547,7 @@ scionlab-config.json: |-
       "etc/scion/certs/ISD17-B1-S1.trc": "bf11d4fc4f464202f2163887dc76a1e14ce96255",
       "etc/scion/certs/ISD19-B1-S1.trc": "dc8adbadbe7bbd4937130fdd778213a33a584783",
       "etc/scion/certs/ISD20-B1-S1.trc": "0d1e91fae63bbe7a649983d9e3df506af8d7fdb5",
-      "etc/scion/co-1.toml": "c52807ca2da328178df1bb7b12726f5bd39a8955",
+      "etc/scion/co-1.toml": "5f44683ff73c2f105908e20476b8a6f9a17caf26",
       "etc/scion/crypto/as/ISD17-ASffaa_1_1.pem": "d7c2c86acea31bb986430baf5994d8ed5ac6d5df",
       "etc/scion/crypto/as/cp-as.key": "5fac5f3c239a6f9b7bac858977e806e2003d8f52",
       "etc/scion/cs-1.toml": "84467cd10682d975caeccba3a7eaaec1bd9ea858",

@@ -322,9 +322,8 @@ class _ConfigBuilder:
     def build_co_conf(self, service):
         general_conf = self._build_general_conf(service.instance_name)
         logging_conf = self._build_logging_conf(service.instance_name)
-        metrics_conf = self._build_metrics_conf(service.metrics_port)
 
-        conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
+        conf = _chain_dicts(general_conf, logging_conf)
         conf.update({
             'colibri': {
                 'delta': 0.3,
