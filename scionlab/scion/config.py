@@ -17,6 +17,7 @@ import os
 from collections import OrderedDict
 
 from scionlab.models.core import Service
+from scionlab.models.pki import Key
 from scionlab.models.trc import TRC
 from scionlab.scion.topology import TopologyInfo
 
@@ -315,6 +316,20 @@ class _ConfigBuilder:
             'quic': {
                 'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
             },
+            'drkey': {
+                'drkey_db': {
+                    'connection': '%s.drkey.db' % os.path.join(self.var_dir, service.instance_name),
+                },
+                'cert_file': os.path.join(self.config_dir, 'crypto', 'as', service.AS
+                                          .certificates_latest().get(key__usage=Key.CP_AS)
+                                          .filename()),
+                'key_file': os.path.join(self.config_dir, 'crypto', 'as', 'cp-as.key'),
+                'delegation': {
+                    # the internal IP of all CO services has rights to derive DS "colibri":
+                    'colibri': [str(s.host.internal_ip) for s in service.AS.services
+                                .filter(type=Service.CO).select_related('host')],
+                },
+            },
         })
 
         return conf
@@ -351,6 +366,9 @@ class _ConfigBuilder:
             },
             'trust_db': {
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
+            },
+            'drkey_db': {
+                'connection': '%s.drkey.db' % os.path.join(self.var_dir, instance_name),
             },
         })
         return conf
