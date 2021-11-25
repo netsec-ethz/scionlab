@@ -397,7 +397,6 @@ gen/ASffaa_1_5/topology.json: |-
       "br-1": {
         "interfaces": {
           "1": {
-            "bandwidth": 1000,
             "isd_as": "17-ffaa:0:1107",
             "link_to": "PARENT",
             "mtu": 1472,

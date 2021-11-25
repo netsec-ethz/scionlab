@@ -507,7 +507,6 @@ etc/scion/topology.json: |-
       "br-1": {
         "interfaces": {
           "1": {
-            "bandwidth": 1000,
             "isd_as": "17-ffaa:0:1102",
             "link_to": "PARENT",
             "mtu": 1472,
@@ -517,7 +516,6 @@ etc/scion/topology.json: |-
             }
           },
           "2": {
-            "bandwidth": 1000,
             "isd_as": "17-ffaa:1:1",
             "link_to": "CHILD",
             "mtu": 1472,
@@ -527,7 +525,6 @@ etc/scion/topology.json: |-
             }
           },
           "3": {
-            "bandwidth": 1000,
             "isd_as": "17-ffaa:1:5",
             "link_to": "CHILD",
             "mtu": 1472,
@@ -574,7 +571,7 @@ scionlab-config.json: |-
       "etc/scion/cs-1.toml": "84467cd10682d975caeccba3a7eaaec1bd9ea858",
       "etc/scion/keys/master0.key": "7b87dcf6b8fda0f0facd3efb3e3b84c1c5c58cb1",
       "etc/scion/keys/master1.key": "7b87dcf6b8fda0f0facd3efb3e3b84c1c5c58cb1",
-      "etc/scion/topology.json": "3371949c4fc98e3622a5bcc2254d9c0cc26bb39a"
+      "etc/scion/topology.json": "8cc26714431b5044f160f28ef10d22a6d1a81c0d"
     },
     "host_id": "b61daa99565446389397cbcd08d62f84",
     "host_secret": "feef3b3f455e42c288803a1638b101f4",
@@ -587,5 +584,5 @@ scionlab-config.json: |-
       "scion-dispatcher.service"
     ],
     "url": "http://localhost:8000",
-    "version": "13.10"
+    "version": "14.10"
   }

@@ -52,7 +52,6 @@ from scionlab.defines import (
     PP_PORT,
     DEFAULT_HOST_INTERNAL_IP,
     DEFAULT_LINK_MTU,
-    DEFAULT_LINK_BANDWIDTH,
 )
 
 _MAX_LEN_DEFAULT = 255
@@ -833,14 +832,13 @@ class Interface(models.Model):
 
 
 class LinkManager(models.Manager):
-    def create(self, type, interfaceA, interfaceB, active=True, bandwidth=None, mtu=None):
+    def create(self, type, interfaceA, interfaceB, active=True, mtu=None):
         """
         Create a Link
         :param str type: Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
         :param Interface interfaceA: interface representing the A side of the link
         :param Interface interfaceB: interface representing the B side of the link
         :param bool active: is the link created as active?
-        :param int bandwidth: optional, bandwidth for this link
         :param int mtu: optional, MTU for this link
         :returns: Link
         """
@@ -848,13 +846,12 @@ class LinkManager(models.Manager):
         return super().create(
             type=type,
             active=active,
-            bandwidth=bandwidth or DEFAULT_LINK_BANDWIDTH,
             mtu=mtu or DEFAULT_LINK_MTU,
             interfaceA=interfaceA,
             interfaceB=interfaceB,
         )
 
-    def create_from_hosts(self, type, host_a, host_b, active=True, bandwidth=None, mtu=None):
+    def create_from_hosts(self, type, host_a, host_b, active=True, mtu=None):
         """
         Create a Link connecting the given two hosts.
         Creates a default Interface for both hosts and a Link connecting the two Interfaces.
@@ -862,7 +859,6 @@ class LinkManager(models.Manager):
         :param Host host_a: host on the A side of the link
         :param Host host_b: host on the B side of the link
         :param bool active: is the link created as active?
-        :param int bandwidth: optional, bandwidth for this link
         :param int mtu: optional, MTU for this link
         :returns: Link
         """
@@ -874,13 +870,12 @@ class LinkManager(models.Manager):
         return super().create(
             type=type,
             active=active,
-            bandwidth=bandwidth or DEFAULT_LINK_BANDWIDTH,
             mtu=mtu or DEFAULT_LINK_MTU,
             interfaceA=interfaceA,
             interfaceB=interfaceB,
         )
 
-    def create_from_ases(self, type, as_a, as_b, active=True, bandwidth=None, mtu=None):
+    def create_from_ases(self, type, as_a, as_b, active=True, mtu=None):
         """
         Create a link connecting the given two ASes.
         The interfaces are created on the *first* host of each AS.
@@ -890,14 +885,12 @@ class LinkManager(models.Manager):
         :param Host host_a: host on the A side of the link
         :param Host host_b: host on the B side of the link
         :param bool active: is the link created as active?
-        :param int bandwidth: optional, bandwidth for this link
         :param int mtu: optional, MTU for this link
         :returns: Link
         """
         return self.create_from_hosts(
             type=type,
             active=active,
-            bandwidth=bandwidth,
             mtu=mtu,
             host_a=as_a.hosts.first(),
             host_b=as_b.hosts.first(),
@@ -941,7 +934,6 @@ class Link(models.Model):
         max_length=_MAX_LEN_CHOICES_DEFAULT
     )
     active = models.BooleanField(default=True)
-    bandwidth = models.PositiveIntegerField(default=DEFAULT_LINK_BANDWIDTH)
     mtu = models.PositiveIntegerField(default=DEFAULT_LINK_MTU)
 
     objects = LinkManager()
@@ -960,7 +952,7 @@ class Link(models.Model):
         for interface in filter(None, [self.get_interface_a(), self.get_interface_b()]):
             interface.delete()
 
-    def update(self, type=None, active=None, bandwidth=None, mtu=None):
+    def update(self, type=None, active=None, mtu=None):
         """
         Update the fields for this Link instance and the two related interfaces
         and immediately `save`. This will trigger a configuration bump for all
@@ -968,18 +960,16 @@ class Link(models.Model):
         :param str type: optional, Link type (Link.PROVIDER, Link.CORE, or Link.PEER)
         :param bool active: optional, should the link be active?
         """
-        prev_info = [self.type, self.active, self.bandwidth, self.mtu]
+        prev_info = [self.type, self.active, self.mtu]
 
         if type is not None:
             self.type = type
         if active is not None:
             self.active = active
-        if bandwidth is not None:
-            self.bandwidth = bandwidth
         if mtu is not None:
             self.mtu = mtu
 
-        curr_info = [self.type, self.active, self.bandwidth, self.mtu]
+        curr_info = [self.type, self.active, self.mtu]
         if curr_info != prev_info:
             self.save()
             self.interfaceA.AS.hosts.bump_config()

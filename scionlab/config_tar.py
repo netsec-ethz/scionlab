@@ -34,7 +34,7 @@ _HOSTFILES_DIR = os.path.join(settings.BASE_DIR, "scionlab", "hostfiles")
 # the scionlab-config.json manifest file in the configuration tar ball.
 # This version number should be incremented whenever code changes globally affect the generated
 # configuration of hosts.
-CONFIG_GEN_VERSION = 13
+CONFIG_GEN_VERSION = 14
 
 
 def generate_user_as_config_tar(user_as, archive):
