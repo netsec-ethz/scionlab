@@ -442,7 +442,7 @@ class ASAdmin(admin.ModelAdmin):
             return queryset
 
     inlines = [InterfaceInline, BorderRouterInline, ServiceInline, HostInline]
-    actions = ['update_keys', 'update_core_keys', 'trigger_config_deployment']
+    actions = ['update_keys', 'update_core_keys']
     list_display = ('isd', 'as_id', 'owner', 'label', 'is_core', 'is_ap', 'is_userAS')
     list_display_links = ('as_id', 'label')
     list_filter = ('isd', 'is_core', InfrastructureASFilter)
@@ -744,7 +744,6 @@ class LinkAdmin(admin.ModelAdmin):
 class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
     readonly_fields = ['uid', 'get_scionlab_config_cmd']
-    actions = ['trigger_config_deployment']
     list_display = ('__str__', 'AS',
                     'internal_ip', 'public_ip', 'bind_ip', 'ssh_host',
                     'latest_config_deployed', 'get_scionlab_config_cmd', 'get_config_link')
