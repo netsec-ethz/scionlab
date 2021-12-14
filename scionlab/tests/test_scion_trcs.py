@@ -44,7 +44,7 @@ class TRCCreationTests(TestCase):
         self.assertRaises(ValueError, TRCConf, **kwargs)  # needs votes and predecessor
         kwargs['votes'] = [1]
         self.assertRaises(ValueError, TRCConf, **kwargs)  # still needs predecessor
-        kwargs['predecessor_trc'] = b''
+        kwargs['predecessor_trc'] = ''
         TRCConf(**kwargs)  # okay now
         # validity
         kwargs = _trcconf_args_dict()
@@ -176,7 +176,7 @@ class TRCCreationTests(TestCase):
 class TRCUpdate(TestCase):
     def test_regular_update(self):
         # initial TRC in TESTDATA/trc-1.trc
-        predec_trc = Path(_TESTDATA_DIR, 'trc-1.trc').read_bytes()
+        predec_trc = Path(_TESTDATA_DIR, 'trc-1.trc').read_text()
         # update the TRC by just incrementing the serial. That is in payload-2-config.toml
         signers = _get_signers(['voting-regular-ff00_0_110'])
         kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
@@ -188,7 +188,7 @@ class TRCUpdate(TestCase):
 
     def test_sensitive_update(self):
         # previous TRC in TESTDATA/trc-2.trc
-        predec_trc = Path(_TESTDATA_DIR, 'trc-2.trc').read_bytes()
+        predec_trc = Path(_TESTDATA_DIR, 'trc-2.trc').read_text()
         # add a core-authoritative AS and its sensitive, regular and root certs
         signers = _get_signers(['voting-sensitive-ff00_0_110',
                                 'voting-sensitive-ff00_0_210',
@@ -207,7 +207,7 @@ class TRCUpdate(TestCase):
 
         kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
             Path(_TESTDATA_DIR, 'payload-2-config.toml').read_text()))
-        predec_trc = Path(_TESTDATA_DIR, 'trc-1.trc').read_bytes()
+        predec_trc = Path(_TESTDATA_DIR, 'trc-1.trc').read_text()
         _replace_keys(kwargs,
                       [('base', 'base_version'),
                        ('serial', 'serial_version'),
@@ -230,7 +230,7 @@ class TRCUpdate(TestCase):
 
         kwargs = _transform_toml_conf_to_trcconf_args(toml.loads(
             Path(_TESTDATA_DIR, 'payload-3-config.toml').read_text()))
-        predec_trc = Path(_TESTDATA_DIR, 'trc-2.trc').read_bytes()
+        predec_trc = Path(_TESTDATA_DIR, 'trc-2.trc').read_text()
         _replace_keys(kwargs,
                       [('base', 'base_version'),
                        ('serial', 'serial_version'),
@@ -247,7 +247,7 @@ class TRCUpdate(TestCase):
 
 class TRCTests(TestCase):
     def test_trc_to_dict(self):
-        trc = Path(_TESTDATA_DIR, 'trc-3.trc').read_bytes()
+        trc = Path(_TESTDATA_DIR, 'trc-3.trc').read_text()
         d = trc_to_dict(trc)
 
         # important keys present:

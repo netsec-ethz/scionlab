@@ -17,7 +17,6 @@
 ===========================================
 """
 
-import base64
 import toml
 import yaml
 import contextlib
@@ -33,30 +32,22 @@ from scionlab.scion import certs, keys
 from scionlab.scion.pkicommand import run_scion_pki
 
 
-def encode_trc(trc: bytes) -> str:
-    return base64.b64encode(trc).decode('ascii')
-
-
-def decode_trc(trc: str) -> bytes:
-    return base64.b64decode(trc.encode('ascii'))
-
-
-def trc_to_dict(trc: bytes) -> dict:
-    with NamedTemporaryFile('wb') as f:
+def trc_to_dict(trc: str) -> dict:
+    with NamedTemporaryFile('w') as f:
         f.write(trc)
         f.flush()
         ret = _run_scion_pki_trcs('human', '--format', 'yaml', f.name, check=True)
     return yaml.safe_load(ret.stdout)
 
 
-def verify_trcs(*trcs: bytes):
+def verify_trcs(*trcs: str):
     """
     Verify that the sequence of trcs, using the first TRC as anchor.
     TRCs are passed as bytes, base 64 format.
     Raises ScionPkiError if the TRCs are not valid.
     """
     with contextlib.ExitStack() as stack:
-        files = [stack.enter_context(NamedTemporaryFile(suffix=".trc")) for _ in range(len(trcs))]
+        files = [stack.enter_context(NamedTemporaryFile(suffix=".trc", mode="w")) for _ in trcs]
         for f, trc in zip(files, trcs):
             f.write(trc)
             f.flush()
@@ -75,7 +66,7 @@ def generate_trc(prev_trc: bytes,
                  not_after: datetime,
                  certificates: List[str],
                  signers_certs: List[str],
-                 signers_keys: List[str]) -> bytes:
+                 signers_keys: List[str]) -> str:
     """
     Generate a new TRC.
     This method is the interface between the DB objects and the scion PKI ones.
@@ -157,7 +148,7 @@ class TRCConf:
 
         self._validate()
 
-    def generate(self) -> bytes:
+    def generate(self) -> str:
         with TemporaryDirectory() as temp_dir:
             self._dump_certificates_to_files(temp_dir)
             self._gen_payload(temp_dir)
@@ -172,7 +163,7 @@ class TRCConf:
         args = ['payload', '-t', self.CONFIG_FILENAME, '-o', self.PAYLOAD_FILENAME]
         if self.predecessor_trc:
             pred_filename = Path(temp_dir, self.PRED_TRC_FILENAME)
-            pred_filename.write_bytes(self.predecessor_trc)
+            pred_filename.write_text(self.predecessor_trc)
             args.extend(['-p', str(pred_filename)])
         _run_scion_pki_trcs(*args, cwd=temp_dir)
 
@@ -186,17 +177,18 @@ class TRCConf:
                                                     pkcs7.PKCS7Options.NoCapabilities,
                                                     pkcs7.PKCS7Options.Binary])
 
-    def _combine(self, temp_dir: str, *signed) -> bytes:
-        """ returns the final TRC by combining the signed blocks and payload """
+    def _combine(self, temp_dir: str, *signed) -> str:
+        """ returns the final TRC (in PEM format), by combining the signed blocks and payload """
         for i, s in enumerate(signed):
             Path(temp_dir, f'signed-{i}.der').write_bytes(s)
         _run_scion_pki_trcs(
             'combine', '-p', self.PAYLOAD_FILENAME,
             *(f'signed-{i}.der' for i in range(len(signed))),
             '-o', Path(temp_dir, self.TRC_FILENAME),
+            '--format', 'pem',
             cwd=temp_dir
         )
-        return Path(temp_dir, self.TRC_FILENAME).read_bytes()
+        return Path(temp_dir, self.TRC_FILENAME).read_text()
 
     def is_update(self):
         return self.base_version != self.serial_version

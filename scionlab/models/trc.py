@@ -112,7 +112,7 @@ class TRCManager(models.Manager):
         votes_idx = prev.get_certificate_indices(votes) if prev else []
 
         trc = trcs.generate_trc(
-            prev_trc=trcs.decode_trc(prev.trc) if prev else None,
+            prev_trc=prev.trc if prev else None,
             isd_id=isd.isd_id,
             base=base,
             serial=serial,
@@ -128,7 +128,7 @@ class TRCManager(models.Manager):
         )
         obj = super().create(isd=isd, serial_version=serial, base_version=base,
                              not_before=not_before, not_after=not_after,
-                             quorum=quorum, trc=trcs.encode_trc(trc))
+                             quorum=quorum, trc=trc)
         obj.core_ases.set(core_ases)
         obj.certificates.add(*certificates)
         obj.votes.set(votes)
@@ -235,9 +235,6 @@ class TRC(models.Model):
 
     def filename(self) -> str:
         return f'ISD{self.isd.isd_id}-B{self.base_version}-S{self.serial_version}.trc'
-
-    def format_trcfile(self) -> bytes:
-        return trcs.decode_trc(self.trc)
 
     def check_regular_update_error(self):
         """

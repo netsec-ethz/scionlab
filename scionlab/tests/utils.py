@@ -278,8 +278,7 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     if trc is None:
         return
 
-    trc_pld = trcs.decode_trc(trc.trc)
-    trc_dict = trcs.trc_to_dict(trc_pld)
+    trc_dict = trcs.trc_to_dict(trc.trc)
     testcase.assertEqual(trc_dict['id']['serial_number'], trc.serial_version)
     testcase.assertEqual(trc_dict['id']['base_number'], trc.base_version)
     testcase.assertEqual(set(trc_dict['core_ases']), set(expected_core_ases))
@@ -287,10 +286,9 @@ def check_trc(testcase, isd, expected_core_ases=None, expected_version=None):
     if trc.serial_version > 1:
         # Check that TRC update is valid
         prev_trc = isd.trcs.get(serial_version=trc.serial_version-1)
-        prev_trc_pld = trcs.decode_trc(prev_trc.trc)
     else:
-        prev_trc_pld = trc_pld
-    trcs.verify_trcs(prev_trc_pld, trc_pld)
+        prev_trc = trc
+    trcs.verify_trcs(prev_trc.trc, trc.trc)
 
 
 def check_issuer_certs(testcase, as_):
