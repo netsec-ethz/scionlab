@@ -78,7 +78,7 @@ class AttachmentConfFormSet(BaseModelFormSet):
         forward_ports, forward_addr_clashes = set(), []
 
         for f in filter(lambda f: not f.cleaned_data['use_vpn'], forms):
-            public_ip = f.cleaned_data['public_ip'],
+            public_ip = f.cleaned_data['public_ip']
             port = f.cleaned_data['public_port']
             bind_ip = f.cleaned_data['bind_ip']
             if public_addrs.add(public_ip, port):
