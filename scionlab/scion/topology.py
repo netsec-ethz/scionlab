@@ -121,7 +121,6 @@ def _topo_add_interface(router_entry, interface):
         "isd_as": remote_interface.AS.isd_as_str(),
         "link_to": _get_linkto_relation(interface),
         "mtu": interface.link().mtu,
-        "bandwidth": interface.link().bandwidth,
         "underlay": {
             "public": _join_host_port(interface.get_public_ip(), interface.public_port),
             "remote": _join_host_port(remote_interface.get_public_ip(),

@@ -696,7 +696,6 @@ class LinkAdminForm(_CreateUpdateModelForm):
         return Link.objects.create(
             type=self.cleaned_data['type'],
             active=self.cleaned_data['active'],
-            bandwidth=self.cleaned_data['bandwidth'],
             mtu=self.cleaned_data['mtu'],
             interfaceA=interfaceA,
             interfaceB=interfaceB
@@ -708,7 +707,6 @@ class LinkAdminForm(_CreateUpdateModelForm):
         self.instance.update(
             type=self.cleaned_data['type'],
             active=self.cleaned_data['active'],
-            bandwidth=self.cleaned_data['bandwidth'],
             mtu=self.cleaned_data['mtu'],
         )
 

@@ -66,7 +66,6 @@ class LinkAdminFormTests(TestCase):
         form_data = dict(
             type=Link.PROVIDER,
             active=True,
-            bandwidth=1234,
             mtu=2345,
             from_host=as_a.hosts.first().pk,
             from_public_port=50000,
@@ -89,7 +88,6 @@ class LinkAdminFormTests(TestCase):
         form_data = dict(
             type=Link.PROVIDER,
             active=True,
-            bandwidth=1234,
             mtu=2345,
             from_host=as_a.hosts.first().pk,
             from_public_port=50000,
@@ -117,7 +115,6 @@ class LinkAdminFormTests(TestCase):
         form_data = dict(
             type=Link.PROVIDER,
             active=True,
-            bandwidth=1234,
             mtu=2345,
             from_host=as_a.hosts.first().pk,
             to_host=as_b.hosts.first().pk,
@@ -132,7 +129,6 @@ class LinkAdminFormTests(TestCase):
         self.assertIsNotNone(link)
         self.assertEqual(link.type, Link.PROVIDER)
         self.assertEqual(link.active, True)
-        self.assertEqual(link.bandwidth, 1234)
         self.assertEqual(link.mtu, 2345)
         self.assertEqual(link.interfaceA.public_ip, '192.0.2.1')
         self.assertEqual(link.interfaceA.public_port, 50000)

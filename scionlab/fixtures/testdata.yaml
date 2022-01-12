@@ -4320,7 +4320,6 @@
     interfaceB: 2
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 2
@@ -4329,7 +4328,6 @@
     interfaceB: 4
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 3
@@ -4338,7 +4336,6 @@
     interfaceB: 6
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 4
@@ -4347,7 +4344,6 @@
     interfaceB: 8
     type: CORE
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 5
@@ -4356,7 +4352,6 @@
     interfaceB: 10
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 6
@@ -4365,7 +4360,6 @@
     interfaceB: 12
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 7
@@ -4374,7 +4368,6 @@
     interfaceB: 14
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 8
@@ -4383,7 +4376,6 @@
     interfaceB: 16
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 9
@@ -4392,7 +4384,6 @@
     interfaceB: 18
     type: CORE
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 10
@@ -4401,7 +4392,6 @@
     interfaceB: 20
     type: CORE
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 11
@@ -4410,7 +4400,6 @@
     interfaceB: 22
     type: CORE
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 12
@@ -4419,7 +4408,6 @@
     interfaceB: 24
     type: CORE
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 13
@@ -4428,7 +4416,6 @@
     interfaceB: 26
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 14
@@ -4437,7 +4424,6 @@
     interfaceB: 28
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 15
@@ -4446,7 +4432,6 @@
     interfaceB: 30
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 16
@@ -4455,7 +4440,6 @@
     interfaceB: 32
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 17
@@ -4464,7 +4448,6 @@
     interfaceB: 34
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 18
@@ -4473,7 +4456,6 @@
     interfaceB: 36
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 19
@@ -4482,7 +4464,6 @@
     interfaceB: 38
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 20
@@ -4491,7 +4472,6 @@
     interfaceB: 40
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 21
@@ -4500,7 +4480,6 @@
     interfaceB: 42
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 22
@@ -4509,7 +4488,6 @@
     interfaceB: 44
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.link
   pk: 23
@@ -4518,7 +4496,6 @@
     interfaceB: 46
     type: PROVIDER
     active: true
-    bandwidth: 1000
     mtu: 1472
 - model: scionlab.borderrouter
   pk: 1
