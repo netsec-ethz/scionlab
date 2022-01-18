@@ -35,7 +35,7 @@ from scionlab.models.pki import Key, Certificate
 from scionlab.scion import as_ids
 from scionlab.scion.certs import verify_certificate_valid, verify_cp_as_chain
 from scionlab.scion.keys import verify_key
-from scionlab.scion.trcs import decode_trc, verify_trcs
+from scionlab.scion.trcs import verify_trcs
 from scionlab.scion.pkicommand import ScionPkiError
 from scionlab.util.django import value_set
 from scionlab.defines import (
@@ -117,7 +117,7 @@ class ISD(TimestampedModel):
         namely that the trc chain is valid.
         Returns the number of valid trcs in this ISD.
         """
-        ts = [decode_trc(t.trc) for t in self.trcs.order_by('serial_version')]
+        ts = [t.trc for t in self.trcs.order_by('serial_version')]
         verify_trcs(ts[0], *ts)
         return len(ts)
 
@@ -306,7 +306,7 @@ class AS(TimestampedModel):
         latests certificates and keys and checking them against the latest TRC.
         Returns the number of certificates (with keys) that passed the check.
         """
-        trc = decode_trc(self.isd.trcs.latest().trc)
+        trc = self.isd.trcs.latest().trc
         certs = self.certificates_latest()
         cert_map = {}
         for cert in certs:

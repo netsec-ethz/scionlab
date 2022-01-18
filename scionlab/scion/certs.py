@@ -75,14 +75,14 @@ def verify_certificate_valid(cert: str, cert_usage: str):
         _run_scion_pki_certificate('validate', '--type', cert_usage, '--check-time', f.name)
 
 
-def verify_cp_as_chain(cert: str, trc: bytes):
+def verify_cp_as_chain(cert: str, trc: str):
     """
     Verify that the certificate is valid, using the last TRC as anchor.
     The certificate is passed as a PEM string.
     The TRC is passed as bytes, basee 64 format.
     Raises ScionPkiError if the certificate is not valid.
     """
-    with NamedTemporaryFile(mode='wb', suffix=".trc") as trc_file,\
+    with NamedTemporaryFile(mode='wt', suffix=".trc") as trc_file,\
          NamedTemporaryFile(mode='wt', suffix=".pem") as cert_file:
         files = [trc_file, cert_file]
         for f, value in zip(files, [trc, cert]):
