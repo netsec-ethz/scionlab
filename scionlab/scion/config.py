@@ -316,6 +316,12 @@ class _ConfigBuilder:
                 'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
             },
         })
+        if service.AS.is_core:
+            conf.update({
+                'ca': {
+                    'mode': 'in-process',
+                },
+            })
 
         return conf
 
