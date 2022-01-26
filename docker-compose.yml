@@ -13,7 +13,7 @@ services:
       - web-static:/scionlab/static/:z
 
   caddy:
-    image: caddy:2.2.1-alpine
+    image: caddy:2.4.6-alpine
     env_file: run/scionlab.env
     depends_on:
       - django
