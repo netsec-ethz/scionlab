@@ -447,11 +447,12 @@ class HostManager(models.Manager):
             **kwargs
         )
 
-    def bump_config(self):
+    def bump_config(self, **filter_args):
         """
         Increment the config version counter, i.e. set `needs_config_deployement` to True.
+        If filter_args is not empty, only the subset of those filters will be bumped.
         """
-        self.update(config_version=F('config_version') + 1)
+        self.filter(**filter_args).update(config_version=F('config_version') + 1)
 
     def reset_needs_config_deployment(self):
         """
