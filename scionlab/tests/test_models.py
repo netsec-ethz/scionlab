@@ -217,12 +217,12 @@ class LinkModificationTests(TestCase):
         self._sanity_check_interface(link.interfaceA)
         self._sanity_check_interface(link.interfaceB)
         self.assertTrue(link.active)
-        self.assertEquals(link.interfaceA.link(), link)
-        self.assertEquals(link.interfaceB.link(), link)
-        self.assertEquals(link.interfaceA.remote_interface(), link.interfaceB)
-        self.assertEquals(link.interfaceB.remote_interface(), link.interfaceA)
-        self.assertEquals(link.interfaceA.remote_as(), link.interfaceB.AS)
-        self.assertEquals(link.interfaceB.remote_as(), link.interfaceA.AS)
+        self.assertEqual(link.interfaceA.link(), link)
+        self.assertEqual(link.interfaceB.link(), link)
+        self.assertEqual(link.interfaceA.remote_interface(), link.interfaceB)
+        self.assertEqual(link.interfaceB.remote_interface(), link.interfaceA)
+        self.assertEqual(link.interfaceA.remote_as(), link.interfaceB.AS)
+        self.assertEqual(link.interfaceB.remote_as(), link.interfaceA.AS)
 
     def _sanity_check_interface(self, interface):
         self.assertIsNotNone(interface)

@@ -357,7 +357,7 @@ def check_tarball_user_as(testcase, response, user_as):
     tar = _check_open_tarball(testcase, response)
 
     if user_as.installation_type == UserAS.VM:
-        testcase.assertEquals(sorted(['README.md', 'Vagrantfile']), tar_ls(tar, ''))
+        testcase.assertEqual(sorted(['README.md', 'Vagrantfile']), tar_ls(tar, ''))
         # appropriate README?
         _check_tarball_readme(testcase, tar, '# SCIONLab VM')
         # Vagrantfile template expanded correctly?
@@ -366,11 +366,11 @@ def check_tarball_user_as(testcase, response, user_as):
         name_lines = [line.strip() for line in lines if line.strip().startswith('vb.name')]
         testcase.assertEqual(name_lines, ['vb.name = "SCIONLabVM-%s"' % user_as.as_path_str()])
     elif user_as.installation_type == UserAS.SRC:
-        testcase.assertEquals(sorted(['README.md', 'gen']), tar_ls(tar, ''))
+        testcase.assertEqual(sorted(['README.md', 'gen']), tar_ls(tar, ''))
         _check_tarball_gen(testcase, tar, user_as.hosts.get())
         _check_tarball_readme(testcase, tar, '# SCIONLab Dedicated')
     else:
-        testcase.assertEquals(sorted(['README.md', 'etc']), tar_ls(tar, ''))
+        testcase.assertEqual(sorted(['README.md', 'etc']), tar_ls(tar, ''))
         _check_tarball_etc_scion(testcase, tar, user_as.hosts.get())
         _check_tarball_info(testcase, tar, user_as.hosts.get())
         _check_tarball_readme(testcase, tar, '# SCIONLab Dedicated')
