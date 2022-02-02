@@ -45,12 +45,12 @@ else:
 
 DATABASES = {'default': db}
 
-# ##### APPLICATION CONFIGURATION #########################
-INSTALLED_APPS += [
-    'django_nose',
-]
+# ##### TESTING ###########################################
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+# Output file for JUnit XML test report, for xmlrunner.
+# Enabled in CI by
+#   --testrunner 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
+TEST_OUTPUT_FILE_NAME = 'test-reports/django/results.xml'
 
 # ##### EXTENSIONS CONFIGURATION ##########################
 
