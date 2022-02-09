@@ -184,6 +184,7 @@ class ISDAdmin(admin.ModelAdmin):
     list_display = ('isd_id', 'label',)
     list_editable = ('label',)
     ordering = ['isd_id']
+    search_fields = ('isd_id', 'label')
 
     def get_readonly_fields(self, request, obj):
         """
@@ -228,6 +229,7 @@ class HostAdminMixin:
     HostInline (the ModelInline for Host in ASAdmin).
     This is simply a bag of methods that can be used in readonly_fields/list_display.
     """
+
     def latest_config_deployed(self, obj):
         return not obj.needs_config_deployment()
 
@@ -589,6 +591,7 @@ class VPNAdmin(admin.ModelAdmin):
     actions = ['update_key']
     list_display = ('__str__', 'server', 'subnet', 'server_vpn_ip', 'num_clients')
     list_display_links = ('__str__',)
+    search_fields = ('subnet', 'server__label', 'server__AS__label', 'server__AS__as_id')
 
     def get_form(self, request, obj=None, **kwargs):
         """
@@ -618,6 +621,7 @@ class VPNClientAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'vpn', 'ip', 'common_name')
     list_display_links = ('__str__',)
     list_filter = ('vpn', 'active')
+    search_fields = ('host__label', 'host__AS__label', 'host__AS__as_id', 'host__AS__owner__email')
 
     def get_form(self, request, obj=None, **kwargs):
         """
@@ -718,6 +722,8 @@ class LinkAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'type', 'active', 'public_ip_a', 'public_port_a', 'bind_ip_a',
                     'public_ip_b', 'public_port_b', 'bind_ip_b',)
     list_filter = ('type', 'active', 'interfaceA__AS', 'interfaceB__AS',)
+    search_fields = ('interfaceA__AS__as_id', 'interfaceA__AS__label', 'interfaceA__host__label',
+                     'interfaceB__AS__as_id', 'interfaceB__AS__label', 'interfaceB__host__label')
 
     def public_ip_a(self, obj):
         return obj.interfaceA.get_public_ip()
@@ -746,6 +752,7 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
                     'internal_ip', 'public_ip', 'bind_ip', 'ssh_host',
                     'latest_config_deployed', 'get_scionlab_config_cmd', 'get_config_link')
     list_filter = ('AS__isd', 'AS', )
+    search_fields = ('AS__as_id', 'label', 'ssh_host')
     ordering = ['AS']
 
     def get_urls(self):
