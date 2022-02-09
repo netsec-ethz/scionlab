@@ -47,8 +47,8 @@ class Command(BaseCommand):
 
         # Infrastructure
         # all hosts belonging to an AS without an owner
-        for infra in Host.objects.filter(AS__owner=None).exclude(ssh_host=None):
-            record_dict[infra.ssh_host] = infra.scion_address()
+        for infra in Host.objects.filter(AS__owner=None).exclude(label=None):
+            record_dict[infra.label] = infra.scion_address()
 
         # write zonefile
         zone_file = ':Z: %s %s [\n' % (options['zone'], options['context'])

@@ -94,7 +94,7 @@ def create_as(ia, data):
 def create_hosts(as_, hosts):
     for name, data in hosts.items():
         as_short_id = as_.as_id.split(':')[-1]
-        ssh_host = 'scionlab-%s-%s' % (as_short_id, name)
+        hostname = 'scionlab-%s-%s' % (as_short_id, name)
 
         internal_ip = data['address']
         public_ip = data.get('public', None)
@@ -103,7 +103,7 @@ def create_hosts(as_, hosts):
             public_ip=public_ip,
             bind_ip=None,
             internal_ip=internal_ip,
-            ssh_host=ssh_host,
+            label=hostname,
         )
 
     service_host = as_.hosts.first()
@@ -114,8 +114,8 @@ def create_links(links):
     for link, data in links.items():
         a, b = link.split('--')
         try:
-            host_a = Host.objects.filter(ssh_host__endswith=a).get()
-            host_b = Host.objects.filter(ssh_host__endswith=b).get()
+            host_a = Host.objects.filter(label__endswith=a).get()
+            host_b = Host.objects.filter(label__endswith=b).get()
         except Host.DoesNotExist as e:
             print("Skipping link", a, b, ":", e)
             continue
