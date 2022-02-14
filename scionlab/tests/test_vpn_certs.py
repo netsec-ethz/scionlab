@@ -25,6 +25,7 @@ from cryptography.hazmat.primitives.asymmetric import dsa
 from django.core.management import CommandError
 from django.core.management import call_command
 from django.test import TestCase, SimpleTestCase, override_settings
+from django.test.testcases import SerializeMixin
 from django.conf import settings
 
 from scionlab.fixtures.testuser import get_testuser
@@ -38,6 +39,17 @@ test_public_port = 54321
 
 TEST_CA_KEY_PATH = os.path.join(settings.BASE_DIR, 'run', 'test_root_ca_key.pem')
 TEST_CA_CERT_PATH = os.path.join(settings.BASE_DIR, 'run', 'test_root_ca_cert.pem')
+
+
+class _VPNTestCaseMixin(SerializeMixin):
+    lockfile = __file__
+
+    def tearDown(self):
+        for f in [TEST_CA_KEY_PATH, TEST_CA_CERT_PATH]:
+            try:
+                os.remove(f)
+            except FileNotFoundError:
+                pass
 
 
 def _setup_vpn_attachment_point():
@@ -65,11 +77,7 @@ def create_user_as(ap, label='Some label'):
 
 
 @override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)
-class RootCASetupTests(TestCase):
-    def tearDown(self):
-        # cleanup test files
-        os.remove(TEST_CA_KEY_PATH)
-        os.remove(TEST_CA_CERT_PATH)
+class RootCASetupTests(_VPNTestCaseMixin, TestCase):
 
     def test_initialization(self):
         out = StringIO()
@@ -140,17 +148,12 @@ class RootCASetupTests(TestCase):
 
 
 @override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)
-class VPNCertsTests(TestCase):
+class VPNCertsTests(_VPNTestCaseMixin, TestCase):
     fixtures = ['testdata']
 
     def setUp(self):
         write_vpn_ca_config()
         _setup_vpn_attachment_point()
-
-    def tearDown(self):
-        # cleanup test files
-        os.remove(TEST_CA_KEY_PATH)
-        os.remove(TEST_CA_CERT_PATH)
 
     def test_generate_certs(self):
         attachment_point = AttachmentPoint.objects.first()
@@ -233,16 +236,8 @@ class VPNCertsTests(TestCase):
 
 
 @override_settings(VPN_CA_KEY_PATH=TEST_CA_KEY_PATH, VPN_CA_CERT_PATH=TEST_CA_CERT_PATH)
-class VPNCertsMissingCATests(TestCase):
+class VPNCertsMissingCATests(_VPNTestCaseMixin, TestCase):
     fixtures = ['testdata']
-
-    def tearDown(self):
-        # cleanup test files
-        try:
-            os.remove(TEST_CA_KEY_PATH)
-            os.remove(TEST_CA_CERT_PATH)
-        except FileNotFoundError:
-            pass
 
     def test_generate_client_cert(self):
         write_vpn_ca_config()

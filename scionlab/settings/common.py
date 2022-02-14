@@ -163,7 +163,8 @@ SECRET_FILE = os.path.join(BASE_DIR, 'run', 'SECRET.key')
 
 # finally grab the SECRET KEY
 try:
-    SECRET_KEY = open(SECRET_FILE).read().strip()
+    with open(SECRET_FILE) as f:
+        SECRET_KEY = f.read().strip()
 except IOError:
     try:
         from django.core.management.utils import get_random_secret_key

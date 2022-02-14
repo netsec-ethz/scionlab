@@ -45,12 +45,12 @@ else:
 
 DATABASES = {'default': db}
 
-# ##### APPLICATION CONFIGURATION #########################
-INSTALLED_APPS += [
-    'django_nose',
-]
+# ##### TESTING ###########################################
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+# Output file for JUnit XML test report, for xmlrunner.
+# Enabled in CI by
+#   --testrunner 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
+TEST_OUTPUT_FILE_NAME = 'test-reports/django/results.xml'
 
 # ##### EXTENSIONS CONFIGURATION ##########################
 
@@ -64,8 +64,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # ##### VPN CONFIG OVERRIDES ##############################
 VPN_CA_KEY_PASSWORD = 'sci0nl4b'
-VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'run', 'dev_root_ca_key.pem')
-VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'run', 'dev_root_ca_cert.pem')
+VPN_CA_KEY_PATH = os.path.join(BASE_DIR, 'scionlab/fixtures/dev_root_ca_key.pem')
+VPN_CA_CERT_PATH = os.path.join(BASE_DIR, 'scionlab/fixtures/dev_root_ca_cert.pem')
 
 
 class VPNKeygenConfDev(VPNKeygenConf):

@@ -15,6 +15,4 @@
 
 # wait a bit for the migrations in the django-entrypoint.sh are done:
 docker-compose exec -T coord appdeps.py --interval-secs 1 --wait-secs 60 --port-wait coord:8000
-docker-compose exec -T coord /bin/bash -c \
-  './manage.py loaddata scionlab/fixtures/testdata.yaml; \
-   cp scionlab/fixtures/dev_root_ca_*.pem run/'
+docker-compose exec -T coord ./manage.py loaddata scionlab/fixtures/testdata.yaml

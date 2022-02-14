@@ -15,6 +15,7 @@
 import importlib.util
 import importlib.machinery
 import io
+import logging
 import os
 import pathlib
 import sys
@@ -54,6 +55,15 @@ def _expected_fetch_info(**kwargs):
     url = kwargs.get("url", "https://test.scionlab.org")
     version = kwargs.get("version", "12.345")
     return scionlab_config.FetchInfo('h1', 's1', url, version)
+
+
+def setUpModule():
+    # temporarily disable all logging; log output from scionlab-config pollutes test output
+    logging.disable(logging.CRITICAL)
+
+
+def tearDownModule():
+    logging.disable(logging.NOTSET)
 
 
 class ScionlabConfigLiveTests(LiveServerTestCase):

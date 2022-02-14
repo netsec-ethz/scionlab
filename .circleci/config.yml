@@ -101,7 +101,7 @@ jobs:
           command: |
             . /tmp/venv/bin/activate
             mkdir -p test-reports/django/
-            python manage.py test --with-xunit --xunit-file=test-reports/django/results.xml
+            python manage.py test --parallel --testrunner 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
           when: always
       - store_test_results:
           path: test-reports

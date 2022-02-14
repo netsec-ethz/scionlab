@@ -88,7 +88,7 @@ These commands are also recorded in the preamble of the `*.txt` files.
 ##### Unit tests:
 
 ```bash
-./manage.py test
+./manage.py test --parallel
 ```
 
 ##### Style checker:
