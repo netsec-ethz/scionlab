@@ -45,7 +45,6 @@ SERVICES_TO_SYSTEMD_NAMES = {
     Service.CS: 'scion-control-service',
     Service.CO: 'scion-colibri-service',
     Service.BW: 'scion-bwtestserver',
-    TYPE_BR: 'scion-border-router',
 }
 
 DEFAULT_ENV = ['TZ=UTC']
@@ -99,8 +98,9 @@ class _ConfigGeneratorBase:
         config_dir = cb.config_dir.lstrip('/')  # don't use absolute paths in the archive
 
         for router in self._routers():
-            self.archive.write_toml((config_dir, f'{router.instance_name}.toml'),
-                                    cb.build_br_conf(router))
+            if not router.is_hsr:
+                self.archive.write_toml((config_dir, f'{router.instance_name}.toml'),
+                                        cb.build_br_conf(router))
 
         for service in self._control_services():
             if service.type == Service.CS:
@@ -172,7 +172,11 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
         # dispatcher and sciond config files are installed with the package
 
     def systemd_units(self):
-        units = ["scion-border-router@%s.service" % router.instance_name
+        router_systemd_name = {
+            False: 'scion-border-router',
+            True: 'scion-hsr',
+        }
+        units = ["%s@%s.service" % (router_systemd_name[router.is_hsr], router.instance_name)
                  for router in self._routers()]
         units += ["%s@%s.service" % (SERVICES_TO_SYSTEMD_NAMES[service.type], service.instance_name)
                   for service in self._control_services()]
@@ -211,12 +215,13 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
         as_dir = self._as_dir()
         config = configparser.ConfigParser()
         for router in self._routers():
-            _add_supervisord_program_conf(
-                config,
-                router.instance_name,
-                _cmd(CMDS[TYPE_BR], as_dir, router.instance_name + '.toml'),
-                env=BORDER_ENV
-            )
+            if not router.is_hsr:
+                _add_supervisord_program_conf(
+                    config,
+                    router.instance_name,
+                    _cmd(CMDS[TYPE_BR], as_dir, router.instance_name + '.toml'),
+                    env=BORDER_ENV
+                )
         for service in self._control_services():
             _add_supervisord_program_conf(
                 config,

@@ -1000,10 +1000,11 @@ class Link(models.Model):
 
 
 class BorderRouterManager(models.Manager):
-    def create(self, host):
+    def create(self, host, is_hsr=False):
         """
         Create a BorderRouter object.
         :param Host host: the host, defines the AS
+        :param bool is_hsr: this is a high-speed router instance
         :returns: BorderRouter
         """
         host.AS.hosts.bump_config()
@@ -1011,15 +1012,17 @@ class BorderRouterManager(models.Manager):
         return super().create(
             AS=host.AS,
             host=host,
+            is_hsr=is_hsr,
         )
 
-    def first_or_create(self, host):
+    def first_or_create(self, host, is_hsr=False):
         """
         Get the first border router related to this host, or create a new one with default settings.
         :param Host host: the host, defines the AS
+        :param bool is_hsr: this is a high-speed router instance
         :returns: BorderRouter
         """
-        return host.border_routers.first() or self.create(host=host)
+        return host.border_routers.first() or self.create(host=host, is_hsr=is_hsr)
 
     def iterator_non_empty(self):
         """
@@ -1043,6 +1046,10 @@ class BorderRouter(models.Model):
         Host,
         related_name='border_routers',
         on_delete=models.CASCADE
+    )
+    is_hsr = models.BooleanField(
+        default=False,
+        help_text="If true, this is a high-speed router instance with special configuration."
     )
 
     objects = BorderRouterManager()
@@ -1081,12 +1088,14 @@ class BorderRouter(models.Model):
     def metrics_port(self):
         return BR_METRICS_PORT_BASE + self.instance_id
 
-    def update(self, host=_placeholder):
+    def update(self, host=_placeholder, is_hsr=_placeholder):
         """
         Update the given fields
         :param Host host: optional, the host. Must be in current AS.
+        :param bool is_hsr: optional, this is a high-speed router instance
         """
         prev_host = self.host
+        prev_is_hsr = self.is_hsr
 
         if host is not _placeholder:
             if host.AS != self.AS:
@@ -1095,10 +1104,15 @@ class BorderRouter(models.Model):
                 raise RuntimeError('BorderRouter.update cannot change AS')
             self.host = host
 
+        if is_hsr is not _placeholder:
+            self.is_hsr = is_hsr
+
         self.save()
 
-        if host != prev_host:
-            host.AS.hosts.bump_config()
+        if self.host != prev_host:
+            self.AS.hosts.bump_config()
+        elif self.is_hsr != prev_is_hsr:
+            self.host.bump_config()
 
 
 class ServiceManager(models.Manager):

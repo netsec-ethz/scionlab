@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import namedtuple
-from scionlab.models.core import ISD, AS, Link, Host, Service
+from scionlab.models.core import ISD, AS, Link, Host, Service, BorderRouter
 from scionlab.models.user_as import AttachmentPoint
 from scionlab.models.vpn import VPN
 
@@ -110,6 +110,12 @@ extra_services = [
     (_expand_as_id(0x1301), Service.SIG),
 ]
 
+# Router instances (AS ID, router instance ID) with high-speed router configuration
+hsrs = [
+    (_expand_as_id(0x1102), 1),
+    (_expand_as_id(0x1103), 1),
+]
+
 # VPNs for APs, except 1303
 vpns = [
    VPNDef(_expand_as_id(0x1107), "10.0.8.1", 1194, "10.0.0.0/16"),  # odd subnet, used in prod!
@@ -124,6 +130,7 @@ def create_testtopo():
     create_links()
     create_vpn()
     create_extraservices()
+    setup_hsrs()
 
 
 def create_isds():
@@ -154,6 +161,13 @@ def create_extraservices():
     for as_serv in extra_services:
         host = Host.objects.get(AS__as_id=as_serv[0])
         Service.objects.create(host=host, type=as_serv[1])
+
+
+def setup_hsrs():
+    for as_id, brid in hsrs:
+        br = BorderRouter.objects.filter(AS__as_id=as_id)[brid-1]
+        br.is_hsr = True
+        br.save()
 
 
 def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
