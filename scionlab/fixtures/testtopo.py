@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
+import random
+import string
 from collections import namedtuple
 from scionlab.models.core import ISD, AS, Link, Host, Service
 from scionlab.models.user_as import AttachmentPoint
@@ -124,6 +127,7 @@ def create_testtopo():
     create_links()
     create_vpn()
     create_extraservices()
+    name_hosts()
 
 
 def create_isds():
@@ -156,6 +160,18 @@ def create_extraservices():
         Service.objects.create(host=host, type=as_serv[1])
 
 
+def name_hosts():
+    # assign random hostnames, loosely following the scionlab host naming convention
+    hosts = Host.objects.filter(AS__owner=None)
+    words = pathlib.Path('/usr/share/dict/words').read_text().split('\n')
+    words = [w for w in words if all(c in string.ascii_lowercase for c in w)]
+    names = random.sample(words, len(hosts))
+    for host, name in zip(hosts, names):
+        as_short_id = host.AS.as_id.split(':')[-1]
+        host.label = 'scionlab-%s-%s' % (as_short_id, name)
+        host.save()
+
+
 def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
     isd = ISD.objects.get(isd_id=isd_id)
     as_ = AS.objects.create_with_default_services(
@@ -166,11 +182,6 @@ def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
         public_ip=public_ip,
         init_certificates=False  # Defer certificates generation
     )
-
-    # This is also used in the integration tests for some ASes.
-    for host in as_.hosts.iterator():
-        host.ssh_host = host.public_ip
-        host.save()
 
     if is_ap:
         AttachmentPoint.objects.create(AS=as_)

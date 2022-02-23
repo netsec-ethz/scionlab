@@ -3580,8 +3580,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.11
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.11
+    label: scionlab-1101-parapet
     uid: f470d0cceccc409c83393ac000e8d793
     secret: 2a3f2ee1b4a847d0b637872f2a7fa960
     config_version: 8
@@ -3594,8 +3593,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.12
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.12
+    label: scionlab-1102-dishwasher
     uid: f3ec4ddfecef4d9887509b660bd8805d
     secret: 15e18bd011f946caa12280280f0c330b
     config_version: 7
@@ -3608,8 +3606,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.13
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.13
+    label: scionlab-1103-waxier
     uid: daedabbf07aa4253ae55dc5f9e0ddab9
     secret: 19f3ea1f089343f082ab1a7a49c3caa4
     config_version: 7
@@ -3622,8 +3619,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.17
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.17
+    label: scionlab-1107-reals
     uid: b61daa99565446389397cbcd08d62f84
     secret: feef3b3f455e42c288803a1638b101f4
     config_version: 10
@@ -3636,8 +3632,7 @@
     internal_ip: 127.0.0.1
     public_ip: 172.31.0.110
     bind_ip: null
-    label: null
-    ssh_host: 172.31.0.110
+    label: scionlab-1301-cytoplasm
     uid: 747dc3fb869d466a81ea316f9a46ebb7
     secret: 0367e2079ff14e509bbe2d338b35164a
     config_version: 11
@@ -3650,8 +3645,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.32
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.32
+    label: scionlab-1302-paperhanger
     uid: 53922dccbb7144b987f2e4681e09f85b
     secret: 03fb466f164f4c99a7bb5b383099ba45
     config_version: 7
@@ -3664,8 +3658,7 @@
     internal_ip: 127.0.0.1
     public_ip: 172.31.0.111
     bind_ip: null
-    label: null
-    ssh_host: 172.31.0.111
+    label: scionlab-1303-premiere
     uid: b5150aeb217c42bb94f369fafbde9424
     secret: 7a66690be29048edb0960a4ca217d658
     config_version: 8
@@ -3678,8 +3671,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.34
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.34
+    label: scionlab-1304-beneficence
     uid: 2197a3cb85114c57a6598df981dd38b6
     secret: e13e26ce78d24442be170ccf23821cf8
     config_version: 7
@@ -3692,8 +3684,7 @@
     internal_ip: 127.0.0.1
     public_ip: 172.31.0.112
     bind_ip: null
-    label: null
-    ssh_host: 172.31.0.112
+    label: scionlab-1305-adulterers
     uid: 6c9a16b969e443e1a940943efcb42f38
     secret: 9315d60785f649bd81ceb24fb5a041d0
     config_version: 7
@@ -3706,8 +3697,7 @@
     internal_ip: 127.0.0.1
     public_ip: 172.31.0.113
     bind_ip: null
-    label: null
-    ssh_host: 172.31.0.113
+    label: scionlab-1401-orphaning
     uid: d158f36aa95c41ce9dca957496887da4
     secret: f0c384207d0f4890acb704921ec84528
     config_version: 9
@@ -3720,8 +3710,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.42
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.42
+    label: scionlab-1402-trawling
     uid: f40257382e764dbf901e7628e092ce9c
     secret: 3f3baf772ccb458db0e8384a9117d8d8
     config_version: 8
@@ -3734,8 +3723,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.43
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.43
+    label: scionlab-1403-inputting
     uid: ac36de474a9741528c81101176f41616
     secret: 92a9b0452ccc46b286b85bb262d1c5c6
     config_version: 8
@@ -3748,8 +3736,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.44
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.44
+    label: scionlab-1404-memorable
     uid: e5ced7199cce4bd68d449b7cc1308faf
     secret: 3e8963578bb747a4bd0cc361346458e9
     config_version: 9
@@ -3762,8 +3749,7 @@
     internal_ip: 127.0.0.1
     public_ip: 172.31.0.114
     bind_ip: null
-    label: null
-    ssh_host: 172.31.0.114
+    label: scionlab-1405-cauterise
     uid: c6d63a630ada49129549bacd10fee2a3
     secret: 5941ffa7a7c240b3aef1433d8e2b369f
     config_version: 9
@@ -3776,8 +3762,7 @@
     internal_ip: 127.0.0.1
     public_ip: 192.0.2.46
     bind_ip: null
-    label: null
-    ssh_host: 192.0.2.46
+    label: scionlab-1406-replenishes
     uid: cb92022181bd4e26ba3a280193a5f352
     secret: 1ee81564f8cf484d9310234e6cb1981e
     config_version: 7
@@ -3791,7 +3776,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    ssh_host: null
     uid: 8882e778031c4df79fadcc272632aa6c
     secret: a2be4b0d3326420fbd4f7ae0d536166f
     config_version: 6
@@ -3805,7 +3789,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    ssh_host: null
     uid: 4781698deccd4d318ee5e9d54642c9c0
     secret: 55c32d2364954c39a7c891366812a552
     config_version: 5
@@ -3819,7 +3802,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    ssh_host: null
     uid: e31440806a4248469345b8c8e6e79580
     secret: e3bbb8648a0a4331b2d1d93807d44819
     config_version: 5
@@ -3833,7 +3815,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    ssh_host: null
     uid: 3bc8312ec6984acf89db4c11f7e1dc6d
     secret: ec00adb395bf4d1d8b99ce40774be4d0
     config_version: 6
@@ -3847,7 +3828,6 @@
     public_ip: null
     bind_ip: null
     label: null
-    ssh_host: null
     uid: feda4b58f8a041209bb6acce636c9a9e
     secret: 9f932da7782a45dc991045baee592e01
     config_version: 5

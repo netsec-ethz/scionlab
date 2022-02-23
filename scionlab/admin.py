@@ -197,7 +197,7 @@ class ISDAdmin(admin.ModelAdmin):
 
 class HostAdminForm(_CreateUpdateModelForm):
     class Meta:
-        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label', 'ssh_host')
+        fields = ('AS', 'internal_ip', 'public_ip', 'bind_ip', 'label')
 
     secret = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '32'}))
 
@@ -208,7 +208,6 @@ class HostAdminForm(_CreateUpdateModelForm):
             public_ip=self.cleaned_data['public_ip'],
             bind_ip=self.cleaned_data['bind_ip'],
             label=self.cleaned_data['label'],
-            ssh_host=self.cleaned_data['ssh_host'],
             secret=self.cleaned_data['secret']
         )
 
@@ -218,7 +217,6 @@ class HostAdminForm(_CreateUpdateModelForm):
             public_ip=self.cleaned_data['public_ip'],
             bind_ip=self.cleaned_data['bind_ip'],
             label=self.cleaned_data['label'],
-            ssh_host=self.cleaned_data['ssh_host'],
             secret=self.cleaned_data['secret']
         )
 
@@ -749,10 +747,10 @@ class HostAdmin(HostAdminMixin, admin.ModelAdmin):
     form = HostAdminForm
     readonly_fields = ['uid', 'get_scionlab_config_cmd']
     list_display = ('__str__', 'AS',
-                    'internal_ip', 'public_ip', 'bind_ip', 'ssh_host',
+                    'internal_ip', 'public_ip', 'bind_ip',
                     'latest_config_deployed', 'get_scionlab_config_cmd', 'get_config_link')
     list_filter = ('AS__isd', 'AS', )
-    search_fields = ('AS__as_id', 'label', 'ssh_host')
+    search_fields = ('AS__as_id', 'label')
     ordering = ['AS']
 
     def get_urls(self):

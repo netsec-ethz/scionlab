@@ -135,7 +135,7 @@ def topology_json(request):
         return {
             'type': service_type,
             'metrics_port': s.metrics_port,
-            'ssh_host': s.host.ssh_host,
+            'ssh_host': s.host.label,  # TODO(matzf) rename this field to host or hostname
         }
 
     def json_as(as_):
