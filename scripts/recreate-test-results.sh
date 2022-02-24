@@ -15,4 +15,4 @@
 
 
 # recreate expected output in scionlab/tests/data/test_config_tar/
-RECREATE_TEST_RESULTS=1 python manage.py test -s scionlab.tests.test_config_tar
+RECREATE_TEST_RESULTS=1 python manage.py test -v0 scionlab.tests.test_config_tar
