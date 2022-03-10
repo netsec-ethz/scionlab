@@ -530,6 +530,10 @@ etc/scion/cs-1.toml: |
   origination_interval = "5s"
   propagation_interval = "5s"
 
+  [drkey]
+  cert_file = "/etc/scion/crypto/as/ISD17-ASffaa_0_1107.pem"
+  key_file = "/etc/scion/crypto/as/cp-as.key"
+
   [general]
   config_dir = "/etc/scion"
   id = "cs-1"
@@ -549,6 +553,12 @@ etc/scion/cs-1.toml: |
 
   [beaconing.policies]
   propagation = "/etc/scion/beacon_policy.yaml"
+
+  [drkey.delegation]
+  colibri = [ "127.0.0.1",]
+
+  [drkey.drkey_db]
+  connection = "/var/lib/scion/cs-1.drkey.db"
 
   [log.console]
   level = "info"
@@ -624,7 +634,7 @@ scionlab-config.json: |-
       "etc/scion/co-1.toml": "5f44683ff73c2f105908e20476b8a6f9a17caf26",
       "etc/scion/crypto/as/ISD17-ASffaa_0_1107.pem": "e4239e470a5b169d71c135b66bed25ebd4902129",
       "etc/scion/crypto/as/cp-as.key": "106b5e0c2b178641c9fdc99bc1d7a99e712c7197",
-      "etc/scion/cs-1.toml": "84467cd10682d975caeccba3a7eaaec1bd9ea858",
+      "etc/scion/cs-1.toml": "7922708831c71fb9b0c185e3690586e3b94171a4",
       "etc/scion/keys/master0.key": "7b87dcf6b8fda0f0facd3efb3e3b84c1c5c58cb1",
       "etc/scion/keys/master1.key": "7b87dcf6b8fda0f0facd3efb3e3b84c1c5c58cb1",
       "etc/scion/topology.json": "8cc26714431b5044f160f28ef10d22a6d1a81c0d"
@@ -640,5 +650,5 @@ scionlab-config.json: |-
       "scion-dispatcher.service"
     ],
     "url": "http://localhost:8000",
-    "version": "15.10"
+    "version": "16.10"
   }
