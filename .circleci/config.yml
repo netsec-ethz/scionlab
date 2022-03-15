@@ -237,7 +237,8 @@ jobs:
           destination: logs
 
   production-stack-tests:
-    machine: true
+    machine:
+      image: ubuntu-2004:202107-02
     environment:
       COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"
     steps:
