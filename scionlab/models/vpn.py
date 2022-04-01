@@ -224,6 +224,14 @@ class VPNClient(models.Model):
         self.private_key = key
         self.cert = cert
 
+    def update_key(self):
+        """
+        Generate new key/certificate and save. Bump configuration on related Host.
+        """
+        self.init_key()
+        self.save()
+        self.host.bump_config()
+
 
 @receiver(pre_delete, sender=VPN, dispatch_uid='vpn_delete_callback')
 def _vpn_pre_delete(sender, instance, using, **kwargs):
