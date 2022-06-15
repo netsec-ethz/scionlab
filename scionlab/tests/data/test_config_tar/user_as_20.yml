@@ -403,10 +403,6 @@ gen/ASffaa_1_5/cs-1.toml: |
   origination_interval = "5s"
   propagation_interval = "5s"
 
-  [drkey]
-  cert_file = "gen/ASffaa_1_5/crypto/as/ISD17-ASffaa_1_5.pem"
-  key_file = "gen/ASffaa_1_5/crypto/as/cp-as.key"
-
   [general]
   config_dir = "gen/ASffaa_1_5"
   id = "cs-1"
@@ -430,8 +426,11 @@ gen/ASffaa_1_5/cs-1.toml: |
   [drkey.delegation]
   colibri = [ "127.0.0.1",]
 
-  [drkey.drkey_db]
-  connection = "gen-cache/cs-1.drkey.db"
+  [drkey.lvl1_db]
+  connection = "gen-cache/cs-1.lvl1.db"
+
+  [drkey.sv_db]
+  connection = "gen-cache/cs-1.sv.db"
 
   [log.console]
   level = "info"
@@ -440,7 +439,7 @@ gen/ASffaa_1_5/keys/master0.key: |-
 gen/ASffaa_1_5/keys/master1.key: |-
   yXRsWitUgTwm/BQ1jl/zgw==
 gen/ASffaa_1_5/sd.toml: |
-  [drkey_db]
+  [drkey_lvl2_db]
   connection = "gen-cache/sd.drkey.db"
 
   [general]

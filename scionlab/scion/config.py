@@ -17,7 +17,6 @@ import os
 from collections import OrderedDict
 
 from scionlab.models.core import Service
-from scionlab.models.pki import Key
 from scionlab.models.trc import TRC
 from scionlab.scion.topology import TopologyInfo
 
@@ -317,13 +316,12 @@ class _ConfigBuilder:
                 'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
             },
             'drkey': {
-                'drkey_db': {
-                    'connection': '%s.drkey.db' % os.path.join(self.var_dir, service.instance_name),
+                'sv_db': {
+                    'connection': '%s.sv.db' % os.path.join(self.var_dir, service.instance_name),
                 },
-                'cert_file': os.path.join(self.config_dir, 'crypto', 'as', service.AS
-                                          .certificates_latest().get(key__usage=Key.CP_AS)
-                                          .filename()),
-                'key_file': os.path.join(self.config_dir, 'crypto', 'as', 'cp-as.key'),
+                'lvl1_db': {
+                    'connection': '%s.lvl1.db' % os.path.join(self.var_dir, service.instance_name),
+                },
                 'delegation': {
                     # the internal IP of all CO services has rights to derive DS "colibri":
                     'colibri': [str(s.host.internal_ip) for s in service.AS.services
@@ -373,7 +371,7 @@ class _ConfigBuilder:
             'trust_db': {
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
             },
-            'drkey_db': {
+            'drkey_lvl2_db': {
                 'connection': '%s.drkey.db' % os.path.join(self.var_dir, instance_name),
             },
         })
