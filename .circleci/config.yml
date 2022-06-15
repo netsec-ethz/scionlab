@@ -198,8 +198,7 @@ jobs:
       - run:
           name: OLD -- Checkout
           command: |
-            git checkout master
-            git pull --ff-only  # may be stale
+            git checkout --force -B master --track origin/master
       - run:
           name: OLD -- Build and start containers for coordinator and ASes
           command: |
