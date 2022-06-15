@@ -3,4 +3,5 @@ django-webtest>=1.9.6
 flake8
 flake8-formatter-junit-xml
 parameterized
+tblib
 unittest-xml-reporting
