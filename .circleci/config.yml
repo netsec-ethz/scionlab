@@ -61,7 +61,7 @@ commands:
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
             pip install -U pip  # need pip >= 19.0 to install cryptography
-            pip install --require-hashes -r requirements.txt -r dev-requirements.txt --index-url https://pypi.org/simple --extra-index-url https://pypi.python.org/simple/ --no-input --pre
+            pip install --no-cache --require-hashes -r requirements.txt -r dev-requirements.txt --index-url https://pypi.org/simple --extra-index-url https://pypi.python.org/simple/ --no-input --pre
 
       - save_cache:
           paths:
