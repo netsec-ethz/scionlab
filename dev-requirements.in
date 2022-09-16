@@ -4,3 +4,5 @@ flake8
 flake8-formatter-junit-xml
 parameterized
 unittest-xml-reporting
+# require min version for lxml dependency via unittest-xml-reporting:
+lxml>=4.9.1
