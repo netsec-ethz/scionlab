@@ -23,10 +23,6 @@ flake8-formatter-junit-xml==0.0.6 \
     --hash=sha256:1ddd9356bb30ba736c3f14c769c837cfacf4f79c3d383ab963ef9d38eea05a9c \
     --hash=sha256:6358a44ecafdf0f9c8ee5314859b8d6f553dc2e55e946a24c538185e1eba7ce6
     # via -r dev-requirements.in
-importlib-metadata==4.8.3 \
-    --hash=sha256:65a9576a5b2d58ca44d133c42a241905cc45e34d2c06fd5ba2bafa221e5d7b5e \
-    --hash=sha256:766abffff765960fcc18003801f7044eb6755ffae4521c8e8ce8e83b9c9b0668
-    # via flake8
 junit-xml==1.9 \
     --hash=sha256:ec5ca1a55aefdd76d28fcc0b135251d156c7106fa979686a4b48d62b761b4732
     # via flake8-formatter-junit-xml
@@ -130,10 +126,6 @@ soupsieve==2.2.1 \
     --hash=sha256:052774848f448cf19c7e959adf5566904d525f33a3f8b6ba6f6f8f26ec7de0cc \
     --hash=sha256:c2c1c2d44f158cdbddab7824a9af8c4f83c76b1e23e049479aa432feb6c4c23b
     # via beautifulsoup4
-typing-extensions==4.1.1 \
-    --hash=sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42 \
-    --hash=sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2
-    # via importlib-metadata
 unittest-xml-reporting==3.1.0 \
     --hash=sha256:c6178ad2d782c5c21d129758f089fd26da2cba8428cf2905994aa105a13fb317 \
     --hash=sha256:d16fe30ba6914ac01ee3d338f457ef602003bf33af9d2523b884de4535a1c375
