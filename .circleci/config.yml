@@ -112,8 +112,7 @@ jobs:
   integration-tests:
     machine:
       image: ubuntu-2004:202107-02
-      # This is super nice and works like a charm BUT unfortunately it is now explicitly disabled on the free plan. Pitty
-      # docker_layer_caching: true
+      docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
     steps:
@@ -190,6 +189,7 @@ jobs:
   upgrade-tests:
     machine:
       image: ubuntu-2004:202107-02
+      docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
     steps:
@@ -236,7 +236,9 @@ jobs:
           destination: logs
 
   production-stack-tests:
-    machine: true
+    machine:
+      image: ubuntu-2004:202107-02
+      docker_layer_caching: true
     environment:
       COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"
     steps:
