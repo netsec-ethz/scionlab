@@ -75,7 +75,7 @@ jobs:
       - image: cimg/base:current
     steps:
       - run:
-        name: Run step in job with cimg_base_current docker image
+          name: Run step in job with cimg/base:current docker image
           command: |
             id
             cat /etc/os-release
