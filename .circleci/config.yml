@@ -70,6 +70,16 @@ commands:
 
 
 jobs:
+  base-image-check:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - run:
+        name: Run step in job with cimg/base:current docker image
+          command: |
+            id
+            cat /etc/os-release
+            cat
   style-check:
     docker:
       - image: cimg/python:3.6.13
@@ -296,6 +306,9 @@ jobs:
 
 workflows:
   version: 2
+  tesst:
+    jobs:
+      - base-image-check
   lint:
     jobs:
       - style-check
