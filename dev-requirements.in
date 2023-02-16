@@ -4,6 +4,7 @@ flake8
 flake8-formatter-junit-xml
 parameterized
 unittest-xml-reporting
+tblib
 # fix to same version as requirements:
 typing-extensions==4.0.1
 # require min version for lxml dependency via unittest-xml-reporting:
