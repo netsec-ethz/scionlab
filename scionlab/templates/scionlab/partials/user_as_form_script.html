@@ -65,7 +65,7 @@ function setup_bind_row_collapse() {
   }
   $('.bind-row-collapser').each(function() {
     // Init collapser and bind-row
-    let bind_row = $(this).closest('.attachment').find('.bind-row')
+    let bind_row = $(this).closest('.card-body').find('.bind-row')
     bind_row.addClass('collapse')
     if (!should_collapse_bind_row(bind_row)) {
       bind_row.addClass('show')
@@ -74,7 +74,7 @@ function setup_bind_row_collapse() {
   });
   $('.bind-row-collapser').click(function() {
     // Toggle collapse state for collapser and bind-row
-    let bind_row = $(this).closest('.attachment').find('.bind-row')
+    let bind_row = $(this).closest('.card-body').find('.bind-row')
     $(this).toggleClass('collapsed')
     bind_row.collapse('toggle')
   });
