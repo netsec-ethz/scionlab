@@ -1,6 +1,5 @@
 # run/ mounted as volume
 run
-.circleci
 .git
 .gitignore
 

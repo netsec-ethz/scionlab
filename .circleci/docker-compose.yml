@@ -53,8 +53,6 @@ services:
         ipv4_address: 172.31.0.110
     env_file: /tmp/as1301.env
     privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
   as1303:
     build:
@@ -65,8 +63,6 @@ services:
         ipv4_address: 172.31.0.111
     env_file: /tmp/as1303.env
     privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
   as1305:
     build:
@@ -77,8 +73,6 @@ services:
         ipv4_address: 172.31.0.112
     env_file: /tmp/as1305.env
     privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
   as1401:
     build:
@@ -89,8 +83,6 @@ services:
         ipv4_address: 172.31.0.113
     env_file: /tmp/as1401.env
     privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
   as1405:
     build:
@@ -101,8 +93,6 @@ services:
         ipv4_address: 172.31.0.114
     env_file: /tmp/as1405.env
     privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
   useras4:
     build:
@@ -113,8 +103,6 @@ services:
         ipv4_address: 172.31.0.2
     env_file: /tmp/as4.env
     privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
 volumes:
   pgdata:

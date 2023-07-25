@@ -60,8 +60,8 @@ commands:
           command: |
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
-            pip install -U pip  # need pip >= 19.0 to install cryptography
-            pip install --require-hashes -r requirements.txt -r dev-requirements.txt
+            pip3 install -U pip  # need pip >= 19.0 to install cryptography
+            pip3 install --require-hashes -r requirements.txt -r dev-requirements.txt
 
       - save_cache:
           paths:
@@ -72,7 +72,7 @@ commands:
 jobs:
   style-check:
     docker:
-      - image: cimg/python:3.6.13
+      - image: cimg/python:3.10
     steps:
       - install_git_lfs
       - cached_checkout
@@ -91,7 +91,7 @@ jobs:
 
   unit-tests:
     docker:
-      - image: cimg/python:3.6.13
+      - image: cimg/python:3.10
     steps:
       - install_git_lfs
       - cached_checkout
@@ -111,7 +111,7 @@ jobs:
 
   integration-tests:
     machine:
-      image: ubuntu-2004:202107-02
+      image: ubuntu-2204:2023.07.2
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
@@ -121,10 +121,23 @@ jobs:
       - cached_checkout
 
       - run:
+          name: Python defaults
+          command: |
+            set -x
+
+            # Use python3 as default
+            VERSION=$(pyenv versions --bare | grep -e "^3." | tail -n 1)
+            echo "Python3 version is: $VERSION"
+            pyenv global $VERSION
+
+            pip3 install --upgrade pip setuptools wheel install
+
+      - run:
           name: Build and start containers for coordinator and ASes
           command: |
             set -x
-            pip install pyyaml
+
+            pip3 install pyyaml
 
             .circleci/setup/build-containers.sh --build-arg package_repo=packages-test.netsec.inf.ethz.ch
             docker-compose up -d
@@ -188,7 +201,7 @@ jobs:
 
   upgrade-tests:
     machine:
-      image: ubuntu-2004:202107-02
+      image: ubuntu-2204:2023.07.2
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
@@ -199,11 +212,25 @@ jobs:
           name: OLD -- Checkout
           command: |
             git checkout --force -B master --track origin/master
+
+      - run:
+          name: Python defaults
+          command: |
+            set -x
+
+            # Use python3 as default
+            VERSION=$(pyenv versions --bare | grep -e "^3." | tail -n 1)
+            echo "Python3 version is: $VERSION"
+            pyenv global $VERSION
+
+            pip3 install --upgrade pip setuptools wheel install
+
       - run:
           name: OLD -- Build and start containers for coordinator and ASes
           command: |
             set -x
-            pip install pyyaml
+
+            pip3 install pyyaml
 
             .circleci/setup/build-containers.sh --build-arg package_repo=packages.netsec.inf.ethz.ch # start with released packages
             docker-compose up -d
@@ -237,7 +264,7 @@ jobs:
 
   production-stack-tests:
     machine:
-      image: ubuntu-2004:202107-02
+      image: ubuntu-2204:2023.07.2
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"

@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-for c in $(docker-compose ps --services egrep -x '(user)?as[0-9]+'); do
+for c in $(docker-compose ps --services | egrep -x '(user)?as[0-9]+'); do
   docker-compose exec -T "$c" /bin/bash -c 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
 done
