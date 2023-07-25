@@ -10,6 +10,6 @@ gunicorn
 jinja2
 psycopg2-binary  # PostgreSQL backend
 pynacl
-pyyaml>=4.2b1  # for fixtures and config generation; high severity vulnerability before 4.1 (CVE-2017-18342)
+pyyaml>=6.0.1  # for fixtures and config generation; high severity vulnerability before 4.1 (CVE-2017-18342), Cython>=3.0.0 (released in 2023) incompatible before 6.0.1
 scrypt
 toml
