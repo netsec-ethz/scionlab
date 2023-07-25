@@ -3,7 +3,6 @@
 # Write the information to /tmp/asXY.env files, so it can easily be consumed in the docker-compose
 # setup.
 
-from __future__ import print_function
 import yaml
 
 import os
