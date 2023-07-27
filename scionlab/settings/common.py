@@ -151,6 +151,9 @@ VPN_KEYGEN_CONFIG = VPNKeygenConf()
 # Location of the scion-pki command to generate TRCs.
 SCION_PKI_COMMAND = os.path.join(BASE_DIR, 'static_bin', 'scion-pki')
 
+# Maximum number of recipients that the SMTP server we have can handle at once.
+MAX_EMAIL_RECIPIENTS = 100
+
 # ##### DEBUG CONFIGURATION ###############################
 ALLOWED_HOSTS = []
 DEBUG = False
