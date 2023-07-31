@@ -20,4 +20,4 @@ python $(dirname $0)/generate-host-envs.py
 sed -i '/.circleci/d' $(dirname $0)/../../.dockerignore
 
 # Parameter specifies --build-arg package_repo=... (testing or not prod packages)
-docker-compose build "$@"
+docker-compose build --no-cache "$@"
