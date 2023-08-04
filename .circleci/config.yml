@@ -201,7 +201,7 @@ jobs:
 
   upgrade-tests:
     machine:
-      image: ubuntu-2204:2023.07.2
+      image: ubuntu-2004:202107-02
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
@@ -212,18 +212,6 @@ jobs:
           name: OLD -- Checkout
           command: |
             git checkout --force -B master --track origin/master
-
-      - run:
-          name: Python defaults
-          command: |
-            set -x
-
-            # Use python3 as default
-            VERSION=$(pyenv versions --bare | grep -e "^3." | tail -n 1)
-            echo "Python3 version is: $VERSION"
-            pyenv global $VERSION
-
-            pip3 install --upgrade pip setuptools wheel install
 
       - run:
           name: OLD -- Build and start containers for coordinator and ASes
