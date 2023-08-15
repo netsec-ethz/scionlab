@@ -42,12 +42,9 @@ source venv/bin/activate
 # Install Python requirements (Django, libraries, etc.)
 pip install --require-hashes -r requirements.txt -r dev-requirements.txt
 
-# NOTE:
-# - The 'scrypt' package may fail to build if libssl is not installed
+# NOTE: Some packages may fail to build. To ensure a complete dev setup is ready, in ubuntu you would run:
+#         apt install gcc libpq-dev libpython3-dev libffi-dev
 #       on your machine; install and try again.
-#         apt install libssl1.0
-# - The `psycopg2-binary` package may fail if libpq-dev is not installed.
-#         apt install libpq-dev
 ```
 
 To render the topology graph, `graphviz` needs to be installed additionally to the python dependencies. On ubuntu:
