@@ -24,7 +24,7 @@ from scionlab.models.user import User
 
 
 class Command(BaseCommand):
-    help = 'List the unique emails of the users in alphabetical order'
+    help = 'List or send a message to the unique emails of the users in alphabetical order'
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument('-a', '--action', type=str, required=True,
@@ -35,7 +35,7 @@ class Command(BaseCommand):
         parser.add_argument('--body', type=argparse.FileType('r'), default='-',
                             help='Input file to read the body of the email from')
         parser.add_argument('--skip_blocks', type=int, default=0,
-                            help='skip N initial blocks of destinataries. Useful to continue ' +
+                            help='skip N initial blocks of recipients. Useful to continue ' +
                             'sending after a crash')
 
     def handle(self, *args, **kwargs):
@@ -56,11 +56,7 @@ class Command(BaseCommand):
         inactive = []
         active = []
         for u in User.objects.all():
-            if u.is_anonymous:
-                anon.append(u)
-            elif not u.is_authenticated:
-                unauth.append(u)
-            elif not u.is_active:
+            if not u.is_active:
                 inactive.append(u)
             else:
                 active.append(u)
@@ -70,7 +66,6 @@ class Command(BaseCommand):
         print(f'--------------------------- active: {len(active)}')
 
     def send(self, **kwargs):
-        print('send email')
         # retrieve the email parameters, or complain
         if 'subject' not in kwargs or kwargs['subject'] is None:
             exit('Need a subject')
@@ -88,11 +83,11 @@ class Command(BaseCommand):
         )
 
     def _send(self, subject: str, body: str, skip_blocks: int):
-        destinataries = self._obtain_active_emails()
-        block_count = (len(destinataries) - 1) // settings.MAX_EMAIL_RECIPIENTS + 1
+        recipients = self._obtain_active_emails()
+        block_count = (len(recipients) - 1) // settings.MAX_EMAIL_RECIPIENTS + 1
         for b in range(skip_blocks, block_count):
-            # the destinataries are a subset of the total
-            dest = destinataries[
+            # the recipients are a subset of the total
+            dest = recipients[
                 b*settings.MAX_EMAIL_RECIPIENTS:
                 (b + 1) * settings.MAX_EMAIL_RECIPIENTS]
             # prepare the email and send it
