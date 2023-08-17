@@ -75,7 +75,7 @@ class Command(BaseCommand):
         with kwargs['body'] as f:
             body = f.read()
         skip_blocks = kwargs['skip_blocks']
-        
+
         self._send(
             subject=subject,
             body=body,
