@@ -1,12 +1,12 @@
-FROM python:3.6
+FROM python:3.10
 ENV PYTHONUNBUFFERED 1
 
-RUN pip install appdeps
+RUN pip3 install appdeps
 
 RUN mkdir /scionlab
 WORKDIR /scionlab
 COPY requirements.txt dev-requirements.txt /scionlab/
-RUN pip install -r requirements.txt -r dev-requirements.txt
+RUN pip3 install -r requirements.txt -r dev-requirements.txt
 COPY . /scionlab/
 
 # Fixup django settings for the integration tests:

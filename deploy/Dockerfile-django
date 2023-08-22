@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.10
 ENV PYTHONUNBUFFERED 1
 
 # Graphviz is used to render the topology (see scionlab.views.topology); the python
@@ -8,12 +8,12 @@ RUN apt-get update && apt-get install -y graphviz
 # Appdeps is used by the entrypoint script to wait for the DB services.
 # Not included in requirements because it's a requirement of the
 # docker-compose plumbing, not the application.
-RUN pip install appdeps
+RUN pip3 install appdeps
 
 RUN mkdir /scionlab
 WORKDIR /scionlab
 COPY requirements.txt /scionlab/
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 COPY . /scionlab/
 
 
