@@ -51,8 +51,6 @@ class Command(BaseCommand):
             print(email)
 
         # report user stats:
-        anon = []
-        unauth = []
         inactive = []
         active = []
         for u in User.objects.all():
@@ -60,8 +58,6 @@ class Command(BaseCommand):
                 inactive.append(u)
             else:
                 active.append(u)
-        print(f'--------------------------- anonymous: {len(anon)}')
-        print(f'--------------------------- unauthorized: {len(unauth)}')
         print(f'--------------------------- inactive: {len(inactive)}')
         print(f'--------------------------- active: {len(active)}')
 
