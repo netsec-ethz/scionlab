@@ -32,7 +32,12 @@ services:
       POSTGRES_PASSWORD: scionlab_rw_passw0rd
 
   coord-db:
-    image: postgres:latest
+    # Latest postgres docker image uses the new Debian bookworm and it is incompatible with some
+    # existing docker implementations. CircleCI runs one of those older implementations.
+    # Pinning the image to N-bullseye (prior Debian distribution) as a workaround.
+    # https://github.com/docker-library/postgres/issues/1100
+    # image: postgres:latest
+    image: postgres:12-bullseye
     networks:
       - coord_net
     expose:
