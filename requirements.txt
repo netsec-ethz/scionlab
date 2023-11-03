@@ -159,9 +159,9 @@ cryptography==41.0.2 \
     --hash=sha256:f14ad275364c8b4e525d018f6716537ae7b6d369c094805cae45300847e0894f \
     --hash=sha256:f772610fe364372de33d76edcd313636a25684edb94cee53fd790195f5989d14
     # via -r requirements.in
-django==3.2.20 \
-    --hash=sha256:a477ab326ae7d8807dc25c186b951ab8c7648a3a23f9497763c37307a2b5ef87 \
-    --hash=sha256:dec2a116787b8e14962014bf78e120bba454135108e1af9e9b91ade7b2964c40
+django==3.2.23 \
+    --hash=sha256:82968f3640e29ef4a773af2c28448f5f7a08d001c6ac05b32d02aeee6509508b \
+    --hash=sha256:d48608d5f62f2c1e260986835db089fa3b79d6f58510881d316b8d88345ae6e1
     # via
     #   -r requirements.in
     #   django-extensions
