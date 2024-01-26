@@ -43,7 +43,6 @@ TYPE_BR = 'BR'
 TYPE_SD = 'SD'
 SERVICES_TO_SYSTEMD_NAMES = {
     Service.CS: 'scion-control-service',
-    Service.CO: 'scion-colibri-service',
     Service.BW: 'scion-bwtestserver',
     TYPE_BR: 'scion-border-router',
 }
@@ -52,9 +51,8 @@ DEFAULT_ENV = ['TZ=UTC']
 BORDER_ENV = DEFAULT_ENV + ['GODEBUG="cgocheck=0"']
 
 CMDS = {
-    Service.CS: 'cs',
-    Service.CO: 'co',
-    TYPE_BR: 'posix-router',
+    Service.CS: 'control',
+    TYPE_BR: 'router',
     TYPE_SD: 'daemon',
 }
 CMD_DISPATCHER = 'dispatcher'
@@ -106,8 +104,6 @@ class _ConfigGeneratorBase:
             if service.type == Service.CS:
                 self._write_beacon_policy(config_dir, cb.build_beacon_policy(service))
                 conf = cb.build_cs_conf(service)
-            elif service.type == Service.CO:
-                conf = cb.build_co_conf(service)
             else:
                 raise ValueError(f'unknown control service type {service.type}')
             self.archive.write_toml((config_dir, f'{service.instance_name}.toml'), conf)
@@ -315,19 +311,6 @@ class _ConfigBuilder:
             'quic': {
                 'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
             },
-            'drkey': {
-                'sv_db': {
-                    'connection': '%s.sv.db' % os.path.join(self.var_dir, service.instance_name),
-                },
-                'lvl1_db': {
-                    'connection': '%s.lvl1.db' % os.path.join(self.var_dir, service.instance_name),
-                },
-                'delegation': {
-                    # the internal IP of all CO services has rights to derive DS "colibri":
-                    'colibri': [str(s.host.internal_ip) for s in service.AS.services
-                                .filter(type=Service.CO).select_related('host')],
-                },
-            },
         })
         if service.AS.is_core:
             conf.update({
@@ -336,22 +319,6 @@ class _ConfigBuilder:
                 },
             })
 
-        return conf
-
-    def build_co_conf(self, service):
-        general_conf = self._build_general_conf(service.instance_name)
-        logging_conf = self._build_logging_conf(service.instance_name)
-
-        conf = _chain_dicts(general_conf, logging_conf)
-        conf.update({
-            'colibri': {
-                'delta': 0.3,
-                'db': {
-                    'connection': f'{os.path.join(self.var_dir, service.instance_name)}'
-                                  '.reservation.db'
-                }
-            },
-        })
         return conf
 
     def build_sciond_conf(self, host):
@@ -370,9 +337,6 @@ class _ConfigBuilder:
             },
             'trust_db': {
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
-            },
-            'drkey_lvl2_db': {
-                'connection': '%s.drkey.db' % os.path.join(self.var_dir, instance_name),
             },
         })
         return conf

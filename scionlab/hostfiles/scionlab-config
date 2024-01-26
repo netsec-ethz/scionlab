@@ -59,7 +59,7 @@ CONFNEW_SUFFIX = '.confnew'
 
 # Names for
 FALLBACK_SYSTEMD_UNIT_PATTERNS = [
-    'scion-border-router', 'scion-control-service', 'scion-colibri-service',
+    'scion-border-router', 'scion-control-service',
     'scion-daemon', 'scionlab-dispatcher'
 ]
 
