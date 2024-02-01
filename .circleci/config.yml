@@ -60,7 +60,6 @@ commands:
           command: |
             python3 -m venv /tmp/venv 2>&1
             . /tmp/venv/bin/activate
-            pip install -U pip  # need pip >= 19.0 to install cryptography
             pip install --require-hashes -r requirements.txt -r dev-requirements.txt
 
       - save_cache:
@@ -72,7 +71,7 @@ commands:
 jobs:
   style-check:
     docker:
-      - image: cimg/python:3.10
+      - image: cimg/python:3.11
     steps:
       - install_git_lfs
       - cached_checkout
@@ -91,7 +90,7 @@ jobs:
 
   unit-tests:
     docker:
-      - image: cimg/python:3.10
+      - image: cimg/python:3.11
     steps:
       - install_git_lfs
       - cached_checkout

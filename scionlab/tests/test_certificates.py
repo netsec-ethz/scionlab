@@ -64,7 +64,7 @@ class TRCAndCoreASCertificateTestsSimple(TestCase):
                 expected_set.add(as_id)
                 AS.objects.create(ISD.objects.get(isd_id=isd_id), as_id, is_core=True)
             else:
-                as_id = random.sample(expected_set, 1)[0]
+                as_id = random.sample(sorted(expected_set), 1)[0]
                 expected_set.remove(as_id)
                 # Let's test both ways:
                 if random.getrandbits(1):
