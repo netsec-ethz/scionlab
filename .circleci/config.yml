@@ -200,7 +200,7 @@ jobs:
 
   upgrade-tests:
     machine:
-      image: ubuntu-2004:202107-02
+      image: ubuntu-2204:2023.07.2  # image running the current Coordinator
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
