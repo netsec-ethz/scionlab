@@ -204,7 +204,7 @@ jobs:
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
-      ANCILLARY_FILES: ".circleci/docker-container-yml .circleci/Dockerfile-scionHost"
+      ANCILLARY_FILES: ".circleci/docker-compose.yml .circleci/Dockerfile-scionHost"
     steps:
       - install_git_lfs
       - cached_checkout
@@ -215,7 +215,7 @@ jobs:
             # Because we want to use the latest ancillary files for the test itself --e.g. in
             # case some change is needed to run containers on CircleCI, etc-- we use the latest
             # to build the test itself:
-            git checkout ${CIRCLE_BRANCH} -- "$ANCILLARY_FILES"
+            git checkout ${CIRCLE_BRANCH} -- $ANCILLARY_FILES
 
       - run:
           name: OLD -- Build and start containers for coordinator and ASes
