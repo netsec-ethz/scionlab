@@ -204,7 +204,7 @@ jobs:
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
-      ANCILLARY_FILES: ".circleci/docker-compose.yml .circleci/Dockerfile-scionHost"
+      ANCILLARY_FILES: ".circleci/docker-compose.yml .circleci/Dockerfile-scionHost .circleci/setup/init-ases.sh"
     steps:
       - install_git_lfs
       - cached_checkout
