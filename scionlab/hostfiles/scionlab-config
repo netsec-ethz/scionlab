@@ -617,12 +617,6 @@ def enable_scionlab_services(old_config_info, new_config_info):
     """ Creates the appropriate dependencies for scionlab.target """
 
     # 1. disable old units
-    # Before removing the unit files, reset the state of any previously installed unit
-    # by the scionlab target. Ideally this would happen on deinstallation of each one of the
-    # scion packages, which are the ones that create these unit files. But since the enabling
-    # of the service happens here, we also "disable" it and clean its state.
-    subprocess.run(['systemctl', 'reset-failed', 'scion-*'])
-
     # Disable the scion services:
     # systemctl disable appears to have issues when the "physical" unit-file no longer exists (e.g.
     # package has been removed or file was renamed). Directly deleting the symlinks always works.
@@ -632,6 +626,11 @@ def enable_scionlab_services(old_config_info, new_config_info):
             if _controlled_unit(old_config_info, unit):
                 os.remove(os.path.join(wants, unit))
         subprocess.run(['systemctl', 'daemon-reload'], check=True)
+    # After removing the unit files, reset the state of any previously installed unit
+    # by the scionlab target. Ideally this would happen on deinstallation of each one of the
+    # scion packages, which are the ones that create these unit files. But since the enabling
+    # of the service happens here, we also "disable" it and clean its state.
+    subprocess.run(['systemctl', 'reset-failed', 'scion-*'])
 
     # 2. enable new units
     for unit in new_config_info.systemd_units:
