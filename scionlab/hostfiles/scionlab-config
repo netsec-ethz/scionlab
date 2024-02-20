@@ -630,7 +630,7 @@ def enable_scionlab_services(old_config_info, new_config_info):
     # by the scionlab target. Ideally this would happen on deinstallation of each one of the
     # scion packages, which are the ones that create these unit files. But since the enabling
     # of the service happens here, we also "disable" it and clean its state.
-    subprocess.run(['systemctl', 'reset-failed', 'scion-*'])
+    subprocess.run(['systemctl', 'reset-failed', 'scion-*'], check=True)
 
     # 2. enable new units
     for unit in new_config_info.systemd_units:
