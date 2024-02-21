@@ -220,6 +220,8 @@ jobs:
 
             pip install pyyaml
 
+            export DOCKER_BUILDKIT=0
+
             .circleci/setup/build-containers.sh --build-arg package_repo=packages.netsec.inf.ethz.ch # start with released packages
             docker-compose up -d
             .circleci/setup/init-coord.sh
