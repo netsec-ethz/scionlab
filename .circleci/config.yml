@@ -139,6 +139,10 @@ jobs:
 
             pip install pyyaml
 
+            docker images
+            docker rmi $(docker images -q)
+            docker images
+
             .circleci/setup/build-containers.sh --build-arg package_repo=packages-test.netsec.inf.ethz.ch
             docker-compose up -d
             .circleci/setup/init-coord.sh
