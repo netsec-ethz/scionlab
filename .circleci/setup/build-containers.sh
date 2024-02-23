@@ -19,5 +19,8 @@ python $(dirname $0)/generate-host-envs.py
 # The .dockerignore is for production, we'll need this
 sed -i '/.circleci/d' $(dirname $0)/../../.dockerignore
 
+# docker-compose rm -f
+# docker-compose pull
+
 # Parameter specifies --build-arg package_repo=... (testing or not prod packages)
-docker-compose build "$@"
+docker-compose build --no-cache "$@"
