@@ -211,6 +211,7 @@ jobs:
       - run:
           name: OLD -- Checkout
           command: |
+            git fetch
             git checkout --force -B master --track origin/master
             # Because we want to use the latest ancillary files for the test itself --e.g. in
             # case some change is needed to run containers on CircleCI, etc-- we use the latest
