@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 # Copyright 2020 ETH Zurich
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");

@@ -37,7 +37,7 @@ services:
     # Pinning the image to N-bullseye (prior Debian distribution) as a workaround.
     # https://github.com/docker-library/postgres/issues/1100
     # image: postgres:latest
-    image: postgres:12-bullseye
+    image: postgres:14-bullseye
     networks:
       - coord_net
     expose:

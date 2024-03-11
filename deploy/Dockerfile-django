@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.11
 ENV PYTHONUNBUFFERED 1
 
 # Graphviz is used to render the topology (see scionlab.views.topology); the python

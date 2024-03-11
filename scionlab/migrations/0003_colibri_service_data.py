@@ -6,11 +6,15 @@ from scionlab.models.core import Service as ServiceNew
 
 
 def create_colibri_services(apps, schema_editor):
-    """ will create a new colibri service located where the cs is """
+    """
+    will create a new colibri service located where the cs is
+    Note that since the breaking changes update of January 2024, Service does not have
+    a field called CO, so the literal value had to be written instead of ServiceNew.CO
+    """
     Service = apps.get_model('scionlab', 'Service')
-    assert Service.objects.filter(type=ServiceNew.CO).count() == 0  # should be empty
+    assert Service.objects.filter(type='CO').count() == 0  # should be empty
     for cs in Service.objects.filter(type=ServiceNew.CS):
-        Service.objects.create(type=ServiceNew.CO, AS=cs.AS, host=cs.host)
+        Service.objects.create(type='CO', AS=cs.AS, host=cs.host)
     Host = apps.get_model('scionlab', 'Host')
     Host.objects.bump_config()
 
@@ -18,7 +22,7 @@ def create_colibri_services(apps, schema_editor):
 def delete_colibri_services(apps, schema_editor):
     """ deletes all colibri services """
     Service = apps.get_model('scionlab', 'Service')
-    Service.objects.filter(type=ServiceNew.CO).delete()
+    Service.objects.filter(type='CO').delete()
 
 
 class Migration(migrations.Migration):
