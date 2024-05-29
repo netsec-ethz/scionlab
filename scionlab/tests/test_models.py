@@ -159,10 +159,12 @@ class UpdateASKeysTests(TestCase):
         as_.save()
 
         # Verify the previous links do not exist anymore.
-        self.assertEqual(Link.objects.filter(pk__in=[l.pk for l in prev_links]).count(), 0)
+        self.assertEqual(Link.objects.filter(pk__in=[
+            link.pk for link in prev_links]).count(), 0)
 
         # Same with interfaces.
-        self.assertEqual(Interface.objects.filter(pk__in=[i.pk for i in prev_ifaces]).count(), 0)
+        self.assertEqual(Interface.objects.filter(pk__in=[
+            iface.pk for iface in prev_ifaces]).count(), 0)
 
         # This AS doesn't have interfaces or links.
         got_ifaces = as_.interfaces.all()
@@ -174,13 +176,13 @@ class UpdateASKeysTests(TestCase):
 
         # We have now more certificates and keys.
         got_certs = list(as_.certificates().all())
-        self.assertTrue( set(prev_certs).issubset(got_certs) )
+        self.assertTrue(set(prev_certs).issubset(got_certs))
         got_keys = list(as_.keys.all())
-        self.assertTrue( set(prev_keys).issubset(got_keys) )
+        self.assertTrue(set(prev_keys).issubset(got_keys))
 
         # We have a new TRC.
         got_trcs = list(as_.isd.trcs.all())
-        self.assertTrue( set(prev_trcs).issubset(got_trcs) )
+        self.assertTrue(set(prev_trcs).issubset(got_trcs))
 
 
 class LinkModificationTests(TestCase):
