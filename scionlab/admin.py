@@ -16,7 +16,7 @@ import ipaddress
 from django import urls
 from django.utils.html import format_html
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
@@ -485,10 +485,8 @@ class ASAdmin(admin.ModelAdmin):
         # FIXME(matzf) conceptually, an AS can change the ISD. Not allowed for now
         # as I anticipate this may unnecessarily complicate the TRC/certificate
         # update logic. Should be revisited.
-        # TODO(matzf): Changing is_core should also be possible, not yet implemented
-        #              Requires removing core links etc, bump signed certificates
         if obj:
-            return ('isd', 'is_core', 'as_id',)
+            return ('isd', 'as_id',)
         return ()
 
     def get_inline_instances(self, request, obj):
@@ -532,6 +530,16 @@ class ASAdmin(admin.ModelAdmin):
         Updates the core keys and update the corresponding TRCs and certificates.
         """
         AS.update_core_as_keys(queryset)
+
+    def save_model(self, request, obj, form, change):
+        """
+        Custom save model logic, to be able to show a warning message if saving the AS returned one.
+        """
+        # Instead of calling super().save_model(...) we save the object directly and retrieve
+        # its informational object about its changes.
+        msg = obj.save_with_message()
+        if msg is not None:
+            messages.add_message(request, messages.WARNING, msg)
 
 
 class VPNCreationForm(_CreateUpdateModelForm):
