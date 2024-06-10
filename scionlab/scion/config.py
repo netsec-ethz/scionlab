@@ -18,7 +18,11 @@ from collections import OrderedDict
 
 from scionlab.models.core import Service
 from scionlab.models.trc import TRC
-from scionlab.scion.topology import TopologyInfo
+from scionlab.scion.topology import (
+    KEY_CS,
+    KEY_DS,
+    TopologyInfo,
+)
 
 from scionlab.defines import (
     PROPAGATE_TIME_CORE,
@@ -162,7 +166,8 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
         super().__init__(*args, **kwargs)
 
     def generate(self):
-        config_builder = _ConfigBuilder(config_dir=SCION_CONFIG_DIR,
+        config_builder = _ConfigBuilder(topo_info=self.topo_info,
+                                        config_dir=SCION_CONFIG_DIR,
                                         var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
         # dispatcher and sciond config files are installed with the package
@@ -186,7 +191,8 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
 
     def generate(self):
         # build AS service config into gen/AS<AS_ID>
-        config_builder = _ConfigBuilder(config_dir=self._as_dir(),
+        config_builder = _ConfigBuilder(topo_info=self.topo_info,
+                                        config_dir=self._as_dir(),
                                         var_dir=GEN_CACHE)
         self._write_as_config(config_builder)
 
@@ -258,7 +264,8 @@ class _ConfigBuilder:
     Helper object for `_ConfigGenerator`
     Builds the *.toml-configuration for the SCION services.
     """
-    def __init__(self, config_dir, var_dir):
+    def __init__(self, topo_info, config_dir, var_dir):
+        self.topo_info = topo_info
         self.config_dir = config_dir
         self.var_dir = var_dir
 
@@ -267,11 +274,20 @@ class _ConfigBuilder:
         # in the systemd setup, the dispatcher.toml file is installed with the package.
         logging_conf = self._build_logging_conf('dispatcher')
         metrics_conf = self._build_metrics_conf(DISPATCHER_METRICS_PORT)
+        ia_str = self.topo_info.AS.isd_as_str()
+        self.topo_info.services
         conf = _chain_dicts(logging_conf, metrics_conf)
         conf.update({
             'dispatcher': {
                 'id': 'dispatcher',
-                'socket_file_mode': '0777'
+                'local_udp_forwarding' : True,
+                'service_addresses':{
+                    # One line with all addresses for CS, another for DS.
+                    f'{ia_str},CS': [addrs['addr'] for
+                                     addrs in self.topo_info.topo[KEY_CS].values()],
+                    f'{ia_str},DS': [addrs['addr'] for
+                                     addrs in self.topo_info.topo[KEY_DS].values()],
+                }
             },
         })
         return conf
