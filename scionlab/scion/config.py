@@ -370,7 +370,6 @@ class _ConfigBuilder:
                 'id': instance_name,
                 'config_dir': self.config_dir,
                 # Note: this has performance impacts (for BR, only control plane)
-                'reconnect_to_dispatcher': True,
             },
             # XXX: enable header v2 in features? or better flip the default in our builds?
         }
