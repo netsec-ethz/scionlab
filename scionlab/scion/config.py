@@ -324,9 +324,6 @@ class _ConfigBuilder:
             'trust_db': {
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, service.instance_name),
             },
-            'quic': {
-                'address': _join_host_port(service.host.internal_ip, CS_QUIC_PORT),
-            },
         })
         if service.AS.is_core:
             conf.update({
