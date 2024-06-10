@@ -28,7 +28,6 @@ from scionlab.defines import (
     PROPAGATE_TIME_CORE,
     PROPAGATE_TIME_NONCORE,
     DISPATCHER_METRICS_PORT,
-    CS_QUIC_PORT,
     SD_METRICS_PORT,
     SCION_CONFIG_DIR,
     SCION_VAR_DIR,
@@ -280,8 +279,8 @@ class _ConfigBuilder:
         conf.update({
             'dispatcher': {
                 'id': 'dispatcher',
-                'local_udp_forwarding' : True,
-                'service_addresses':{
+                'local_udp_forwarding': True,
+                'service_addresses': {
                     # One line with all addresses for CS, another for DS.
                     f'{ia_str},CS': [addrs['addr'] for
                                      addrs in self.topo_info.topo[KEY_CS].values()],
