@@ -172,7 +172,7 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
 
         # the dispatcher directory is outside the AS subdirectory
         self.archive.write_toml((config_builder.config_dir, 'dispatcher.toml'),
-                                config_builder.build_disp_conf())
+                                config_builder.build_disp_conf(self.host))
         # sciond config file is installed with the package
 
     def systemd_units(self):
@@ -201,7 +201,7 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
 
         # the dispatcher directory is outside the AS subdirectory
         self.archive.write_toml((self._disp_dir(), 'disp.toml'),
-                                config_builder.build_disp_conf())
+                                config_builder.build_disp_conf(self.host))
 
         self.archive.write_toml((self._as_dir(), 'sd.toml'),
                                 config_builder.build_sciond_conf(self.host))
@@ -272,27 +272,28 @@ class _ConfigBuilder:
         self.config_dir = config_dir
         self.var_dir = var_dir
 
-    def build_disp_conf(self):
+    def build_disp_conf(self, host):
         # Note: this is only used in the supervisord setup;
         # in the systemd setup, the dispatcher.toml file is installed with the package.
         logging_conf = self._build_logging_conf('dispatcher')
         metrics_conf = self._build_metrics_conf(DISPATCHER_METRICS_PORT)
-        ia_str = self.topo_info.AS.isd_as_str()
-        self.topo_info.services
         conf = _chain_dicts(logging_conf, metrics_conf)
         conf.update({
             'dispatcher': {
                 'id': 'dispatcher',
                 'local_udp_forwarding': True,
-                'service_addresses': {
-                    # One line with all addresses for CS, another for DS.
-                    f'{ia_str},CS': [addrs['addr'] for
-                                     addrs in self.topo_info.topo[KEY_CS].values()],
-                    f'{ia_str},DS': [addrs['addr'] for
-                                     addrs in self.topo_info.topo[KEY_DS].values()],
-                }
             },
         })
+
+        if host.services.filter(type=Service.CS).exists():
+            ia_str = self.topo_info.AS.isd_as_str()
+            conf.update({
+                'service_addresses': {
+                    # One line with all addresses for CS, another for DS.
+                    f'{ia_str},CS': f'{host.internal_ip}:{Service.SERVICE_PORTS[Service.CS]}',
+                    f'{ia_str},DS': f'{host.internal_ip}:{Service.SERVICE_PORTS[Service.CS]}',
+                },
+            })
         return conf
 
     def build_br_conf(self, router):
