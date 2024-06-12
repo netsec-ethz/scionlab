@@ -170,7 +170,7 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
                                         var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
 
-        self.archive.write_toml((config_builder.config_dir, 'dispatcher.toml'),
+        self.archive.write_toml((self.disp_dir(), 'dispatcher.toml'),
                                 config_builder.build_disp_conf(self.host))
         # sciond config file is installed with the package
 
@@ -185,6 +185,9 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
         units.append('scion-daemon.service')
         units.append('scion-dispatcher.service')
         return units
+
+    def disp_dir(self):
+        return SCION_CONFIG_DIR.lstrip('/')  # don't use absolute paths in the archive
 
 
 class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
