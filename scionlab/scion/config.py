@@ -18,11 +18,7 @@ from collections import OrderedDict
 
 from scionlab.models.core import Service
 from scionlab.models.trc import TRC
-from scionlab.scion.topology import (
-    KEY_CS,
-    KEY_DS,
-    TopologyInfo,
-)
+from scionlab.scion.topology import TopologyInfo
 
 from scionlab.defines import (
     PROPAGATE_TIME_CORE,
