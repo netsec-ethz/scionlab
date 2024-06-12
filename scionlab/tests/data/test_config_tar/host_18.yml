@@ -1,11 +1,9 @@
-README.md: |-
-  content_not_checked
-gen/ASffaa_1_5/beacon_policy.yaml: |
+etc/scion/beacon_policy.yaml: |
   Filter:
     AllowIsdLoop: false
-gen/ASffaa_1_5/br-1.toml: |
+etc/scion/br-1.toml: |
   [general]
-  config_dir = "gen/ASffaa_1_5"
+  config_dir = "/etc/scion"
   id = "br-1"
 
   [metrics]
@@ -13,7 +11,7 @@ gen/ASffaa_1_5/br-1.toml: |
 
   [log.console]
   level = "info"
-gen/ASffaa_1_5/certs/ISD17-B1-S1.trc: |
+etc/scion/certs/ISD17-B1-S1.trc: |
   -----BEGIN TRC-----
   MIIMDwYJKoZIhvcNAQcCoIIMADCCC/wCAQExDzANBglghkgBZQMEAgMFADCCCHIG
   CSqGSIb3DQEHAaCCCGMEgghfMIIIWwIBADAJAgERAgEBAgEBMCIYDzIwMjQwNjEy
@@ -81,7 +79,7 @@ gen/ASffaa_1_5/certs/ISD17-B1-S1.trc: |
   ZiIucSzGmu8ZeYLu5V0VMBR+OGuGnt/ACiboz9R+n2wCIQC1UN9IIhGtWeURa24w
   3ER1r/jsNEYb7V/3YP5vfujZOw==
   -----END TRC-----
-gen/ASffaa_1_5/certs/ISD19-B1-S1.trc: |
+etc/scion/certs/ISD19-B1-S1.trc: |
   -----BEGIN TRC-----
   MIIXegYJKoZIhvcNAQcCoIIXazCCF2cCAQExDzANBglghkgBZQMEAgMFADCCEG4G
   CSqGSIb3DQEHAaCCEF8EghBbMIIQVwIBADAJAgETAgEBAgEBMCIYDzIwMjQwNjEy
@@ -210,7 +208,7 @@ gen/ASffaa_1_5/certs/ISD19-B1-S1.trc: |
   TLrbHCDNDthmFbbOqTWXtfTEAAE5+RmkKc1vAiEAoyw3teb/PdBgN9Lh1Pq9+O96
   u97xqkvWVXhf5u/2GlI=
   -----END TRC-----
-gen/ASffaa_1_5/certs/ISD20-B1-S1.trc: |
+etc/scion/certs/ISD20-B1-S1.trc: |
   -----BEGIN TRC-----
   MIIXeAYJKoZIhvcNAQcCoIIXaTCCF2UCAQExDzANBglghkgBZQMEAgMFADCCEG4G
   CSqGSIb3DQEHAaCCEF8EghBbMIIQVwIBADAJAgEUAgEBAgEBMCIYDzIwMjQwNjEy
@@ -339,106 +337,105 @@ gen/ASffaa_1_5/certs/ISD20-B1-S1.trc: |
   BwUezAkQn8qp7+0Wo8JtSAA8f7jfZD5MKAIhAMo8DcOF3ktuaAmqAzhcHQkZ/fYq
   URI/WSMNucoLLCAc
   -----END TRC-----
-gen/ASffaa_1_5/crypto/as/ISD17-ASffaa_1_5.pem: |
+etc/scion/crypto/as/ISD19-ASffaa_1_2.pem: |
   -----BEGIN CERTIFICATE-----
-  MIICrjCCAlSgAwIBAgIUCcR3ExTgGpFjM1eC8APP1d1QsuAwCgYIKoZIzj0EAwQw
+  MIICrTCCAlSgAwIBAgIUGWJnhgmNEpONRfzX2YdfXGAjK9wwCgYIKoZIzj0EAwQw
   gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE3LWZm
-  YWE6MDoxMTAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
-  DA4xNy1mZmFhOjA6MTEwMTAeFw0yNDA2MTIxMTU2MDVaFw0yNTA2MTIxMTU2MDVa
+  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+  YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+  DA4xOS1mZmFhOjA6MTMwMTAeFw0yNDA2MTIxMTU2MDRaFw0yNTA2MTIxMTU2MDRa
   MIGRMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
-  DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoxNy1m
-  ZmFhOjE6NSBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsxNy1mZmFh
-  OjE6NTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABM7NR51/YpC8gk+QMcXpS6ze
-  DMtxpEN++SFdSi9uKjxywNRn5mFvwwi0e3MqiR8mji4SZlpvSNdffT7+NldmkDyj
-  ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUuJQ9YSA4FmjL/HSW23MVvZIw
-  c98wHwYDVR0jBBgwFoAURmFA595vlawe0D7jEK4ilmRF5wMwJwYDVR0lBCAwHgYI
-  KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANIADBFAiEA
-  4uVLWUVzWWXyHLpLsescFiSn6BfLz8nh57XKwo5sILoCICBxDa0QN1n91mf3+Bwq
-  smGrvI8qyn4BnEfg9eGcmcga
+  DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoxOS1m
+  ZmFhOjE6MiBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsxOS1mZmFh
+  OjE6MjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABNm/DI4XKHAfnOfRS5NFfDQu
+  GueN25jrMOAgxM+lcQPU6utYAnExN/jfosMl9FP+G2qQ1tqx6eueu4UOAIClB82j
+  ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUpVyUpaoc4kNSXCIKeX8QP8xp
+  dbowHwYDVR0jBBgwFoAUAABHkN3Tkbd4wo4ljQIyi+N64EQwJwYDVR0lBCAwHgYI
+  KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANHADBEAiAz
+  ggxcObbsW9fg+70ioBV/ECweRBATvS1MKyFlbvYKZQIgIVQyJLtR0dp8Xc9S08/z
+  lQqPaK92JFjXIZ3fr+RVrK0=
   -----END CERTIFICATE-----
   -----BEGIN CERTIFICATE-----
-  MIICrzCCAlWgAwIBAgIUOg9tsYekE1jxG0jnjHTnUOb1cOwwCgYIKoZIzj0EAwQw
+  MIICrzCCAlWgAwIBAgIUJspphbcMldW2Cb7tRrc9pPDA3VwwCgYIKoZIzj0EAwQw
   gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE3LWZm
-  YWE6MDoxMTAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
-  AQQBg7AcAQIBDA4xNy1mZmFhOjA6MTEwMTAeFw0yNDA2MTIxMTU2MDNaFw0yNjA2
-  MTIxMTU2MDNaMIGeMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
+  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE5LWZm
+  YWE6MDoxMzAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
+  AQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMTAeFw0yNDA2MTIxMTU2MDRaFw0yNjA2
+  MTIxMTU2MDRaMIGeMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
   B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMS0wKwYD
-  VQQDDCQxNy1mZmFhOjA6MTEwMSBTZWN1cmUgQ0EgQ2VydGlmaWNhdGUxHzAdBgsr
-  BgEEAYOwHAECAQwOMTctZmZhYTowOjExMDEwWTATBgcqhkjOPQIBBggqhkjOPQMB
-  BwNCAASqtNkNYTuTryGkD9XgXMbudGnStFQd7CBr3x8PqR1ST7k2MflgYpcnq2S/
-  z/7fwVLiBV/yXj97YrxBavbVXKWjo2YwZDASBgNVHRMBAf8ECDAGAQH/AgEAMA4G
-  A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQURmFA595vlawe0D7jEK4ilmRF5wMwHwYD
-  VR0jBBgwFoAUZPQEQJ/RF1CB+5Qk5ItAqM3gpuEwCgYIKoZIzj0EAwQDSAAwRQIg
-  HEaWlvicc1jm0tMADIt4SuZXHQMnY5ApjntZiPtND5wCIQDw5JQR1y538lld9XZN
-  vatP2cW+7L7G+snSkgoLpWhrPA==
+  VQQDDCQxOS1mZmFhOjA6MTMwMSBTZWN1cmUgQ0EgQ2VydGlmaWNhdGUxHzAdBgsr
+  BgEEAYOwHAECAQwOMTktZmZhYTowOjEzMDEwWTATBgcqhkjOPQIBBggqhkjOPQMB
+  BwNCAATHq1BUZFXodW3950LwvrUg5kY95+LJFy5TduqFFh22LEh+h71fMZdox/6x
+  G6ywOhcM1Kg68f63ysGm8aDnD5kso2YwZDASBgNVHRMBAf8ECDAGAQH/AgEAMA4G
+  A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUAABHkN3Tkbd4wo4ljQIyi+N64EQwHwYD
+  VR0jBBgwFoAUIgsl4FkDiuj1PMIueNJ7AGMZbYswCgYIKoZIzj0EAwQDSAAwRQIh
+  ALy9asB/Qiduiugp0dyC/fmgJIm6b5EGHJCbUq1XWDr1AiArAxyBDPVt+dtqsOw0
+  95dKnj5H69YvM+RSGCuLMTUqRw==
   -----END CERTIFICATE-----
-gen/ASffaa_1_5/crypto/as/cp-as.key: |
+etc/scion/crypto/as/cp-as.key: |
   -----BEGIN PRIVATE KEY-----
-  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgvtyi11nrwtSyk83R
-  8BuifTD+ZwkbliefBWBReuTppDOhRANCAATOzUedf2KQvIJPkDHF6Uus3gzLcaRD
-  fvkhXUovbio8csDUZ+Zhb8MItHtzKokfJo4uEmZab0jXX30+/jZXZpA8
+  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgYR8z3NBP6YnXqJXn
+  ul8rnIraVffWOL/cHwVtVlnd6pqhRANCAATZvwyOFyhwH5zn0UuTRXw0LhrnjduY
+  6zDgIMTPpXED1OrrWAJxMTf436LDJfRT/htqkNbasenrnruFDgCApQfN
   -----END PRIVATE KEY-----
-gen/ASffaa_1_5/cs-1.toml: |
+etc/scion/cs-1.toml: |
   [beacon_db]
-  connection = "gen-cache/cs-1.beacon.db"
+  connection = "/var/lib/scion/cs-1.beacon.db"
 
   [beaconing]
   origination_interval = "5s"
   propagation_interval = "5s"
 
   [general]
-  config_dir = "gen/ASffaa_1_5"
+  config_dir = "/etc/scion"
   id = "cs-1"
 
   [metrics]
   prometheus = "127.0.0.1:30454"
 
   [path_db]
-  connection = "gen-cache/cs-1.path.db"
+  connection = "/var/lib/scion/cs-1.path.db"
 
   [trust_db]
-  connection = "gen-cache/cs-1.trust.db"
+  connection = "/var/lib/scion/cs-1.trust.db"
 
   [beaconing.policies]
-  propagation = "gen/ASffaa_1_5/beacon_policy.yaml"
+  propagation = "/etc/scion/beacon_policy.yaml"
 
   [log.console]
   level = "info"
-gen/ASffaa_1_5/keys/master0.key: |-
-  b3rk8YGHzILto2IiES2Giw==
-gen/ASffaa_1_5/keys/master1.key: |-
-  b3rk8YGHzILto2IiES2Giw==
-gen/ASffaa_1_5/sd.toml: |
-  [general]
-  config_dir = "gen/ASffaa_1_5"
-  id = "sd"
+etc/scion/dispatcher.toml: |
+  [dispatcher]
+  id = "dispatcher"
+  local_udp_forwarding = true
 
   [metrics]
-  prometheus = "127.0.0.1:30455"
+  prometheus = "127.0.0.1:30441"
 
-  [path_db]
-  connection = "gen-cache/sd.path.db"
-
-  [trust_db]
-  connection = "gen-cache/sd.trust.db"
+  [dispatcher.service_addresses]
+  "19-ffaa:1:2,CS" = "127.0.0.1:30254"
+  "19-ffaa:1:2,DS" = "127.0.0.1:30254"
 
   [log.console]
   level = "info"
-gen/ASffaa_1_5/topology.json: |-
+etc/scion/keys/master0.key: |-
+  9cCJ4ql6U41L/AHF99NLMQ==
+etc/scion/keys/master1.key: |-
+  9cCJ4ql6U41L/AHF99NLMQ==
+etc/scion/topology.json: |-
   {
     "attributes": [],
     "border_routers": {
       "br-1": {
         "interfaces": {
           "1": {
-            "isd_as": "17-ffaa:0:1107",
+            "isd_as": "19-ffaa:0:1303",
             "link_to": "PARENT",
             "mtu": 1472,
             "underlay": {
+              "bind": "10.0.2.15",
               "public": "172.31.0.200:54321",
-              "remote": "192.0.2.17:50002"
+              "remote": "172.31.0.111:50002"
             }
           }
         },
@@ -456,7 +453,7 @@ gen/ASffaa_1_5/topology.json: |-
       }
     },
     "dispatched_ports": "31000-32767",
-    "isd_as": "17-ffaa:1:5",
+    "isd_as": "19-ffaa:1:2",
     "mtu": 1472,
     "sigs": {
       "sig-1": {
@@ -466,66 +463,30 @@ gen/ASffaa_1_5/topology.json: |-
     },
     "test_dispatcher": true
   }
-gen/dispatcher/disp.toml: |
-  [dispatcher]
-  id = "dispatcher"
-  local_udp_forwarding = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30441"
-
-  [dispatcher.service_addresses]
-  "17-ffaa:1:5,CS" = "127.0.0.1:30254"
-  "17-ffaa:1:5,DS" = "127.0.0.1:30254"
-
-  [log.console]
-  level = "info"
-gen/supervisord.conf: |+
-  [program:br-1]
-  autostart = false
-  autorestart = true
-  environment = TZ=UTC,GODEBUG="cgocheck=0"
-  stdout_logfile = logs/br-1.log
-  redirect_stderr = True
-  startretries = 0
-  startsecs = 5
-  priority = 100
-  command = bin/router --config gen/ASffaa_1_5/br-1.toml
-
-  [program:cs-1]
-  autostart = false
-  autorestart = true
-  environment = TZ=UTC
-  stdout_logfile = logs/cs-1.log
-  redirect_stderr = True
-  startretries = 0
-  startsecs = 5
-  priority = 100
-  command = bin/control --config gen/ASffaa_1_5/cs-1.toml
-
-  [program:sd]
-  autostart = false
-  autorestart = true
-  environment = TZ=UTC
-  stdout_logfile = logs/sd.log
-  redirect_stderr = True
-  startretries = 0
-  startsecs = 5
-  priority = 100
-  command = bin/daemon --config gen/ASffaa_1_5/sd.toml
-
-  [group:as17-ffaa_1_5]
-  programs = br-1,cs-1,sd
-
-  [program:dispatcher]
-  autostart = false
-  autorestart = true
-  environment = TZ=UTC
-  stdout_logfile = logs/dispatcher.log
-  redirect_stderr = True
-  startretries = 0
-  startsecs = 1
-  priority = 50
-  command = bin/dispatcher --config gen/dispatcher/disp.toml
-
-...
+scionlab-config.json: |-
+  {
+    "files": {
+      "etc/scion/beacon_policy.yaml": "90c69ea879ca52546774c3007e7d29104766fc07",
+      "etc/scion/br-1.toml": "065c4a7cf19b39997a0a7b120169a98c6788865e",
+      "etc/scion/certs/ISD17-B1-S1.trc": "3719aa713b848c43d053ee53072e2c483b935164",
+      "etc/scion/certs/ISD19-B1-S1.trc": "ff3bb92d0d7e60a3bd4a994e47645934b4e36e58",
+      "etc/scion/certs/ISD20-B1-S1.trc": "04fee7e140793dd8352b1867167e88f9086e2de6",
+      "etc/scion/crypto/as/ISD19-ASffaa_1_2.pem": "d11ed642806869438d9b9c8b871f7bd7f8d8ac40",
+      "etc/scion/crypto/as/cp-as.key": "48b0167d412d08e878fdf15cfe7c26f2621aa35a",
+      "etc/scion/cs-1.toml": "5638dae93a2c58d2264271bf4c3703f68a4c2644",
+      "etc/scion/dispatcher.toml": "f9d2e4542b7556dfe0c023f4f00a12934d331b4b",
+      "etc/scion/keys/master0.key": "dbf5f2af17d90578f1ace4e52355d1ad944fb80a",
+      "etc/scion/keys/master1.key": "dbf5f2af17d90578f1ace4e52355d1ad944fb80a",
+      "etc/scion/topology.json": "7725be04192c71b002932798068a0cd4667c49c6"
+    },
+    "host_id": "7ee4a947e0fd4b26aac549213fc9a631",
+    "host_secret": "65d7e3910e384ad5923c974e7960063c",
+    "systemd_units": [
+      "scion-border-router@br-1.service",
+      "scion-control-service@cs-1.service",
+      "scion-daemon.service",
+      "scion-dispatcher.service"
+    ],
+    "url": "http://localhost:8000",
+    "version": "18.4"
+  }
