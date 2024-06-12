@@ -285,7 +285,7 @@ class _ConfigBuilder:
 
         if host.services.filter(type=Service.CS).exists():
             ia_str = self.topo_info.AS.isd_as_str()
-            conf.update({
+            conf['dispatcher'].update({
                 'service_addresses': {
                     # One line with all addresses for CS, another for DS.
                     f'{ia_str},CS': f'{host.internal_ip}:{Service.SERVICE_PORTS[Service.CS]}',
