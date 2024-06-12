@@ -113,6 +113,11 @@ extra_services = [
     (_expand_as_id(0x1301), Service.SIG),
 ]
 
+# non-default services running in their own host (no other services)
+individual_services = [
+    (_expand_as_id(0x1102), Service.BW, "1.1.1.1"),
+]
+
 # VPNs for APs, except 1303
 vpns = [
    VPNDef(_expand_as_id(0x1107), "10.0.8.1", 1194, "10.0.0.0/16"),  # odd subnet, used in prod!
@@ -158,6 +163,14 @@ def create_extraservices():
     for as_serv in extra_services:
         host = Host.objects.get(AS__as_id=as_serv[0])
         Service.objects.create(host=host, type=as_serv[1])
+    for as_serv_ip in individual_services:
+        # create new host that will run just this service
+        as_ = AS.objects.get(as_id=as_serv_ip[0])
+        host = Host.objects.create(
+            AS=as_,
+            internal_ip=as_serv_ip[2],
+        )
+        Service.objects.create(host=host, type=as_serv_ip[1])
 
 
 def name_hosts():
