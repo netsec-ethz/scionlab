@@ -169,7 +169,11 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
                                         config_dir=SCION_CONFIG_DIR,
                                         var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
-        # dispatcher and sciond config files are installed with the package
+
+        # the dispatcher directory is outside the AS subdirectory
+        self.archive.write_toml((config_builder.config_dir, 'dispatcher.toml'),
+                                config_builder.build_disp_conf())
+        # sciond config file is installed with the package
 
     def systemd_units(self):
         units = ["scion-border-router@%s.service" % router.instance_name
