@@ -170,7 +170,6 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
                                         var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
 
-        # the dispatcher directory is outside the AS subdirectory
         self.archive.write_toml((config_builder.config_dir, 'dispatcher.toml'),
                                 config_builder.build_disp_conf(self.host))
         # sciond config file is installed with the package
