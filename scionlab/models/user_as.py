@@ -51,7 +51,8 @@ class UserASManager(models.Manager):
                owner: User,
                installation_type: str,
                isd: int,
-               public_ip: str = "",
+               public_ip: str = None,
+               bind_ip: str = None,
                wants_user_ap: bool = False,
                wants_vpn: bool = False,
                as_id: str = None,
@@ -62,6 +63,7 @@ class UserASManager(models.Manager):
         :param str installation_type:
         :param int isd:
         :param str public_ip: optional public IP address for the host of the AS
+        :param str bind_ip: optional bind IP address for the host of the AS
         :param bool wants_user_ap: optional boolean if the User AS should be AP
         :param str wants_vpn: optional boolean if the User AP should provide a VPN
         :param str as_id: optional as_id, if None is given, the next free ID is chosen
@@ -90,7 +92,7 @@ class UserASManager(models.Manager):
 
         user_as.generate_keys()
         user_as.generate_certs()
-        user_as.init_default_services(public_ip=public_ip)
+        user_as.init_default_services(public_ip=public_ip, bind_ip=bind_ip)
 
         if wants_user_ap:
             host = user_as.hosts.first()
@@ -148,7 +150,7 @@ class UserAS(AS):
     def get_absolute_url(self):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
-    def update(self, label: str, installation_type: str, public_ip: str = "",
+    def update(self, label: str, installation_type: str, public_ip: str = None, bind_ip: str = None,
                wants_user_ap: bool = False, wants_vpn: bool = False):
         """
         Updates the `UserAS` fields and immediately saves
@@ -161,7 +163,7 @@ class UserAS(AS):
                 self._unset_bind_ips_for_vagrant()
             self.installation_type = installation_type
         host = self.host
-        host.update(public_ip=public_ip)
+        host.update(public_ip=public_ip, bind_ip=bind_ip)
         if self.is_attachment_point():
             # the case has_vpn and not wants_vpn will be ignored here because it's not allowed
             ap = self.attachment_point_info

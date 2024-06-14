@@ -213,7 +213,7 @@ def generate_vpn_server_config(vpn):
     server_vpn_subnet = vpn.vpn_subnet()
 
     server_config = string.Template(server_config_tmpl).substitute(
-        ServerPublicIP=vpn.server.public_ip,
+        ServerPublicIP=vpn.server.bind_ip or vpn.server.public_ip,
         ServerPort=vpn.server_port,
         ServerVPNIP=vpn.server_vpn_ip,
         Netmask=server_vpn_subnet.netmask,
