@@ -463,8 +463,7 @@ gen/ASffaa_1_5/topology.json: |-
         "ctrl_addr": "127.0.0.1:30256",
         "data_addr": "127.0.0.1:30056"
       }
-    },
-    "test_dispatcher": true
+    }
   }
 gen/dispatcher/disp.toml: |
   [dispatcher]

@@ -460,8 +460,7 @@ etc/scion/topology.json: |-
         "ctrl_addr": "127.0.0.1:30256",
         "data_addr": "127.0.0.1:30056"
       }
-    },
-    "test_dispatcher": true
+    }
   }
 scionlab-config.json: |-
   {
@@ -477,7 +476,7 @@ scionlab-config.json: |-
       "etc/scion/dispatcher.toml": "f9d2e4542b7556dfe0c023f4f00a12934d331b4b",
       "etc/scion/keys/master0.key": "dbf5f2af17d90578f1ace4e52355d1ad944fb80a",
       "etc/scion/keys/master1.key": "dbf5f2af17d90578f1ace4e52355d1ad944fb80a",
-      "etc/scion/topology.json": "7725be04192c71b002932798068a0cd4667c49c6"
+      "etc/scion/topology.json": "4e0ae14c779353fdab21153a1f2998a8d6e594b0"
     },
     "host_id": "7ee4a947e0fd4b26aac549213fc9a631",
     "host_secret": "65d7e3910e384ad5923c974e7960063c",
