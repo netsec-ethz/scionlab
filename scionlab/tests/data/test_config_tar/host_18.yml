@@ -1,5 +1,3 @@
-README.md: |-
-  content_not_checked
 etc/scion/beacon_policy.yaml: |
   Filter:
     AllowIsdLoop: false
@@ -339,46 +337,46 @@ etc/scion/certs/ISD20-B1-S1.trc: |
   BwUezAkQn8qp7+0Wo8JtSAA8f7jfZD5MKAIhAMo8DcOF3ktuaAmqAzhcHQkZ/fYq
   URI/WSMNucoLLCAc
   -----END TRC-----
-etc/scion/crypto/as/ISD20-ASffaa_1_3.pem: |
+etc/scion/crypto/as/ISD19-ASffaa_1_2.pem: |
   -----BEGIN CERTIFICATE-----
-  MIICrzCCAlSgAwIBAgIUJYsGM/iUmzap7b5/ulswwFYIXqcwCgYIKoZIzj0EAwQw
+  MIICrTCCAlSgAwIBAgIUGWJnhgmNEpONRfzX2YdfXGAjK9wwCgYIKoZIzj0EAwQw
   gZ4xCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDIwLWZm
-  YWE6MDoxNDAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
-  DA4yMC1mZmFhOjA6MTQwMTAeFw0yNDA2MTIxMTU2MDRaFw0yNTA2MTIxMTU2MDRa
+  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxLTArBgNVBAMMJDE5LWZm
+  YWE6MDoxMzAxIFNlY3VyZSBDQSBDZXJ0aWZpY2F0ZTEfMB0GCysGAQQBg7AcAQIB
+  DA4xOS1mZmFhOjA6MTMwMTAeFw0yNDA2MTIxMTU2MDRaFw0yNTA2MTIxMTU2MDRa
   MIGRMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcMB1rDvHJpY2gx
-  DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoyMC1m
-  ZmFhOjE6MyBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsyMC1mZmFh
-  OjE6MzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABMjg+DNiIX9nsLEtZTpGGuWj
-  LWp6pPcT9unY1EItgjv0ze3HUff1DTA8zxdU51HpZ+fpUeW54lQS67YL2envOeKj
-  ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUiM/QeBVcJVbJ/VMhaPaPq8Bc
-  5L0wHwYDVR0jBBgwFoAUD8wvbhstNi6BK8nr9iLTee90k7YwJwYDVR0lBCAwHgYI
-  KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANJADBGAiEA
-  +66mCTQ1mMjcSrozMwmJQcmOQ2btu9HzZzHNCbb2z1wCIQDXTqqJVSTu0hAqM2NY
-  L72xqT188vnzlIKIsFAvnS1OBQ==
+  DzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMSMwIQYDVQQDDBoxOS1m
+  ZmFhOjE6MiBBUyBDZXJ0aWZpY2F0ZTEcMBoGCysGAQQBg7AcAQIBDAsxOS1mZmFh
+  OjE6MjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABNm/DI4XKHAfnOfRS5NFfDQu
+  GueN25jrMOAgxM+lcQPU6utYAnExN/jfosMl9FP+G2qQ1tqx6eueu4UOAIClB82j
+  ezB5MA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUpVyUpaoc4kNSXCIKeX8QP8xp
+  dbowHwYDVR0jBBgwFoAUAABHkN3Tkbd4wo4ljQIyi+N64EQwJwYDVR0lBCAwHgYI
+  KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDCDAKBggqhkjOPQQDBANHADBEAiAz
+  ggxcObbsW9fg+70ioBV/ECweRBATvS1MKyFlbvYKZQIgIVQyJLtR0dp8Xc9S08/z
+  lQqPaK92JFjXIZ3fr+RVrK0=
   -----END CERTIFICATE-----
   -----BEGIN CERTIFICATE-----
-  MIICrjCCAlWgAwIBAgIUeRH5fBqVG4iWdWxqZ7dgkrP0SHMwCgYIKoZIzj0EAwQw
+  MIICrzCCAlWgAwIBAgIUJspphbcMldW2Cb7tRrc9pPDA3VwwCgYIKoZIzj0EAwQw
   gacxCzAJBgNVBAYTAkNIMQswCQYDVQQIDAJaSDEQMA4GA1UEBwwHWsO8cmljaDEP
-  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTIwLWZm
-  YWE6MDoxNDAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
-  AQQBg7AcAQIBDA4yMC1mZmFhOjA6MTQwMTAeFw0yNDA2MTIxMTU2MDRaFw0yNjA2
+  MA0GA1UECgwGTmV0c2VjMQ8wDQYDVQQLDAZOZXRzZWMxNjA0BgNVBAMMLTE5LWZm
+  YWE6MDoxMzAxIEhpZ2ggU2VjdXJpdHkgUm9vdCBDZXJ0aWZpY2F0ZTEfMB0GCysG
+  AQQBg7AcAQIBDA4xOS1mZmFhOjA6MTMwMTAeFw0yNDA2MTIxMTU2MDRaFw0yNjA2
   MTIxMTU2MDRaMIGeMQswCQYDVQQGEwJDSDELMAkGA1UECAwCWkgxEDAOBgNVBAcM
   B1rDvHJpY2gxDzANBgNVBAoMBk5ldHNlYzEPMA0GA1UECwwGTmV0c2VjMS0wKwYD
-  VQQDDCQyMC1mZmFhOjA6MTQwMSBTZWN1cmUgQ0EgQ2VydGlmaWNhdGUxHzAdBgsr
-  BgEEAYOwHAECAQwOMjAtZmZhYTowOjE0MDEwWTATBgcqhkjOPQIBBggqhkjOPQMB
-  BwNCAARqstPI6dr1ckHUzsWCbqKlKo5oSRDvZAur2XunVrF//zgpGssafWcT3sZj
-  rI9lCEIRPqCc8IDF7pjSOjCpAajro2YwZDASBgNVHRMBAf8ECDAGAQH/AgEAMA4G
-  A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUD8wvbhstNi6BK8nr9iLTee90k7YwHwYD
-  VR0jBBgwFoAUGFL5m8UMAlL1dslw9HcKTrJL9OowCgYIKoZIzj0EAwQDRwAwRAIg
-  FGUEJRByfjpYHun4fQKdEBuOvmKEwYjW1w2ngm5UQ68CIEfUs5p5KZ/SUitaFUuZ
-  7KW5rQbIy0hk3ZjuAtb8ogbt
+  VQQDDCQxOS1mZmFhOjA6MTMwMSBTZWN1cmUgQ0EgQ2VydGlmaWNhdGUxHzAdBgsr
+  BgEEAYOwHAECAQwOMTktZmZhYTowOjEzMDEwWTATBgcqhkjOPQIBBggqhkjOPQMB
+  BwNCAATHq1BUZFXodW3950LwvrUg5kY95+LJFy5TduqFFh22LEh+h71fMZdox/6x
+  G6ywOhcM1Kg68f63ysGm8aDnD5kso2YwZDASBgNVHRMBAf8ECDAGAQH/AgEAMA4G
+  A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUAABHkN3Tkbd4wo4ljQIyi+N64EQwHwYD
+  VR0jBBgwFoAUIgsl4FkDiuj1PMIueNJ7AGMZbYswCgYIKoZIzj0EAwQDSAAwRQIh
+  ALy9asB/Qiduiugp0dyC/fmgJIm6b5EGHJCbUq1XWDr1AiArAxyBDPVt+dtqsOw0
+  95dKnj5H69YvM+RSGCuLMTUqRw==
   -----END CERTIFICATE-----
 etc/scion/crypto/as/cp-as.key: |
   -----BEGIN PRIVATE KEY-----
-  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgR0m/cSOURo22JW1G
-  dYB6OzUQkPuXgW7CLeU2QGYxrrShRANCAATI4PgzYiF/Z7CxLWU6Rhrloy1qeqT3
-  E/bp2NRCLYI79M3tx1H39Q0wPM8XVOdR6Wfn6VHlueJUEuu2C9np7zni
+  MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgYR8z3NBP6YnXqJXn
+  ul8rnIraVffWOL/cHwVtVlnd6pqhRANCAATZvwyOFyhwH5zn0UuTRXw0LhrnjduY
+  6zDgIMTPpXED1OrrWAJxMTf436LDJfRT/htqkNbasenrnruFDgCApQfN
   -----END PRIVATE KEY-----
 etc/scion/cs-1.toml: |
   [beacon_db]
@@ -415,15 +413,15 @@ etc/scion/dispatcher.toml: |
   prometheus = "127.0.0.1:30441"
 
   [dispatcher.service_addresses]
-  "20-ffaa:1:3,CS" = "127.0.0.1:30254"
-  "20-ffaa:1:3,DS" = "127.0.0.1:30254"
+  "19-ffaa:1:2,CS" = "127.0.0.1:30254"
+  "19-ffaa:1:2,DS" = "127.0.0.1:30254"
 
   [log.console]
   level = "info"
 etc/scion/keys/master0.key: |-
-  LZKtI3emz0O4TEY4jl3epg==
+  9cCJ4ql6U41L/AHF99NLMQ==
 etc/scion/keys/master1.key: |-
-  LZKtI3emz0O4TEY4jl3epg==
+  9cCJ4ql6U41L/AHF99NLMQ==
 etc/scion/topology.json: |-
   {
     "attributes": [],
@@ -431,12 +429,13 @@ etc/scion/topology.json: |-
       "br-1": {
         "interfaces": {
           "1": {
-            "isd_as": "20-ffaa:0:1404",
+            "isd_as": "19-ffaa:0:1303",
             "link_to": "PARENT",
             "mtu": 1472,
             "underlay": {
+              "bind": "10.0.2.15",
               "public": "172.31.0.200:54321",
-              "remote": "192.0.2.44:50002"
+              "remote": "172.31.0.111:50002"
             }
           }
         },
@@ -454,7 +453,7 @@ etc/scion/topology.json: |-
       }
     },
     "dispatched_ports": "31000-32767",
-    "isd_as": "20-ffaa:1:3",
+    "isd_as": "19-ffaa:1:2",
     "mtu": 1472,
     "sigs": {
       "sig-1": {
@@ -471,16 +470,16 @@ scionlab-config.json: |-
       "etc/scion/certs/ISD17-B1-S1.trc": "3719aa713b848c43d053ee53072e2c483b935164",
       "etc/scion/certs/ISD19-B1-S1.trc": "ff3bb92d0d7e60a3bd4a994e47645934b4e36e58",
       "etc/scion/certs/ISD20-B1-S1.trc": "04fee7e140793dd8352b1867167e88f9086e2de6",
-      "etc/scion/crypto/as/ISD20-ASffaa_1_3.pem": "9fadcd1ad22a6ff48321e2ab5018bea3a6f46a46",
-      "etc/scion/crypto/as/cp-as.key": "f2008dfca7251ee57730bbf05a120724b20845c7",
+      "etc/scion/crypto/as/ISD19-ASffaa_1_2.pem": "d11ed642806869438d9b9c8b871f7bd7f8d8ac40",
+      "etc/scion/crypto/as/cp-as.key": "48b0167d412d08e878fdf15cfe7c26f2621aa35a",
       "etc/scion/cs-1.toml": "5638dae93a2c58d2264271bf4c3703f68a4c2644",
-      "etc/scion/dispatcher.toml": "a01de2e39f75e5904fb5fed55de2986547d337af",
-      "etc/scion/keys/master0.key": "ae6875a03dca5ade173db49a7a793d9bd15f3c09",
-      "etc/scion/keys/master1.key": "ae6875a03dca5ade173db49a7a793d9bd15f3c09",
-      "etc/scion/topology.json": "f389ff40ce50b63952cd687d15181f93804b1692"
+      "etc/scion/dispatcher.toml": "f9d2e4542b7556dfe0c023f4f00a12934d331b4b",
+      "etc/scion/keys/master0.key": "dbf5f2af17d90578f1ace4e52355d1ad944fb80a",
+      "etc/scion/keys/master1.key": "dbf5f2af17d90578f1ace4e52355d1ad944fb80a",
+      "etc/scion/topology.json": "4e0ae14c779353fdab21153a1f2998a8d6e594b0"
     },
-    "host_id": "a90cc902973e458daf8d3319e3f317ee",
-    "host_secret": "1a79d128b9db4b309f71b3f5925047f7",
+    "host_id": "7ee4a947e0fd4b26aac549213fc9a631",
+    "host_secret": "65d7e3910e384ad5923c974e7960063c",
     "systemd_units": [
       "scion-border-router@br-1.service",
       "scion-control-service@cs-1.service",

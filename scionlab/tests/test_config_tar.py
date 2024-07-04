@@ -20,7 +20,7 @@ from django.test import TestCase
 
 from scionlab.config_tar import generate_host_config_tar, generate_user_as_config_tar
 from scionlab.fixtures.testuser import get_testuser_exbert
-from scionlab.models.core import AS, Service
+from scionlab.models.core import AS, Host, Service
 from scionlab.models.user_as import UserAS
 from scionlab.util.archive import DictWriter
 
@@ -53,6 +53,14 @@ class ConfigTarRegressionTests(TestCase):
     def test_host_core(self):
         as_ = AS.objects.filter(is_core=True).first()
         self._test_host(as_.hosts.first())
+
+    def test_host_cs(self):
+        cs = Service.objects.filter(type=Service.CS).first()
+        self._test_host(cs.host)
+
+    def test_host_non_cs(self):
+        host = Host.objects.exclude(services__type=Service.CS).first()
+        self._test_host(host)
 
     def test_host_extra_srv(self):
         extra_srv = Service.objects.filter(type__in=[Service.BW]).first()

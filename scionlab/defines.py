@@ -40,7 +40,7 @@ SD_TCP_PORT = 30255              # TCP/IP, 127.0.0.1:port, NOTE: also in scion-d
 SD_METRICS_PORT = 30455          # "                       ditto
 
 DISPATCHER_PORT = 30041          # UDP/IP, 127.0.0.1:port, [::]:port, NOTE: fixed!
-DISPATCHER_METRICS_PORT = 30441  # TCP/IP, 127.0.0.1:port, NOTE: also in scion-dispatcher.deb
+DISPATCHER_METRICS_PORT = 30441  # TCP/IP, 127.0.0.1:port
 
 SIG_CTRL_PORT = 30256
 SIG_DATA_PORT = 30056
