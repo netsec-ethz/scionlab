@@ -25,7 +25,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument('-t', '--type', type=str, required=True,
                             choices=['core', 'provider', 'peer'],
-                            help='Type of the link. If provider, host_a is parent, host_b is child.')
+                            help='Type of the link. ' +
+                            'If provider, host_a is parent, host_b is child.')
         parser.add_argument('host_a', type=str,
                             help='First host. If link is of type provider, this is the parent.')
         parser.add_argument('host_b', type=str,
@@ -38,15 +39,15 @@ class Command(BaseCommand):
             if kwargs['type'].lower() == t[0].lower():
                 type = t[0]
         if type is None:
-            raise RuntimeError(f'logic error: link types have changed')
-        
+            raise RuntimeError('logic error: link types have changed')
+
         # Find the hosts.
         host_a = self.find_host(kwargs['host_a'])
         host_b = self.find_host(kwargs['host_b'])
 
         # Create the link.
         self.create_link(type, host_a, host_b)
-        
+
     def find_host(self, hostname):
         hosts = Host.objects.filter(label=hostname)
         if hosts.count() == 1:
