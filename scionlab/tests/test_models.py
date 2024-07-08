@@ -134,55 +134,67 @@ class UpdateASKeysTests(TestCase):
         self.assertEqual(got_keys, prev_keys)
 
     def test_is_core_modification(self):
-        as_ = AS.objects.get(as_id='ffaa:0:1304')
-        # test sanity check: the fixture should have ffaa:0:1304 as non core.
-        self.assertFalse(as_.is_core)
+        # Subfunction to perform the repetitive test.
+        def _change_is_core_and_test(as_, core_state: bool):
+            # Store state of ffaa:0:1304.
+            prev_certs = list(as_.certificates())
+            prev_keys = list(as_.keys.all())
+            prev_trcs = list(as_.isd.trcs.all())
+            prev_ifaces = as_.interfaces.all()
+            prev_links = Link.objects.filter(
+                models.Q(interfaceA__in=prev_ifaces) |
+                models.Q(interfaceB__in=prev_ifaces))
+            self.assertGreater(prev_links.count(), 0)
+            prev_links = list(prev_links)
+            prev_ifaces = list(prev_ifaces)
 
-        prev_certs = list(as_.certificates())
-        prev_keys = list(as_.keys.all())
-        prev_trcs = list(as_.isd.trcs.all())
-        prev_ifaces = as_.interfaces.all()
-        prev_links = Link.objects.filter(
-            models.Q(interfaceA__in=prev_ifaces) |
-            models.Q(interfaceB__in=prev_ifaces))
-        self.assertGreater(prev_links.count(), 0)
-        prev_links = list(prev_links)
-        prev_ifaces = list(prev_ifaces)
+            # now promote AS 19-ffaa:0:1304 to core AS. We expect the following to happen:
+            # - existing links starting or ending at that AS are removed.
+            # - new keys and certificates are issued (as core) for that AS.
+            # - all certificates in that ISD are reissued.
+            # - the ISD issues a new TRC
+            as_.mtu = 800
+            as_.is_core = core_state
+            as_.save()
 
-        # now promote AS 19-ffaa:0:1304 to core AS. We expect the following to happen:
-        # - existing links starting or ending at that AS are removed.
-        # - new keys and certificates are issued (as core) for that AS.
-        # - all certificates in that ISD are reissued.
-        # - the ISD issues a new TRC
-        as_.mtu = 800
-        as_.is_core = True
-        as_.save()
+            # Verify the previous links do not exist anymore.
+            self.assertEqual(Link.objects.filter(pk__in=[
+                link.pk for link in prev_links]).count(), 0)
 
-        # Verify the previous links do not exist anymore.
-        self.assertEqual(Link.objects.filter(pk__in=[
-            link.pk for link in prev_links]).count(), 0)
+            # Same with interfaces.
+            self.assertEqual(Interface.objects.filter(pk__in=[
+                iface.pk for iface in prev_ifaces]).count(), 0)
 
-        # Same with interfaces.
-        self.assertEqual(Interface.objects.filter(pk__in=[
-            iface.pk for iface in prev_ifaces]).count(), 0)
+            # This AS doesn't have interfaces or links.
+            got_ifaces = as_.interfaces.all()
+            self.assertEqual(got_ifaces.count(), 0)
+            got_links = Link.objects.filter(
+                models.Q(interfaceA__in=got_ifaces) |
+                models.Q(interfaceB__in=got_ifaces))
+            self.assertEqual(got_links.count(), 0)
 
-        # This AS doesn't have interfaces or links.
-        got_ifaces = as_.interfaces.all()
-        self.assertEqual(got_ifaces.count(), 0)
-        got_links = Link.objects.filter(
-            models.Q(interfaceA__in=got_ifaces) |
-            models.Q(interfaceB__in=got_ifaces))
-        self.assertEqual(got_links.count(), 0)
+            # We have now more certificates and keys.
+            got_certs = list(as_.certificates().all())
+            self.assertTrue(set(prev_certs).issubset(got_certs))
+            got_keys = list(as_.keys.all())
+            self.assertTrue(set(prev_keys).issubset(got_keys))
 
-        # We have now more certificates and keys.
-        got_certs = list(as_.certificates().all())
-        self.assertTrue(set(prev_certs).issubset(got_certs))
-        got_keys = list(as_.keys.all())
-        self.assertTrue(set(prev_keys).issubset(got_keys))
+            # We have a new TRC.
+            got_trcs = list(as_.isd.trcs.all())
+            self.assertTrue(set(prev_trcs).issubset(got_trcs))
 
-        # We have a new TRC.
-        got_trcs = list(as_.isd.trcs.all())
-        self.assertTrue(set(prev_trcs).issubset(got_trcs))
+        # Get two ASes from the fixture, one core and one non-core.
+        as1 = AS.objects.get(as_id='ffaa:0:1301')
+        as2 = AS.objects.get(as_id='ffaa:0:1304')
+        # test sanity check: the fixture should have:
+        # ffaa:0:1301 core.
+        # ffaa:0:1304 non-core.
+        self.assertTrue(as1.is_core)
+        self.assertFalse(as2.is_core)
+
+        # Test.
+        _change_is_core_and_test(as1, False)
+        _change_is_core_and_test(as2, True)
 
 
 class LinkModificationTests(TestCase):
