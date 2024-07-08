@@ -378,7 +378,7 @@ class AS(TimestampedModel):
                 core_change = True
                 # Finally, return a message to the caller (possibly from ASAdmin) to let them
                 # know about the modifications.
-                msg = f"The CORE property has changed: There was {link_count} link deleted. " + \
+                msg = f"The CORE property has changed: There was {link_count} link(s) deleted. " + \
                     "New certificates for this AS, and new TRC for this ISD have been created. " + \
                     "Please review changes."
 
