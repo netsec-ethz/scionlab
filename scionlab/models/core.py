@@ -334,6 +334,13 @@ class AS(TimestampedModel):
 
     def update_keys_certs(self, not_before=None):
         """
+        Updates the keys and certs, and saves this AS object.
+        """
+        self._update_keys_certs(not_before)
+        self.save()
+
+    def _update_keys_certs(self, not_before=None):
+        """
         Generate new keys and certificates (core and non core).
         The keys and certs have to be updated simultaneously to avoid getting a nil validity range
         when signing a CP AS certificate; e.g. the subject has keys valid during a year, but the
@@ -343,7 +350,49 @@ class AS(TimestampedModel):
         self.generate_keys(not_before)
         self.generate_certs()
         self.hosts.bump_config()
-        self.save()
+
+    def save(self, **kwargs):
+        # Do not return the message from `save_with_message` when calling save().
+        self.save_with_message(**kwargs)
+
+    def save_with_message(self, **kwargs):
+        """
+        Returns a message to be displayed when interactively modifying this AS.
+        It will be used from the ASAdmin class.
+        """
+        msg = None
+        core_change = False
+        # Check if is_core has changed: load previous object and compare with this one.
+        if self.pk is not None:  # Check if the object already exists in the database
+            # Fetch the current value from the database
+            # old_as = AS.objects.filter(pk=self.pk).values_list('is_core', flat=True).first()
+            old_as = AS.objects.filter(pk=self.pk).first()
+            if old_as.is_core != self.is_core:
+                # This AS' core attribute has changed.
+                # We must delete all existing links.
+                interfaces = self.interfaces.all()
+                links = Link.objects.filter(models.Q(
+                    interfaceA__in=interfaces) | models.Q(interfaceB__in=interfaces))
+                link_count = links.count()
+                links.delete()
+                core_change = True
+                # Finally, return a message to the caller (possibly from ASAdmin) to let them
+                # know about the modifications.
+                msg = f"The CORE property has changed: There was {link_count} link(s) deleted. " + \
+                    "New certificates for this AS, and new TRC for this ISD have been created. " + \
+                    "Please review changes."
+
+        if core_change:
+            # Generate new certificates only for this AS. If this was a core AS and CA for other
+            # ASes, we would have to manually update certificates and keys of those other ASes.
+            self._update_keys_certs()
+        # Save the model.
+        super().save(**kwargs)
+        if core_change:
+            # Because the core AS set has changed, we need a new TRC.
+            self.isd.trcs.create()
+
+        return msg
 
     @staticmethod
     def update_cp_as_keys(queryset):
@@ -364,7 +413,7 @@ class AS(TimestampedModel):
     def update_core_as_keys(queryset):
         """
         All the ASes in the queryset must update their keys and certificates.
-        Since this some of these ASes could act as CA for other, non-core ASes,
+        Since this some of these ASes could now act as CA for other (non-core) ASes,
         we must re-issue all certificates in that ISD.
         So in this function, we just update keys, certificates and TRCs for all
         core ASes in all ISDs that are touched by the given queryset.
