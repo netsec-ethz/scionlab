@@ -288,8 +288,8 @@ class _ConfigBuilder:
             conf['dispatcher'].update({
                 'service_addresses': {
                     # One line with all addresses for CS, another for DS.
-                    f'{ia_str},CS': f'{host.internal_ip}:{Service.SERVICE_PORTS[Service.CS]}',
-                    f'{ia_str},DS': f'{host.internal_ip}:{Service.SERVICE_PORTS[Service.CS]}',
+                    f'{ia_str},CS': f'{_join_host_port(host.internal_ip, Service.SERVICE_PORTS[Service.CS])}',
+                    f'{ia_str},DS': f'{_join_host_port(host.internal_ip, Service.SERVICE_PORTS[Service.CS])}',
                 },
             })
         return conf
