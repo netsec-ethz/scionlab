@@ -129,7 +129,7 @@ jobs:
             echo "Python3 version is: $VERSION"
             pyenv global $VERSION
 
-            pip install --upgrade pip setuptools wheel install
+            pip install --upgrade pip setuptools wheel
 
       - run:
           name: Build and start containers for coordinator and ASes
