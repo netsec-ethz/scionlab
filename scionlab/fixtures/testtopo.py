@@ -23,7 +23,8 @@ from scionlab.models.vpn import VPN
 # Create records for all the test objects to create, so that they can be
 # inspected during tests as ground truth.
 ISDdef = namedtuple('ISDdef', ['isd_id', 'label'])
-ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'public_ip', 'is_core', 'is_ap'])
+ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'public_ip', 'is_core', 'is_ap',
+                             'internal_ip'])
 LinkDef = namedtuple('LinkDef', ['type', 'as_id_a', 'as_id_b'])
 VPNDef = namedtuple('VPNDef', ['as_id', 'vpn_ip', 'vpn_port', 'subnet'])
 
@@ -33,9 +34,9 @@ def _expand_as_id(as_id_tail):
     return 'ffaa:0:%x' % as_id_tail
 
 
-def makeASdef(isd_id, as_id_tail, label, public_ip, is_core=False, is_ap=False):
+def makeASdef(isd_id, as_id_tail, label, public_ip, is_core=False, is_ap=False, internal_ip=None):
     """ Helper for readable ASdef  declaration """
-    return ASdef(isd_id, _expand_as_id(as_id_tail), label, public_ip, is_core, is_ap)
+    return ASdef(isd_id, _expand_as_id(as_id_tail), label, public_ip, is_core, is_ap, internal_ip)
 
 
 def makeLinkDef(type, as_id_tail_a, as_id_tail_b):
@@ -76,6 +77,9 @@ ases = [
     makeASdef(20, 0x1404, 'K_AP1', '192.0.2.44', is_ap=True),
     makeASdef(20, 0x1405, 'K_AP2', '172.31.0.114', is_ap=True),
     makeASdef(20, 0x1406, 'K_L3', '192.0.2.46'),
+    # IPv6 only, e.g. FITI.
+    makeASdef(25, 0x2101, 'FITI-1 Beijing', '240a:a097:100:1::11', is_core=True,
+              internal_ip='240a:a097:100:1::11'),
 ]
 
 # Links
@@ -185,7 +189,7 @@ def name_hosts():
         host.save()
 
 
-def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
+def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False, internal_ip=None):
     isd = ISD.objects.get(isd_id=isd_id)
     as_ = AS.objects.create_with_default_services(
         isd=isd,
@@ -193,6 +197,7 @@ def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False):
         label=label,
         is_core=is_core,
         public_ip=public_ip,
+        internal_ip=internal_ip,
         init_certificates=False  # Defer certificates generation
     )
 

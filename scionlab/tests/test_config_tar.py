@@ -58,6 +58,12 @@ class ConfigTarRegressionTests(TestCase):
         cs = Service.objects.filter(type=Service.CS).first()
         self._test_host(cs.host)
 
+    def test_host_ipv6(self):
+        # Find hosts with IPv6
+        hosts = Host.objects.filter(public_ip__regex=r":")
+        for host in hosts:
+            self._test_host(host)
+
     def test_host_non_cs(self):
         host = Host.objects.exclude(services__type=Service.CS).first()
         self._test_host(host)
