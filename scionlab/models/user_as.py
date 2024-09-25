@@ -54,6 +54,7 @@ class UserASManager(models.Manager):
                public_ip: str = "",
                wants_user_ap: bool = False,
                wants_vpn: bool = False,
+               fabrid_enabled: bool = False,
                as_id: str = None,
                label: str = None) -> 'UserAS':
         """Create a UserAS
@@ -85,6 +86,7 @@ class UserASManager(models.Manager):
             as_id=as_id,
             as_id_int=as_id_int,
             installation_type=installation_type,
+            fabrid_enabled=fabrid_enabled,
             master_as_key=AS._make_master_as_key()
         )
 
@@ -149,7 +151,7 @@ class UserAS(AS):
         return urls.reverse('user_as_detail', kwargs={'pk': self.pk})
 
     def update(self, label: str, installation_type: str, public_ip: str = "",
-               wants_user_ap: bool = False, wants_vpn: bool = False):
+               wants_user_ap: bool = False, wants_vpn: bool = False, fabrid_enabled: bool = False):
         """
         Updates the `UserAS` fields and immediately saves
         """
@@ -160,6 +162,7 @@ class UserAS(AS):
             elif self.installation_type == UserAS.VM:
                 self._unset_bind_ips_for_vagrant()
             self.installation_type = installation_type
+        self.fabrid_enabled = fabrid_enabled
         host = self.host
         host.update(public_ip=public_ip)
         if self.is_attachment_point():

@@ -229,6 +229,8 @@ class AS(TimestampedModel):
 
     is_core = models.BooleanField(default=False)
 
+    fabrid_enabled = models.BooleanField(default=False)
+
     objects = ASManager()
 
     class Meta:
