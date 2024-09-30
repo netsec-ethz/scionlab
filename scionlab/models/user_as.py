@@ -65,6 +65,7 @@ class UserASManager(models.Manager):
         :param str public_ip: optional public IP address for the host of the AS
         :param bool wants_user_ap: optional boolean if the User AS should be AP
         :param str wants_vpn: optional boolean if the User AP should provide a VPN
+        :param bool fabrid_enabled: optional boolean if the User AS should enable FABRID
         :param str as_id: optional as_id, if None is given, the next free ID is chosen
         :param str label: optional label
 

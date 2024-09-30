@@ -350,10 +350,12 @@ class _ConfigBuilder:
                 },
                 'drkey': {
                     'level1_db': {
-                        'connection': '%s.drkey-level1.db' % os.path.join(self.var_dir, service.instance_name),
+                        'connection': '%s.drkey-level1.db' % os.path.join(self.var_dir,
+                                                                          service.instance_name),
                     },
                     'secret_value_db': {
-                        'connection': '%s.drkey-secret.db' % os.path.join(self.var_dir, service.instance_name),
+                        'connection': '%s.drkey-secret.db' % os.path.join(self.var_dir,
+                                                                          service.instance_name),
                     },
                     'delegation': {
                         'FABRID': [router.host.internal_ip for router in self.topo_info.routers],

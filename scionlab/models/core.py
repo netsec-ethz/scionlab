@@ -122,13 +122,14 @@ class ISD(TimestampedModel):
 
 
 class ASManager(models.Manager):
-    def create(self, isd, as_id, is_core=False, label=None, mtu=None, owner=None,
-               init_certificates=True):
+    def create(self, isd, as_id, is_core=False, fabrid_enabled=False, label=None, mtu=None,
+               owner=None, init_certificates=True):
         """
         Create the AS and initialise the required keys
         :param ISD isd:
         :param str as_id: valid AS-identifier string
         :param bool is_core: should this AS be created as a core AS?
+        :param bool fabrid_enabled: should this AS enable FABRID?
         :param str label: optional
         :param User owner: optional
         :returns: AS
@@ -139,6 +140,7 @@ class ASManager(models.Manager):
             as_id=as_id,
             as_id_int=as_id_int,
             is_core=is_core,
+            fabrid_enabled=fabrid_enabled,
             label=label,
             mtu=mtu or DEFAULT_LINK_MTU,
             owner=owner,
@@ -154,8 +156,8 @@ class ASManager(models.Manager):
         return as_
 
     def create_with_default_services(self, isd, as_id, public_ip,
-                                     is_core=False, label=None, mtu=None, owner=None,
-                                     bind_ip=None, internal_ip=None,
+                                     is_core=False, fabrid_enabled=False, label=None, mtu=None,
+                                     owner=None, bind_ip=None, internal_ip=None,
                                      init_certificates=True):
         """
         Create the AS, initialise the required keys and create a default Host object
@@ -164,6 +166,7 @@ class ASManager(models.Manager):
         :param ISD isd:
         :param str as_id: valid AS-identifier string
         :param bool is_core: should this AS be created as a core AS?
+        :param bool fabrid_enabled: should this AS enable FABRID?
         :param str label: optional
         :param User owner: optional
         :param str internal_ip: AS-internal IP for the Host, defaults to 127.0.0.1
@@ -175,6 +178,7 @@ class ASManager(models.Manager):
             isd=isd,
             as_id=as_id,
             is_core=is_core,
+            fabrid_enabled=fabrid_enabled,
             label=label,
             mtu=mtu,
             owner=owner,
