@@ -68,7 +68,8 @@ def _get_form_fields(data, include_errors: bool = False):
         "user-as-installation_type": "VM",
         "user-as-become_user_ap": "",
         "user-as-public_ip": "",
-        "user-as-provide_vpn": ""
+        "user-as-provide_vpn": "",
+        "user-as-enable_fabrid": ""
     }
     attachment_defaults = {
         "active": "on",
@@ -89,6 +90,7 @@ def _get_form_fields(data, include_errors: bool = False):
     d['user-as-become_user_ap'] = data.get('become_user_ap', d['user-as-become_user_ap'])
     d['user-as-public_ip'] = data.get('public_ip', d['user-as-public_ip'])
     d['user-as-provide_vpn'] = data.get('provide_vpn', d['user-as-provide_vpn'])
+    d['user-as-enable_fabrid'] = data.get('fabrid', d['user-as-enable_fabrid'])
     for i, attachment in enumerate(data['attachments']):
         t = {}
         for k, v in attachment_defaults.items():

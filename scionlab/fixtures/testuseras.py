@@ -19,19 +19,20 @@ from scionlab.models.user_as import AttachmentPoint, AttachmentConf, UserAS
 def create_testuserases():
     exbert = get_testuser_exbert()
     aps = AttachmentPoint.objects.all()
-    _create_user_as(exbert, aps[0], UserAS.VM, True)
-    _create_user_as(exbert, aps[1], UserAS.VM, False)
-    _create_user_as(exbert, aps[2], UserAS.PKG, False)
-    _create_user_as(exbert, aps[3], UserAS.PKG, True)
-    _create_user_as(exbert, aps[0], UserAS.SRC, False)
+    _create_user_as(exbert, aps[0], UserAS.VM, True, False)
+    _create_user_as(exbert, aps[1], UserAS.VM, False, False)
+    _create_user_as(exbert, aps[2], UserAS.PKG, False, False)
+    _create_user_as(exbert, aps[3], UserAS.PKG, True, True)
+    _create_user_as(exbert, aps[0], UserAS.SRC, False, True)
 
 
-def _create_user_as(owner, attachment_point, installation_type, use_vpn):
+def _create_user_as(owner, attachment_point, installation_type, use_vpn, enable_fabrid):
     user_as = UserAS.objects.create(
         owner=owner,
         installation_type=installation_type,
         label="",
-        isd=attachment_point.AS.isd
+        isd=attachment_point.AS.isd,
+        fabrid_enabled=enable_fabrid
     )
     user_as.update_attachments([
         AttachmentConf(
