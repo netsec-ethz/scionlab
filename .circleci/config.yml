@@ -110,7 +110,7 @@ jobs:
 
   integration-tests:
     machine:
-      image: ubuntu-2204:2023.07.2
+      image: ubuntu-2204:2024.08.1
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
@@ -200,7 +200,7 @@ jobs:
 
   upgrade-tests:
     machine:
-      image: ubuntu-2204:2023.07.2  # image running the current Coordinator
+      image: ubuntu-2204:2024.08.1  # image running the current Coordinator
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: ".circleci/docker-compose.yml"
@@ -258,7 +258,7 @@ jobs:
 
   production-stack-tests:
     machine:
-      image: ubuntu-2204:2023.07.2
+      image: ubuntu-2204:2024.08.1
       docker_layer_caching: true
     environment:
       COMPOSE_FILE: "docker-compose.yml:.circleci/docker-compose.test-prod-db.yaml"
