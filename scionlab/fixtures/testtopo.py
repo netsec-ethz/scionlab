@@ -24,7 +24,7 @@ from scionlab.models.vpn import VPN
 # inspected during tests as ground truth.
 ISDdef = namedtuple('ISDdef', ['isd_id', 'label'])
 ASdef = namedtuple('ASdef', ['isd_id', 'as_id', 'label', 'public_ip', 'is_core', 'is_ap',
-                             'internal_ip'])
+                             'internal_ip', "fabrid_enabled"])
 LinkDef = namedtuple('LinkDef', ['type', 'as_id_a', 'as_id_b'])
 VPNDef = namedtuple('VPNDef', ['as_id', 'vpn_ip', 'vpn_port', 'subnet'])
 
@@ -34,9 +34,9 @@ def _expand_as_id(as_id_tail):
     return 'ffaa:0:%x' % as_id_tail
 
 
-def makeASdef(isd_id, as_id_tail, label, public_ip, is_core=False, is_ap=False, internal_ip=None):
+def makeASdef(isd_id, as_id_tail, label, public_ip, is_core=False, is_ap=False, internal_ip=None, fabrid_enabled=False):
     """ Helper for readable ASdef  declaration """
-    return ASdef(isd_id, _expand_as_id(as_id_tail), label, public_ip, is_core, is_ap, internal_ip)
+    return ASdef(isd_id, _expand_as_id(as_id_tail), label, public_ip, is_core, is_ap, internal_ip, fabrid_enabled)
 
 
 def makeLinkDef(type, as_id_tail_a, as_id_tail_b):
@@ -65,10 +65,10 @@ ases = [
     makeASdef(17, 0x1103, 'SWTH', '192.0.2.13'),
     makeASdef(17, 0x1107, 'ETHZ-AP', '192.0.2.17', is_ap=True),
     # eu
-    makeASdef(19, 0x1301, 'Magdeburg core', '172.31.0.110', is_core=True),
+    makeASdef(19, 0x1301, 'Magdeburg core', '172.31.0.110', is_core=True, fabrid_enabled=True),
     makeASdef(19, 0x1302, 'GEANT', '192.0.2.32', is_core=True),
     makeASdef(19, 0x1303, 'Magdeburg', '172.31.0.111', is_ap=True),
-    makeASdef(19, 0x1304, 'FR@Linode', '192.0.2.34'),
+    makeASdef(19, 0x1304, 'FR@Linode', '192.0.2.34', fabrid_enabled=True),
     makeASdef(19, 0x1305, 'Darmstadt', '172.31.0.112'),
     # korea (Kompletely made up)
     makeASdef(20, 0x1401, 'K_core1', '172.31.0.113', is_core=True),
@@ -189,7 +189,7 @@ def name_hosts():
         host.save()
 
 
-def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False, internal_ip=None):
+def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False, internal_ip=None, fabrid_enabled=False):
     isd = ISD.objects.get(isd_id=isd_id)
     as_ = AS.objects.create_with_default_services(
         isd=isd,
@@ -198,6 +198,7 @@ def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False, inte
         is_core=is_core,
         public_ip=public_ip,
         internal_ip=internal_ip,
+        fabrid_enabled=fabrid_enabled,
         init_certificates=False  # Defer certificates generation
     )
 
