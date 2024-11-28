@@ -34,9 +34,11 @@ def _expand_as_id(as_id_tail):
     return 'ffaa:0:%x' % as_id_tail
 
 
-def makeASdef(isd_id, as_id_tail, label, public_ip, is_core=False, is_ap=False, internal_ip=None, fabrid_enabled=False):
+def makeASdef(isd_id, as_id_tail, label, public_ip, is_core=False, is_ap=False,
+              internal_ip=None, fabrid_enabled=False):
     """ Helper for readable ASdef  declaration """
-    return ASdef(isd_id, _expand_as_id(as_id_tail), label, public_ip, is_core, is_ap, internal_ip, fabrid_enabled)
+    return ASdef(isd_id, _expand_as_id(as_id_tail), label, public_ip, is_core, is_ap,
+                 internal_ip, fabrid_enabled)
 
 
 def makeLinkDef(type, as_id_tail_a, as_id_tail_b):
@@ -189,7 +191,8 @@ def name_hosts():
         host.save()
 
 
-def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False, internal_ip=None, fabrid_enabled=False):
+def _create_as(isd_id, as_id, label, public_ip, is_core=False, is_ap=False,
+               internal_ip=None, fabrid_enabled=False):
     isd = ISD.objects.get(isd_id=isd_id)
     as_ = AS.objects.create_with_default_services(
         isd=isd,
