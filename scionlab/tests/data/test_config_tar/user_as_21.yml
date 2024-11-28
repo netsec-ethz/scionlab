@@ -541,10 +541,6 @@ gen/dispatcher/disp.toml: |
   [metrics]
   prometheus = "127.0.0.1:30441"
 
-  [dispatcher.service_addresses]
-  "17-ffaa:1:5,CS" = "127.0.0.1:30254"
-  "17-ffaa:1:5,DS" = "127.0.0.1:30254"
-
   [log.console]
   level = "info"
 gen/supervisord.conf: |+

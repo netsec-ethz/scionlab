@@ -472,20 +472,6 @@ etc/scion/cs-1.toml: |
 
   [log.console]
   level = "info"
-etc/scion/dispatcher.toml: |
-  [dispatcher]
-  id = "dispatcher"
-  local_udp_forwarding = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30441"
-
-  [dispatcher.service_addresses]
-  "19-ffaa:1:2,CS" = "127.0.0.1:30254"
-  "19-ffaa:1:2,DS" = "127.0.0.1:30254"
-
-  [log.console]
-  level = "info"
 etc/scion/keys/master0.key: |-
   kpfEe4dot89npwVPgtAUBA==
 etc/scion/keys/master1.key: |-
@@ -542,7 +528,6 @@ scionlab-config.json: |-
       "etc/scion/crypto/as/ISD19-ASffaa_1_2.pem": "b89aa72e6630a848771776baa1a71d8afa89b412",
       "etc/scion/crypto/as/cp-as.key": "0cb4c361c32d2f6940d427116853f9e23c313dd0",
       "etc/scion/cs-1.toml": "5638dae93a2c58d2264271bf4c3703f68a4c2644",
-      "etc/scion/dispatcher.toml": "f9d2e4542b7556dfe0c023f4f00a12934d331b4b",
       "etc/scion/keys/master0.key": "b589133dc120e1f89c837a89fdc4eb297e67535b",
       "etc/scion/keys/master1.key": "b589133dc120e1f89c837a89fdc4eb297e67535b",
       "etc/scion/topology.json": "3c04382746db0743b4eb63719be6dec9e39cb6c2"
