@@ -433,16 +433,6 @@ etc/scion/crypto/as/cp-as.key: |
   gYmdrCnghkMc5Wlvw4eVgZiq2duhRANCAAS7paYjOZqA1cj2sbwO/Ux/N36OxaqM
   MWghJT23uC94YCuIRMNs9fi/dGkrLVVq5Sss/CIPLtOCJXB9eAukvNrf
   -----END PRIVATE KEY-----
-etc/scion/dispatcher.toml: |
-  [dispatcher]
-  id = "dispatcher"
-  local_udp_forwarding = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30441"
-
-  [log.console]
-  level = "info"
 etc/scion/keys/master0.key: |-
   tM0z6L31iq1x3jHATAj68g==
 etc/scion/keys/master1.key: |-
@@ -485,7 +475,7 @@ etc/scion/topology.json: |-
         "addr": "127.0.0.1:30254"
       }
     },
-    "dispatched_ports": "31000-32767",
+    "dispatched_ports": "30000-32767",
     "isd_as": "17-ffaa:0:1102",
     "mtu": 1472
   }
@@ -498,10 +488,9 @@ scionlab-config.json: |-
       "etc/scion/certs/ISD25-B1-S1.trc": "c43fbc5c74e02925ff37c557b14d1a251bdd374b",
       "etc/scion/crypto/as/ISD17-ASffaa_0_1102.pem": "f06c1dc326ca28b45f5495ea55d6f34c6257e051",
       "etc/scion/crypto/as/cp-as.key": "2e2ebd0162a90e7d500634150dc678a0d2c4a6a6",
-      "etc/scion/dispatcher.toml": "65ea6e8884107c6cfc5913267285ba8bc43e9375",
       "etc/scion/keys/master0.key": "116a72c6de4c55fdf1433f1a27e7b4776559fbbb",
       "etc/scion/keys/master1.key": "116a72c6de4c55fdf1433f1a27e7b4776559fbbb",
-      "etc/scion/topology.json": "ac4aec0e56b6f325f9e10ceedf8714d29345709b"
+      "etc/scion/topology.json": "d2ec502220bb07fa651e547ae0dac85f5f244118"
     },
     "host_id": "bccd834c19a04fddb692fe662252b5d3",
     "host_secret": "cd2563eff2b04d4a8babf118b3b39b77",

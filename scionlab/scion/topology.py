@@ -61,7 +61,7 @@ class TopologyInfo:
         self.topo["isd_as"] = self.AS.isd_as_str()
         self.topo["mtu"] = self.AS.mtu
         self.topo["attributes"] = CORE_ATTRIBUTES if self.AS.is_core else []
-        self.topo["dispatched_ports"] = "31000-32767"
+        self.topo["dispatched_ports"] = "30000-32767"
 
         _topo_add_routers(self.topo, self.routers)
         _topo_add_control_services(self.topo, self.services)
