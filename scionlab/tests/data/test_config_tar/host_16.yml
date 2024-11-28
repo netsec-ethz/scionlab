@@ -559,20 +559,6 @@ etc/scion/cs-1.toml: |
 
   [log.console]
   level = "info"
-etc/scion/dispatcher.toml: |
-  [dispatcher]
-  id = "dispatcher"
-  local_udp_forwarding = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30441"
-
-  [dispatcher.service_addresses]
-  "25-ffaa:0:2101,CS" = "[240a:a097:100:1::11]:30254"
-  "25-ffaa:0:2101,DS" = "[240a:a097:100:1::11]:30254"
-
-  [log.console]
-  level = "info"
 etc/scion/keys/master0.key: |-
   To8bsRP9mCzQPvPa3wrqfw==
 etc/scion/keys/master1.key: |-
@@ -596,7 +582,7 @@ etc/scion/topology.json: |-
         "addr": "[240a:a097:100:1::11]:30254"
       }
     },
-    "dispatched_ports": "31000-32767",
+    "dispatched_ports": "30000-32767",
     "isd_as": "25-ffaa:0:2101",
     "mtu": 1472
   }
@@ -619,10 +605,9 @@ scionlab-config.json: |-
       "etc/scion/crypto/voting/regular-voting.key": "eabbadf306b1f2677759a0438bb267b25df28070",
       "etc/scion/crypto/voting/sensitive-voting.key": "d27402b7e884ceacd9f56f7391106deb20495dac",
       "etc/scion/cs-1.toml": "7999c6c71fd61c3fe897723a6ace526c1ad8171d",
-      "etc/scion/dispatcher.toml": "019d457e07c22a9a8bb32debaade79196adf30fe",
       "etc/scion/keys/master0.key": "0c9fdc632ea62a10f7ddd2082414123d350f9b11",
       "etc/scion/keys/master1.key": "0c9fdc632ea62a10f7ddd2082414123d350f9b11",
-      "etc/scion/topology.json": "d80201955a1ac386a4ec31f8f7edd676717cc42a"
+      "etc/scion/topology.json": "e69f7ce4042f4fce5b8b3d4c57638914c09a67d5"
     },
     "host_id": "0c465644bc294a848f78f27afa42e66e",
     "host_secret": "32b7c7fe033b457f90ec72e474fd4174",

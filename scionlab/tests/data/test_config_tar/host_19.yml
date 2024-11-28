@@ -472,20 +472,6 @@ etc/scion/cs-1.toml: |
 
   [log.console]
   level = "info"
-etc/scion/dispatcher.toml: |
-  [dispatcher]
-  id = "dispatcher"
-  local_udp_forwarding = true
-
-  [metrics]
-  prometheus = "127.0.0.1:30441"
-
-  [dispatcher.service_addresses]
-  "19-ffaa:1:2,CS" = "127.0.0.1:30254"
-  "19-ffaa:1:2,DS" = "127.0.0.1:30254"
-
-  [log.console]
-  level = "info"
 etc/scion/keys/master0.key: |-
   SemNoPkmWgppie7to8VEow==
 etc/scion/keys/master1.key: |-
@@ -520,7 +506,7 @@ etc/scion/topology.json: |-
         "addr": "127.0.0.1:30254"
       }
     },
-    "dispatched_ports": "31000-32767",
+    "dispatched_ports": "30000-32767",
     "isd_as": "19-ffaa:1:2",
     "mtu": 1472,
     "sigs": {
@@ -542,10 +528,9 @@ scionlab-config.json: |-
       "etc/scion/crypto/as/ISD19-ASffaa_1_2.pem": "7561feb1805aa66a27dd21ab74386e6809d433f1",
       "etc/scion/crypto/as/cp-as.key": "18f61fd99dd06984b61a501584d0431e397222a5",
       "etc/scion/cs-1.toml": "5638dae93a2c58d2264271bf4c3703f68a4c2644",
-      "etc/scion/dispatcher.toml": "f9d2e4542b7556dfe0c023f4f00a12934d331b4b",
       "etc/scion/keys/master0.key": "ab45317494aa5adbd641474e7b47c0585a63b4d4",
       "etc/scion/keys/master1.key": "ab45317494aa5adbd641474e7b47c0585a63b4d4",
-      "etc/scion/topology.json": "4e0ae14c779353fdab21153a1f2998a8d6e594b0"
+      "etc/scion/topology.json": "3c04382746db0743b4eb63719be6dec9e39cb6c2"
     },
     "host_id": "b8e49c7b546f4f7f938a4c67475a3e58",
     "host_secret": "f4feec0975c04281baf1a7298c5903e6",

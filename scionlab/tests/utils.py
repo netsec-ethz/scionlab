@@ -412,7 +412,6 @@ def _check_tarball_etc_scion(testcase, tar, host):
         'crypto',
         'keys',
         'topology.json',
-        'dispatcher.toml',
     ]
     expected += [
         "%s-%i.toml" % (s.type.lower(), s.instance_id) for s in host.services.all()

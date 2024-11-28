@@ -165,10 +165,7 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
                                         config_dir=SCION_CONFIG_DIR,
                                         var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
-
-        self.archive.write_toml((self.disp_dir(), 'dispatcher.toml'),
-                                config_builder.build_disp_conf(self.host))
-        # sciond config file is installed with the package
+        # dispatcher and sciond config file is installed with the package
 
     def systemd_units(self):
         units = ["scion-border-router@%s.service" % router.instance_name
@@ -181,9 +178,6 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
         units.append('scion-daemon.service')
         units.append('scion-dispatcher.service')
         return units
-
-    def disp_dir(self):
-        return SCION_CONFIG_DIR.lstrip('/')  # don't use absolute paths in the archive
 
 
 class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
@@ -199,7 +193,7 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
 
         # the dispatcher directory is outside the AS subdirectory
         self.archive.write_toml((self._disp_dir(), 'disp.toml'),
-                                config_builder.build_disp_conf(self.host))
+                                config_builder.build_disp_conf())
 
         self.archive.write_toml((self._as_dir(), 'sd.toml'),
                                 config_builder.build_sciond_conf(self.host))
@@ -270,7 +264,7 @@ class _ConfigBuilder:
         self.config_dir = config_dir
         self.var_dir = var_dir
 
-    def build_disp_conf(self, host):
+    def build_disp_conf(self):
         # Note: this is only used in the supervisord setup;
         # in the systemd setup, the dispatcher.toml file is installed with the package.
         logging_conf = self._build_logging_conf('dispatcher')
@@ -283,17 +277,6 @@ class _ConfigBuilder:
             },
         })
 
-        if host.services.filter(type=Service.CS).exists():
-            ia_str = self.topo_info.AS.isd_as_str()
-            conf['dispatcher'].update({
-                'service_addresses': {
-                    # One line with all addresses for CS, another for DS.
-                    f'{ia_str},CS':
-                        f'{_join_host_port(host.internal_ip, Service.SERVICE_PORTS[Service.CS])}',
-                    f'{ia_str},DS':
-                        f'{_join_host_port(host.internal_ip, Service.SERVICE_PORTS[Service.CS])}',
-                },
-            })
         return conf
 
     def build_br_conf(self, router):
