@@ -520,7 +520,7 @@ etc/scion/topology.json: |-
         "addr": "127.0.0.1:30254"
       }
     },
-    "dispatched_ports": "31000-32767",
+    "dispatched_ports": "30000-32767",
     "isd_as": "19-ffaa:1:2",
     "mtu": 1472,
     "sigs": {
@@ -545,7 +545,7 @@ scionlab-config.json: |-
       "etc/scion/dispatcher.toml": "f9d2e4542b7556dfe0c023f4f00a12934d331b4b",
       "etc/scion/keys/master0.key": "b589133dc120e1f89c837a89fdc4eb297e67535b",
       "etc/scion/keys/master1.key": "b589133dc120e1f89c837a89fdc4eb297e67535b",
-      "etc/scion/topology.json": "4e0ae14c779353fdab21153a1f2998a8d6e594b0"
+      "etc/scion/topology.json": "3c04382746db0743b4eb63719be6dec9e39cb6c2"
     },
     "host_id": "ef29f055f3a44681a519fa28d25130d6",
     "host_secret": "e02c3cc3892548e7865bee52ecde3c30",
