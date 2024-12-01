@@ -100,6 +100,7 @@ def create_and_check_useras(testcase,
                             wants_user_ap=False,
                             public_ip="",
                             wants_vpn=False,
+                            fabrid_enabled=False,
                             installation_type=UserAS.PKG,
                             label='label foo',
                             **kwargs) -> UserAS:
@@ -114,6 +115,7 @@ def create_and_check_useras(testcase,
         installation_type,
         isd,
         label=label,
+        fabrid_enabled=fabrid_enabled,
         public_ip=public_ip,
         wants_vpn=wants_vpn,
         wants_user_ap=wants_user_ap
@@ -135,6 +137,7 @@ def create_and_check_useras(testcase,
                  att_confs,
                  owner,
                  vpn_choice,
+                 fabrid_enabled,
                  installation_type,
                  label,
                  wants_user_ap,
@@ -150,6 +153,7 @@ def check_useras(testcase,
                  att_confs: List[AttachmentConf],
                  owner,
                  vpn_choice: VPNChoice,
+                 fabrid_enabled,
                  installation_type,
                  label,
                  is_ap,
@@ -165,6 +169,7 @@ def check_useras(testcase,
     testcase.assertEqual(user_as.owner, owner)
     testcase.assertEqual(user_as.label, label)
     testcase.assertEqual(user_as.installation_type, installation_type)
+    testcase.assertEqual(user_as.fabrid_enabled, fabrid_enabled)
     testcase.assertEqual(user_as.is_attachment_point(), is_ap)
     if is_ap:
         ap = user_as.attachment_point_info
@@ -251,6 +256,7 @@ def update_useras(testcase,
     user_as.update(
         label=kwargs.get('label', user_as.label),
         installation_type=kwargs.get('installation_type', user_as.installation_type),
+        fabrid_enabled=kwargs.get('fabrid_enabled', user_as.fabrid_enabled),
         public_ip=public_ip,
         wants_user_ap=wants_user_ap,
         wants_vpn=wants_vpn,
@@ -344,6 +350,7 @@ def _get_random_useras_params(seed, vpn_choice, **kwargs):
     kwargs.setdefault('installation_type', r.choice((UserAS.VM, UserAS.PKG, UserAS.SRC)))
     randstr = r.getrandbits(1024).to_bytes(1024 // 8, 'little').decode('utf8', 'ignore')
     kwargs.setdefault('label', randstr)
+    kwargs.setdefault('fabrid_enabled', bool(r.getrandbits(1)))
 
     return kwargs
 
