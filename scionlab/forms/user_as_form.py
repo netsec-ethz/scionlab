@@ -13,7 +13,7 @@
 # limitations under the License.
 from crispy_forms.bootstrap import AppendedText
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field, Column, Row, Div
+from crispy_forms.layout import Layout, Field, HTML, Column, Row, Div
 from django import forms
 from django.forms import modelformset_factory
 from django.core.exceptions import ValidationError
@@ -46,8 +46,21 @@ def _crispy_helper(instance):
             ),
             Div(
                 Row(
-                    Column('public_ip', css_class='col-md-5'),
-                    Column('provide_vpn', css_class='col-md-5'),
+                    Column('public_ip', css_class='col-md-6'),
+                    Column('provide_vpn', css_class='col-md-4'),
+                ),
+                Row(
+                    HTML("""<button type="button" class="btn btn-link bind-row-collapser collapsed"
+                                    aria-expanded="false" aria-controls="bind-row">
+                                Show binding options for NAT
+                                <i class="fa fa-plus-circle"></i>
+                                <i class="fa fa-minus-circle"></i>
+                            </button>""")
+                ),
+                Row(
+                    Column(AppendedText('bind_ip', '<span class="fa fa-external-link-square"/>'),
+                           css_class='col-md-6'),
+                    css_class="bind-row"
                 ),
                 css_class="card-body", css_id="user-ap-card-body",
             ),
@@ -104,6 +117,12 @@ class UserASForm(forms.Form):
         label="Public IP",
         help_text="Public IP Address to be used for connections to child ASes"
     )
+    bind_ip = forms.GenericIPAddressField(
+        required=False,
+        label="Bind IP address",
+        help_text="(Optional) Specify the local IP "
+                  "if your border router is behind a NAT/firewall etc.",
+    )
     provide_vpn = forms.BooleanField(
         required=False,
         label="Provide VPN",
@@ -144,6 +163,7 @@ class UserASForm(forms.Form):
                 'label': self.instance.label,
                 'installation_type': self.instance.installation_type,
                 'public_ip': host.public_ip,
+                'bind_ip': host.bind_ip,
                 'become_user_ap': is_ap,
                 'provide_vpn': has_vpn
             })
@@ -193,6 +213,7 @@ class UserASForm(forms.Form):
                 installation_type=self.cleaned_data['installation_type'],
                 label=self.cleaned_data['label'],
                 public_ip=self.cleaned_data['public_ip'],
+                bind_ip=self.cleaned_data['bind_ip'],
                 wants_user_ap=self.cleaned_data['become_user_ap'],
                 wants_vpn=self.cleaned_data['provide_vpn'],
             )
@@ -203,6 +224,7 @@ class UserASForm(forms.Form):
                 installation_type=self.cleaned_data['installation_type'],
                 label=self.cleaned_data['label'],
                 public_ip=self.cleaned_data['public_ip'],
+                bind_ip=self.cleaned_data['bind_ip'],
                 wants_user_ap=self.cleaned_data['become_user_ap'],
                 wants_vpn=self.cleaned_data['provide_vpn'],
             )
