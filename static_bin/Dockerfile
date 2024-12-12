@@ -1,7 +1,7 @@
 FROM golang:1.21-bookworm
 
 # netsec-ethz/scion, last biweekly update on 2024/11/26
-ARG scion_commit=58c41c52c4656ef3c432eceaa36ab3237e12dbd2
+ARG scion_commit=3b4ddc53e94d4ff0dd8ec8f3e8f1db6547d881bd
 
 RUN mkdir /scion
 WORKDIR /scion
