@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   db:
     # Latest postgres docker image uses the new Debian bookworm and it is incompatible with some
