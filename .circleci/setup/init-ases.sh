@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+docker-compose exec useras4 /bin/bash -c 'enable-fabrid-sciond.sh'
+docker-compose exec as1301 /bin/bash -c 'enable-fabrid-sciond.sh'
+
 for c in $(docker-compose ps --services | egrep -x '(user)?as[0-9]+'); do
   docker-compose exec -T "$c" /bin/bash -c 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
 done
-
-docker-compose exec -T useras4 /bin/bash -c 'enable-fabrid-sciond.sh'
-docker-compose exec -T as1301 /bin/bash -c 'enable-fabrid-sciond.sh'
