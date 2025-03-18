@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2020 ETH Zurich
+# Copyright 2024 ETH Zurich
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-docker-compose exec useras4 /bin/bash -c 'enable-fabrid-sciond.sh'
-docker-compose exec as1301 /bin/bash -c 'enable-fabrid-sciond.sh'
 
-for c in $(docker-compose ps --services | egrep -x '(user)?as[0-9]+'); do
-  docker-compose exec -T "$c" /bin/bash -c 'scionlab-config --host-id ${SCIONLAB_HOST_ID} --host-secret ${SCIONLAB_HOST_SECRET} --url http://coord:8000'
-done
+file_path="/etc/scion/sciond.toml"
+search="[drkey_level2_db]"
+new_entry=$'[drkey_level2_db]\nconnection = "/var/lib/scion/sd.drkey.db"'
+
+# Check if the file exists
+if [ -f "$file_path" ]; then
+  # Check if the file contains the text
+  if ! grep -Fxq "$search" "$file_path"; then
+    # Add the text if it's not present
+    echo "$new_entry" >> "$file_path"
+  fi
+fi

@@ -53,6 +53,15 @@ def _crispy_helper(instance):
             ),
             css_class="card",
         ),
+        Div(
+            Div(
+                Row(
+                    'enable_fabrid',
+                ),
+                css_class="card-header",
+            ),
+            css_class="card",
+        ),
     )
 
     # We need this to render the UserASForm along with the AttachmentConfForm
@@ -109,6 +118,11 @@ class UserASForm(forms.Form):
         label="Provide VPN",
         help_text="Allow Users to connect to your AP via VPN"
     )
+    enable_fabrid = forms.BooleanField(
+        required=False,
+        label="FABRID",
+        help_text="Enable FABRID support for this AS.",
+    )
 
     def _get_attachment_conf_form_set(self, data, instance: UserAS):
         """
@@ -145,7 +159,8 @@ class UserASForm(forms.Form):
                 'installation_type': self.instance.installation_type,
                 'public_ip': host.public_ip,
                 'become_user_ap': is_ap,
-                'provide_vpn': has_vpn
+                'provide_vpn': has_vpn,
+                'enable_fabrid': self.instance.fabrid_enabled,
             })
         self.helper = _crispy_helper(self.instance)
         super().__init__(data, *args, initial=initial, **kwargs)
@@ -195,6 +210,7 @@ class UserASForm(forms.Form):
                 public_ip=self.cleaned_data['public_ip'],
                 wants_user_ap=self.cleaned_data['become_user_ap'],
                 wants_vpn=self.cleaned_data['provide_vpn'],
+                fabrid_enabled=self.cleaned_data['enable_fabrid'],
             )
             self.attachment_conf_form_set.save(user_as)
             return user_as
@@ -205,6 +221,7 @@ class UserASForm(forms.Form):
                 public_ip=self.cleaned_data['public_ip'],
                 wants_user_ap=self.cleaned_data['become_user_ap'],
                 wants_vpn=self.cleaned_data['provide_vpn'],
+                fabrid_enabled=self.cleaned_data['enable_fabrid'],
             )
             self.attachment_conf_form_set.save(self.instance)
             return self.instance

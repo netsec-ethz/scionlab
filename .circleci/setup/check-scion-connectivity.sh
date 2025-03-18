@@ -29,3 +29,5 @@ for c in $containers; do
   docker-compose exec -T --user user "$c" ping-all.sh
 done
 
+docker-compose exec -T --user user useras4 chronic scion ping -c 1 "19-ffaa:0:1301,127.0.0.1" --fabridquery "0-0#0,0@0"
+docker-compose exec -T --user user as1301 chronic scion ping -c 1 "20-ffaa:1:4,127.0.0.1" --fabridquery "0-0#0,0@0"

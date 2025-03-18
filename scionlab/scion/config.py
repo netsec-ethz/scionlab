@@ -161,7 +161,8 @@ class _ConfigGeneratorSystemd(_ConfigGeneratorBase):
         super().__init__(*args, **kwargs)
 
     def generate(self):
-        config_builder = _ConfigBuilder(config_dir=SCION_CONFIG_DIR,
+        config_builder = _ConfigBuilder(topo_info=self.topo_info,
+                                        config_dir=SCION_CONFIG_DIR,
                                         var_dir=SCION_VAR_DIR)
         self._write_as_config(config_builder)
         # dispatcher and sciond config file is installed with the package
@@ -185,7 +186,8 @@ class _ConfigGeneratorSupervisord(_ConfigGeneratorBase):
 
     def generate(self):
         # build AS service config into gen/AS<AS_ID>
-        config_builder = _ConfigBuilder(config_dir=self._as_dir(),
+        config_builder = _ConfigBuilder(topo_info=self.topo_info,
+                                        config_dir=self._as_dir(),
                                         var_dir=GEN_CACHE)
         self._write_as_config(config_builder)
 
@@ -257,7 +259,8 @@ class _ConfigBuilder:
     Helper object for `_ConfigGenerator`
     Builds the *.toml-configuration for the SCION services.
     """
-    def __init__(self, config_dir, var_dir):
+    def __init__(self, topo_info, config_dir, var_dir):
+        self.topo_info = topo_info
         self.config_dir = config_dir
         self.var_dir = var_dir
 
@@ -281,6 +284,13 @@ class _ConfigBuilder:
         logging_conf = self._build_logging_conf(router.instance_name)
         metrics_conf = self._build_metrics_conf(router.metrics_port)
         conf = _chain_dicts(general_conf, logging_conf, metrics_conf)
+        if self.topo_info.AS.fabrid_enabled:
+            conf.update({
+                'router': {
+                    'drkey': ['FABRID'],
+                    'fabrid': True,
+                }
+            })
         return conf
 
     def build_cs_conf(self, service):
@@ -315,6 +325,26 @@ class _ConfigBuilder:
                     'mode': 'in-process',
                 },
             })
+        if service.AS.fabrid_enabled:
+            conf.update({
+                'fabrid': {
+                    'enabled': True,
+                    'path': os.path.join(self.config_dir, 'fabrid-policies'),
+                },
+                'drkey': {
+                    'level1_db': {
+                        'connection': '%s.drkey-level1.db' % os.path.join(self.var_dir,
+                                                                          service.instance_name),
+                    },
+                    'secret_value_db': {
+                        'connection': '%s.drkey-secret.db' % os.path.join(self.var_dir,
+                                                                          service.instance_name),
+                    },
+                    'delegation': {
+                        'FABRID': [router.host.internal_ip for router in self.topo_info.routers],
+                    },
+                },
+            })
 
         return conf
 
@@ -336,6 +366,13 @@ class _ConfigBuilder:
                 'connection': '%s.trust.db' % os.path.join(self.var_dir, instance_name),
             },
         })
+        if self.topo_info.AS.fabrid_enabled:
+            conf.update({
+                'drkey_level2_db': {
+                    'connection': '%s.drkey-level2.db' % os.path.join(self.var_dir, instance_name),
+                },
+            })
+
         return conf
 
     def build_beacon_policy(self, service):
