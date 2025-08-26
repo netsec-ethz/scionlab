@@ -4,6 +4,12 @@
 {% block content_title %}Welcome to SCIONLab{% endblock %}
 
 {% block content %}
+
+<div class="alert alert-warning" style="background-color: #ffa726; color: #333; border-color: #ffa726;">
+  <strong>Note:</strong> SCIONLab is currently not accepting new user registrations as we are in the process of evaluating a successor to the existing system. In the meantime, the infrastructure will continue to operate with minimal resources on a best-effort basis. As a result, users may experience network connectivity issues due to ongoing changes within the infrastructure.
+  If you want to try out SCION, please refer to the <a href="https://docs.scion.org/en/latest/dev/run.html" target="_blank">Running SCION locally</a> for instructions on how to set up a local SCION network on your own machine or <a href="https://docs.scion.org/en/latest/tutorials/deploy.html" target="_blank">Deploying freestanding SCION</a> for more advanced setup.
+</div>
+
 <div class="row">
 <div class="col-md mb-5">
 <p class="lead">
@@ -17,17 +23,8 @@ Your ASes will actively participate in routing in the SCIONLab network and enabl
 {% if user.is_authenticated %}
   <a class="btn btn-outline-primary btn-lg" href="{% url 'user' %}">Manage My SCIONLab ASes</a>
 {% else %}
-  <a class="btn btn-primary btn-lg" href="{% url 'registration_form' %}">Join SCIONLab</a>
   <a class="btn btn-outline-secondary btn-lg" href="{% url 'login' %}">Login</a>
 {% endif %}
-<p class="mt-5">
-  If you are part of an organization committed to do research with SCION, and run the SCION AS uninterruptedly 24/7,
-  then you could join the SCIONLab infrastructure. You could also be eligible to obtain a free <a href="https://www.pcengines.ch/apu2.htm" target="_blank">PC Engines APU2</a> to run the services.
-  Get in contact, by filling in this form:
-</p>
-<a class="btn btn-outline-primary btn-lg" href="https://forms.gle/eZSfKhxnky2bwgFfA" target="_blank" rel="noreferrer">
-  <span class="fa fa-external-link d-none d-sm-inline"></span>
-  Request to Become an Infrastructure Node</a>
 </div>
 
 <div class="col-md">

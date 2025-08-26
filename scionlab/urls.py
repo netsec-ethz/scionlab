@@ -25,7 +25,6 @@ from scionlab.views.user_as_views import (
     UserASActivateView,
     UserASDetailView,
     UserASGetConfigView)
-from scionlab.views.registration_view import UserRegistrationView, UserRegistrationResendView
 from scionlab.views.api import GetHostConfig, PostHostDeployedConfigVersion, gone
 from scionlab.views.topology import topology_png, topology_json
 
@@ -39,17 +38,6 @@ urlpatterns = [
     # django.contrib.auth: auth views for logout, password reset/change
     path('', include('django.contrib.auth.urls')),
 
-    # django-registration patterns
-    path('registration/register/',
-         UserRegistrationView.as_view(),
-         name='registration_form'),
-    path('registration/resend',
-         UserRegistrationResendView.as_view(),
-         name='registration_resend'),
-    path('registration/confirm',
-         TemplateView.as_view(template_name='django_registration/registration_confirm.html'),
-         name='registration_confirm'),
-    path('registration/', include('django_registration.backends.activation.urls')),
 
     # user pages
     path('user/', login_required(UserASesView.as_view()), name='user'),
