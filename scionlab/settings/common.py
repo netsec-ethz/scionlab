@@ -23,7 +23,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 
 INSTALLED_APPS = [
     'scionlab',
-    'django_registration',  # used for two-step user account activation (Email verification)
     'snowpenguin.django.recaptcha2',  # used for human verification (no bot)
     'crispy_forms',
     'django.contrib.admin',
@@ -88,10 +87,6 @@ PASSWORD_HASHERS = [
 ]
 
 # ##### EXTENSIONS CONFIGURATION ##########################
-
-# django_registration
-ACCOUNT_ACTIVATION_DAYS = 14  # Allow a two-week time window for account activation after signup
-REGISTRATION_OPEN = True  # Accept new registrations
 
 # crispy_forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
