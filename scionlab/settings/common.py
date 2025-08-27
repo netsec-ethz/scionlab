@@ -88,6 +88,10 @@ PASSWORD_HASHERS = [
 
 # ##### EXTENSIONS CONFIGURATION ##########################
 
+# django_registration
+ACCOUNT_ACTIVATION_DAYS = 14  # Allow a two-week time window for account activation after signup
+REGISTRATION_OPEN = True  # Accept new registrations
+
 # crispy_forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
